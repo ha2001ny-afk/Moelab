@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تركيب الغشاء البلازمي</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.4vw,22px);font-weight:bold;text-align:center;line-height:1.3}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .zone{fill:#e0693a;font-size:23px;font-weight:bold;text-anchor:middle}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">شكل (1-7): تركيب الغشاء البلازمي في الخلية حقيقية النواة</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="gBil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8aee6"/><stop offset="0.5" stop-color="#dc9bdd"/><stop offset="1" stop-color="#e8aee6"/></linearGradient>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+let rs=11;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,cl=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+/* ---------- constants ---------- */
+const X0=190,X1=735,TY=240,BY=440,MY=340,TL=62,CHX=289;
+const HEAD={fill:'#a7acf0',stroke:'#4750b0','stroke-width':1.7};
+
+/* ---------- bilayer ---------- */
+el('rect',{x:X0-4,y:TY+8,width:X1-X0+8,height:BY-TY-16,fill:'url(#gBil)'});
+const tailG=G(view),headG=G(view);
+const lips=[];
+for(let l=0;l<2;l++)for(let i=0;i<22;i++){const hx=202+i*24.8;if(Math.abs(hx-CHX)<36)continue;
+  lips.push({hx,hy:l?BY:TY,sg:l?-1:1,i,l,ph:rnd()*6.28,ph2:rnd()*6.28,x:hx,y:l?BY:TY,
+    t1:el('polyline',{fill:'none',stroke:'#7a2f8f','stroke-width':1.7,'stroke-linecap':'round'},tailG),
+    t2:el('polyline',{fill:'none',stroke:'#7a2f8f','stroke-width':1.7,'stroke-linecap':'round'},tailG),
+    h:el('ellipse',{rx:10,ry:8.5,...HEAD},headG)});}
+
+/* ---------- channel protein ---------- */
+const chan=G(view);
+el('rect',{x:CHX-9,y:228,width:18,height:224,fill:'#f7f3fc'},chan);
+[[CHX-31,22],[CHX+9,22]].forEach(([x,w])=>{el('rect',{x,y:228,width:w,height:224,rx:10,fill:'#f28a3a',stroke:'#c2570c','stroke-width':2.4},chan);el('rect',{x:x+(w>0&&x<CHX?5:11),y:240,width:5,height:200,rx:2.5,fill:'#f9b878'},chan);});
+let chanDx=0;
+
+/* ---------- carrier proteins ---------- */
+const CAR=[{xc:420,dyn:1,off:0,k:0,base:-16},{xc:495,dyn:0,base:-22,ph:1},{xc:575,dyn:1,off:.5,k:1,base:16},{xc:655,dyn:0,base:20,ph:3}];
+CAR.forEach(c=>{c.g=G(view);el('ellipse',{rx:22,ry:112,fill:'#f28a3a',stroke:'#c2570c','stroke-width':2.4},c.g);el('ellipse',{cx:-5,rx:6,ry:92,fill:'#f9b878'},c.g);c.th=c.base;});
+
+/* ---------- molecules ---------- */
+function mol(parent){const g=G(parent);el('ellipse',{cx:-5,cy:-1.5,rx:8,ry:6,...HEAD},g);el('ellipse',{cx:5,cy:2,rx:8,ry:6,...HEAD},g);return g;}
+function Free(x0,y0,x1,y1){const o={x:x0+rnd()*(x1-x0),y:y0+rnd()*(y1-y0),vx:(rnd()-.5)*.6,vy:(rnd()-.5)*.6,r:rnd()*360,vr:(rnd()-.5)*.8,g:mol(view)};
+  o.upd=()=>{o.vx+=(rnd()-.5)*.1;o.vy+=(rnd()-.5)*.1;const s=Math.hypot(o.vx,o.vy);if(s>.55){o.vx*=.55/s;o.vy*=.55/s;}
+    o.x+=o.vx;o.y+=o.vy;if(o.x<x0||o.x>x1)o.vx=-o.vx;if(o.y<y0||o.y>y1)o.vy=-o.vy;o.x=cl(o.x,x0,x1);o.y=cl(o.y,y0,y1);o.r+=o.vr;
+    o.g.setAttribute('transform',`translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) rotate(${o.r.toFixed(1)})`);};return o;}
+const free=[];
+for(let i=0;i<11;i++)free.push(Free(200,100,730,212));
+const mTr=Free(390,118,570,200);free.push(mTr);
+for(let i=0;i<8;i++)free.push(Free(400,482,730,560));
+/* molecules passing through the channel */
+const pass=[0,1,2].map(i=>({off:i/3,g:mol(view)}));
+/* carried substance (black) */
+const dots=CAR.filter(c=>c.dyn).map(()=>{const g=G(view);el('circle',{r:7.5,fill:'#1a1a1a'},g);el('circle',{cx:-2.5,cy:-2.5,r:2.2,fill:'#777'},g);return g;});
+
+/* ---------- labels ---------- */
+const labs=[];
+function label(txt,cx,py,w,tfs){const h=34,g=G(view,{'pointer-events':'none'}),
+  lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},g));
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:17},g);el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
+  labs.push(()=>tfs.forEach((f,i)=>{const p=f(),a=lns[i];a.setAttribute('x1',p.sx!==undefined?p.sx:cx);a.setAttribute('y1',p.sy!==undefined?p.sy:py);a.setAttribute('x2',p[0].toFixed(1));a.setAttribute('y2',p[1].toFixed(1));}));}
+el('text',{class:'zone',x:795,y:110},view).textContent='خارج الخلية';
+el('text',{class:'zone',x:795,y:560},view).textContent='داخل الخلية';
+el('path',{d:'M742,236H754V444H742',fill:'none',stroke:'#333','stroke-width':2.5});
+const lipAt=(l,x)=>lips.filter(q=>q.l===l).reduce((a,b)=>Math.abs(b.hx-x)<Math.abs(a.hx-x)?b:a);
+const lHead=lipAt(0,226),lTail=lipAt(0,250),lPh=lipAt(0,698);
+const tailEnd=q=>[q.x+4,q.y+q.sg*(9+TL)];
+const carPt=(c,lx,ly)=>{const a=c.th*PI/180;return[c.xc+lx*Math.cos(a)-ly*Math.sin(a),MY+lx*Math.sin(a)+ly*Math.cos(a)];};
+label('طرف آلف للماء',95,150,160,[()=>[lHead.x-6,lHead.y-4]]);
+label('طرف نافر للماء',95,270,160,[()=>tailEnd(lTail)]);
+label('مواد منقولة',480,66,140,[()=>[mTr.x,mTr.y-8]]);
+label('جزيئة شحوم مفسفرة',780,185,190,[()=>[lPh.x+4,lPh.y-8]]);
+label('الغشاء البلازمي',826,340,120,[()=>[756,340]]);
+label('قناة ناقلة',190,570,130,[()=>[CHX-20+chanDx,420]]);
+label('ثقب',335,570,80,[()=>[CHX+chanDx,440]]);
+label('بروتينات ناقلة',575,612,160,[()=>carPt(CAR[0],0,70),()=>carPt(CAR[2],0,70)]);
+
+/* ---------- animation ---------- */
+let T=0,last=performance.now(),paused=false;
+const CYC=9;
+function carrier(c,t){
+  if(!c.dyn){c.th=c.base+3*Math.sin(t*.8+c.ph);return null;}
+  const v=t/CYC+c.off,s=v-Math.floor(v),cyc=Math.floor(v);
+  let th,dot={x:0,y:0,o:0};
+  if(s<.35)th=-16;else if(s<.65)th=-16+32*ease((s-.35)/.3);else if(s<.70)th=16;else if(s<.95)th=16-32*ease((s-.7)/.25);else th=-16;
+  c.th=th;
+  const ox=55*Math.sin(cyc*2.7+c.k*1.9),ix=70*Math.sin(cyc*1.9+c.k*3.1);
+  const site=(ly,thd)=>{const a=thd*PI/180;return[c.xc+8*Math.cos(a)-ly*Math.sin(a),MY+8*Math.sin(a)+ly*Math.cos(a)];};
+  if(s<.30){const u=ease(s/.30),p=site(-84,-16);dot={x:lerp(c.xc+ox,p[0],u),y:lerp(112,p[1],u),o:Math.min(1,s/.05)};}
+  else if(s<.35){const p=site(-84,-16);dot={x:p[0],y:p[1],o:1};}
+  else if(s<.65){const u=ease((s-.35)/.3),p=site(lerp(-84,84,u),th);dot={x:p[0],y:p[1],o:1};}
+  else if(s<.70){const p=site(84,16);dot={x:p[0],y:p[1],o:1};}
+  else if(s<.95){const u=ease((s-.7)/.25),p=site(84,16);dot={x:lerp(p[0],c.xc+ix,u),y:lerp(p[1],535,u),o:s<.9?1:(.95-s)/.05};}
+  return dot;
+}
+function frame(ms){
+  const dt=Math.min(.05,(ms-last)/1000);last=ms;if(!paused)T+=dt;const t=T;
+  chanDx=1.5*Math.sin(t*.7);chan.setAttribute('transform',`translate(${chanDx.toFixed(2)} 0)`);
+  let di=0;
+  CAR.forEach(c=>{const d=carrier(c,t);c.g.setAttribute('transform',`translate(${c.xc} ${MY}) rotate(${c.th.toFixed(2)})`);
+    if(d){const g=dots[di++];g.setAttribute('transform',`translate(${d.x.toFixed(1)} ${d.y.toFixed(1)})`);g.setAttribute('opacity',d.o.toFixed(2));}});
+  /* phospholipids (pushed aside by the proteins) */
+  lips.forEach(q=>{
+    let x=q.hx+2.5*Math.sin(t*.6+q.ph);const y=q.hy+1.8*Math.sin(t*.9+q.ph2);
+    CAR.forEach(c=>{const a=c.th*PI/180,hw=22/Math.cos(a),d=x-(c.xc-(y-MY)*Math.tan(a)),R=hw+13;if(Math.abs(d)<R)x+=Math.sign(d||1)*(R-Math.abs(d))*.85;});
+    q.x=x;q.y=y;q.h.setAttribute('cx',x.toFixed(1));q.h.setAttribute('cy',y.toFixed(1));
+    [[q.t1,-4],[q.t2,4]].forEach(([tl,dx])=>{const p=[];for(let s=0;s<=1.01;s+=1/6){p.push((x+dx+3.5*Math.sin(7*s-2.2*t+q.ph+dx)*s).toFixed(1)+','+(y+q.sg*(9+TL*s)).toFixed(1));}tl.setAttribute('points',p.join(' '));});
+  });
+  /* free molecules */
+  if(!paused)free.forEach(o=>o.upd());
+  /* molecules crossing the channel */
+  pass.forEach(p=>{const v=t/11+p.off,u=v-Math.floor(v),cyc=Math.floor(v),x0=CHX+70*Math.sin(cyc*2.3+p.off*9),x1=CHX+60*Math.sin(cyc*1.7+p.off*5+1);
+    let x,y,r,o=1;
+    if(u<.25){const k=ease(u/.25);x=lerp(x0,CHX,k);y=lerp(95,205,k);r=lerp(0,90,k);}
+    else if(u<.6){const k=(u-.25)/.35;x=CHX;y=lerp(205,455,k);r=90;}
+    else{const k=ease((u-.6)/.4);x=lerp(CHX,x1,k);y=lerp(455,535,k);r=lerp(90,200,k);}
+    o=Math.min(1,u/.06,(1-u)/.06);x+=3*Math.sin(t*3+p.off*20)*(u<.25||u>.6?1:0);
+    p.g.setAttribute('transform',`translate(${(x+chanDx*(u>.25&&u<.6?1:0)).toFixed(1)} ${y.toFixed(1)}) rotate(${r.toFixed(1)})`);p.g.setAttribute('opacity',o.toFixed(2));});
+  labs.forEach(f=>f());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:350});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:350});
+document.getElementById('zreset').onclick=reset;
+
+/* ---------- fullscreen ---------- */
+const fsBtn=document.getElementById('fs'),de=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{
+  const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;
+    if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+    setFs(true);
+  }else{
+    if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}
+    setFs(false);
+  }
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+})();
+</script>
+</body>
+</html>
