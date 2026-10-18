@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>النقل النشط أو الفعال</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.6vw,22px);font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:radial-gradient(circle at 50% 45%,#fff 0%,#e3f0f8 100%)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  #dots{display:flex;gap:14px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+  .bt{fill:#fff;font-weight:bold;font-size:23px;text-anchor:middle;dominant-baseline:central}
+  .zone{fill:#3d4a78;font-size:19px;font-weight:bold;text-anchor:middle;paint-order:stroke;stroke:#d3d9ee;stroke-width:4px}
+  .cap{fill:#1f3a52;font-size:21px;font-weight:bold;text-anchor:middle}
+  #bn{transition:fill .5s}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">النقل النشط او الفعال (Active Transport)</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="gPanel" gradientUnits="userSpaceOnUse" x1="0" y1="92" x2="0" y2="670"><stop offset="0" stop-color="#dde3f3"/><stop offset="1" stop-color="#c0c9e3"/></linearGradient>
+        <radialGradient id="gIon" cx="35%" cy="32%" r="75%"><stop offset="0" stop-color="#f4f6fd"/><stop offset="1" stop-color="#9fadd6"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#fff6a8" stop-opacity="1"/><stop offset="1" stop-color="#ffd23a" stop-opacity="0"/></radialGradient>
+        <marker id="rd" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0432a"/></marker>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1);
+let rs=9;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+
+const SX=450,MY=340,TOPH=272,BOTH=408,TL=56;
+const STG=[['ارتباط الأيون بالبروتين الحامل','#2e8b57'],['صرف الطاقة (ATP)','#e0902a'],['تغير شكل البروتين الحامل وانفصال الأيون داخل السايتوبلازم','#2f6fd6'],['عودة البروتين الحامل إلى شكله الأول','#7b4bb3']];
+
+/* ---------------- background ---------------- */
+el('rect',{x:150,y:92,width:600,height:580,rx:16,fill:'url(#gPanel)',stroke:'#aab4d6','stroke-width':2});
+el('rect',{x:150,y:262,width:600,height:156,fill:'#eceff9','fill-opacity':.85});
+el('text',{class:'zone',x:450,y:122}).textContent='تركيز واطئ للايونات';
+el('text',{class:'zone',x:450,y:655}).textContent='تركيز اعلى للايونات';
+
+/* ---------------- membrane ---------------- */
+const tailG=G(view),headG=G(view),obs=[];
+const lips=[];
+for(let l=0;l<2;l++)for(let i=0;i<22;i++){lips.push({hx:182+i*25.2,hy:l?BOTH:TOPH,sg:l?-1:1,ph:rnd()*6.28,ph2:rnd()*6.28,
+  t1:el('polyline',{fill:'none',stroke:'#8f8f9c','stroke-width':1.5,'stroke-linecap':'round'},tailG),t2:el('polyline',{fill:'none',stroke:'#8f8f9c','stroke-width':1.5,'stroke-linecap':'round'},tailG),
+  h:el('circle',{r:9.5,fill:'#f4d94c',stroke:'#c4a216','stroke-width':1.6},headG)});}
+const pocket=el('polygon',{fill:'url(#gPanel)'});
+const carG=G(view);
+const dotsTex=[[-8,-48],[7,-30],[-6,-8],[8,10],[-5,32],[7,52],[-2,-66],[3,68]];
+function sub(cx,th0,sway,ph){const g=G(carG);el('ellipse',{rx:22,ry:84,fill:'#f2a560',stroke:'#c87a30','stroke-width':2.4},g);
+  dotsTex.forEach(d=>el('ellipse',{cx:d[0],cy:d[1],rx:3.4,ry:2.6,fill:'#f9cf9a'},g));
+  const o={cx,th:th0,th0,sway,ph,g,main:false};obs.push(o);return o;}
+const sA=[sub(242,-16,2,0),sub(288,16,2,1)],sB=[sub(622,16,2,2),sub(668,-16,2,3)],beans=[sub(350,-6,2.5,4),sub(550,7,2.5,5)];
+const mL=sub(SX-23,-16,0,0),mR=sub(SX+23,16,0,0);mL.main=mR.main=true;
+
+/* ---------------- ions ---------------- */
+const ionG=G(view),OUT={x0:188,x1:712,y0:108,y1:246},IN={x0:188,x1:712,y0:438,y1:642};
+function mk(parent,big){return big?el('circle',{r:15,fill:'url(#gIon)',stroke:'#7b88b8','stroke-width':1.5},parent):el('circle',{r:5,fill:'#7ea2ee',stroke:'#4a6fc8','stroke-width':.8},parent);}
+function Ion(R,big){const r=big?15:5;let x,y,ok;for(let k=0;k<60;k++){x=R.x0+rnd()*(R.x1-R.x0);y=R.y0+rnd()*(R.y1-R.y0);ok=true;for(const q of pop)if(q.big&&big&&Math.hypot(q.x-x,q.y-y)<32)ok=false;if(ok)break;}
+  return{x,y,vx:(rnd()-.5)*.8,vy:(rnd()-.5)*.8,r,big,R,exit:0,e:mk(ionG,big)};}
+const pop=[];
+for(let i=0;i<5;i++)pop.push(Ion(OUT,true));for(let i=0;i<8;i++)pop.push(Ion(OUT,false));
+for(let i=0;i<17;i++)pop.push(Ion(IN,true));for(let i=0;i<16;i++)pop.push(Ion(IN,false));
+const outBig=pop[0];
+function releaseIon(){const e=mk(ionG,true);const q={x:SX,y:398,vx:0,vy:0,r:15,big:true,R:IN,exit:1,e};pop.push(q);
+  const ins=pop.filter(p=>p.R===IN&&p.big&&!p.exit);if(ins.length>20){const d=ins[0];d.e.remove();pop.splice(pop.indexOf(d),1);}}
+/* main (transported) ion */
+const mainIon=mk(ionG,true);
+/* ---------------- arrows, energy ---------------- */
+const arr1=el('path',{d:'M450,200V256',fill:'none',stroke:'#e0432a','stroke-width':9,'stroke-linecap':'round','marker-end':'url(#rd)'});
+const arr2=el('path',{d:'M450,436V486',fill:'none',stroke:'#e0432a','stroke-width':9,'stroke-linecap':'round','marker-end':'url(#rd)'});
+const arrE=el('path',{d:'M318,262C330,190 410,176 446,248',fill:'none',stroke:'#e0432a','stroke-width':9,'stroke-linecap':'round','stroke-dasharray':'18 9','marker-end':'url(#rd)'});
+const burst=G(view);
+el('circle',{r:62,fill:'url(#gGlow)'},burst);
+const star=el('polygon',{fill:'#ffd93d',stroke:'#f0a020','stroke-width':2.5,'stroke-linejoin':'round'},burst);
+el('text',{x:0,y:-4,style:'fill:#a8431b;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central'},burst).textContent='طاقة';
+el('text',{x:0,y:15,style:'fill:#a8431b;font-size:12px;font-weight:bold;text-anchor:middle;dominant-baseline:central'},burst).textContent='ATP';
+burst.setAttribute('transform','translate(380 205)');
+
+/* ---------------- labels ---------------- */
+const labG=G(view,{'pointer-events':'none'});
+function label(txt,side,py,w,tf){const h=36,cx=side==='L'?10+w/2:890-w/2,g=G(labG),ln=el('line',{class:'ln','marker-end':'url(#ah)'},g);
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:18},g);el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
+  return()=>{const p=tf();ln.setAttribute('x1',cx);ln.setAttribute('y1',py);ln.setAttribute('x2',f1(p[0]));ln.setAttribute('y2',f1(p[1]));};}
+const labs=[label('ايونات','L',170,110,()=>[outBig.x-8,outBig.y-8]),label('بروتين حامل','R',225,150,()=>[mR.cx+8,292])];
+
+/* banner + caption */
+const bn=el('rect',{id:'bn',x:100,y:18,width:700,height:58,rx:20,fill:'#2e8b57'}),bt=el('text',{class:'bt',x:450,y:47});
+el('text',{class:'cap',x:450,y:702}).textContent='شكل (1-20): خطوات عملية النقل الفعال';
+
+/* ---------------- state / timeline ---------------- */
+const S={s:0,entry:0,a:0,hidden:false,released:false,E:0,a1:0,a2:0,spawn:540};
+let stage=0,T=0,t0=0,last=performance.now(),paused=false;
+function step(dt){
+  const u=T-t0;let tgtE=0,tgt1=0,tgt2=0;
+  if(stage===0){S.s=lerp(S.entry,0,ease(clamp(u/1.2,0,1)));S.a=ease(clamp((u-.2)/2.3,0,1));tgt1=S.a>.97?1:0;}
+  else if(stage===1){S.a=1;S.s=lerp(S.entry,.5,ease(clamp((u-1.2)/2.3,0,1)));tgtE=u<3.4?1:0;}
+  else if(stage===2){S.a=1;S.s=lerp(S.entry,1,ease(clamp(u/2.6,0,1)));if(S.s>.995&&!S.released){S.released=true;S.hidden=true;releaseIon();}tgt2=S.released?1:0;}
+  else{S.s=lerp(S.entry,0,ease(clamp(u/2.6,0,1)));tgt2=u<2?1:0;}
+  S.E+=(tgtE-S.E)*(1-Math.exp(-5*dt));S.a1+=(tgt1-S.a1)*(1-Math.exp(-6*dt));S.a2+=(tgt2-S.a2)*(1-Math.exp(-6*dt));
+}
+
+/* ---------------- render ---------------- */
+function render(t,dt){
+  const dtf=dt*60;
+  /* carriers */
+  const th=lerp(-16,16,S.s);mL.th=th;mR.th=-th;
+  obs.forEach(o=>{if(!o.main)o.th=o.th0+o.sway*Math.sin(t*.7+o.ph);o.g.setAttribute('transform',`translate(${o.cx} ${MY}) rotate(${o.th.toFixed(2)})`);});
+  const wp=(o,x,y)=>{const a=o.th*PI/180;return[o.cx+x*Math.cos(a)-y*Math.sin(a),MY+x*Math.sin(a)+y*Math.cos(a)];};
+  const q=[wp(mL,19,-78),wp(mR,-19,-78),wp(mR,-19,78),wp(mL,19,78)];
+  pocket.setAttribute('points',q.map(p=>f1(p[0])+','+f1(p[1])).join(' '));
+  /* phospholipids */
+  lips.forEach(p=>{let x=p.hx+2.2*Math.sin(t*.6+p.ph);const y=p.hy+1.6*Math.sin(t*.9+p.ph2);
+    obs.forEach(o=>{const a=o.th*PI/180,hw=22/Math.cos(a),d=x-(o.cx-(y-MY)*Math.tan(a)),R=hw+12;if(Math.abs(d)<R)x+=Math.sign(d||1)*(R-Math.abs(d))*.85;});
+    p.h.setAttribute('cx',f1(x));p.h.setAttribute('cy',f1(y));
+    [[p.t1,-4],[p.t2,4]].forEach(([tl,dx])=>{const pts=[];for(let s=0;s<=1.01;s+=1/6)pts.push((x+dx+3*Math.sin(7*s-2.2*t+p.ph+dx)*s).toFixed(1)+','+(y+p.sg*(9.5+TL*s)).toFixed(1));tl.setAttribute('points',pts.join(' '));});});
+  /* ions */
+  pop.forEach(p=>{
+    if(p.exit&&dt>0){p.y+=70*dt;p.x=SX+(p.x-SX)*.9;if(p.y>=IN.y0+8){p.exit=0;p.vy=.4;}}
+    else if(dt>0){p.vx+=(rnd()-.5)*.14;p.vy+=(rnd()-.5)*.14;const s=Math.hypot(p.vx,p.vy),m=p.big?.55:.8;if(s>m){p.vx*=m/s;p.vy*=m/s;}
+      let nx=p.x+p.vx*dtf,ny=p.y+p.vy*dtf;if(nx<p.R.x0+p.r||nx>p.R.x1-p.r){p.vx=-p.vx;nx=p.x;}if(ny<p.R.y0+p.r||ny>p.R.y1-p.r){p.vy=-p.vy;ny=p.y;}p.x=nx;p.y=ny;}
+    p.e.setAttribute('cx',f1(p.x));p.e.setAttribute('cy',f1(p.y));});
+  /* keep big ions from overlapping */
+  const big=pop.filter(p=>p.big&&!p.exit);for(let i=0;i<big.length;i++)for(let j=i+1;j<big.length;j++){const a=big[i],b=big[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+    if(d<31&&d>.01&&a.R===b.R){const k=(31-d)/2/d;a.x-=dx*k;a.y-=dy*k;b.x+=dx*k;b.y+=dy*k;}}
+  /* main ion follows the carrier pocket */
+  const bx=SX,by=290+100*clamp(S.s,0,1),spx=S.spawn,spy=150;
+  const x=lerp(spx,bx,S.a)+(S.a<1?6*Math.sin(t*3):1.5*Math.sin(t*5)),y=lerp(spy,by,S.a)+(S.a<1?5*Math.cos(t*2.6):0);
+  const occl=S.s>.3&&S.s<.7&&S.a>=1;
+  mainIon.setAttribute('cx',f1(x));mainIon.setAttribute('cy',f1(y));mainIon.setAttribute('opacity',S.hidden?0:Math.min(1,S.a*4)*(occl?.55:1));
+  /* arrows + energy */
+  arr1.setAttribute('opacity',S.a1.toFixed(2));arr2.setAttribute('opacity',S.a2.toFixed(2));
+  arrE.setAttribute('opacity',S.E.toFixed(2));arrE.setAttribute('stroke-dashoffset',f1(-t*30));
+  const sc=S.E*(1+.08*Math.sin(t*8));burst.setAttribute('transform',`translate(380 205) scale(${Math.max(.001,sc).toFixed(3)}) rotate(${f1(t*20)})`);
+  burst.setAttribute('opacity',S.E.toFixed(2));
+  let sp='';for(let i=0;i<16;i++){const a=2*PI*i/16,r=i%2?24:40+5*Math.sin(t*9+i);sp+=f1(r*Math.cos(a))+','+f1(r*Math.sin(a))+' ';}star.setAttribute('points',sp);
+  labs.forEach(f=>f());
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step(dt);render(T,dt);requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+STG.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){bn.style.fill=STG[stage][1];bt.textContent=STG[stage][0];[...dotsEl.children].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+STG.length)%STG.length;
+  S.entry=S.s;stage=i;t0=T;
+  if(i===0){S.hidden=false;S.released=false;S.a=0;S.spawn=400+rnd()*150;}
+  else if(i===1||i===2){S.hidden=false;S.released=false;if(S.a<1)S.a=1;}
+  else{if(!S.released){S.released=true;releaseIon();}S.hidden=true;}
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:370});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+S.spawn=470;go(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
