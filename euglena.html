@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الانشطار الطولي في اليوغلينا</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;gap:12px;background:#1f3a52}
+  #title{color:#fff;font-size:clamp(14px,3.6vw,22px);font-weight:bold}
+  #badge{min-width:34px;height:34px;border-radius:50%;background:#fff;color:#1f3a52;font-size:20px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:opacity .3s}
+  #stage{position:absolute;top:56px;bottom:40px;left:0;right:0;background:radial-gradient(circle at 50% 45%,#f6fcff 0%,#cfe8f3 100%)}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab;transition:opacity .3s}
+  #credit{position:absolute;left:0;right:0;bottom:0;height:40px;display:flex;align-items:center;justify-content:center;background:#1f3a52;color:#fff;font-size:17px;font-weight:bold}
+  #ctrl{position:absolute;bottom:12px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+  #ctrl>*{pointer-events:auto}
+  .nav{width:60px;height:60px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:15px;height:15px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .pill{fill:#fff;stroke:#c4623a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#c4623a;stroke-width:2.2;fill:none}
+  .td{fill:#c4623a;stroke:#fff;stroke-width:1.5}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">الانقسام أو الانشطار الطولي في اليوغلينا</div><div id="badge"></div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button></div>
+  <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="gCell" cx="40%" cy="42%" r="75%"><stop offset="0" stop-color="#b4e27a"/><stop offset="0.65" stop-color="#7cc24a"/><stop offset="1" stop-color="#57a53a"/></radialGradient>
+      <radialGradient id="gNuc" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#b48ae0"/><stop offset="1" stop-color="#70429f"/></radialGradient>
+    </defs>
+    <g id="view"></g>
+  </svg>
+  <div id="ctrl">
+    <button class="nav" id="prev">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next">◀</button>
+  </div>
+</div>
+<div id="credit">إعداد المهندس محمد حسن</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg", BY=560, PI=Math.PI;
+const svg=document.getElementById('svg'), view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+
+/* ---------- stages (1,2,3 as in the figure) ---------- */
+const S=[
+ {th:0, L:300,W:105,sep:0,ox:0, nr:24,nk:0,co:0,fl:[190,0]},
+ {th:5, L:252,W:122,sep:0,ox:10,nr:20,nk:0,co:1,fl:[190,160]},
+ {th:12,L:255,W:124,sep:0,ox:22,nr:17,nk:6,co:1,fl:[190,190]},
+ {th:30,L:285,W:104,sep:6,ox:0, nr:23,nk:0,co:0,fl:[190,190]}
+];
+const lerp=(a,b,e)=>{if(typeof a==='number')return a+(b-a)*e;if(Array.isArray(a))return a.map((v,i)=>lerp(v,b[i],e));const o={};for(const k in a)o[k]=lerp(a[k],b[k],e);return o;};
+let cur=lerp(S[0],S[0],0),from=cur,to=S[0],t0=-1e9,idx=0;
+const DUR=2800, ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+
+/* ---------- helpers ---------- */
+const NP=48, prof=[...Array(NP+1)].map((_,k)=>Math.pow(Math.sin(PI*Math.pow(k/NP,1.4)),.75));
+const wf=t=>Math.pow(Math.sin(PI*Math.pow(Math.min(1,Math.max(0,t)),1.4)),.75);
+function geo(s,i){const sg=i?1:-1,a=sg*s.th*PI/180;return{a,sg,px:450+sg*s.sep,py:BY,c:Math.cos(a),n:Math.sin(a)};}
+const W2=(g,s,x,u)=>{const ly=-u*s.L;return[g.px+x*g.c-ly*g.n,g.py+x*g.n+ly*g.c];};
+function flagPt(s,i,u,t){const g=geo(s,i),b=W2(g,s,0,.93),len=s.fl[i],lat=g.sg*.45*len*u*u+14*u*Math.sin(8*u-t*5+i*1.5);
+  return[b[0]+g.n*len*u+g.c*lat,b[1]-g.c*len*u+g.n*lat];}
+
+/* ---------- scene ---------- */
+const strokes=[0,1].map(()=>el('path',{fill:'#3d7a2a',stroke:'#3d7a2a','stroke-width':9,'stroke-linejoin':'round'},view));
+const fills=[0,1].map(()=>el('path',{fill:'url(#gCell)'},view));
+const lobes=[0,1].map(i=>{
+  const g=el('g',{},view);
+  const pel=[...Array(9)].map(()=>el('polyline',{fill:'none',stroke:'#3d7a2a','stroke-opacity':.5,'stroke-width':1.3},g));
+  const pat=[[-.42,.2,12,20,-17],[.4,.26,12,18,23],[-.44,.62,11,18,11],[.42,.7,12,17,-17],[.02,.12,10,12,0]].map(d=>({d,e:el('ellipse',{fill:'#3a8a2a','fill-opacity':.7},g)}));
+  const res=el('ellipse',{fill:'#17421a','fill-opacity':.92},g), eye=el('ellipse',{fill:'#d63a2a'},g);
+  const gr=[...Array(8)].map((_,k)=>({f:((k*37)%13)/13*1.4-.7,t:(k*.131+i*.07)%1,v:.012+((k*7)%5)*.004,e:el('circle',{r:3,fill:'#e6f5b8'},g)}));
+  return{g,pel,pat,res,eye,gr};
+});
+const nd1=[0,1].map(()=>el('circle',{fill:'#3b1f5c'},view));
+const nneck1=el('line',{stroke:'#3b1f5c','stroke-linecap':'round'},view);
+const nd2=[0,1].map(()=>el('circle',{fill:'url(#gNuc)'},view));
+const nneck2=el('line',{stroke:'#8a5cb8','stroke-linecap':'round'},view);
+const nol=[0,1].map(()=>el('circle',{fill:'#2a1240'},view));
+const rodOff=[[-8,-6],[7,-8],[-5,7],[9,6],[0,0]], rodAng=[.5,-.7,1.1,-.2,.9];
+const rods=[0,1].map(()=>rodOff.map(()=>el('line',{stroke:'#2a1240','stroke-width':2.6,'stroke-linecap':'round'},view)));
+const fl=[0,1].map(()=>el('polyline',{fill:'none',stroke:'#1c1c1c','stroke-width':3.4,'stroke-linecap':'round','stroke-linejoin':'round'},view));
+
+/* labels (from the figure): سوط، نواة، سايتوبلازم */
+const LB=[{s:'L',py:120,w:110,t:'سوط'},{s:'R',py:330,w:110,t:'نواة'},{s:'R',py:440,w:170,t:'سايتوبلازم'}];
+const lg=el('g',{'pointer-events':'none'},view);
+LB.forEach(l=>{
+  l.px=l.s==='L'?20+l.w:880-l.w;const cx=l.s==='L'?20+l.w/2:880-l.w/2;
+  l.g=el('g',{},lg);l.ln=el('line',{class:'ln',x1:l.px,y1:l.py},l.g);l.dt=el('circle',{class:'td',r:5},l.g);
+  el('rect',{class:'pill',x:cx-l.w/2,y:l.py-19,width:l.w,height:38,rx:19},l.g);
+  el('text',{class:'lbl',x:cx,y:l.py},l.g).textContent=l.t;
+});
+const setLn=(l,p)=>{l.ln.setAttribute('x2',p[0]);l.ln.setAttribute('y2',p[1]);l.dt.setAttribute('cx',p[0]);l.dt.setAttribute('cy',p[1]);};
+
+/* ---------- render ---------- */
+function nucCenter(s,i){const g=geo(s,i);return W2(g,s,g.sg*s.ox,.45);}
+function render(s,t){
+  for(let i=0;i<2;i++){
+    const g=geo(s,i),A=[],B=[];
+    for(let k=0;k<=NP;k++){const w=s.W/2*prof[k],u=k/NP;A.push(W2(g,s,w,u));B.push(W2(g,s,-w,u));}
+    const d='M'+A.concat(B.reverse()).map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')+'Z';
+    strokes[i].setAttribute('d',d);fills[i].setAttribute('d',d);
+    const o=lobes[i];o.g.setAttribute('transform',`translate(${g.px} ${g.py}) rotate(${(g.a*180/PI).toFixed(2)})`);
+    o.pel.forEach((p,j)=>{const u=.08+j*.1,w=s.W/2*wf(u)*.94,pts=[];
+      for(let m=0;m<=6;m++){const x=(m/3-1)*w;pts.push(x.toFixed(1)+','+(-u*s.L-8*(1-(w?x*x/(w*w):0))).toFixed(1));}
+      p.setAttribute('points',pts.join(' '));});
+    o.pat.forEach(q=>{const[f,u,rx,ry,rot]=q.d,x=f*s.W/2*wf(u),y=-u*s.L,k=s.W/105;
+      q.e.setAttribute('cx',x.toFixed(1));q.e.setAttribute('cy',y.toFixed(1));q.e.setAttribute('rx',rx*k);q.e.setAttribute('ry',ry*k);q.e.setAttribute('transform',`rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})`);});
+    o.res.setAttribute('cx',0);o.res.setAttribute('cy',-.87*s.L);o.res.setAttribute('rx',.15*s.W);o.res.setAttribute('ry',.1*s.L);
+    o.eye.setAttribute('cx',.2*s.W);o.eye.setAttribute('cy',-.83*s.L);o.eye.setAttribute('rx',4.5);o.eye.setAttribute('ry',3.5);
+    o.gr.forEach(q=>{const u=(q.t+q.v*t)%1;q.e.setAttribute('cx',(q.f*s.W/2*wf(u)).toFixed(1));q.e.setAttribute('cy',(-u*s.L).toFixed(1));q.e.setAttribute('opacity',Math.sin(PI*u).toFixed(2));});
+    /* flagellum */
+    const len=s.fl[i];fl[i].setAttribute('display',len<5?'none':'');
+    if(len>=5){const pts=[];for(let k=0;k<=40;k++){const p=flagPt(s,i,k/40,t);pts.push(p[0].toFixed(1)+','+p[1].toFixed(1));}fl[i].setAttribute('points',pts.join(' '));}
+  }
+  /* nuclei */
+  const nc=[nucCenter(s,0),nucCenter(s,1)];
+  nc.forEach((c,i)=>{
+    nd1[i].setAttribute('cx',c[0]);nd1[i].setAttribute('cy',c[1]);nd1[i].setAttribute('r',s.nr+2.5);
+    nd2[i].setAttribute('cx',c[0]);nd2[i].setAttribute('cy',c[1]);nd2[i].setAttribute('r',s.nr);
+    nol[i].setAttribute('cx',c[0]+.25*s.nr);nol[i].setAttribute('cy',c[1]-.2*s.nr);nol[i].setAttribute('r',.3*s.nr);nol[i].setAttribute('opacity',Math.max(0,1-s.co*1.6));
+    rods[i].forEach((r,k)=>{const k2=s.nr/24,cx=c[0]+rodOff[k][0]*k2,cy=c[1]+rodOff[k][1]*k2,h=(1.5+s.co*8)*k2,an=rodAng[k]+.15*Math.sin(t*1.5+k);
+      r.setAttribute('x1',cx-Math.cos(an)*h);r.setAttribute('y1',cy-Math.sin(an)*h);r.setAttribute('x2',cx+Math.cos(an)*h);r.setAttribute('y2',cy+Math.sin(an)*h);r.setAttribute('opacity',(.35+.65*s.co).toFixed(2));});
+  });
+  [[nneck1,s.nk+5],[nneck2,s.nk]].forEach(([n,w])=>{n.setAttribute('x1',nc[0][0]);n.setAttribute('y1',nc[0][1]);n.setAttribute('x2',nc[1][0]);n.setAttribute('y2',nc[1][1]);n.setAttribute('stroke-width',w);n.setAttribute('display',s.nk<.5?'none':'');});
+  /* labels */
+  setLn(LB[0],flagPt(s,0,.55,t));
+  setLn(LB[1],nc[1]);
+  setLn(LB[2],W2(geo(s,1),s,.12*s.W,.2));
+}
+function frame(ms){const t=ms/1000,k=Math.min(1,(ms-t0)/DUR);cur=lerp(from,to,ease(k));render(cur,t);requestAnimationFrame(frame);}
+
+/* ---------- navigation ---------- */
+const badge=document.getElementById('badge'),dotsEl=document.getElementById('dots'),dots=[];
+S.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.onclick=()=>go(i);dotsEl.appendChild(b);dots.push(b);});
+function setUI(i){badge.style.opacity=0;setTimeout(()=>{badge.textContent=i?i:'';badge.style.opacity=i?1:0;},150);dots.forEach((d,k)=>d.classList.toggle('on',k===i));}
+function go(i){
+  if(i<0||(i===idx&&t0>0))return;
+  if(i>=S.length){svg.style.opacity=0;setTimeout(()=>{idx=0;from=to=S[0];cur=lerp(S[0],S[0],0);t0=-1e9;setUI(0);svg.style.opacity=1;},320);return;}
+  from=cur;to=S[i];t0=performance.now();idx=i;setUI(i);
+}
+document.getElementById('next').onclick=()=>go(idx+1);
+document.getElementById('prev').onclick=()=>go(idx-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(idx+1);if(e.key==='ArrowRight')go(idx-1);});
+setUI(0);requestAnimationFrame(frame);
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prev=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prev.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prev.get(ids[0]),b0=prev.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:350});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:350});
+document.getElementById('zreset').onclick=reset;
+apply();
+})();
+</script>
+</body>
+</html>
