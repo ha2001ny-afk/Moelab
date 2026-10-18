@@ -1,1 +1,658 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>عملية الانتشار - شكل (1-17)</title>
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #ffffff;
+    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+  }
+  #top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: clamp(48px, 6vh, 56px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1f3a52;
+    padding: 0 12px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  #title {
+    color: #fff;
+    font-size: clamp(15px, 3.6vw, 22px);
+    font-weight: bold;
+    text-align: center;
+    transition: opacity .25s;
+  }
+  #stage {
+    position: absolute;
+    top: clamp(48px, 6vh, 56px);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: radial-gradient(circle at 50% 45%, #ffffff 0%, #f0f6fa 100%);
+  }
+  #cv {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: clamp(65px, 9vh, 84px);
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+  }
+  svg:active {
+    cursor: grabbing;
+  }
+  #ctrl {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: clamp(65px, 9vh, 84px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 10;
+  }
+  .nav {
+    width: clamp(48px, 6.5vw, 62px);
+    height: clamp(48px, 6.5vw, 62px);
+    border-radius: 50%;
+    border: 3px solid #1f3a52;
+    background: #fff;
+    color: #1f3a52;
+    font-size: clamp(20px, 3vw, 26px);
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s, background-color .2s;
+  }
+  .nav:active {
+    background: #d9ebf7;
+    transform: scale(0.92);
+  }
+  #dots {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #1f3a52;
+    background: #fff;
+    padding: 0;
+    cursor: pointer;
+    transition: all .3s;
+  }
+  .dot.on {
+    background: #c4623a;
+    border-color: #c4623a;
+    transform: scale(1.45);
+  }
+  .zb {
+    position: absolute;
+    top: 10px;
+    left: max(10px, env(safe-area-inset-left, 10px));
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 20;
+  }
+  .zb button {
+    width: clamp(38px, 5vw, 42px);
+    height: clamp(38px, 5vw, 42px);
+    border-radius: 50%;
+    border: 2px solid #1f3a52;
+    background: #fff;
+    color: #1f3a52;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s, background-color .2s;
+  }
+  .zb button:active {
+    background: #e2e8f0;
+    transform: scale(0.92);
+  }
+  body.fs #top { display: none; }
+  body.fs #stage { top: 0; }
+  .pill {
+    fill: #ffffff;
+    stroke: #e0552a;
+    stroke-width: 2.4;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+  }
+  .lbl-main {
+    fill: #a8431b;
+    font-size: 17px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .lbl-sub {
+    fill: #5a200e;
+    font-size: 15px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .ln {
+    stroke: #e0552a;
+    stroke-width: 2.2;
+    fill: none;
+  }
+  .td {
+    fill: #e0552a;
+    stroke: #ffffff;
+    stroke-width: 1.5;
+  }
+  .cap {
+    fill: #1f3a52;
+    font-size: 20px;
+    font-weight: bold;
+    text-anchor: middle;
+  }
+  .cap-sub {
+    fill: #5a738e;
+    font-size: 16px;
+    font-weight: normal;
+    text-anchor: middle;
+  }
 
+  @media (orientation: portrait) and (max-width: 768px) {
+    .zb { flex-direction: row; }
+    .lbl-main { font-size: 14.5px; }
+    .lbl-sub { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div id="top"><div id="title">عملية الانتشار - شكل (1-17)</div></div>
+<div id="stage">
+  <div class="zb">
+    <button id="zin" title="تكبير">+</button>
+    <button id="zout" title="تصغير">−</button>
+    <button id="zreset" title="إعادة ضبط">⟲</button>
+    <button id="pause" title="إيقاف مؤقت">⏸</button>
+    <button id="fs" title="ملء الشاشة">⛶</button>
+  </div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 960 780" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0L10,5L0,10Z" fill="#e0552a"/>
+        </marker>
+        <marker id="flowArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,1L8,5L0,9Z" fill="#cf224e"/>
+        </marker>
+        <linearGradient id="gWater" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#edf6fc" stop-opacity="0.85"/>
+          <stop offset="60%" stop-color="#d0e8f8" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#b6dcf4" stop-opacity="0.95"/>
+        </linearGradient>
+        <radialGradient id="gWaterMol" cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#80bbf2"/>
+          <stop offset="70%" stop-color="#3c82d4"/>
+          <stop offset="100%" stop-color="#235c9e"/>
+        </radialGradient>
+        <radialGradient id="gDyeMol" cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#ff7b9f"/>
+          <stop offset="65%" stop-color="#d92552"/>
+          <stop offset="100%" stop-color="#7e0b27"/>
+        </radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" title="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" title="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg", PI=Math.PI;
+const svg=document.getElementById('svg'), view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+
+let rs=42; const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const f1=v=>v.toFixed(1);
+
+const sceneG = G(view);
+const waterG = G(sceneG);
+const arrowsG = G(sceneG);
+const moleculesG = G(sceneG);
+const glassG = G(sceneG);
+const labelsG = G(sceneG);
+const captionG = G(sceneG);
+
+/* ---------- بناء الكأس الزجاجي النقي ---------- */
+el('path', {
+  d: "M 285,220 L 285,620 C 285,645 360,655 480,655 C 600,655 675,645 675,620 L 675,220 Z",
+  fill: "url(#gWater)",
+  stroke: "#6fa8dc",
+  "stroke-width": 2.5
+}, waterG);
+
+el('ellipse', { cx: 480, cy: 220, rx: 195, ry: 24, fill: "#d5ebf9", stroke: "#5b9cd6", "stroke-width": 2 }, waterG);
+
+el('path', {
+  d: "M 280,160 L 280,625 C 280,655 360,668 480,668 C 600,668 680,655 680,625 L 680,160",
+  fill: "none",
+  stroke: "#2c5777",
+  "stroke-width": 4.5,
+  "stroke-linecap": "round"
+}, glassG);
+
+el('ellipse', { cx: 480, cy: 160, rx: 200, ry: 22, fill: "none", stroke: "#2c5777", "stroke-width": 3.8 }, glassG);
+
+el('path', {
+  d: "M 294,185 L 294,615 Q 294,635 340,645",
+  fill: "none", stroke: "#ffffff", "stroke-width": 3.5, "stroke-linecap": "round", opacity: 0.7
+}, glassG);
+el('path', {
+  d: "M 666,185 L 666,615",
+  fill: "none", stroke: "#ffffff", "stroke-width": 2, "stroke-linecap": "round", opacity: 0.4
+}, glassG);
+
+/* ---------- بناء جزيئات المذيب (الماء) الزرقاء ---------- */
+const N_WATER = 115;
+const waterMols = [];
+for (let i = 0; i < N_WATER; i++) {
+  const bx = 305 + rnd() * (655 - 305);
+  const by = 240 + rnd() * (630 - 240);
+  const c = el('circle', { r: 6.8, fill: 'url(#gWaterMol)', stroke: '#1c4a7e', 'stroke-width': 1.4 }, moleculesG);
+  waterMols.push({
+    e: c, bx, by,
+    curX: bx, curY: by,
+    ph: rnd() * 6.28,
+    sp: 0.8 + rnd() * 0.7
+  });
+}
+
+/* ---------- بناء جزيئات المذاب (الصبغة) مع 3 مراحل انتشار ---------- */
+const N_DYE = 72;
+const dyeMols = [];
+
+for (let i = 0; i < N_DYE; i++) {
+  // المرحلة 0: ترسب وتركيز عالي ببلورات قاع الكأس
+  const r0 = Math.sqrt(rnd()) * 66;
+  const th0 = rnd() * 2 * PI;
+  const p0 = [
+    Math.min(580, Math.max(380, 480 + r0 * Math.cos(th0) * 1.35)),
+    Math.min(638, Math.max(545, 595 + r0 * Math.sin(th0) * 0.52))
+  ];
+
+  // المرحلة 1: انتشار وتدفق للأعلى والوسط
+  const r1 = Math.sqrt(rnd()) * 140;
+  const th1 = rnd() * 2 * PI;
+  const p1 = [
+    Math.min(640, Math.max(320, 480 + r1 * Math.cos(th1) * 1.25)),
+    Math.min(635, Math.max(350, 520 + r1 * Math.sin(th1) * 0.9))
+  ];
+
+  // المرحلة 2: توزيع متساوي ومتجانس في كامل الكأس
+  const p2 = [
+    305 + rnd() * (655 - 305),
+    240 + rnd() * (630 - 240)
+  ];
+
+  const c = el('circle', { r: 7.6, fill: 'url(#gDyeMol)', stroke: '#5c061b', 'stroke-width': 1.6 }, moleculesG);
+  dyeMols.push({
+    e: c,
+    targets: [p0, p1, p2],
+    curX: p0[0], curY: p0[1],
+    fromX: p0[0], fromY: p0[1],
+    ph: rnd() * 6.28,
+    sp: 0.9 + rnd() * 0.7
+  });
+}
+
+/* ---------- أسهم مسارات الانتشار (تظهر فقط في المرحلة 2) ---------- */
+const arrowPaths = [
+  "M 445,540 L 360,420",
+  "M 465,530 L 420,350",
+  "M 480,520 L 480,320",
+  "M 495,530 L 545,350",
+  "M 515,540 L 600,420",
+  "M 430,580 L 330,530",
+  "M 530,580 L 630,530"
+];
+const arrowElements = arrowPaths.map(d => {
+  return el('path', {
+    d,
+    fill: 'none',
+    stroke: '#cf224e',
+    'stroke-width': 3,
+    'stroke-linecap': 'round',
+    'stroke-dasharray': '6 4',
+    'marker-end': 'url(#flowArrow)',
+    display: 'none',
+    opacity: 0
+  }, arrowsG);
+});
+
+/* ---------- بناء التأشيرات المنهجية (تظهر فقط بالمرحلة الأولى) ---------- */
+function buildLabelBox(cx, py, w, h, line1, line2) {
+  const g = G(labelsG);
+  const px = cx + w/2;
+
+  const ln = el('line', { class: 'ln', 'marker-end': 'url(#ah)', x1: px, y1: py }, g);
+  const dt = el('circle', { class: 'td', r: 4 }, g);
+
+  el('rect', { class: 'pill', x: cx - w/2, y: py - h/2, width: w, height: h, rx: 16 }, g);
+
+  const t1 = el('text', { class: 'lbl-main', x: cx, y: py - 9 }, g);
+  t1.textContent = line1;
+
+  const t2 = el('text', { class: 'lbl-sub', x: cx, y: py + 13 }, g);
+  t2.textContent = line2;
+
+  return { g, ln, dt, px, py };
+}
+
+// تأشيرات المرحلة الأولى (المذيب والمذاب)
+const labWater = buildLabelBox(125, 290, 190, 56, 'جزيئات الماء', '(المذيب)');
+const labDye = buildLabelBox(125, 580, 190, 56, 'جزيئات الصبغة', '(المذاب)');
+const allLabels = [labWater, labDye];
+
+/* نصوص التوضيح المنهجية أسفل الشاشة */
+const capTitle = el('text', { class: 'cap', x: 480, y: 715 }, captionG);
+const capDesc = el('text', { class: 'cap-sub', x: 480, y: 742 }, captionG);
+
+const stageData = [
+  {
+    title: "عملية الانتشار - المرحلة (1): بلورات المذاب في الماء قبل الانتشار",
+    cap: "شكل (1-17): (أ) جزيئات المذاب (تركيز عالي في الأسفل) والمذيب",
+    desc: "حركة الأيونات والجزيئات تبدأ من مناطق التركيز العالي نحو مناطق التركيز الواطئ",
+    showLabels: true,
+    showArrows: false
+  },
+  {
+    title: "عملية الانتشار - المرحلة (2): انتشار جزيئات الصبغة في الماء",
+    cap: "شكل (1-17): (ب) انتشار جزيئات الصبغة تدريجياً عبر مسافات قصيرة",
+    desc: "المسافة التي تقطعها الجزيئات المنتشرة تتناسب طردياً مع زمن الانتشار",
+    showLabels: false,
+    showArrows: true
+  },
+  {
+    title: "عملية الانتشار - المرحلة (3): اكتمال الانتشار والتوزيع المتساوي",
+    cap: "شكل (1-17): (ج) الناتج توزيع متساوي ومتجانس لجميع الجزيئات",
+    desc: "مع مرور الوقت تنتشر المادة في كل أجزاء الماء في الإناء الزجاجي (حالة الاتزان)",
+    showLabels: false,
+    showArrows: false
+  }
+];
+
+/* ---------- محرك التحريك والانتقال الانسيابي ---------- */
+let curStage = 0;
+let fromStage = 0;
+let toStage = 0;
+let transT0 = -1e9;
+const DURATION = 2400;
+let paused = false;
+let globalTime = 0;
+let lastTimestamp = performance.now();
+
+const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+function setStage(idx) {
+  if (idx < 0 || idx >= stageData.length) return;
+  fromStage = curStage;
+  toStage = idx;
+  curStage = idx;
+  transT0 = performance.now();
+
+  dyeMols.forEach(m => {
+    m.fromX = m.curX;
+    m.fromY = m.curY;
+  });
+
+  const topTitle = document.getElementById('title');
+  topTitle.style.opacity = 0;
+  setTimeout(() => {
+    topTitle.textContent = stageData[curStage].title;
+    topTitle.style.opacity = 1;
+  }, 180);
+
+  capTitle.textContent = stageData[curStage].cap;
+  capDesc.textContent = stageData[curStage].desc;
+
+  dots.forEach((d, i) => d.classList.toggle('on', i === curStage));
+
+  // إظهار/إخفاء الأسهم
+  arrowElements.forEach(arr => {
+    if (stageData[curStage].showArrows) {
+      arr.setAttribute('display', 'inline');
+    } else {
+      arr.setAttribute('display', 'none');
+      arr.setAttribute('opacity', '0');
+    }
+  });
+}
+
+function frame(ms) {
+  const dt = Math.min(0.05, (ms - lastTimestamp) / 1000);
+  lastTimestamp = ms;
+  if (!paused) globalTime += dt;
+
+  const elapsed = ms - transT0;
+  const k = Math.min(1, Math.max(0, elapsed / DURATION));
+  const easeK = easeInOut(k);
+
+  // تحديث انتشار جزيئات الصبغة
+  dyeMols.forEach(m => {
+    const target = m.targets[toStage];
+    const baseX = m.fromX + (target[0] - m.fromX) * easeK;
+    const baseY = m.fromY + (target[1] - m.fromY) * easeK;
+
+    const brownX = Math.sin(globalTime * m.sp * 2 + m.ph) * 3;
+    const brownY = Math.cos(globalTime * m.sp * 1.8 + m.ph) * 2.8;
+
+    m.curX = baseX + brownX;
+    m.curY = baseY + brownY;
+
+    m.e.setAttribute('cx', f1(m.curX));
+    m.e.setAttribute('cy', f1(m.curY));
+  });
+
+  // تحديث حركة جزيئات الماء
+  waterMols.forEach(w => {
+    const jx = Math.sin(globalTime * w.sp * 1.6 + w.ph) * 3;
+    const jy = Math.cos(globalTime * w.sp * 1.7 + w.ph) * 3;
+    w.curX = w.bx + jx;
+    w.curY = w.by + jy;
+    w.e.setAttribute('cx', f1(w.curX));
+    w.e.setAttribute('cy', f1(w.curY));
+  });
+
+  // تدفق أسهم الانتشار بالمرحلة 2 فقط
+  if (stageData[curStage].showArrows) {
+    arrowElements.forEach((arr, i) => {
+      arr.setAttribute('opacity', '0.9');
+      const offset = (globalTime * 25 + i * 8) % 20;
+      arr.setAttribute('stroke-dashoffset', -offset);
+    });
+  }
+
+  // التحكم بظهور أو اختفاء التأشيرات النصية (تظهر فقط بالمرحلة 0)
+  const showLabels = stageData[curStage].showLabels;
+  const targetLabelOp = showLabels ? 1 : 0;
+  allLabels.forEach(l => {
+    const curOp = parseFloat(l.g.getAttribute('opacity') || 1);
+    const newOp = curOp + (targetLabelOp - curOp) * 0.15;
+    l.g.setAttribute('opacity', f1(newOp));
+    l.g.setAttribute('display', newOp < 0.02 ? 'none' : 'inline');
+
+    if (newOp > 0.02) {
+      if (l === labWater) {
+        const pWater = [waterMols[12].curX, waterMols[12].curY];
+        l.ln.setAttribute('x2', f1(pWater[0]));
+        l.ln.setAttribute('y2', f1(pWater[1]));
+        l.dt.setAttribute('cx', f1(pWater[0]));
+        l.dt.setAttribute('cy', f1(pWater[1]));
+      } else if (l === labDye) {
+        const pDye = [dyeMols[0].curX, dyeMols[0].curY];
+        l.ln.setAttribute('x2', f1(pDye[0]));
+        l.ln.setAttribute('y2', f1(pDye[1]));
+        l.dt.setAttribute('cx', f1(pDye[0]));
+        l.dt.setAttribute('cy', f1(pDye[1]));
+      }
+    }
+  });
+
+  requestAnimationFrame(frame);
+}
+
+/* ---------- أزرار التنقل السفلية والتحكم ---------- */
+const dotsEl = document.getElementById('dots');
+const dots = [];
+stageData.forEach((_, i) => {
+  const b = document.createElement('button');
+  b.className = 'dot' + (i === 0 ? ' on' : '');
+  b.onclick = () => setStage(i);
+  dotsEl.appendChild(b);
+  dots.push(b);
+});
+
+document.getElementById('next').onclick = () => setStage((curStage + 1) % stageData.length);
+document.getElementById('prev').onclick = () => setStage((curStage - 1 + stageData.length) % stageData.length);
+document.getElementById('pause').onclick = function() {
+  paused = !paused;
+  this.textContent = paused ? '▶' : '⏸';
+};
+
+/* ---------- دعم التكبير والتحريك والإيماءات ---------- */
+let sc = 1, tx = 0, ty = 0;
+const MIN = 0.6, MAX = 8;
+const apply = () => view.setAttribute('transform', `translate(${tx} ${ty}) scale(${sc})`);
+function reset() { sc = 1; tx = 0; ty = 0; apply(); }
+function toView(e) {
+  const p = svg.createSVGPoint();
+  p.x = e.clientX; p.y = e.clientY;
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+function zoomAt(k, p) {
+  const ns = Math.min(MAX, Math.max(MIN, sc * k));
+  k = ns / sc;
+  tx = p.x - (p.x - tx) * k;
+  ty = p.y - (p.y - ty) * k;
+  sc = ns;
+  apply();
+}
+
+const ptrs = new Map();
+svg.addEventListener('pointerdown', e => {
+  svg.setPointerCapture(e.pointerId);
+  ptrs.set(e.pointerId, toView(e));
+});
+svg.addEventListener('pointermove', e => {
+  if (!ptrs.has(e.pointerId)) return;
+  const prv = new Map(ptrs), cu = toView(e);
+  ptrs.set(e.pointerId, cu);
+
+  if (ptrs.size === 1) {
+    const o = prv.get(e.pointerId);
+    tx += cu.x - o.x;
+    ty += cu.y - o.y;
+    apply();
+  } else {
+    const ids = [...ptrs.keys()].slice(0, 2);
+    const a0 = prv.get(ids[0]), b0 = prv.get(ids[1]);
+    const a1 = ptrs.get(ids[0]), b1 = ptrs.get(ids[1]);
+    const d0 = Math.hypot(a0.x - b0.x, a0.y - b0.y) || 1;
+    const d1 = Math.hypot(a1.x - b1.x, a1.y - b1.y);
+    const m1 = { x: (a1.x + b1.x) / 2, y: (a1.y + b1.y) / 2 };
+    zoomAt(d1 / d0, m1);
+  }
+});
+const up = e => ptrs.delete(e.pointerId);
+svg.addEventListener('pointerup', up);
+svg.addEventListener('pointercancel', up);
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, toView(e));
+}, { passive: false });
+svg.addEventListener('dblclick', reset);
+
+document.getElementById('zin').onclick = () => zoomAt(1.3, { x: 480, y: 400 });
+document.getElementById('zout').onclick = () => zoomAt(1 / 1.3, { x: 480, y: 400 });
+document.getElementById('zreset').onclick = reset;
+
+/* زر ملء الشاشة الشامل */
+const fsBtn = document.getElementById('fs');
+const de = document.documentElement;
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+function setFs(on) {
+  document.body.classList.toggle('fs', on);
+  fsBtn.textContent = on ? '✕' : '⛶';
+  reset();
+}
+fsBtn.onclick = () => {
+  const on = !document.body.classList.contains('fs');
+  if (on) {
+    const r = de.requestFullscreen || de.webkitRequestFullscreen;
+    if (r) { try { const p = r.call(de); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    setFs(true);
+  } else {
+    if (fsEl()) {
+      const x = document.exitFullscreen || document.webkitExitFullscreen;
+      try { x.call(document); } catch (e) {}
+    }
+    setFs(false);
+  }
+};
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => {
+  document.addEventListener(ev, () => {
+    if (!fsEl() && document.body.classList.contains('fs')) setFs(false);
+  });
+});
+
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') setStage((curStage + 1) % stageData.length);
+  else if (e.key === 'ArrowRight' || e.key === 'PageUp') setStage((curStage - 1 + stageData.length) % stageData.length);
+  else if (e.key === 'f' || e.key === 'F') fsBtn.click();
+  else if (e.key === '+' || e.key === '=') zoomAt(1.3, { x: 480, y: 400 });
+  else if (e.key === '-' || e.key === '_') zoomAt(1 / 1.3, { x: 480, y: 400 });
+  else if (e.key === '0') reset();
+});
+
+setStage(0);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
