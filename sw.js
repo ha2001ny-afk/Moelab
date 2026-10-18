@@ -1,5 +1,6 @@
-const CACHE_NAME = 'moelab-v1';
+const CACHE_NAME = 'moelab-v2';
 const ASSETS_TO_CACHE = [
+  './',
   './portal.html',
   './cells_structure.html',
   './membrane.html',
@@ -34,11 +35,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
       return fetch(event.request).catch(() => {
-        // في حال انقطاع النت وطلب صفحة فرعية
-        return caches.match('./portal.html');
+        return caches.match('./portal.html', { ignoreSearch: true });
       });
     })
   );
