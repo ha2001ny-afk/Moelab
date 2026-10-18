@@ -158,7 +158,7 @@
       border-radius: 6px;
     }
 
-    /* نافذة إدخال كود التفعيل (Modal) */
+    /* نافذة إدخال كود التفعيل */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -241,7 +241,7 @@
       font-weight: bold;
     }
 
-    /* مشغل المحاكاة بملء الشاشة */
+    /* مشغل المحاكاة */
     #viewerScreen {
       position: fixed;
       top: 0;
@@ -288,7 +288,7 @@
 </head>
 <body>
 
-  <!-- واجهة المنصة الرئيسية -->
+  <!-- واجهة المنصة -->
   <header>
     <div class="brand">منصة المختبرات التفاعلية</div>
     <div class="header-left">
@@ -349,13 +349,13 @@
 
   </div>
 
-  <!-- نافذة تفعيل الاشتراك (Modal) -->
+  <!-- نافذة التفعيل -->
   <div class="modal-overlay" id="keyModal">
     <div class="modal-card">
       <h2>🔐 تفعيل اشتراك المنصة</h2>
       <p>يرجى إدخال كود الاشتراك الخاص بك للوصول إلى التجارب والمحاكاة التفاعلية المصرح بها:</p>
       
-      <input type="text" id="inputTeacherKey" class="modal-input" placeholder="مثال: ALI2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <input type="text" id="inputTeacherKey" class="modal-input" placeholder="مثال: ALI2026" autocomplete="off" autocapitalize="characters">
       
       <button class="modal-btn" onclick="submitKey()">تفعيل الحساب والبدء</button>
       <div class="modal-status" id="modalStatus"></div>
@@ -366,7 +366,7 @@
     </div>
   </div>
 
-  <!-- شاشة عرض المحاكاة المباشرة بملء الشاشة -->
+  <!-- شاشة عرض المحاكاة -->
   <div id="viewerScreen">
     <div class="viewer-bar">
       <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">المحاكاة التفاعلية</span>
@@ -376,13 +376,11 @@
   </div>
 
   <script>
-    // رابط سيرفر Google Apps Script الخاص بك
     const API_URL = "https://script.google.com/macros/s/AKfycbzoQS1N0YQPEh0mfbUIfDssrrlwVZ-AiH6zDrSdxdDO1yWxDOJ-OMqJYrkAWfZUZkxI/exec";
 
     let allowedChapters = [];
     let currentKey = "";
 
-    // استخراج الكود من الرابط أو من الذاكرة المحلية لجهاز الأستاذ
     function getStoredKey() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlKey = urlParams.get('key');
@@ -393,7 +391,8 @@
       return localStorage.getItem('moe_teacher_key') || "";
     }
 
-    async function verifySubscription(keyToTest) {
+    // تقنية JSONP المعتمدة لتخطي حظر متصفح سفاري
+    function verifySubscription(keyToTest) {
       if (!keyToTest) {
         openKeyModal();
         return;
@@ -401,43 +400,54 @@
 
       document.getElementById('teacherDisplay').innerText = "جاري التحقق من السيرفر...";
 
-      try {
-        const response = await fetch(`${API_URL}?key=${encodeURIComponent(keyToTest)}`, {
-          method: 'GET',
-          redirect: 'follow'
-        });
-        const data = await response.json();
+      // إنشاء دالة استدعاء فريدة ومؤقتة
+      const callbackName = 'gasCallback_' + Math.floor(Math.random() * 1000000);
+      
+      const script = document.createElement('script');
+      script.id = 'gasScriptTag';
 
-        if (!data.allowed) {
-          // الاشتراك معطل أو منتهي
-          document.getElementById('teacherDisplay').innerText = "⚠️ الاشتراك غير مفعّل";
-          document.getElementById('teacherDisplay').style.color = "#ef4444";
-          document.getElementById('teacherDisplay').style.borderColor = "#ef4444";
-          
-          openKeyModal(data.message || "كود الاشتراك غير صالح أو منتهي الصلاحية.");
-          allowedChapters = [];
-          lockAllChapters();
-          return;
-        }
+      window[callbackName] = function(data) {
+        // تنظيف بعد استلام الرد
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
 
-        // نجاح التفعيل
-        currentKey = keyToTest;
-        localStorage.setItem('moe_teacher_key', keyToTest);
-        document.getElementById('keyModal').style.display = 'none';
+        handleServerResponse(data, keyToTest);
+      };
 
-        document.getElementById('teacherDisplay').innerText = `إعداد الأستاذ: ${data.teacher}`;
-        document.getElementById('teacherDisplay').style.color = "#38bdf8";
-        document.getElementById('teacherDisplay').style.borderColor = "#38bdf8";
-
-        // تفعيل الفصول المصرح بها
-        allowedChapters = data.chapters ? data.chapters.split(',').map(s => s.trim()) : [];
-        updateChapterLocks();
-
-      } catch (err) {
-        console.error("فشل الاتصال بالسيرفر:", err);
-        // في حال بطء الشبكة نجرب قراءة الكود المحفوظ
+      script.onerror = function() {
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
         document.getElementById('teacherDisplay').innerText = "⚠️ تعذر الاتصال بالسيرفر";
+        openKeyModal("تعذر الاتصال بالسيرفر، تأكد من الإنترنت.");
+      };
+
+      script.src = `${API_URL}?key=${encodeURIComponent(keyToTest)}&callback=${callbackName}`;
+      document.body.appendChild(script);
+    }
+
+    function handleServerResponse(data, keyToTest) {
+      if (!data.allowed) {
+        document.getElementById('teacherDisplay').innerText = "⚠️ الاشتراك غير مفعّل";
+        document.getElementById('teacherDisplay').style.color = "#ef4444";
+        document.getElementById('teacherDisplay').style.borderColor = "#ef4444";
+        
+        openKeyModal(data.message || "كود الاشتراك غير صالح أو منتهي.");
+        allowedChapters = [];
+        lockAllChapters();
+        return;
       }
+
+      // نجاح التفعيل الفوري
+      currentKey = keyToTest;
+      localStorage.setItem('moe_teacher_key', keyToTest);
+      document.getElementById('keyModal').style.display = 'none';
+
+      document.getElementById('teacherDisplay').innerText = `إعداد الأستاذ: ${data.teacher}`;
+      document.getElementById('teacherDisplay').style.color = "#38bdf8";
+      document.getElementById('teacherDisplay').style.borderColor = "#38bdf8";
+
+      allowedChapters = data.chapters ? data.chapters.split(',').map(s => s.trim()) : [];
+      updateChapterLocks();
     }
 
     function updateChapterLocks() {
