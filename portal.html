@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>منصة التجارب العلمية التفاعلية</title>
+  <title>منصة المختبرات التفاعلية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
@@ -15,6 +15,7 @@
       font-family: 'Tajawal', sans-serif;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: manipulation;
     }
 
     body {
@@ -23,17 +24,20 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
     /* شريط علوي */
     header {
-      height: 56px;
+      height: 54px;
       background: #0b1526;
       border-bottom: 1px solid #1a2942;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 20;
     }
 
     .brand {
@@ -42,14 +46,31 @@
       color: #38bdf8;
     }
 
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .teacher-badge {
       background: rgba(56, 189, 248, 0.1);
       border: 1px solid #38bdf8;
-      padding: 4px 14px;
+      padding: 4px 12px;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 900;
       color: #38bdf8;
+    }
+
+    .btn-key-change {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     /* شبكة عرض التجارب */
@@ -58,33 +79,33 @@
       max-width: 1100px;
       margin: 0 auto;
       width: 100%;
-      padding: 20px 16px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
     .chapter-section {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .chapter-title {
-      font-size: 1rem;
+      font-size: 0.98rem;
       font-weight: 900;
       color: #fef08a;
       display: flex;
       align-items: center;
       gap: 8px;
       border-bottom: 1px solid #1a2942;
-      padding-bottom: 6px;
+      padding-bottom: 5px;
     }
 
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 14px;
+      gap: 12px;
     }
 
     .exp-card {
@@ -95,7 +116,7 @@
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s;
       position: relative;
     }
@@ -106,10 +127,8 @@
     }
 
     .exp-card.locked {
-      opacity: 0.5;
-      cursor: not-allowed;
-      border-color: #334155;
-      filter: grayscale(0.8);
+      opacity: 0.45;
+      border-color: #1e293b;
     }
 
     .exp-icon {
@@ -117,26 +136,109 @@
     }
 
     .exp-title {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 800;
       color: #f8fafc;
     }
 
     .exp-tag {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: #94a3b8;
     }
 
     .lock-overlay {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      background: #ef4444;
+      top: 10px;
+      left: 10px;
+      background: rgba(239, 68, 68, 0.9);
       color: #fff;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 900;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 6px;
+    }
+
+    /* نافذة إدخال كود التفعيل (Modal) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 7, 18, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #0b1526;
+      border: 2px solid #0284c7;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-card h2 {
+      font-size: 1.25rem;
+      color: #38bdf8;
+      font-weight: 900;
+    }
+
+    .modal-card p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #050b14;
+      border: 1.5px solid #334155;
+      color: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .modal-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .modal-btn {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+    }
+
+    .modal-btn:active {
+      transform: scale(0.98);
+    }
+
+    .modal-status {
+      font-size: 0.8rem;
+      min-height: 18px;
+      font-weight: bold;
     }
 
     /* مشغل المحاكاة بملء الشاشة */
@@ -147,13 +249,13 @@
       width: 100vw;
       height: 100vh;
       background: #000;
-      z-index: 100;
+      z-index: 500;
       display: none;
       flex-direction: column;
     }
 
     .viewer-bar {
-      height: 42px;
+      height: 44px;
       background: #0b1526;
       border-bottom: 1px solid #1a2942;
       display: flex;
@@ -166,10 +268,10 @@
       background: #ef4444;
       color: #fff;
       border: none;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 6px;
       font-weight: 900;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -189,7 +291,10 @@
   <!-- واجهة المنصة الرئيسية -->
   <header>
     <div class="brand">منصة المختبرات التفاعلية</div>
-    <div class="teacher-badge" id="teacherDisplay">إعداد الأستاذ: جاري التحقق...</div>
+    <div class="header-left">
+      <div class="teacher-badge" id="teacherDisplay">إعداد الأستاذ: جاري التحقق...</div>
+      <button class="btn-key-change" onclick="openKeyModal()" title="تغيير كود الاشتراك">🔑 الكود</button>
+    </div>
   </header>
 
   <div class="container" id="mainCatalog">
@@ -198,7 +303,7 @@
     <div class="chapter-section" data-chapter="ch1">
       <div class="chapter-title">⚡ الفصل الأول: المتسعات</div>
       <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('ch1', 'faraday_dielectric.html')">
+        <div class="exp-card" onclick="openExp('ch1', 'faraday_dielectric.html', 'نشاط العازل الكهربائي')">
           <span class="exp-icon">🧲</span>
           <div class="exp-title">نشاط (1): إدخال العازل الكهربائي</div>
           <div class="exp-tag">تأثير العازل على فرق الجهد والسعة</div>
@@ -210,7 +315,7 @@
     <div class="chapter-section" data-chapter="ch2">
       <div class="chapter-title">🧲 الفصل الثاني: الحث الكهرومغناطيسي</div>
       <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('ch2', 'faraday_induction.html')">
+        <div class="exp-card" onclick="openExp('ch2', 'faraday_induction.html', 'نشاط فراداي في الحث')">
           <span class="exp-icon">💡</span>
           <div class="exp-title">نشاط فراداي في الحث</div>
           <div class="exp-tag">الملفان الابتدائي والثانوي وحلقة الحديد</div>
@@ -222,7 +327,7 @@
     <div class="chapter-section" data-chapter="ch3">
       <div class="chapter-title">📐 الرياضيات: تطبيقات التفاضل</div>
       <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('ch3', 'shadow_calculus.html')">
+        <div class="exp-card" onclick="openExp('ch3', 'shadow_calculus.html', 'مسألة ظل الرجل')">
           <span class="exp-icon">🚶‍♂️</span>
           <div class="exp-title">مسألة ظل الرجل (المعدلات الزمنية)</div>
           <div class="exp-tag">تمارين (3-2) ص 101 - تشابه المثلثات</div>
@@ -234,7 +339,7 @@
     <div class="chapter-section" data-chapter="bio">
       <div class="chapter-title">🔬 علم الأحياء: الخلية</div>
       <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('bio', 'membrane.html')">
+        <div class="exp-card" onclick="openExp('bio', 'membrane.html', 'تركيب الغشاء البلازمي')">
           <span class="exp-icon">🧬</span>
           <div class="exp-title">تركيب الغشاء البلازمي</div>
           <div class="exp-tag">جزيئات الشحوم المفسفرة والبروتينات</div>
@@ -242,6 +347,23 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- نافذة تفعيل الاشتراك (Modal) -->
+  <div class="modal-overlay" id="keyModal">
+    <div class="modal-card">
+      <h2>🔐 تفعيل اشتراك المنصة</h2>
+      <p>يرجى إدخال كود الاشتراك الخاص بك للوصول إلى التجارب والمحاكاة التفاعلية المصرح بها:</p>
+      
+      <input type="text" id="inputTeacherKey" class="modal-input" placeholder="مثال: ALI2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
+      
+      <button class="modal-btn" onclick="submitKey()">تفعيل الحساب والبدء</button>
+      <div class="modal-status" id="modalStatus"></div>
+
+      <div style="font-size: 0.72rem; color: #64748b;">
+        إشراف المنصة: المهندس محمد حسن
+      </div>
+    </div>
   </div>
 
   <!-- شاشة عرض المحاكاة المباشرة بملء الشاشة -->
@@ -254,55 +376,83 @@
   </div>
 
   <script>
-    // رابط السيرفر الخاص بك تم ربطه هنا مباشرة
+    // رابط سيرفر Google Apps Script الخاص بك
     const API_URL = "https://script.google.com/macros/s/AKfycbzoQS1N0YQPEh0mfbUIfDssrrlwVZ-AiH6zDrSdxdDO1yWxDOJ-OMqJYrkAWfZUZkxI/exec";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const teacherKey = urlParams.get('key');
-
     let allowedChapters = [];
+    let currentKey = "";
 
-    async function initPlatform() {
-      if (!teacherKey) {
-        document.body.innerHTML = `
-          <div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#ef4444;text-align:center;direction:rtl;padding:20px;">
-            <h2>⚠️ رابط غير مصرح به. يرجى استخدام الرابط الخاص بك المعتمد من المهندس محمد حسن.</h2>
-          </div>`;
+    // استخراج الكود من الرابط أو من الذاكرة المحلية لجهاز الأستاذ
+    function getStoredKey() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlKey = urlParams.get('key');
+      if (urlKey) {
+        localStorage.setItem('moe_teacher_key', urlKey.trim());
+        return urlKey.trim();
+      }
+      return localStorage.getItem('moe_teacher_key') || "";
+    }
+
+    async function verifySubscription(keyToTest) {
+      if (!keyToTest) {
+        openKeyModal();
         return;
       }
 
+      document.getElementById('teacherDisplay').innerText = "جاري التحقق من السيرفر...";
+
       try {
-        const response = await fetch(`${API_URL}?key=${teacherKey}`);
+        const response = await fetch(`${API_URL}?key=${encodeURIComponent(keyToTest)}`, {
+          method: 'GET',
+          redirect: 'follow'
+        });
         const data = await response.json();
 
         if (!data.allowed) {
-          document.body.innerHTML = `
-            <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;color:#fff;text-align:center;direction:rtl;gap:12px;padding:20px;">
-              <h2 style="color:#ef4444;font-size:1.8rem;">⚠️ تنبيه الاشتراك</h2>
-              <p style="color:#cbd5e1;font-size:1.15rem;">${data.message}</p>
-              <div style="margin-top:10px;color:#38bdf8;font-weight:bold;">إشراف: المهندس محمد حسن</div>
-            </div>`;
+          // الاشتراك معطل أو منتهي
+          document.getElementById('teacherDisplay').innerText = "⚠️ الاشتراك غير مفعّل";
+          document.getElementById('teacherDisplay').style.color = "#ef4444";
+          document.getElementById('teacherDisplay').style.borderColor = "#ef4444";
+          
+          openKeyModal(data.message || "كود الاشتراك غير صالح أو منتهي الصلاحية.");
+          allowedChapters = [];
+          lockAllChapters();
           return;
         }
 
-        // إظهار اسم الأستاذ
-        document.getElementById('teacherDisplay').innerText = `إعداد الأستاذ: ${data.teacher}`;
+        // نجاح التفعيل
+        currentKey = keyToTest;
+        localStorage.setItem('moe_teacher_key', keyToTest);
+        document.getElementById('keyModal').style.display = 'none';
 
-        // تحديد الفصول المصرح له بها
-        allowedChapters = data.chapters ? data.chapters.split(',') : [];
-        lockUnauthorizedChapters();
+        document.getElementById('teacherDisplay').innerText = `إعداد الأستاذ: ${data.teacher}`;
+        document.getElementById('teacherDisplay').style.color = "#38bdf8";
+        document.getElementById('teacherDisplay').style.borderColor = "#38bdf8";
+
+        // تفعيل الفصول المصرح بها
+        allowedChapters = data.chapters ? data.chapters.split(',').map(s => s.trim()) : [];
+        updateChapterLocks();
 
       } catch (err) {
-        console.error("فشل التحقق من السيرفر", err);
+        console.error("فشل الاتصال بالسيرفر:", err);
+        // في حال بطء الشبكة نجرب قراءة الكود المحفوظ
+        document.getElementById('teacherDisplay').innerText = "⚠️ تعذر الاتصال بالسيرفر";
       }
     }
 
-    function lockUnauthorizedChapters() {
+    function updateChapterLocks() {
       const sections = document.querySelectorAll('.chapter-section');
       sections.forEach(sec => {
         const ch = sec.getAttribute('data-chapter');
-        if (!allowedChapters.includes(ch)) {
-          const cards = sec.querySelectorAll('.exp-card');
+        const cards = sec.querySelectorAll('.exp-card');
+        
+        if (allowedChapters.includes(ch)) {
+          cards.forEach(card => {
+            card.classList.remove('locked');
+            const badge = card.querySelector('.lock-overlay');
+            if (badge) badge.remove();
+          });
+        } else {
           cards.forEach(card => {
             card.classList.add('locked');
             if (!card.querySelector('.lock-overlay')) {
@@ -316,11 +466,25 @@
       });
     }
 
-    function openExp(chapter, fileName) {
+    function lockAllChapters() {
+      const cards = document.querySelectorAll('.exp-card');
+      cards.forEach(card => {
+        card.classList.add('locked');
+        if (!card.querySelector('.lock-overlay')) {
+          const badge = document.createElement('div');
+          badge.className = 'lock-overlay';
+          badge.innerText = '🔒 غير مفعّل';
+          card.appendChild(badge);
+        }
+      });
+    }
+
+    function openExp(chapter, fileName, expTitle) {
       if (!allowedChapters.includes(chapter)) {
         alert("هذا الفصل غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع المهندس محمد حسن لتفعيله.");
         return;
       }
+      document.getElementById('activeExpName').innerText = expTitle || "المحاكاة التفاعلية";
       document.getElementById('expFrame').src = fileName;
       document.getElementById('viewerScreen').style.display = 'flex';
     }
@@ -330,7 +494,37 @@
       document.getElementById('expFrame').src = "";
     }
 
-    window.onload = initPlatform;
+    function openKeyModal(errorMsg = "") {
+      const modal = document.getElementById('keyModal');
+      const input = document.getElementById('inputTeacherKey');
+      const status = document.getElementById('modalStatus');
+
+      input.value = currentKey || localStorage.getItem('moe_teacher_key') || "";
+      status.innerText = errorMsg;
+      status.style.color = "#ef4444";
+      modal.style.display = 'flex';
+    }
+
+    function submitKey() {
+      const input = document.getElementById('inputTeacherKey');
+      const status = document.getElementById('modalStatus');
+      const keyVal = input.value.trim();
+
+      if (!keyVal) {
+        status.innerText = "يرجى كتابة كود الاشتراك أولاً!";
+        status.style.color = "#ef4444";
+        return;
+      }
+
+      status.innerText = "جاري التحقق من الكود...";
+      status.style.color = "#38bdf8";
+      verifySubscription(keyVal);
+    }
+
+    window.onload = () => {
+      const key = getStoredKey();
+      verifySubscription(key);
+    };
   </script>
 </body>
 </html>
