@@ -59,6 +59,7 @@
       font-size: 0.82rem;
       font-weight: 900;
       color: #38bdf8;
+      transition: all 0.3s;
     }
 
     .btn-key-change {
@@ -162,7 +163,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(3, 7, 18, 0.92);
+      background: rgba(3, 7, 18, 0.94);
       backdrop-filter: blur(8px);
       z-index: 1000;
       display: none;
@@ -204,7 +205,7 @@
       color: #f8fafc;
       padding: 12px;
       border-radius: 8px;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: bold;
       text-align: center;
       outline: none;
@@ -227,7 +228,7 @@
     }
 
     .modal-status {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       min-height: 18px;
       font-weight: bold;
     }
@@ -335,7 +336,7 @@
 
   </div>
 
-  <!-- نافذة التفعيل -->
+  <!-- نافذة إدخال كود التفعيل -->
   <div class="modal-overlay" id="keyModal">
     <div class="modal-card">
       <h2>🔐 تفعيل اشتراك المنصة</h2>
@@ -361,7 +362,8 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzoQS1N0YQPEh0mfbUIfDssrrlwVZ-AiH6zDrSdxdDO1yWxDOJ-OMqJYrkAWfZUZkxI/exec";
+    // الرابط المباشر لقراءة الجدول دون وسيط
+    const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1iYfqiK-IKHPhLClPO_P3GMQBSprkemJ10QKB6W4_TwA/gviz/tq";
 
     let allowedChapters = [];
     let currentKey = "";
@@ -376,14 +378,37 @@
       return localStorage.getItem('moe_teacher_key') || "";
     }
 
-    async function verifySubscription(keyToTest) {
+    // دالة فك التواريخ بصيغ جوجل المتعددة
+    function parseGvizDate(cell) {
+      if (!cell) return null;
+      if (typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+        const nums = cell.v.match(/\d+/g);
+        if (nums && nums.length >= 3) {
+          return new Date(parseInt(nums[0]), parseInt(nums[1]), parseInt(nums[2]), 23, 59, 59);
+        }
+      }
+      if (cell.f) {
+        const d = new Date(cell.f + 'T23:59:59');
+        if (!isNaN(d.getTime())) return d;
+        const d2 = new Date(cell.f);
+        if (!isNaN(d2.getTime())) return d2;
+      }
+      if (cell.v) {
+        const d = new Date(cell.v);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return null;
+    }
+
+    // استدعاء بيانات الجدول مباشرة
+    function verifySubscription(keyToTest) {
       if (!keyToTest) {
         openKeyModal();
         return;
       }
 
       const badge = document.getElementById('teacherDisplay');
-      badge.innerText = "جاري التحقق من السيرفر...";
+      badge.innerText = "جاري التحقق من الجدول...";
       badge.style.color = "#38bdf8";
       badge.style.borderColor = "#38bdf8";
 
@@ -393,45 +418,108 @@
         status.style.color = "#38bdf8";
       }
 
-      try {
-        const fetchUrl = `${API_URL}?key=${encodeURIComponent(keyToTest)}&_t=${Date.now()}`;
-        const response = await fetch(fetchUrl, {
-          method: 'GET',
-          redirect: 'follow'
-        });
+      const callbackName = 'gvizCallback_' + Date.now();
 
-        const data = await response.json();
+      window[callbackName] = function(response) {
+        delete window[callbackName];
+        const oldTag = document.getElementById('gvizScriptTag');
+        if (oldTag) oldTag.remove();
 
-        if (!data.allowed) {
-          badge.innerText = "⚠️ الاشتراك غير مفعّل";
-          badge.style.color = "#ef4444";
-          badge.style.borderColor = "#ef4444";
+        processSheetData(response, keyToTest);
+      };
 
-          openKeyModal(data.message || "كود الاشتراك غير صالح أو منتهي الصلاحية.");
-          allowedChapters = [];
-          lockAllChapters();
-          return;
-        }
+      const script = document.createElement('script');
+      script.id = 'gvizScriptTag';
+      script.src = `${SHEET_BASE_URL}?tqx=responseHandler:${callbackName}&_t=${Date.now()}`;
 
-        // نجاح التفعيل
-        currentKey = keyToTest;
-        localStorage.setItem('moe_teacher_key', keyToTest);
-        document.getElementById('keyModal').style.display = 'none';
-
-        badge.innerText = `إعداد الأستاذ: ${data.teacher}`;
-        badge.style.color = "#38bdf8";
-        badge.style.borderColor = "#38bdf8";
-
-        allowedChapters = data.chapters ? data.chapters.split(',').map(s => s.trim()) : [];
-        updateChapterLocks();
-
-      } catch (err) {
-        console.error("فشل الاتصال:", err);
-        badge.innerText = "⚠️ تعذر الاتصال بالسيرفر";
+      script.onerror = function() {
+        delete window[callbackName];
+        badge.innerText = "⚠️ تعذر الاتصال بالجدول";
         badge.style.color = "#ef4444";
         badge.style.borderColor = "#ef4444";
-        openKeyModal("تعذر الاتصال بالسيرفر. تأكد من الإنترنت وحاول ثانية.");
+        openKeyModal("تعذر الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function processSheetData(response, keyToTest) {
+      const badge = document.getElementById('teacherDisplay');
+
+      if (!response || !response.table || !response.table.rows) {
+        badge.innerText = "⚠️ خطأ في قراءة الجدول";
+        openKeyModal("تعذر قراءة بيانات الجدول.");
+        return;
       }
+
+      const rows = response.table.rows;
+      const today = new Date();
+      let found = false;
+      let userData = null;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i].c;
+        if (!row) continue;
+
+        const teacherName = row[0]?.v ? String(row[0].v).trim() : "";
+        const teacherKey = row[1]?.v ? String(row[1].v).trim() : "";
+        const expiryCell = row[2];
+        const status = row[3]?.v ? String(row[3].v).trim().toLowerCase() : "";
+        const chapters = row[4]?.v ? String(row[4].v).trim() : "";
+
+        if (teacherKey.toLowerCase() === keyToTest.trim().toLowerCase()) {
+          found = true;
+          const expiryDate = parseGvizDate(expiryCell);
+
+          if (status !== 'active') {
+            badge.innerText = "⚠️ الاشتراك موقوف";
+            badge.style.color = "#ef4444";
+            badge.style.borderColor = "#ef4444";
+            openKeyModal("تم إيقاف الاشتراك. يرجى مراجعة المهندس محمد حسن.");
+            allowedChapters = [];
+            lockAllChapters();
+            return;
+          }
+
+          if (expiryDate && today > expiryDate) {
+            badge.innerText = "⚠️ الاشتراك منتهي";
+            badge.style.color = "#ef4444";
+            badge.style.borderColor = "#ef4444";
+            openKeyModal("انتهت فترة الاشتراك. يرجى التواصل للتجديد.");
+            allowedChapters = [];
+            lockAllChapters();
+            return;
+          }
+
+          userData = {
+            teacher: teacherName,
+            chapters: chapters
+          };
+          break;
+        }
+      }
+
+      if (!found) {
+        badge.innerText = "⚠️ كود غير صحيح";
+        badge.style.color = "#ef4444";
+        badge.style.borderColor = "#ef4444";
+        openKeyModal("كود الاشتراك غير صحيح. يرجى التأكد من الكود المخصص لك.");
+        allowedChapters = [];
+        lockAllChapters();
+        return;
+      }
+
+      // تفعيل الحساب وحفظ الكود محلياً
+      currentKey = keyToTest.trim();
+      localStorage.setItem('moe_teacher_key', currentKey);
+      document.getElementById('keyModal').style.display = 'none';
+
+      badge.innerText = `إعداد الأستاذ: ${userData.teacher}`;
+      badge.style.color = "#38bdf8";
+      badge.style.borderColor = "#38bdf8";
+
+      allowedChapters = userData.chapters ? userData.chapters.split(',').map(s => s.trim()) : [];
+      updateChapterLocks();
     }
 
     function updateChapterLocks() {
@@ -439,7 +527,7 @@
       sections.forEach(sec => {
         const ch = sec.getAttribute('data-chapter');
         const cards = sec.querySelectorAll('.exp-card');
-        
+
         if (allowedChapters.includes(ch)) {
           cards.forEach(card => {
             card.classList.remove('locked');
