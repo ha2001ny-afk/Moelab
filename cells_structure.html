@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الخلية النباتية والخلية الحيوانية</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52}
+  #title{color:#fff;font-size:clamp(17px,4vw,24px);font-weight:bold;transition:opacity .25s}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:radial-gradient(circle at 50% 45%,#fff 0%,#e3f0f8 100%)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  #dots{display:flex;gap:14px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .cell{transition:opacity .45s}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+</style>
+</head>
+<body>
+<div id="top"><div id="title"></div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 860" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+        <radialGradient id="gPink" cx="42%" cy="40%" r="70%"><stop offset="0" stop-color="#fbe4f0"/><stop offset="0.65" stop-color="#efb0d2"/><stop offset="1" stop-color="#d58bbd"/></radialGradient>
+        <radialGradient id="gPur" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#c05acc"/><stop offset="1" stop-color="#5a1a70"/></radialGradient>
+        <radialGradient id="gAni" cx="45%" cy="40%" r="75%"><stop offset="0" stop-color="#fcf3cf"/><stop offset="1" stop-color="#f4dd9a"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+
+/* ---------- generic cell container ---------- */
+function Cell(){const g=G(view,{class:'cell'});return{g,orgs:[],dots:[],labs:[],body:G(g),labG:G(g)};}
+let rs=7;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+/* organelle: group with gentle drift */
+function org(c,parent,x,y,r0,Ax,Ay,Ar){
+  const g=G(parent||c.body),o={g,x,y,r:r0,bx:x,by:y,r0,Ax,Ay,Ar,w1:.5+rnd()*.5,w2:.4+rnd()*.5,p1:rnd()*6.28,p2:rnd()*6.28};
+  o.upd=t=>{o.x=o.bx+o.Ax*Math.sin(o.w1*t+o.p1);o.y=o.by+o.Ay*Math.cos(o.w2*t+o.p2);o.r=o.r0+o.Ar*Math.sin(o.w1*t*.8+o.p2);
+    g.setAttribute('transform',`translate(${o.x.toFixed(2)} ${o.y.toFixed(2)}) rotate(${o.r.toFixed(2)})`);};
+  o.upd(0);c.orgs.push(o);return o;
+}
+const at=(o,ax,ay)=>{const c=Math.cos(o.r*PI/180),s=Math.sin(o.r*PI/180);return[o.x+ax*c-ay*s,o.y+ax*s+ay*c];};
+/* free dot (ribosome) random walk inside a box */
+function dot(c,x0,y0,x1,y1,r){const d={x:x0+rnd()*(x1-x0),y:y0+rnd()*(y1-y0),vx:(rnd()-.5)*.4,vy:(rnd()-.5)*.4,e:el('circle',{r:r||2.8,fill:'#222'},c.body)};
+  d.upd=()=>{d.vx+=(rnd()-.5)*.08;d.vy+=(rnd()-.5)*.08;const s=Math.hypot(d.vx,d.vy);if(s>.4){d.vx*=.4/s;d.vy*=.4/s;}
+    d.x+=d.vx;d.y+=d.vy;if(d.x<x0||d.x>x1)d.vx=-d.vx;if(d.y<y0||d.y>y1)d.vy=-d.vy;d.x=Math.min(x1,Math.max(x0,d.x));d.y=Math.min(y1,Math.max(y0,d.y));
+    d.e.setAttribute('cx',d.x.toFixed(1));d.e.setAttribute('cy',d.y.toFixed(1));};d.upd();c.dots.push(d);return d;}
+
+/* ---------- organelle drawings ---------- */
+function mito(g,rx,ry,fill,stroke){
+  el('ellipse',{rx,ry,fill,stroke,'stroke-width':2.5},g);el('ellipse',{rx:rx-5,ry:ry-5,fill:'none',stroke,'stroke-width':1.2,'stroke-opacity':.7},g);
+  for(let x=-rx*.62;x<=rx*.63;x+=rx*.2)el('line',{x1:x,y1:-ry+7,x2:x,y2:ry-7,stroke,'stroke-width':2.6,'stroke-dasharray':'4 3'},g);}
+function chloro(g,a,b){
+  el('ellipse',{rx:a,ry:b,fill:'#7cc86a',stroke:'#2a6e2a','stroke-width':2.5},g);
+  [-.5,0,.5].forEach(k=>{const w=a*.3;el('rect',{x:k*a-w/2,y:-b*.7,width:w,height:b*1.4,rx:4,fill:'#3f9a3a',stroke:'#1f5f1f','stroke-width':1.5},g);
+    for(let j=0;j<4;j++)el('line',{x1:k*a-w*.38,x2:k*a+w*.38,y1:-b*.5+j*b*.33,y2:-b*.5+j*b*.33,stroke:'#f6e84a','stroke-width':3,'stroke-linecap':'round'},g);});}
+function golgi(g,w,L,gap){for(let i=0;i<L;i++){const y=(i-(L-1)/2)*gap,ww=w*(1-.1*Math.abs(i-(L-1)/2)),d=`M${-ww},${y+7}Q0,${y-13} ${ww},${y+7}`;
+  el('path',{d,fill:'none',stroke:'#e08a2a','stroke-width':7,'stroke-linecap':'round'},g);el('path',{d,fill:'none',stroke:'#f8c070','stroke-width':2.5,'stroke-linecap':'round'},g);}}
+function er(g,w,L,gap,dots){for(let i=0;i<L;i++){const y=(i-(L-1)/2)*gap,d=`M${-w},${y}C${-w/2},${y-12} ${w/2},${y+12} ${w},${y}`;
+  el('path',{d,fill:'none',stroke:'#8fbfe0','stroke-width':7,'stroke-linecap':'round'},g);el('path',{d,fill:'none',stroke:'#d3e9f7','stroke-width':2.5,'stroke-linecap':'round'},g);
+  if(dots)for(let k=0;k<=w/7;k++){const t=k/(w/7),m=1-t,px=m*m*m*-w+3*m*m*t*(-w/2)+3*m*t*t*(w/2)+t*t*t*w,py=y+(3*m*m*t*-12+3*m*t*t*12);el('circle',{cx:px,cy:py-6.5,r:2.4,fill:'#222'},g);}}}
+function loops(g,xs,y0,y1){xs.forEach(x=>{el('rect',{x:x-6,y:y0,width:12,height:y1-y0,rx:6,fill:'none',stroke:'#8fb2cf','stroke-width':5},g);
+  for(let y=y0+8;y<y1-4;y+=12){el('circle',{cx:x-9,cy:y,r:2.3,fill:'#222'},g);el('circle',{cx:x+9,cy:y+6,r:2.3,fill:'#222'},g);}});}
+function ring(g,r,fill,stroke,w){el('circle',{r,fill,stroke,'stroke-width':w},g);}
+function centrioles(g){
+  for(let a=0;a<360;a+=30)el('line',{x1:Math.cos(a*PI/180)*16,y1:Math.sin(a*PI/180)*16,x2:Math.cos(a*PI/180)*40,y2:Math.sin(a*PI/180)*40,stroke:'#b78fd0','stroke-width':1.6,opacity:.7},g);
+  el('rect',{x:-22,y:-7,width:44,height:14,rx:6,fill:'#8a4ba6',stroke:'#4a1f66','stroke-width':2},g);
+  el('rect',{x:-7,y:-36,width:14,height:34,rx:6,fill:'#8a4ba6',stroke:'#4a1f66','stroke-width':2},g);
+  for(let k=-14;k<=14;k+=7)el('line',{x1:k,y1:-5,x2:k,y2:5,stroke:'#e6c9f2','stroke-width':1.6},g);}
+
+/* ---------- labels ---------- */
+function label(c,txt,side,py,tf){
+  const lines=txt.split('\n'),w=190,h=lines.length>1?58:36,cx=side==='L'?115:785,px=side==='L'?210:690,g=G(c.labG);
+  const ln=el('line',{class:'ln','marker-end':'url(#ah)',x1:px,y1:py},g);
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:h/2>20?20:h/2},g);
+  const t=el('text',{class:'lbl',x:cx,y:py},g);
+  lines.forEach((s,i)=>{const ts=el('tspan',{x:cx,dy:lines.length>1?(i?20:-10):0},t);ts.textContent=s;});
+  c.labs.push(()=>{const p=tf();ln.setAttribute('x2',p[0].toFixed(1));ln.setAttribute('y2',p[1].toFixed(1));});
+}
+
+/* =================== PLANT CELL =================== */
+const P=Cell();
+el('rect',{x:277,y:77,width:346,height:726,rx:70,fill:'#a8d98f',stroke:'#2e8b3a','stroke-width':14},P.body);
+el('rect',{x:286,y:86,width:328,height:708,rx:62,fill:'none',stroke:'#5aa05a','stroke-width':3},P.body);
+const vacG=G(P.body,{});
+el('path',{d:'M390,195C440,178 520,178 545,215L548,660C548,720 505,742 462,740C405,738 380,720 378,660L374,540C374,495 392,472 402,445C414,410 392,385 382,355L376,255C374,225 380,205 390,195Z',fill:'#f6f9ea',stroke:'#8aa87a','stroke-width':2.5},vacG);
+/* free ribosomes */
+const pDots=[...Array(8)].map(()=>dot(P,300,135,368,240));
+/* smooth ER, nucleus, rough ER */
+const pSER=org(P,0,336,300,0,3,2,1.5);er(pSER.g,44,4,13,false);
+const pNuc=org(P,0,352,432,0,2,2,1);ring(pNuc.g,60,'url(#gPink)','#c06aa5',2.5);
+const pNl=G(pNuc.g);const nlO={x:-8,y:-6};el('circle',{r:20,fill:'url(#gPur)'},pNl);
+const pRER=org(P,0,338,528,0,3,2,1.5);er(pRER.g,46,4,13,true);
+/* chloroplasts */
+const pCh1=org(P,0,378,118,0,3,2,2);chloro(pCh1.g,44,24);
+const pCh2=org(P,0,582,252,90,2,4,2);chloro(pCh2.g,46,21);
+const pCh3=org(P,0,582,352,90,2,4,2);chloro(pCh3.g,46,21);
+const pCh4=org(P,0,330,618,90,3,3,2);chloro(pCh4.g,44,24);
+/* golgi + vesicles */
+const pGol=org(P,0,505,122,0,3,2,1.5);golgi(pGol.g,44,5,11);
+const pV=[[438,128],[454,146],[430,148]].map(p=>{const o=org(P,0,p[0],p[1],0,5,5,0);ring(o.g,7,'#fff3d9','#e08a2a',2.5);return o;});
+/* mitochondria */
+const pM1=org(P,0,584,472,80,2,4,2);mito(pM1.g,40,21,'#f4a7b9','#c0405c');
+const pM2=org(P,0,577,655,70,2,4,2);mito(pM2.g,52,26,'#f4a7b9','#c0405c');
+const pM3=org(P,0,390,764,0,4,2,1.5);mito(pM3.g,52,25,'#f4a7b9','#c0405c');
+/* starch */
+const pSt=org(P,0,312,704,0,3,2,3);[[36,24],[28,18],[20,13],[12,8]].forEach(([a,b],i)=>el('ellipse',{rx:a,ry:b,fill:i?'none':'#e5defa',stroke:'#7a6ab8','stroke-width':1.8},pSt.g));
+const pCyt=org(P,0,590,770,0,0,0,0);
+/* plant labels (right) */
+label(P,'جهاز كولجي','R',90,()=>at(pGol,34,-4));
+label(P,'الجدار الخلوي','R',160,()=>[628,172]);
+label(P,'الغشاء البلازمي','R',230,()=>[614,236]);
+label(P,'بلاستيدة خضراء','R',320,()=>at(pCh3,0,0));
+label(P,'مايتوكوندريا','R',560,()=>at(pM2,0,0));
+label(P,'سايتوبلازم','R',700,()=>[592,770]);
+/* plant labels (left) */
+label(P,'حويصلة كولجي','L',100,()=>at(pV[0],0,0));
+label(P,'رايبوسوم','L',170,()=>[pDots[0].x,pDots[0].y]);
+label(P,'الشبكة البلازمية\nالداخلية الملساء','L',245,()=>at(pSER,0,0));
+label(P,'نوية','L',335,()=>at(pNuc,nlO.x,nlO.y));
+label(P,'نواة','L',415,()=>at(pNuc,-22,26));
+label(P,'الشبكة البلازمية\nالداخلية الخشنة','L',500,()=>at(pRER,0,0));
+label(P,'فجوة مركزية','L',590,()=>[470,570]);
+label(P,'حبيبات نشاء','L',680,()=>at(pSt,0,0));
+
+/* =================== ANIMAL CELL =================== */
+const A=Cell();
+el('ellipse',{cx:450,cy:440,rx:180,ry:350,fill:'url(#gAni)',stroke:'#d9a94f','stroke-width':6},A.body);
+el('ellipse',{cx:450,cy:440,rx:173,ry:343,fill:'none',stroke:'#e8c47a','stroke-width':1.5},A.body);
+/* microtubules */
+const mt=[[[312,560,350,690],[322,552,360,682]],[[596,560,560,690],[586,552,550,682]],[[612,520,585,640]]].map((set,i)=>{const o=org(A,0,0,0,0,0,0,0);
+  set.forEach(l=>{el('line',{x1:l[0],y1:l[1],x2:l[2],y2:l[3],stroke:'#8a8f3a','stroke-width':6,'stroke-linecap':'round'},o.g);el('line',{x1:l[0],y1:l[1],x2:l[2],y2:l[3],stroke:'#c5c96a','stroke-width':2,'stroke-linecap':'round'},o.g);});
+  o.Ax=3;o.Ay=5;return o;});
+/* rough ER loops */
+const aRL=org(A,0,0,0,0,2,3,0);loops(aRL.g,[322,340,358],340,520);
+const aRR=org(A,0,0,0,0,2,3,0);loops(aRR.g,[548,566,584],350,510);
+/* nucleus */
+const aNuc=org(A,0,455,432,0,2,2,.8);
+el('ellipse',{rx:86,ry:98,fill:'url(#gPink)',stroke:'#d06a96','stroke-width':3.5},aNuc.g);el('ellipse',{rx:80,ry:92,fill:'none',stroke:'#fff','stroke-opacity':.5,'stroke-width':1.5,'stroke-dasharray':'6 5'},aNuc.g);
+const aNl=G(aNuc.g);const anO={x:0,y:-18};el('ellipse',{rx:23,ry:27,fill:'url(#gPur)'},aNl);
+/* smooth ER */
+const aSER=org(A,0,356,596,10,3,3,2);er(aSER.g,42,4,14,false);
+/* golgi, vesicles, lysosome */
+const aGol=org(A,0,520,302,-10,3,2,1.5);golgi(aGol.g,46,5,11);
+const aVes=org(A,0,352,200,0,4,4,0);ring(aVes.g,19,'#f6d21a','#e07a10',4);
+[[480,262],[560,330],[478,330]].forEach(p=>{const o=org(A,0,p[0],p[1],0,5,5,0);ring(o.g,5,'#fff3d9','#e08a2a',2);});
+const aLys=org(A,0,445,142,0,4,3,3);el('ellipse',{rx:13,ry:10,fill:'#f4eaff',stroke:'#8a6aa8','stroke-width':2.5},aLys.g);el('circle',{cx:3,cy:2,r:3,fill:'#b79ad0'},aLys.g);
+/* mitochondria */
+const aM1=org(A,0,535,215,-32,3,3,2);mito(aM1.g,40,20,'#e6a98c','#a8553a');
+const aM2=org(A,0,400,664,-22,3,3,2);mito(aM2.g,44,22,'#e6a98c','#a8553a');
+const aM3=org(A,0,525,676,28,3,3,2);mito(aM3.g,44,22,'#e6a98c','#a8553a');
+/* centrioles */
+const aCen=org(A,0,462,588,0,2,2,8);centrioles(aCen.g);
+/* ribosomes (cluster + single) + cytoplasm granules */
+const aRibs=[...Array(9)].map(()=>dot(A,322,235,378,300));
+const aRib1=dot(A,515,722,552,758,3);
+const aGr=[...Array(10)].map(()=>dot(A,425,715,485,758,2.2));aGr.forEach(d=>d.e.setAttribute('fill','#b05030'));
+/* animal labels (left) */
+label(A,'جسيم حال','L',90,()=>at(aLys,0,0));
+label(A,'حويصلة كولجي','L',165,()=>at(aVes,0,0));
+label(A,'رايبوسومات','L',245,()=>[(aRibs[0].x+aRibs[4].x)/2,(aRibs[0].y+aRibs[4].y)/2]);
+label(A,'الشبكة البلازمية\nالداخلية الخشنة','L',340,()=>at(aRL,340,430));
+label(A,'الشبكة البلازمية\nالداخلية الملساء','L',520,()=>at(aSER,0,0));
+label(A,'الغشاء البلازمي','L',690,()=>[324,690]);
+/* animal labels (right) */
+label(A,'مايتوكوندريا','R',110,()=>at(aM1,0,0));
+label(A,'جهاز كولجي','R',190,()=>at(aGol,36,-2));
+label(A,'نوية','R',270,()=>at(aNuc,anO.x,anO.y));
+label(A,'نواة','R',350,()=>at(aNuc,52,40));
+label(A,'الجسيمات المركزية','R',450,()=>at(aCen,0,0));
+label(A,'الأنيبيبات الدقيقة','R',540,()=>at(mt[1],572,625));
+label(A,'السايتوبلازم','R',640,()=>[aGr[0].x,aGr[0].y]);
+label(A,'رايبوسوم','R',735,()=>[aRib1.x,aRib1.y]);
+
+/* ---------- animation ---------- */
+const cells=[{c:P,name:'الخلية النباتية'},{c:A,name:'الخلية الحيوانية'}];
+let cur=0;
+function frame(ms){const t=ms/1000;
+  cells.forEach((k,i)=>{if(i!==cur&&k.c.g.style.opacity==='0')return;const c=k.c;
+    c.orgs.forEach(o=>o.upd(t));c.dots.forEach(d=>d.upd());c.labs.forEach(f=>f());});
+  const s=1+.006*Math.sin(t*.9);vacG.setAttribute('transform',`translate(462 470) scale(${s.toFixed(4)}) translate(-462 -470)`);
+  nlO.x=-8+4*Math.sin(t*.8);nlO.y=-6+3*Math.cos(t*.6);pNl.setAttribute('transform',`translate(${nlO.x.toFixed(2)} ${nlO.y.toFixed(2)})`);
+  anO.x=4*Math.sin(t*.7);anO.y=-18+4*Math.cos(t*.9);aNl.setAttribute('transform',`translate(${anO.x.toFixed(2)} ${anO.y.toFixed(2)})`);
+  requestAnimationFrame(frame);}
+
+/* ---------- navigation ---------- */
+const title=document.getElementById('title'),dotsEl=document.getElementById('dots'),dots=[];
+cells.forEach((k,i)=>{const b=document.createElement('button');b.className='dot';b.onclick=()=>go(i);dotsEl.appendChild(b);dots.push(b);});
+function go(i){
+  i=(i+2)%2;if(i===cur&&title.textContent)return;
+  cur=i;cells.forEach((k,j)=>{k.c.g.style.opacity=j===i?1:0;k.c.g.style.pointerEvents='none';});
+  title.style.opacity=0;setTimeout(()=>{title.textContent=cells[i].name;title.style.opacity=1;},200);
+  dots.forEach((d,j)=>d.classList.toggle('on',j===i));reset();
+}
+document.getElementById('next').onclick=()=>go(cur+1);
+document.getElementById('prev').onclick=()=>go(cur-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(cur+1);if(e.key==='ArrowRight')go(cur-1);});
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:430});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:430});
+document.getElementById('zreset').onclick=reset;
+
+go(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
