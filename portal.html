@@ -27,14 +27,15 @@
       overflow-x: hidden;
     }
 
+    /* الشريط العلوي */
     header {
-      height: 54px;
+      height: 56px;
       background: #0b1526;
       border-bottom: 1px solid #1a2942;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 18px;
       flex-shrink: 0;
       z-index: 20;
     }
@@ -43,20 +44,23 @@
       font-size: 1.05rem;
       font-weight: 900;
       color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .teacher-badge {
       background: rgba(56, 189, 248, 0.1);
       border: 1px solid #38bdf8;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 8px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 900;
       color: #38bdf8;
       transition: all 0.3s;
@@ -66,22 +70,191 @@
       background: #1e293b;
       border: 1px solid #334155;
       color: #94a3b8;
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 6px;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: bold;
       cursor: pointer;
     }
 
-    .container {
+    /* مساحة المحتوى */
+    .main-wrapper {
       flex: 1;
       max-width: 1100px;
       margin: 0 auto;
       width: 100%;
-      padding: 16px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    /* ================= 1. واجهة بوابات المواد الثلاث الأفقية ================= */
+    #subjectsView {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .portal-heading {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .portal-heading h2 {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+
+    .portal-heading p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    /* شبكة البوابات الأفقية الثلاث */
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .subjects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .subject-portal-card {
+      background: #0b1526;
+      border: 2px solid #1a2942;
+      border-radius: 16px;
+      padding: 22px 18px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subject-portal-card:hover:not(.locked) {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+    }
+
+    /* ثيم الفيزياء (أزرق سماوي كهربائي) */
+    .subject-portal-card[data-subj="physics"] {
+      background: radial-gradient(circle at top, rgba(14, 165, 233, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="physics"]:hover:not(.locked) {
+      border-color: #0ea5e9;
+    }
+
+    /* ثيم الكيمياء (أرجواني/زهري ذري) */
+    .subject-portal-card[data-subj="chemistry"] {
+      background: radial-gradient(circle at top, rgba(168, 85, 247, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="chemistry"]:hover:not(.locked) {
+      border-color: #a855f7;
+    }
+
+    /* ثيم الأحياء (أخضر زمردي خلوي) */
+    .subject-portal-card[data-subj="biology"] {
+      background: radial-gradient(circle at top, rgba(16, 185, 129, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="biology"]:hover:not(.locked) {
+      border-color: #10b981;
+    }
+
+    .subject-icon-box {
+      font-size: 3rem;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    .subject-name {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #f8fafc;
+    }
+
+    .subject-desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .subject-status-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+
+    .subject-portal-card.active-sub .subject-status-pill {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+
+    .subject-portal-card.locked {
+      opacity: 0.55;
+      border-color: #1e293b;
+      cursor: not-allowed;
+      filter: grayscale(0.6);
+    }
+
+    .subject-portal-card.locked .subject-status-pill {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid #ef4444;
+    }
+
+    /* ================= 2. واجهة فصول وتجارب المادة المحددة ================= */
+    #chaptersView {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chapters-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b1526;
+      border: 1px solid #1a2942;
+      padding: 10px 16px;
+      border-radius: 12px;
+    }
+
+    .current-subj-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back-subjects {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .chapter-section {
@@ -157,6 +330,7 @@
       border-radius: 6px;
     }
 
+    /* نافذة إدخال كود التفعيل */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -233,6 +407,7 @@
       font-weight: bold;
     }
 
+    /* مشغل المحاكاة بملء الشاشة */
     #viewerScreen {
       position: fixed;
       top: 0;
@@ -276,71 +451,136 @@
 </head>
 <body>
 
+  <!-- الشريط العلوي -->
   <header>
-    <div class="brand">منصة المختبرات التفاعلية</div>
+    <div class="brand">🧪 منصة المختبرات العلمية التفاعلية</div>
     <div class="header-left">
       <div class="teacher-badge" id="teacherDisplay">إعداد الأستاذ: جاري التحقق...</div>
       <button class="btn-key-change" onclick="openKeyModal()" title="تغيير كود الاشتراك">🔑 الكود</button>
     </div>
   </header>
 
-  <div class="container" id="mainCatalog">
+  <div class="main-wrapper">
     
-    <!-- الفصل الأول -->
-    <div class="chapter-section" data-chapter="ch1">
-      <div class="chapter-title">⚡ الفصل الأول: المتسعات</div>
-      <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('ch1', 'faraday_dielectric.html', 'نشاط العازل الكهربائي')">
-          <span class="exp-icon">🧲</span>
-          <div class="exp-title">نشاط (1): إدخال العازل الكهربائي</div>
-          <div class="exp-tag">تأثير العازل على فرق الجهد والسعة</div>
+    <!-- ================= 1. واجهة بوابات المواد الثلاث ================= -->
+    <div id="subjectsView">
+      <div class="portal-heading">
+        <h2>اختر المادة التعليمية</h2>
+        <p>المختبرات التفاعلية المنهجية لمرحلة السادس العلمي</p>
+      </div>
+
+      <div class="subjects-grid">
+        <!-- 1. بوابة الأحياء -->
+        <div class="subject-portal-card" data-subj="biology" onclick="selectSubject('biology')">
+          <div class="subject-icon-box">🧬</div>
+          <div class="subject-name">علم الأحياء</div>
+          <div class="subject-desc">الغشاء البلازمي، الانقسام الثنائي، والأنشطة الخلوية المنهجية</div>
+          <div class="subject-status-pill" id="status_biology">فحص الصلاحية...</div>
+        </div>
+
+        <!-- 2. بوابة الفيزياء -->
+        <div class="subject-portal-card" data-subj="physics" onclick="selectSubject('physics')">
+          <div class="subject-icon-box">⚡</div>
+          <div class="subject-name">الفيزياء</div>
+          <div class="subject-desc">أنشطة المتسعات، الحث الكهرومغناطيسي، وقوانين فراداي ولنز</div>
+          <div class="subject-status-pill" id="status_physics">فحص الصلاحية...</div>
+        </div>
+
+        <!-- 3. بوابة الكيمياء -->
+        <div class="subject-portal-card" data-subj="chemistry" onclick="selectSubject('chemistry')">
+          <div class="subject-icon-box">🧪</div>
+          <div class="subject-name">الكيمياء</div>
+          <div class="subject-desc">الاتزان الكيميائي، المسعر الحراري، والتفاعلات الكيميائية</div>
+          <div class="subject-status-pill" id="status_chemistry">فحص الصلاحية...</div>
         </div>
       </div>
     </div>
 
-    <!-- الفصل الثاني -->
-    <div class="chapter-section" data-chapter="ch2">
-      <div class="chapter-title">🧲 الفصل الثاني: الحث الكهرومغناطيسي</div>
-      <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('ch2', 'faraday_induction.html', 'نشاط فراداي في الحث')">
-          <span class="exp-icon">💡</span>
-          <div class="exp-title">نشاط فراداي في الحث</div>
-          <div class="exp-tag">الملفان الابتدائي والثانوي وحلقة الحديد</div>
-        </div>
+    <!-- ================= 2. واجهة فصول وتجارب المادة ================= -->
+    <div id="chaptersView">
+      <div class="chapters-top-bar">
+        <div class="current-subj-title" id="currentSubjectTitle">⚡ مختبر الفيزياء</div>
+        <button class="btn-back-subjects" onclick="showSubjectsView()">🔙 تغيير المادة</button>
       </div>
-    </div>
 
-    <!-- الفصل الثالث -->
-    <div class="chapter-section" data-chapter="ch3">
-      <div class="chapter-title">📐 الرياضيات: تطبيقات التفاضل</div>
-      <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('ch3', 'shadow_calculus.html', 'مسألة ظل الرجل')">
-          <span class="exp-icon">🚶‍♂️</span>
-          <div class="exp-title">مسألة ظل الرجل (المعدلات الزمنية)</div>
-          <div class="exp-tag">تمارين (3-2) ص 101 - تشابه المثلثات</div>
+      <!-- حاوية فصول الفيزياء -->
+      <div id="container_physics" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <div class="chapter-section" data-chapter="phy_ch1">
+          <div class="chapter-title">⚡ الفصل الأول: المتسعات</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('phy_ch1', 'faraday_dielectric.html', 'نشاط العازل الكهربائي')">
+              <span class="exp-icon">🧲</span>
+              <div class="exp-title">نشاط (1): إدخال العازل الكهربائي</div>
+              <div class="exp-tag">تأثير العازل على فرق الجهد والسعة</div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- علم الأحياء -->
-    <div class="chapter-section" data-chapter="bio">
-      <div class="chapter-title">🔬 علم الأحياء: الخلية</div>
-      <div class="cards-grid">
-        <div class="exp-card" onclick="openExp('bio', 'membrane.html', 'تركيب الغشاء البلازمي')">
-          <span class="exp-icon">🧬</span>
-          <div class="exp-title">تركيب الغشاء البلازمي</div>
-          <div class="exp-tag">جزيئات الشحوم المفسفرة والبروتينات</div>
+        <div class="chapter-section" data-chapter="phy_ch2">
+          <div class="chapter-title">🧲 الفصل الثاني: الحث الكهرومغناطيسي</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('phy_ch2', 'faraday_induction.html', 'نشاط فراداي في الحث')">
+              <span class="exp-icon">💡</span>
+              <div class="exp-title">نشاط فراداي في الحث</div>
+              <div class="exp-tag">الملفان الابتدائي والثانوي وحلقة الحديد</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- حاوية فصول الأحياء -->
+      <div id="container_biology" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <div class="chapter-section" data-chapter="bio_ch1">
+          <div class="chapter-title">🔬 الفصل الأول: تركيب الخلية</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('bio_ch1', 'membrane.html', 'تركيب الغشاء البلازمي')">
+              <span class="exp-icon">🧬</span>
+              <div class="exp-title">تركيب الغشاء البلازمي</div>
+              <div class="exp-tag">جزيئات الشحوم المفسفرة والبروتينات الناقلة</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'fission.html', 'الانقسام الثنائي في البكتيريا')">
+              <span class="exp-icon">🦠</span>
+              <div class="exp-title">الانقسام الثنائي في البكتيريا</div>
+              <div class="exp-tag">تضاعف الـ DNA وتخصر جدار الخلية</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- حاوية فصول الكيمياء -->
+      <div id="container_chemistry" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <div class="chapter-section" data-chapter="chem_ch1">
+          <div class="chapter-title">🔥 الفصل الأول: علم الثرموداينمك</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('chem_ch1', 'calorimeter.html', 'تجربة المسعر الحراري')">
+              <span class="exp-icon">🌡️</span>
+              <div class="exp-title">تجربة المسعر الحراري</div>
+              <div class="exp-tag">قياس حرارة التفاعل وسعة الامتصاص</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chapter-section" data-chapter="chem_ch2">
+          <div class="chapter-title">⚖️ الفصل الثاني: الاتزان الكيميائي</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('chem_ch2', 'le_chatelier.html', 'قاعدة لوشاتليه التفاعلية')">
+              <span class="exp-icon">⚗️</span>
+              <div class="exp-title">قاعدة لوشاتليه التفاعلية</div>
+              <div class="exp-tag">تأثير الضغط والحرارة والتركيز على الاتزان</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
-  <!-- نافذة إدخال كود التفعيل -->
+  <!-- نافذة إدخال كود التفعيل (Modal) -->
   <div class="modal-overlay" id="keyModal">
     <div class="modal-card">
       <h2>🔐 تفعيل اشتراك المنصة</h2>
-      <p>يرجى إدخال كود الاشتراك الخاص بك للوصول إلى التجارب والمحاكاة التفاعلية المصرح بها:</p>
+      <p>يرجى إدخال كود الاشتراك الخاص بك للوصول إلى المواد والمختبرات المصرح بها:</p>
       
       <input type="text" id="inputTeacherKey" class="modal-input" placeholder="مثال: ALI2026" autocomplete="off" autocapitalize="characters">
       
@@ -353,6 +593,7 @@
     </div>
   </div>
 
+  <!-- مشغل المحاكاة بملء الشاشة -->
   <div id="viewerScreen">
     <div class="viewer-bar">
       <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">المحاكاة التفاعلية</span>
@@ -362,10 +603,10 @@
   </div>
 
   <script>
-    // الرابط المباشر لقراءة الجدول دون وسيط
+    // الرابط المباشر لقراءة جدول البيانات
     const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1iYfqiK-IKHPhLClPO_P3GMQBSprkemJ10QKB6W4_TwA/gviz/tq";
 
-    let allowedChapters = [];
+    let rawPermissions = "";
     let currentKey = "";
 
     function getStoredKey() {
@@ -378,7 +619,6 @@
       return localStorage.getItem('moe_teacher_key') || "";
     }
 
-    // دالة فك التواريخ بصيغ جوجل المتعددة
     function parseGvizDate(cell) {
       if (!cell) return null;
       if (typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
@@ -390,8 +630,6 @@
       if (cell.f) {
         const d = new Date(cell.f + 'T23:59:59');
         if (!isNaN(d.getTime())) return d;
-        const d2 = new Date(cell.f);
-        if (!isNaN(d2.getTime())) return d2;
       }
       if (cell.v) {
         const d = new Date(cell.v);
@@ -400,7 +638,6 @@
       return null;
     }
 
-    // استدعاء بيانات الجدول مباشرة
     function verifySubscription(keyToTest) {
       if (!keyToTest) {
         openKeyModal();
@@ -411,12 +648,6 @@
       badge.innerText = "جاري التحقق من الجدول...";
       badge.style.color = "#38bdf8";
       badge.style.borderColor = "#38bdf8";
-
-      const status = document.getElementById('modalStatus');
-      if (status) {
-        status.innerText = "جاري التحقق من الكود...";
-        status.style.color = "#38bdf8";
-      }
 
       const callbackName = 'gvizCallback_' + Date.now();
 
@@ -437,7 +668,7 @@
         badge.innerText = "⚠️ تعذر الاتصال بالجدول";
         badge.style.color = "#ef4444";
         badge.style.borderColor = "#ef4444";
-        openKeyModal("تعذر الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
+        openKeyModal("تعذر الاتصال بقاعدة البيانات. تأكد من الإنترنت.");
       };
 
       document.body.appendChild(script);
@@ -465,7 +696,7 @@
         const teacherKey = row[1]?.v ? String(row[1].v).trim() : "";
         const expiryCell = row[2];
         const status = row[3]?.v ? String(row[3].v).trim().toLowerCase() : "";
-        const chapters = row[4]?.v ? String(row[4].v).trim() : "";
+        const permissions = row[4]?.v ? String(row[4].v).trim().toLowerCase() : "";
 
         if (teacherKey.toLowerCase() === keyToTest.trim().toLowerCase()) {
           found = true;
@@ -476,8 +707,8 @@
             badge.style.color = "#ef4444";
             badge.style.borderColor = "#ef4444";
             openKeyModal("تم إيقاف الاشتراك. يرجى مراجعة المهندس محمد حسن.");
-            allowedChapters = [];
-            lockAllChapters();
+            rawPermissions = "";
+            renderPortals();
             return;
           }
 
@@ -486,14 +717,14 @@
             badge.style.color = "#ef4444";
             badge.style.borderColor = "#ef4444";
             openKeyModal("انتهت فترة الاشتراك. يرجى التواصل للتجديد.");
-            allowedChapters = [];
-            lockAllChapters();
+            rawPermissions = "";
+            renderPortals();
             return;
           }
 
           userData = {
             teacher: teacherName,
-            chapters: chapters
+            permissions: permissions
           };
           break;
         }
@@ -503,13 +734,13 @@
         badge.innerText = "⚠️ كود غير صحيح";
         badge.style.color = "#ef4444";
         badge.style.borderColor = "#ef4444";
-        openKeyModal("كود الاشتراك غير صحيح. يرجى التأكد من الكود المخصص لك.");
-        allowedChapters = [];
-        lockAllChapters();
+        openKeyModal("كود الاشتراك غير صحيح. يرجى التأكد من الكود الخاص بك.");
+        rawPermissions = "";
+        renderPortals();
         return;
       }
 
-      // تفعيل الحساب وحفظ الكود محلياً
+      // تفعيل الحساب بنجاح
       currentKey = keyToTest.trim();
       localStorage.setItem('moe_teacher_key', currentKey);
       document.getElementById('keyModal').style.display = 'none';
@@ -518,24 +749,102 @@
       badge.style.color = "#38bdf8";
       badge.style.borderColor = "#38bdf8";
 
-      allowedChapters = userData.chapters ? userData.chapters.split(',').map(s => s.trim()) : [];
-      updateChapterLocks();
+      rawPermissions = userData.permissions;
+      renderPortals();
     }
 
-    function updateChapterLocks() {
-      const sections = document.querySelectorAll('.chapter-section');
-      sections.forEach(sec => {
+    // دالة فحص تفعيل مادة معينة
+    function isSubjectAllowed(subj) {
+      if (!rawPermissions) return false;
+      const perms = rawPermissions.split(',').map(s => s.trim());
+
+      // إذا كُتبت المادة صراحة بالإنجليزية أو العربية
+      if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
+      if (subj === 'biology' && (perms.includes('biology') || perms.includes('احياء') || perms.includes('أحياء') || perms.includes('bio'))) return true;
+      if (subj === 'chemistry' && (perms.includes('chemistry') || perms.includes('كيمياء') || perms.includes('chem'))) return true;
+
+      // فحص جزئي للفصول
+      if (subj === 'physics' && perms.some(p => p.startsWith('phy_'))) return true;
+      if (subj === 'biology' && perms.some(p => p.startsWith('bio_'))) return true;
+      if (subj === 'chemistry' && perms.some(p => p.startsWith('chem_'))) return true;
+
+      return false;
+    }
+
+    // دالة فحص تفعيل فصل معين
+    function isChapterAllowed(subj, chapter) {
+      if (!rawPermissions) return false;
+      const perms = rawPermissions.split(',').map(s => s.trim());
+
+      // إذا كانت المادة كاملة مفعلة
+      if (isSubjectAllowed(subj)) {
+        // إذا حُددت فصول معينة
+        const hasSpecificChapter = perms.some(p => p.startsWith(subj.substring(0, 3) + '_'));
+        if (hasSpecificChapter) {
+          return perms.includes(chapter);
+        }
+        return true; // المادة بأكملها مفتوحة
+      }
+      return false;
+    }
+
+    // تحديث أشكال البوابات الثلاث
+    function renderPortals() {
+      const subjects = ['physics', 'chemistry', 'biology'];
+
+      subjects.forEach(subj => {
+        const card = document.querySelector(`.subject-portal-card[data-subj="${subj}"]`);
+        const statusPill = document.getElementById(`status_${subj}`);
+        const allowed = isSubjectAllowed(subj);
+
+        if (allowed) {
+          card.classList.remove('locked');
+          card.classList.add('active-sub');
+          statusPill.innerText = "🟢 مفعّل بالاشتراك";
+        } else {
+          card.classList.add('locked');
+          card.classList.remove('active-sub');
+          statusPill.innerText = "🔒 غير مفعّل";
+        }
+      });
+    }
+
+    // عند الضغط على إحدى بوابات المواد
+    function selectSubject(subj) {
+      if (!isSubjectAllowed(subj)) {
+        alert("⚠️ هذه المادة غير مفعّلة ضمن اشتراكك الحالي. يرجى التواصل مع المهندس محمد حسن لتفعيلها.");
+        return;
+      }
+
+      // إخفاء بوابات المواد وإظهار فصول المادة المختارة
+      document.getElementById('subjectsView').style.display = 'none';
+      document.getElementById('chaptersView').style.display = 'flex';
+
+      // إخفاء كافة الحاويات أولاً
+      document.querySelectorAll('.subject-content-container').forEach(c => c.style.display = 'none');
+
+      // إظهار حاوية المادة المختارة
+      const targetContainer = document.getElementById(`container_${subj}`);
+      if (targetContainer) targetContainer.style.display = 'flex';
+
+      // تحديث العنوان
+      const titleElem = document.getElementById('currentSubjectTitle');
+      if (subj === 'physics') titleElem.innerHTML = "⚡ مختبر الفيزياء المنهجي";
+      if (subj === 'biology') titleElem.innerHTML = "🧬 مختبر علم الأحياء المنهجي";
+      if (subj === 'chemistry') titleElem.innerHTML = "🧪 مختبر الكيمياء المنهجي";
+
+      // قفل الفصول غير المصرح بها داخل المادة
+      targetContainer.querySelectorAll('.chapter-section').forEach(sec => {
         const ch = sec.getAttribute('data-chapter');
         const cards = sec.querySelectorAll('.exp-card');
+        const chAllowed = isChapterAllowed(subj, ch);
 
-        if (allowedChapters.includes(ch)) {
-          cards.forEach(card => {
+        cards.forEach(card => {
+          if (chAllowed) {
             card.classList.remove('locked');
             const badge = card.querySelector('.lock-overlay');
             if (badge) badge.remove();
-          });
-        } else {
-          cards.forEach(card => {
+          } else {
             card.classList.add('locked');
             if (!card.querySelector('.lock-overlay')) {
               const badge = document.createElement('div');
@@ -543,29 +852,17 @@
               badge.innerText = '🔒 غير مفعّل';
               card.appendChild(badge);
             }
-          });
-        }
+          }
+        });
       });
     }
 
-    function lockAllChapters() {
-      const cards = document.querySelectorAll('.exp-card');
-      cards.forEach(card => {
-        card.classList.add('locked');
-        if (!card.querySelector('.lock-overlay')) {
-          const badge = document.createElement('div');
-          badge.className = 'lock-overlay';
-          badge.innerText = '🔒 غير مفعّل';
-          card.appendChild(badge);
-        }
-      });
+    function showSubjectsView() {
+      document.getElementById('chaptersView').style.display = 'none';
+      document.getElementById('subjectsView').style.display = 'flex';
     }
 
     function openExp(chapter, fileName, expTitle) {
-      if (!allowedChapters.includes(chapter)) {
-        alert("هذا الفصل غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع المهندس محمد حسن لتفعيله.");
-        return;
-      }
       document.getElementById('activeExpName').innerText = expTitle || "المحاكاة التفاعلية";
       document.getElementById('expFrame').src = fileName;
       document.getElementById('viewerScreen').style.display = 'flex';
