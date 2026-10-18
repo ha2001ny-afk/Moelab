@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التناضح (Osmosis)</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(15px,3.8vw,23px);font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:radial-gradient(circle at 50% 45%,#fff 0%,#e3f0f8 100%)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  #dots{display:flex;gap:14px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #menu{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:radial-gradient(circle at 50% 40%,#ffffff 0%,#d9ebf7 100%);transition:opacity .5s}
+  #menu.hide{opacity:0;pointer-events:none}
+  #menu h1{margin:0;color:#1f3a52;font-size:clamp(34px,8vw,56px)}
+  #menu h2{margin:-18px 0 0;color:#5a7a96;font-size:clamp(18px,4vw,26px);font-weight:normal;letter-spacing:2px}
+  .opts{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;padding:0 16px}
+  .big{width:min(260px,42vw);min-width:180px;padding:18px 10px 20px;border-radius:26px;border:4px solid #1f3a52;background:#fff;color:#1f3a52;font-size:clamp(20px,4.4vw,28px);font-weight:bold;cursor:pointer;box-shadow:0 8px 20px rgba(31,58,82,.25);display:flex;flex-direction:column;align-items:center;gap:10px;transition:transform .2s,background .2s;font-family:inherit}
+  .big:hover,.big:active{transform:scale(1.05);background:#eaf4fc}
+  .big svg{width:120px;height:120px;touch-action:auto;cursor:pointer;animation:fl 3s ease-in-out infinite}
+  @keyframes fl{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.04)}}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+  .bt{fill:#fff;font-weight:bold;font-size:25px;text-anchor:middle}
+  .be{fill:#fff;font-size:15px;text-anchor:middle;opacity:.92}
+  .leg{fill:#1f3a52;font-size:17px;font-weight:bold;text-anchor:middle}
+  #bn{transition:fill .5s}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التناضح (Osmosis)</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="home">⌂</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 760" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#2f6fd6"/></marker>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next">◀</button>
+  </div>
+  <div id="menu">
+    <h1>التناضح</h1><h2>Osmosis</h2>
+    <div class="opts">
+      <button class="big" id="pickA">
+        <svg viewBox="0 0 120 120"><path d="M60,12C84,8 106,26 108,52C110,78 92,106 62,108C34,110 12,90 12,62C12,34 34,14 60,12Z" fill="#c9c3dc" stroke="#6d6590" stroke-width="5"/><circle cx="56" cy="62" r="19" fill="#7a2f9a" stroke="#4b1766" stroke-width="3"/><ellipse cx="86" cy="40" rx="9" ry="7" fill="#a79fc4"/><ellipse cx="34" cy="84" rx="9" ry="7" fill="#a79fc4"/></svg>
+        الخلية الحيوانية
+      </button>
+      <button class="big" id="pickP">
+        <svg viewBox="0 0 120 120"><path d="M36,8H84L112,34V86L84,112H36L8,86V34Z" fill="#fff" stroke="#2f8f3f" stroke-width="9" stroke-linejoin="round"/><path d="M40,20H80L100,38V82L80,100H40L20,82V38Z" fill="#f3b394" stroke="#c2462e" stroke-width="3"/><ellipse cx="52" cy="60" rx="24" ry="30" fill="#cdeee7" stroke="#7cc3b5" stroke-width="2"/><circle cx="82" cy="62" r="11" fill="#5b2f9c"/></svg>
+        الخلية النباتية
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI,CX=450,CY=375;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,f1=v=>v.toFixed(1);
+const hx=c=>[1,3,5].map(i=>parseInt(c.substr(i,2),16));
+const mix=(a,b,t)=>{const A=hx(a),B=hx(b);return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('');};
+let rs=3;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+
+/* ---------------- state ---------------- */
+let type='A',stage=0,T=0,stageT0=0,reborn=false,paused=false,last=performance.now();
+const S={conc:.5,flow:0,size:1,cren:0,burst:-1,alpha:1,entry:1,ws:1,pp:.96,vf:.72};
+const sm=(v,t,r,dt)=>v+(t-v)*(1-Math.exp(-r*dt));
+const STG={A:[['أ - محلول متعادل التركيز','Isotonic Solution','#2e8b57'],['ب - محلول واطئ التركيز','Hypotonic Solution','#2f6fd6'],['ج - محلول عالي التركيز','Hypertonic Solution','#d9622b']],
+  P:[['أ - محلول متعادل التركيز','Isotonic Solution','#2e8b57'],['ب - محلول واطئ التركيز','Hypotonic Solution','#2f6fd6'],['ج - محلول عالي التركيز','Hypertonic Solution','#d9622b'],['حالة ازالة البلزمة','Deplasmolysis','#7b4bb3']]};
+
+/* ---------------- shapes ---------------- */
+const sup=(th,a,b)=>{const c=Math.abs(Math.cos(th))/a,s=Math.abs(Math.sin(th))/b;return Math.pow(Math.pow(c,3.6)+Math.pow(s,3.6),-1/3.6);};
+const EoA=th=>{const R=105*S.size,w=1-.7*clamp((S.size-1)/.5,0,1),sp=1-Math.abs(Math.sin(4.5*th+T*.3));
+  return R*(1+w*(.06*Math.sin(3*th+T*.5)+.04*Math.sin(5*th-T*.4))+S.cren*.09*(Math.pow(sp,3)*2-.5));};
+const EW=th=>sup(th,S.ws*125,S.ws*170),EWI=th=>EW(th)-15;
+const AP=()=>(S.ws*125-16)*S.pp,BP=()=>(S.ws*170-16)*S.pp;
+const EP=th=>sup(th,AP(),BP())*(1+.025*(1-S.pp)*Math.sin(5*th+T*.8));
+const Eo=th=>type==='A'?EoA(th):EW(th),Ei=th=>type==='A'?EoA(th):EP(th);
+const pol=(x,y)=>{const dx=x-CX,dy=y-CY;return[Math.atan2(dy,dx),Math.hypot(dx,dy)];};
+const polyD=(fn,N)=>{let d='';for(let i=0;i<N;i++){const th=2*PI*i/N,r=fn(th);d+=(i?'L':'M')+f1(CX+r*Math.cos(th))+','+f1(CY+r*Math.sin(th));}return d+'Z';};
+
+/* ---------------- scene layers ---------------- */
+const tank=el('rect',{x:190,y:110,width:520,height:530,rx:24,fill:'#cfe4f6',stroke:'#7aa6c8','stroke-width':4});
+const outG=G(view),AG=G(view),PG=G(view),inG=G(view),arrG=G(view),watG=G(view),labG=G(view,{'pointer-events':'none'});
+/* animal cell */
+const aFill=el('path',{},AG),aBlobs=[[40,-30,17,12],[-45,25,15,11],[30,45,13,10]].map(b=>({b,e:el('ellipse',{fill:'#9a90bf','fill-opacity':.7},AG)}));
+const aNuc=el('circle',{fill:'#7a2f9a',stroke:'#4b1766','stroke-width':2.5},AG),aNl=el('circle',{fill:'#4b1766'},AG);
+const aStroke=el('path',{fill:'none',stroke:'#6d6590','stroke-width':5,'stroke-linecap':'round','stroke-linejoin':'round'},AG);
+const spikeG=G(AG),spike=el('polygon',{fill:'#e8582e',stroke:'#a62a10','stroke-width':2.5,'stroke-linejoin':'round'},spikeG);
+const debris=[...Array(24)].map(()=>({x:0,y:0,vx:0,vy:0,age:9,e:el('circle',{r:4,fill:'#b7aed0',stroke:'#6d6590','stroke-width':1.2,opacity:0},AG)}));
+/* plant cell */
+const pGapFill=el('path',{},PG),pProto=el('path',{fill:'#f3b394',stroke:'#c2462e','stroke-width':3.5,'stroke-linejoin':'round'},PG);
+const pVac=el('path',{fill:'#cdeee7',stroke:'#7cc3b5','stroke-width':2.5},PG),pNuc=el('ellipse',{rx:19,ry:17,fill:'#5b2f9c',stroke:'#2a1450','stroke-width':2.5},PG);
+const pCh=[...Array(7)].map((_,i)=>({a:i*PI*2/7+.3,e:el('ellipse',{rx:13,ry:7.5,fill:'#47b04f',stroke:'#1f6b2e','stroke-width':1.8},PG)}));
+const pWall=el('path',{fill:'none',stroke:'#2f8f3f','stroke-width':15,'stroke-linejoin':'round'},PG),pWall2=el('path',{fill:'none',stroke:'#7bc97f','stroke-width':2,'stroke-opacity':.7},PG);
+
+/* ---------------- particles ---------------- */
+const SOL={fill:'#f08a1c',stroke:'#b8590a','stroke-width':1.2};
+function solute(parent,kind,thr){const p={kind,thr,x:CX,y:CY,vx:(rnd()-.5)*.6,vy:(rnd()-.5)*.6,seeded:false,e:el('circle',{r:5,...SOL},parent)};return p;}
+const outs=[...Array(46)].map((_,i)=>solute(outG,'out',(i+.5)/46)),ins=[...Array(14)].map(()=>solute(inG,'in',0)),gaps=[...Array(12)].map((_,i)=>solute(inG,'gap',(i+.5)/12));
+const validOut=(x,y)=>{if(x<208||x>692||y<128||y>622)return false;const q=pol(x,y);return q[1]>Eo(q[0])+11;};
+const validIn=(x,y)=>{const q=pol(x,y);return q[1]<Ei(q[0])-11;};
+const validGap=(x,y)=>{const q=pol(x,y);return q[1]>EP(q[0])+10&&q[1]<EWI(q[0])-8;};
+function seed(p,v,fn){for(let k=0;k<400;k++){const x=210+rnd()*480,y=130+rnd()*490;if(v(x,y)){p.x=x;p.y=y;return true;}}return false;}
+function walk(p,dt,v,fix){
+  p.vx+=(rnd()-.5)*.1;p.vy+=(rnd()-.5)*.1;const s=Math.hypot(p.vx,p.vy);if(s>.5){p.vx*=.5/s;p.vy*=.5/s;}
+  const nx=p.x+p.vx,ny=p.y+p.vy;if(v(nx,ny)){p.x=nx;p.y=ny;}else{p.vx=-p.vx;p.vy=-p.vy;}
+  if(!v(p.x,p.y))fix(p);}
+const fixOut=p=>{const q=pol(p.x,p.y),r=Eo(q[0])+13;p.x=CX+r*Math.cos(q[0]);p.y=CY+r*Math.sin(q[0]);if(!validOut(p.x,p.y))seed(p,validOut);};
+const fixIn=p=>{const q=pol(p.x,p.y),r=Math.max(0,Ei(q[0])-14)*rnd();p.x=CX+r*Math.cos(q[0]);p.y=CY+r*Math.sin(q[0]);};
+const fixGap=p=>{const q=pol(p.x,p.y),r=clamp(q[1],EP(q[0])+12,EWI(q[0])-10);p.x=CX+r*Math.cos(q[0]);p.y=CY+r*Math.sin(q[0]);};
+outs.forEach(p=>seed(p,validOut));ins.forEach(p=>seed(p,validIn));
+const water=[...Array(46)].map(()=>({th:rnd()*2*PI,dir:1,u:rnd(),spd:.45+rnd()*.35,e:el('circle',{r:3.8,fill:'#4aa3ff',stroke:'#1f6fd0','stroke-width':.9},watG)}));
+const arrows=[0,5,2,7,4,9,1,6,3,8].map((p,k)=>({th:2*PI*k/10+.3,off:-1+2*p/9,e:el('line',{stroke:'#2f6fd6','stroke-width':5,'stroke-linecap':'round','stroke-dasharray':'13 8','marker-end':'url(#ab)'},arrG)}));
+
+/* ---------------- labels ---------------- */
+const labs=[];
+function label(txt,side,py,w,tf,show){const h=36,cx=side==='L'?20+w/2:880-w/2,g=G(labG),ln=el('line',{class:'ln','marker-end':'url(#ah)'},g);
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:18},g);el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
+  const o={a:0,upd(dt){o.a=sm(o.a,show()?1:0,6,dt);g.setAttribute('opacity',o.a.toFixed(2));if(o.a<.02)return;const p=tf();ln.setAttribute('x1',cx);ln.setAttribute('y1',py);ln.setAttribute('x2',f1(p[0]));ln.setAttribute('y2',f1(p[1]));}};labs.push(o);return o;}
+const at=(th,k)=>{const r=Eo(th)*(k||1);return[CX+r*Math.cos(th),CY+r*Math.sin(th)];};
+const isA=()=>type==='A',isP=()=>type==='P';
+const wound=-.35;
+/* animal */
+label('غشاء الخلية','L',200,150,()=>at(3.5),()=>isA()&&stage===0);
+label('انتفاخ الخلية','R',250,150,()=>at(-.9),()=>isA()&&stage===1&&S.burst<0);
+label('تمزق الخلية','R',250,150,()=>at(wound),()=>isA()&&stage===1&&S.burst>=.5);
+label('انكماش الخلية','R',250,150,()=>at(-.9),()=>isA()&&stage===2&&S.size<.88);
+/* plant */
+const vacGeo=()=>({cx:CX-.1*AP(),cy:CY,a:AP()*S.vf,b:BP()*S.vf});
+const nucPos=()=>[CX+.62*AP(),CY+.1*BP()];
+const chPos=i=>{const a=pCh[i].a+T*.04,r=EP(a)*.86;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];};
+label('فجوة مركزية','L',210,150,()=>{const v=vacGeo();return[v.cx-.3*v.a,v.cy-.2*v.b];},()=>isP()&&stage===0);
+label('نواة','L',330,150,()=>nucPos(),()=>isP()&&stage===0);
+label('بلاستيدات','L',450,150,()=>chPos(3),()=>isP()&&stage===0);
+label('جدار الخلية','R',230,150,()=>{const th=-.7,r=EW(th)-7;return[CX+r*Math.cos(th),CY+r*Math.sin(th)];},()=>isP()&&stage===0);
+label('غشاء الخلية','R',340,150,()=>{const th=.35,r=EP(th);return[CX+r*Math.cos(th),CY+r*Math.sin(th)];},()=>isP()&&stage===0);
+label('البلزمة','R',450,150,()=>{const th=PI*.93,r=(EP(th)+EWI(th))/2;return[CX+r*Math.cos(th),CY+r*Math.sin(th)];},()=>isP()&&stage===2&&S.pp<.8);
+
+/* banner + legend */
+const bn=el('rect',{id:'bn',x:190,y:20,width:520,height:68,rx:20,fill:'#2e8b57'});
+const bt=el('text',{class:'bt',x:450,y:50}),be=el('text',{class:'be',x:450,y:74});
+el('circle',{cx:340,cy:680,r:6,fill:'#4aa3ff',stroke:'#1f6fd0'});el('text',{class:'leg',x:420,y:686}).textContent='جزيئات الماء';
+el('circle',{cx:530,cy:680,r:6,fill:'#f08a1c',stroke:'#b8590a'});el('text',{class:'leg',x:610,y:686}).textContent='مادة ذائبة';
+
+/* ---------------- simulation step ---------------- */
+function spawnDebris(){const q=wound;debris.forEach(d=>{const a=q+(rnd()-.5)*1.7,s=40+rnd()*90,r=Eo(q);d.x=CX+r*Math.cos(q);d.y=CY+r*Math.sin(q);d.vx=Math.cos(a)*s;d.vy=Math.sin(a)*s;d.age=0;});}
+function step(dt){
+  if(isA()){
+    const tc=[.5,.1,1][stage];S.conc=sm(S.conc,tc,1.1,dt);
+    if(reborn){S.alpha=Math.max(0,S.alpha-dt*2.6);S.flow=sm(S.flow,0,3,dt);if(S.alpha<=0){S.size=1;S.cren=0;S.burst=-1;debris.forEach(d=>d.age=9);reborn=false;stageT0=T;S.entry=1;}}
+    else{S.alpha=Math.min(1,S.alpha+dt*2.6);const u=T-stageT0;
+      if(stage===0){S.flow=sm(S.flow,0,2,dt);S.size=sm(S.size,1,1.2,dt);S.cren=sm(S.cren,0,1.2,dt);}
+      else if(stage===1){S.cren=sm(S.cren,0,1.5,dt);
+        if(S.burst<0){S.size=S.entry+(1.5-S.entry)*ease(clamp(u/5,0,1));S.flow=sm(S.flow,.9,2,dt);if(u>5.2){S.burst=0;spawnDebris();}}
+        else{S.burst+=dt;S.size=sm(S.size,1.3,.6,dt);S.flow=sm(S.flow,.15,2,dt);}}
+      else{S.size=sm(S.size,.68,.55,dt);S.cren=sm(S.cren,1,.5,dt);S.flow=sm(S.flow,u<5?-.9:-.3,1.5,dt);}}
+  }else{
+    S.conc=sm(S.conc,[.5,.1,1,.5][stage],1.1,dt);const u=T-stageT0;
+    const tg=[[1,.96,.72,0],[1.06,1,.86,u<5?.85:.3],[1,.64,.42,u<5?-.9:-.2],[1,.96,.72,u<5?.8:0]][stage];
+    S.ws=sm(S.ws,tg[0],.8,dt);S.pp=sm(S.pp,tg[1],.6,dt);S.vf=sm(S.vf,tg[2],.6,dt);S.flow=sm(S.flow,tg[3],2,dt);
+  }
+}
+
+/* ---------------- render ---------------- */
+function drawA(){
+  const N=90;let d='';for(let i=0;i<N;i++){const th=2*PI*i/N,r=EoA(th);d+=(i?'L':'M')+f1(CX+r*Math.cos(th))+','+f1(CY+r*Math.sin(th));}
+  aFill.setAttribute('d',d+'Z');aFill.setAttribute('fill',mix('#8c80b4','#d9d3ec',clamp((S.size-.65)/.9,0,1)));
+  const gh=S.burst>=0?.32*Math.min(1,S.burst/.6):0;let sd='';const M=90;
+  for(let k=0;k<=M;k++){const th=wound+gh+(2*PI-2*gh)*k/M,r=EoA(th);sd+=(k?'L':'M')+f1(CX+r*Math.cos(th))+','+f1(CY+r*Math.sin(th));}
+  aStroke.setAttribute('d',gh>0?sd:sd+'Z');aStroke.setAttribute('stroke',S.burst>=0?'#a8584a':'#6d6590');
+  const k=Math.pow(S.size,.8);
+  aBlobs.forEach((o,i)=>{o.e.setAttribute('cx',f1(CX+o.b[0]*k+3*Math.sin(T*.6+i)));o.e.setAttribute('cy',f1(CY+o.b[1]*k+3*Math.cos(T*.5+i)));o.e.setAttribute('rx',f1(o.b[2]*(.8+.2*S.size)));o.e.setAttribute('ry',f1(o.b[3]*(.8+.2*S.size)));});
+  const nr=26*(.8+.2*S.size),nx=CX-8*S.size+2*Math.sin(T*.5),ny=CY+4*S.size+2*Math.cos(T*.4);
+  aNuc.setAttribute('cx',f1(nx));aNuc.setAttribute('cy',f1(ny));aNuc.setAttribute('r',f1(nr));aNl.setAttribute('cx',f1(nx+6));aNl.setAttribute('cy',f1(ny-5));aNl.setAttribute('r',f1(nr*.32));
+  /* burst wound */
+  if(S.burst>=0){const sb=Math.min(1,S.burst/.8),wr=Eo(wound),wx=CX+wr*Math.cos(wound),wy=CY+wr*Math.sin(wound);let pts='';
+    for(let i=0;i<16;i++){const a=2*PI*i/16,r=(i%2?10:(30+8*Math.sin(T*6+i))*sb);pts+=f1(wx+r*Math.cos(a))+','+f1(wy+r*Math.sin(a))+' ';}
+    spike.setAttribute('points',pts);spikeG.setAttribute('opacity',(.6+.4*Math.min(1,S.burst))*Math.max(.55,1-S.burst*.1));spikeG.style.display='';}
+  else spikeG.style.display='none';
+  debris.forEach(p=>{if(p.age<3.6){p.age+=0;p.e.setAttribute('cx',f1(p.x));p.e.setAttribute('cy',f1(p.y));p.e.setAttribute('opacity',(1-p.age/3.6).toFixed(2));}else p.e.setAttribute('opacity',0);});
+  AG.setAttribute('opacity',S.alpha.toFixed(2));
+}
+function drawP(){
+  const wi=polyD(EWI,80);pGapFill.setAttribute('d',wi);pGapFill.setAttribute('fill',mix('#eef8ff','#9ec3e6',S.conc));
+  pProto.setAttribute('d',polyD(EP,80));
+  const v=vacGeo(),vd=(()=>{let d='';for(let i=0;i<70;i++){const th=2*PI*i/70,r=sup(th,v.a,v.b);d+=(i?'L':'M')+f1(v.cx+r*Math.cos(th))+','+f1(v.cy+r*Math.sin(th));}return d+'Z';})();
+  pVac.setAttribute('d',vd);
+  const n=nucPos();pNuc.setAttribute('cx',f1(n[0]));pNuc.setAttribute('cy',f1(n[1]));
+  pCh.forEach((c,i)=>{const a=c.a+T*.04,p=chPos(i);c.e.setAttribute('cx',f1(p[0]));c.e.setAttribute('cy',f1(p[1]));c.e.setAttribute('transform',`rotate(${f1((a+PI/2)*180/PI)} ${f1(p[0])} ${f1(p[1])})`);});
+  pWall.setAttribute('d',polyD(th=>EW(th)-7.5,80));pWall2.setAttribute('d',polyD(th=>EW(th)-15.5,80));
+}
+function frame(ms){
+  const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;
+  step(dt);
+  tank.setAttribute('fill',mix('#eef8ff','#9ec3e6',S.conc));
+  AG.style.display=isA()?'':'none';PG.style.display=isP()?'':'none';
+  if(isA()){drawA();debris.forEach(p=>{if(p.age<3.6){p.age+=dt;p.vx*=.985;p.vy*=.985;p.x+=p.vx*dt;p.y+=p.vy*dt;}});}else drawP();
+  /* solutes */
+  const gapA=isP()?clamp(((1-S.pp)-.04)*9,0,1):0;
+  outs.forEach(p=>{if(dt>0)walk(p,dt,validOut,fixOut);p.e.setAttribute('cx',f1(p.x));p.e.setAttribute('cy',f1(p.y));p.e.setAttribute('opacity',clamp((S.conc-p.thr)*10,0,1).toFixed(2));});
+  ins.forEach(p=>{if(dt>0)walk(p,dt,validIn,fixIn);p.e.setAttribute('cx',f1(p.x));p.e.setAttribute('cy',f1(p.y));p.e.setAttribute('opacity',isA()?S.alpha:1);});
+  gaps.forEach(p=>{if(gapA<.02){p.seeded=false;p.e.setAttribute('opacity',0);return;}
+    if(!p.seeded){const th=rnd()*2*PI,a=EP(th),b=EWI(th);const r=a+(b-a)*(.2+.6*rnd());p.x=CX+r*Math.cos(th);p.y=CY+r*Math.sin(th);p.seeded=true;}
+    if(dt>0)walk(p,dt,validGap,fixGap);p.e.setAttribute('cx',f1(p.x));p.e.setAttribute('cy',f1(p.y));p.e.setAttribute('opacity',(clamp((S.conc-p.thr)*10,0,1)*gapA).toFixed(2));});
+  /* arrows */
+  const vis=isA()?S.alpha:1;
+  arrows.forEach(a=>{const dv=clamp((S.flow-a.off)*3,-1,1),sg=dv>=0?1:-1,eo=Eo(a.th),ei=Ei(a.th),c=Math.cos(a.th),s=Math.sin(a.th);
+    const r1=sg>0?eo+62:ei-12,r2=sg>0?ei-8:eo+52;
+    a.e.setAttribute('x1',f1(CX+c*r1));a.e.setAttribute('y1',f1(CY+s*r1));a.e.setAttribute('x2',f1(CX+c*r2));a.e.setAttribute('y2',f1(CY+s*r2));
+    a.e.setAttribute('stroke-opacity',((.2+.8*Math.min(1,Math.abs(dv)*3))*vis).toFixed(2));a.e.setAttribute('stroke-dashoffset',f1(-T*45));});
+  /* water */
+  const pin=(1+S.flow)/2;
+  water.forEach(w=>{w.u+=w.spd*dt;if(w.u>=1){w.u=0;w.th=rnd()*2*PI;w.dir=rnd()<pin?1:-1;w.spd=.45+rnd()*.35;}
+    const ro=Eo(w.th)+55,ri=Ei(w.th)-45,r=w.dir>0?ro+(ri-ro)*w.u:ri+(ro-ri)*w.u;
+    w.e.setAttribute('cx',f1(CX+r*Math.cos(w.th)));w.e.setAttribute('cy',f1(CY+r*Math.sin(w.th)));w.e.setAttribute('opacity',(Math.min(1,w.u*6,(1-w.u)*6)*.9*vis).toFixed(2));});
+  labs.forEach(l=>l.upd(dt||.0001));
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- navigation ---------------- */
+const title=document.getElementById('title'),menu=document.getElementById('menu'),dotsEl=document.getElementById('dots');
+function setBanner(){const b=STG[type][stage];bn.style.fill=b[2];bt.textContent=b[0];be.textContent=b[1];
+  [...dotsEl.children].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function goStage(i){const n=STG[type].length;i=(i+n)%n;
+  if(isA()&&S.burst>=0)reborn=true;
+  stage=i;stageT0=T;S.entry=S.size;setBanner();}
+function start(t){
+  type=t;stage=0;stageT0=T;reborn=false;
+  Object.assign(S,{conc:.5,flow:0,size:1,cren:0,burst:-1,alpha:1,entry:1,ws:1,pp:.96,vf:.72});
+  title.textContent='التناضح (Osmosis) - '+(t==='A'?'الخلية الحيوانية':'الخلية النباتية');
+  dotsEl.innerHTML='';STG[t].forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.onclick=()=>goStage(i);dotsEl.appendChild(b);});
+  outs.forEach(p=>seed(p,validOut));ins.forEach(p=>seed(p,validIn));
+  setBanner();menu.classList.add('hide');reset();}
+document.getElementById('pickA').onclick=()=>start('A');
+document.getElementById('pickP').onclick=()=>start('P');
+document.getElementById('home').onclick=()=>{menu.classList.remove('hide');title.textContent='التناضح (Osmosis)';};
+document.getElementById('next').onclick=()=>goStage(stage+1);
+document.getElementById('prev').onclick=()=>goStage(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')goStage(stage+1);if(e.key==='ArrowRight')goStage(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:380});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:380});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+start('A');menu.classList.remove('hide');title.textContent='التناضح (Osmosis)';
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
