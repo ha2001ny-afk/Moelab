@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الأنشطة الخلوية: البلعمة والشرب الخلوي</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.2vw,21px);font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:radial-gradient(circle at 50% 45%,#fff 0%,#e3f0f8 100%)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);transition:background .2s}
+  .nav:active{background:#d9ebf7}
+  #dots{display:flex;gap:14px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  #mode-box{position:absolute;top:10px;right:10px;display:flex;gap:8px;z-index:5}
+  .mbtn{padding:8px 16px;border-radius:22px;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-weight:bold;font-size:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:all .25s}
+  .mbtn.active{background:#1f3a52;color:#fff}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15))}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+  .bt{fill:#fff;font-weight:bold;font-size:21px;text-anchor:middle;dominant-baseline:central}
+  .zone{fill:#2c3e50;font-size:20px;font-weight:bold;text-anchor:middle;paint-order:stroke;stroke:#ffffff;stroke-width:4px}
+  .cap{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle}
+  #bn{transition:fill .5s}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">الأنشطة الخلوية: البلعمة (Phagocytosis) والشرب الخلوي (Pinocytosis)</div></div>
+<div id="stage">
+  <div class="zb">
+    <button id="zin" title="تكبير">+</button>
+    <button id="zout" title="تصغير">−</button>
+    <button id="zreset" title="إعادة ضبط">⟲</button>
+    <button id="pause" title="إيقاف مؤقت">⏸</button>
+    <button id="fs" title="ملء الشاشة">⛶</button>
+  </div>
+  <div id="mode-box">
+    <button class="mbtn active" id="btnModeA">( أ ) الالتهام أو الأكل الخلوي</button>
+    <button class="mbtn" id="btnModeB">( ب ) الشرب الخلوي</button>
+  </div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <!-- تدرجات البيئة المحيطة والسايتوبلازم -->
+        <linearGradient id="gExt" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#eaf2f8"/>
+          <stop offset="100%" stop-color="#d6e8f7"/>
+        </linearGradient>
+        <linearGradient id="gCyto" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#f8d4cd"/>
+          <stop offset="100%" stop-color="#f1b9ae"/>
+        </linearGradient>
+        
+        <!-- حشوة الغشاء البلازمي -->
+        <linearGradient id="gMemCore" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#80abdb" stop-opacity="0.8"/>
+          <stop offset="50%" stop-color="#bdd3ed" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#80abdb" stop-opacity="0.8"/>
+        </linearGradient>
+
+        <!-- رؤوس الفسفوليبيد الزرقاء -->
+        <radialGradient id="gHead" cx="35%" cy="32%" r="70%">
+          <stop offset="0%" stop-color="#6ba9e6"/>
+          <stop offset="70%" stop-color="#2c6cb0"/>
+          <stop offset="100%" stop-color="#184b80"/>
+        </radialGradient>
+
+        <!-- الغذاء الصلب (أخضر زيتي عضوي) -->
+        <radialGradient id="gFood" cx="42%" cy="38%" r="65%">
+          <stop offset="0%" stop-color="#9fc846"/>
+          <stop offset="65%" stop-color="#60841f"/>
+          <stop offset="100%" stop-color="#38520e"/>
+        </radialGradient>
+
+        <!-- قطرات المادة السائلة (زمردي كريستالي) -->
+        <radialGradient id="gDrop" cx="32%" cy="30%" r="72%">
+          <stop offset="0%" stop-color="#a3f7df"/>
+          <stop offset="60%" stop-color="#25b99a"/>
+          <stop offset="100%" stop-color="#116b58"/>
+        </radialGradient>
+
+        <marker id="rd" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0432a"/></marker>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg", PI=Math.PI;
+const svg=document.getElementById('svg'), view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2, lerp=(a,b,u)=>a+(b-a)*u, f1=v=>v.toFixed(1);
+
+let mode = 'A'; // 'A' = أكل خلوي، 'B' = شرب خلوي
+
+const STG_A = [
+  ['اقتراب المادة الصلبة (الغذاء) من الغشاء البلازمي', '#2e8b57'],
+  ['انبعاج غشاء الخلية وتكوين جيب يحيط بالمادة الصلبة', '#e0902a'],
+  ['انفصال الجيب عن سطح الخلية وتكوين الفجوة الغذائية', '#2f6fd6'],
+  ['تحرك الفجوة الغذائية واستقرارها داخل السايتوبلازم', '#7b4bb3']
+];
+
+const STG_B = [
+  ['تجمع قطرات المادة السائلة خارج الغشاء البلازمي', '#2e8b57'],
+  ['انبعاج غشاء الخلية وتكوين جيب لاحتواء المادة السائلة', '#e0902a'],
+  ['انفصال الجيب عن سطح الخلية وتكوين الحويصلة', '#2f6fd6'],
+  ['تحرك الحويصلة واستقرارها داخل السايتوبلازم', '#7b4bb3']
+];
+
+function getSTG(){ return mode==='A'?STG_A:STG_B; }
+
+/* ---------------- الخلفية والمناطق الخلوية ---------------- */
+const bgGroup = G(view);
+el('rect',{x:70,y:90,width:760,height:585,rx:18,fill:'url(#gExt)',stroke:'#9bb7d4','stroke-width':2.5},bgGroup);
+const cytoBg = el('path',{fill:'url(#gCyto)'},bgGroup);
+
+el('text',{class:'zone',x:165,y:125},bgGroup).textContent='خارج الخلية';
+el('text',{class:'zone',x:560,y:125},bgGroup).textContent='السايتوبلازم';
+
+/* ---------------- مسارات الغشاء البلازمي الديناميكي ---------------- */
+const memG = G(view);
+const pathGuide = el('path',{fill:'none',stroke:'none'},memG);
+const memRibbon = el('path',{fill:'url(#gMemCore)',stroke:'#255d99','stroke-width':1.2},memG);
+
+const N_LIPIDS = 42;
+const mainLipids = [];
+const tailsG = G(memG);
+const headsG = G(memG);
+
+for(let i=0; i<N_LIPIDS; i++){
+  mainLipids.push({
+    hOut: el('circle',{r:6.2,fill:'url(#gHead)',stroke:'#133b66','stroke-width':1.1},headsG),
+    tOut1: el('line',{stroke:'#3a6699','stroke-width':1.4,'stroke-linecap':'round'},tailsG),
+    tOut2: el('line',{stroke:'#3a6699','stroke-width':1.4,'stroke-linecap':'round'},tailsG),
+    hIn: el('circle',{r:6.2,fill:'url(#gHead)',stroke:'#133b66','stroke-width':1.1},headsG),
+    tIn1: el('line',{stroke:'#3a6699','stroke-width':1.4,'stroke-linecap':'round'},tailsG),
+    tIn2: el('line',{stroke:'#3a6699','stroke-width':1.4,'stroke-linecap':'round'},tailsG),
+  });
+}
+
+/* ---------------- الفجوة الغذائية / الحويصلة المنفصلة ---------------- */
+const vacG = G(view);
+const vacRibbon = el('path',{fill:'url(#gMemCore)',stroke:'#255d99','stroke-width':1.2},vacG);
+const vacTailsG = G(vacG);
+const vacHeadsG = G(vacG);
+
+const N_VAC = 24;
+const vacLipids = [];
+for(let i=0; i<N_VAC; i++){
+  vacLipids.push({
+    hOut: el('circle',{r:5.8,fill:'url(#gHead)',stroke:'#133b66','stroke-width':1},vacHeadsG),
+    tOut: el('line',{stroke:'#3a6699','stroke-width':1.3,'stroke-linecap':'round'},vacTailsG),
+    hIn: el('circle',{r:5.8,fill:'url(#gHead)',stroke:'#133b66','stroke-width':1},vacHeadsG),
+    tIn: el('line',{stroke:'#3a6699','stroke-width':1.3,'stroke-linecap':'round'},vacTailsG)
+  });
+}
+
+/* ---------------- المادة المنقولة (غذاء صلب / سائل) ---------------- */
+const cargoG = G(view);
+const foodG = G(cargoG);
+const foodBody = el('path',{fill:'url(#gFood)',stroke:'#273c09','stroke-width':2.2,'stroke-linejoin':'round'},foodG);
+const foodCore = el('ellipse',{rx:14,ry:9,fill:'#2a4207',opacity:0.6},foodG);
+
+const dropG = G(cargoG);
+const drops = [];
+for(let i=0; i<16; i++){
+  const rad = 4 + (i%3)*1.5;
+  const c = el('circle',{r:rad,fill:'url(#gDrop)',stroke:'#0d5344','stroke-width':1},dropG);
+  drops.push({c, rad, ang:(i/16)*2*PI, dist:6+((i*7)%22), ph:i*0.8});
+}
+
+/* ---------------- عناصر التوجيه والبانر ---------------- */
+const arrowTrans = el('path',{d:'M390,380 L445,380',fill:'none',stroke:'#e0432a','stroke-width':6,'stroke-linecap':'round','marker-end':'url(#rd)'});
+const bn=el('rect',{id:'bn',x:100,y:18,width:700,height:58,rx:20,fill:'#2e8b57'});
+const bt=el('text',{class:'bt',x:450,y:47});
+const cap=el('text',{class:'cap',x:450,y:700});
+
+/* ---------------- مجموعات التأشيرات ---------------- */
+const labG_Init = G(view,{'pointer-events':'none'}); // تأشيرات البداية
+const labG_Vac = G(view,{'pointer-events':'none'});  // تأشيرات المرحلة الثالثة
+
+function createLabel(parentGroup, txt, side, py, w, targetFn){
+  const h=36, cx = side==='L' ? 10 + w/2 : 890 - w/2;
+  const g = G(parentGroup);
+  const ln = el('line',{class:'ln','marker-end':'url(#ah)'},g);
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:18},g);
+  const tx = el('text',{class:'lbl',x:cx,y:py},g);
+  tx.textContent = txt;
+  return {
+    setText: (t)=>{ tx.textContent = t; },
+    update: ()=>{
+      const p = targetFn();
+      ln.setAttribute('x1', cx); ln.setAttribute('y1', py);
+      ln.setAttribute('x2', f1(p[0])); ln.setAttribute('y2', f1(p[1]));
+    }
+  };
+}
+
+let lblMem, lblCargo, lblVac;
+function initLabels(){
+  labG_Init.innerHTML = '';
+  labG_Vac.innerHTML = '';
+  // تأشيرات البداية
+  lblMem = createLabel(labG_Init, 'غشاء بلازمي', 'L', 165, 145, ()=>[state.memLabelPt.x, state.memLabelPt.y]);
+  lblCargo = createLabel(labG_Init, mode==='A'?'غذاء':'مادة سائلة', 'L', 275, 165, ()=>[state.cargoX, state.cargoY]);
+  // تأشير المرحلة الثالثة (فجوة غذائية / حويصلة)
+  lblVac = createLabel(labG_Vac, mode==='A'?'فجوة غذائية':'حويصلة', 'R', 185, mode==='A'?145:125, ()=>[state.vacX, state.vacY - state.vacR - 4]);
+}
+initLabels();
+
+/* ---------------- إدارة الحركة والحالة الفيزيائية ---------------- */
+const state = {
+  inv: 0,
+  pinch: 0,
+  vacAlpha: 0,
+  labelAlphaInit: 1, // شفافية تأشيرات البداية
+  labelAlphaVac: 0,  // شفافية تأشير الفجوة / الحويصلة
+  cargoX: 160, cargoY: 380,
+  vacX: 500, vacY: 380, vacR: 52,
+  memLabelPt: {x: 250, y: 220}
+};
+
+let stage=0, T=0, t0=0, last=performance.now(), paused=false;
+
+function updatePhysics(dt){
+  const u = T - t0;
+  let tgtInv = 0, tgtPinch = 0, tgtVac = 0;
+  state.vacR = (mode === 'A') ? 54 : 38;
+
+  // 1. تأشيرات البداية تظهر فقط في المرحلة الأولى (stage === 0)
+  const tgtLabInit = (stage === 0) ? 1.0 : 0.0;
+  state.labelAlphaInit += (tgtLabInit - state.labelAlphaInit) * (1 - Math.exp(-6 * dt));
+
+  // 2. تأشير الفجوة الغذائية / الحويصلة يظهر في المرحلة الثالثة وما بعدها (stage >= 2)
+  const tgtLabVac = (stage >= 2) ? 1.0 : 0.0;
+  state.labelAlphaVac += (tgtLabVac - state.labelAlphaVac) * (1 - Math.exp(-6 * dt));
+
+  if(stage === 0){
+    tgtInv = 0.05;
+    tgtPinch = 0;
+    tgtVac = 0;
+    state.cargoX = lerp(state.cargoX, 190, 2.5 * dt);
+    state.cargoY = 380 + 7 * Math.sin(T * 1.5);
+    state.vacX = 380;
+  }
+  else if(stage === 1){
+    tgtInv = 1.0;
+    tgtPinch = clamp(u * 0.4, 0, 0.5);
+    tgtVac = 0;
+    state.cargoX = lerp(state.cargoX, 335, 2.5 * dt);
+    state.cargoY = 380 + 2 * Math.sin(T * 2);
+    state.vacX = 350;
+  }
+  else if(stage === 2){
+    // المرحلة الثالثة: انفصال وتكوين الفجوة الغذائية أو الحويصلة داخل الخلية
+    tgtInv = 0.0;
+    tgtPinch = 0;
+    tgtVac = 1.0;
+    state.vacX = lerp(state.vacX, 500, 2.2 * dt);
+    state.vacY = 380 + 5 * Math.sin(T * 1.3);
+    state.cargoX = state.vacX;
+    state.cargoY = state.vacY;
+  }
+  else if(stage === 3){
+    // المرحلة الرابعة: استقرار الفجوة أو الحويصلة داخل السايتوبلازم
+    tgtInv = 0.0;
+    tgtPinch = 0;
+    tgtVac = 1.0;
+    state.vacX = lerp(state.vacX, 530, 2 * dt);
+    state.vacY = 380 + 3 * Math.sin(T * 1.4);
+    state.cargoX = state.vacX;
+    state.cargoY = state.vacY;
+  }
+
+  state.inv += (tgtInv - state.inv) * (1 - Math.exp(-4.5 * dt));
+  state.pinch += (tgtPinch - state.pinch) * (1 - Math.exp(-5 * dt));
+  state.vacAlpha += (tgtVac - state.vacAlpha) * (1 - Math.exp(-6 * dt));
+}
+
+/* ---------------- حلقة الرسم ---------------- */
+function render(t, dt){
+  const baseMemX = 250;
+  const Y_TOP = 90, Y_BOT = 675;
+
+  /* 1. مسار الغشاء البيولوجي */
+  const D = state.inv * 145;
+  const neckW = lerp(130, 24, state.pinch * state.inv);
+  const cy = 380;
+
+  const memD = `M ${baseMemX},${Y_TOP} ` +
+               `L ${baseMemX},${cy - neckW} ` +
+               `C ${baseMemX + D*0.2},${cy - neckW*0.8} ${baseMemX + D},${cy - 68} ${baseMemX + D},${cy} ` +
+               `C ${baseMemX + D},${cy + 68} ${baseMemX + D*0.2},${cy + neckW*0.8} ${baseMemX},${cy + neckW} ` +
+               `L ${baseMemX},${Y_BOT}`;
+  
+  pathGuide.setAttribute('d', memD);
+
+  const cytoD = memD + ` L 830,${Y_BOT} L 830,${Y_TOP} Z`;
+  cytoBg.setAttribute('d', cytoD);
+
+  /* 2. توزيع الفسفوليبيدات المنتظمة */
+  const totalLen = pathGuide.getTotalLength();
+  const stepLen = totalLen / (N_LIPIDS - 1);
+  const ribbonOut = [], ribbonIn = [];
+
+  for(let i=0; i<N_LIPIDS; i++){
+    const s = i * stepLen;
+    const p1 = pathGuide.getPointAtLength(s);
+    const p2 = pathGuide.getPointAtLength(Math.min(totalLen, s + 1.5));
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len, ny = dx / len;
+
+    const thick = 11;
+    const sway = 1.2 * Math.sin(t * 2 + i * 0.4);
+
+    const xo = p1.x + nx * thick + sway * ny;
+    const yo = p1.y + ny * thick - sway * nx;
+    const xi = p1.x - nx * thick - sway * ny;
+    const yi = p1.y - ny * thick + sway * nx;
+
+    ribbonOut.push(`${f1(xo)},${f1(yo)}`);
+    ribbonIn.unshift(`${f1(xi)},${f1(yi)}`);
+
+    const lip = mainLipids[i];
+    lip.hOut.setAttribute('cx', f1(xo)); lip.hOut.setAttribute('cy', f1(yo));
+    lip.hIn.setAttribute('cx', f1(xi)); lip.hIn.setAttribute('cy', f1(yi));
+
+    const tMidX = p1.x, tMidY = p1.y;
+    const tdx = ny * 3, tdy = -nx * 3;
+    lip.tOut1.setAttribute('x1', f1(xo)); lip.tOut1.setAttribute('y1', f1(yo));
+    lip.tOut1.setAttribute('x2', f1(tMidX + tdx)); lip.tOut1.setAttribute('y2', f1(tMidY + tdy));
+    lip.tOut2.setAttribute('x1', f1(xo)); lip.tOut2.setAttribute('y1', f1(yo));
+    lip.tOut2.setAttribute('x2', f1(tMidX - tdx)); lip.tOut2.setAttribute('y2', f1(tMidY - tdy));
+
+    lip.tIn1.setAttribute('x1', f1(xi)); lip.tIn1.setAttribute('y1', f1(yi));
+    lip.tIn1.setAttribute('x2', f1(tMidX + tdx)); lip.tIn1.setAttribute('y2', f1(tMidY + tdy));
+    lip.tIn2.setAttribute('x1', f1(xi)); lip.tIn2.setAttribute('y1', f1(yi));
+    lip.tIn2.setAttribute('x2', f1(tMidX - tdx)); lip.tIn2.setAttribute('y2', f1(tMidY - tdy));
+  }
+
+  memRibbon.setAttribute('d', `M ${ribbonOut.join(' L ')} L ${ribbonIn.join(' L ')} Z`);
+
+  const ptLabel = pathGuide.getPointAtLength(totalLen * 0.22);
+  state.memLabelPt = {x: ptLabel.x, y: ptLabel.y};
+
+  /* 3. رسم الفجوة / الحويصلة المنفصلة */
+  vacG.setAttribute('opacity', state.vacAlpha.toFixed(2));
+  if(state.vacAlpha > 0.02){
+    const R = state.vacR;
+    const thK = 9;
+    const vOutPts = [], vInPts = [];
+
+    for(let i=0; i<N_VAC; i++){
+      const ang = (i / N_VAC) * 2 * PI + t * 0.2;
+      const cosA = Math.cos(ang), sinA = Math.sin(ang);
+      const sway = 1.0 * Math.sin(3 * t + i);
+
+      const xo = state.vacX + (R + thK + sway) * cosA;
+      const yo = state.vacY + (R + thK + sway) * sinA;
+      const xi = state.vacX + (R - thK - sway) * cosA;
+      const yi = state.vacY + (R - thK - sway) * sinA;
+      const xMid = state.vacX + R * cosA;
+      const yMid = state.vacY + R * sinA;
+
+      vOutPts.push(`${f1(xo)},${f1(yo)}`);
+      vInPts.unshift(`${f1(xi)},${f1(yi)}`);
+
+      const vl = vacLipids[i];
+      vl.hOut.setAttribute('cx', f1(xo)); vl.hOut.setAttribute('cy', f1(yo));
+      vl.hIn.setAttribute('cx', f1(xi)); vl.hIn.setAttribute('cy', f1(yi));
+
+      vl.tOut.setAttribute('x1', f1(xo)); vl.tOut.setAttribute('y1', f1(yo));
+      vl.tOut.setAttribute('x2', f1(xMid)); vl.tOut.setAttribute('y2', f1(yMid));
+      vl.tIn.setAttribute('x1', f1(xi)); vl.tIn.setAttribute('y1', f1(yi));
+      vl.tIn.setAttribute('x2', f1(xMid)); vl.tIn.setAttribute('y2', f1(yMid));
+    }
+    vacRibbon.setAttribute('d', `M ${vOutPts.join(' L ')} Z M ${vInPts.join(' L ')} Z`);
+  }
+
+  /* 4. رسم المادة المنقولة */
+  if(mode === 'A'){
+    foodG.setAttribute('display', 'inline');
+    dropG.setAttribute('display', 'none');
+
+    const sc = 1 + 0.025 * Math.sin(t * 3);
+    const fx = state.cargoX, fy = state.cargoY;
+
+    const pathFood = `M ${f1(fx - 32*sc)},${f1(fy - 12*sc)} ` +
+                     `C ${f1(fx - 28*sc)},${f1(fy - 34*sc)} ${f1(fx + 6*sc)},${f1(fy - 38*sc)} ${f1(fx + 26*sc)},${f1(fy - 18*sc)} ` +
+                     `C ${f1(fx + 42*sc)},${f1(fy - 2*sc)} ${f1(fx + 36*sc)},${f1(fy + 26*sc)} ${f1(fx + 14*sc)},${f1(fy + 34*sc)} ` +
+                     `C ${f1(fx - 14*sc)},${f1(fy + 38*sc)} ${f1(fx - 38*sc)},${f1(fy + 14*sc)} ${f1(fx - 32*sc)},${f1(fy - 12*sc)} Z`;
+    foodBody.setAttribute('d', pathFood);
+    foodCore.setAttribute('cx', f1(fx - 2*sc));
+    foodCore.setAttribute('cy', f1(fy + 2*sc));
+    foodCore.setAttribute('rx', f1(15*sc));
+    foodCore.setAttribute('ry', f1(10*sc));
+  } else {
+    foodG.setAttribute('display', 'none');
+    dropG.setAttribute('display', 'inline');
+
+    drops.forEach((d, i)=>{
+      const angle = d.ang + t * 0.4;
+      const dist = d.dist;
+      const dx = state.cargoX + Math.cos(angle) * dist + 1.8 * Math.sin(t * 3 + d.ph);
+      const dy = state.cargoY + Math.sin(angle) * dist + 1.8 * Math.cos(t * 3 + d.ph);
+      d.c.setAttribute('cx', f1(dx));
+      d.c.setAttribute('cy', f1(dy));
+      d.c.setAttribute('r', f1(d.rad));
+    });
+  }
+
+  arrowTrans.setAttribute('opacity', (stage === 1 || stage === 2) ? '0.85' : '0');
+
+  /* 5. التحكم بظهور التأشيرات المحدثة */
+  // تأشيرات البداية
+  labG_Init.setAttribute('opacity', state.labelAlphaInit.toFixed(2));
+  if(state.labelAlphaInit > 0.02){
+    lblMem.update();
+    lblCargo.update();
+  }
+
+  // تأشير الفجوة الغذائية / الحويصلة (المرحلة الثالثة وما بعدها)
+  labG_Vac.setAttribute('opacity', state.labelAlphaVac.toFixed(2));
+  if(state.labelAlphaVac > 0.02){
+    lblVac.update();
+  }
+}
+
+function frame(ms){
+  const dt = paused ? 0 : Math.min(0.05, (ms - last) / 1000);
+  last = ms;
+  T += dt;
+  updatePhysics(dt);
+  render(T, dt);
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- نظام التحكم والتنقل ---------------- */
+const dotsEl = document.getElementById('dots');
+
+function buildDots(){
+  dotsEl.innerHTML = '';
+  getSTG().forEach((_, i)=>{
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.onclick = () => go(i);
+    dotsEl.appendChild(b);
+  });
+}
+
+function setUI(){
+  const cur = getSTG()[stage];
+  bn.style.fill = cur[1];
+  bt.textContent = cur[0];
+  [...dotsEl.children].forEach((d, i) => d.classList.toggle('on', i === stage));
+  cap.textContent = (mode === 'A')
+    ? 'شكل (1-21 أ): عملية البلعمة (الالتهام أو الأكل الخلوي)'
+    : 'شكل (1-21 ب): عملية الشرب الخلوي (Pinocytosis)';
+}
+
+function go(i){
+  const stgs = getSTG();
+  stage = (i + stgs.length) % stgs.length;
+  t0 = T;
+  setUI();
+}
+
+document.getElementById('next').onclick = () => go(stage + 1);
+document.getElementById('prev').onclick = () => go(stage - 1);
+addEventListener('keydown', e => {
+  if(e.key === 'ArrowLeft') go(stage + 1);
+  if(e.key === 'ArrowRight') go(stage - 1);
+});
+
+document.getElementById('pause').onclick = function(){
+  paused = !paused;
+  this.textContent = paused ? '▶' : '⏸';
+};
+
+/* ---------------- التبديل بين الأكل والشرب الخلوي ---------------- */
+const btnModeA = document.getElementById('btnModeA');
+const btnModeB = document.getElementById('btnModeB');
+
+function switchMode(newMode){
+  if(mode === newMode) return;
+  mode = newMode;
+  btnModeA.classList.toggle('active', mode === 'A');
+  btnModeB.classList.toggle('active', mode === 'B');
+  initLabels();
+  buildDots();
+  state.cargoX = 160;
+  state.cargoY = 380;
+  state.vacX = 500;
+  go(0);
+}
+
+btnModeA.onclick = () => switchMode('A');
+btnModeB.onclick = () => switchMode('B');
+
+/* ---------------- التكبير، التحريك، وملء الشاشة ---------------- */
+let sc=1, tx=0, ty=0; const MIN=.6, MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){ sc=1; tx=0; ty=0; apply(); }
+function toView(e){
+  const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+function zoomAt(k,p){
+  const ns=Math.min(MAX,Math.max(MIN,sc*k));
+  k=ns/sc; tx=p.x-(p.x-tx)*k; ty=p.y-(p.y-ty)*k; sc=ns; apply();
+}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  const prv=new Map(ptrs), cu=toView(e); ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){
+    const o=prv.get(e.pointerId); tx+=cu.x-o.x; ty+=cu.y-o.y; apply();
+  } else {
+    const ids=[...ptrs.keys()].slice(0,2), a0=prv.get(ids[0]), b0=prv.get(ids[1]), a1=ptrs.get(ids[0]), b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1, d1=Math.hypot(a1.x-b1.x,a1.y-b1.y);
+    tx+=(a1.x+b1.x)/2 - (a0.x+b0.x)/2; ty+=(a1.y+b1.y)/2 - (a0.y+b0.y)/2; zoomAt(d1/d0,{x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2});
+  }
+});
+const up=e=>ptrs.delete(e.pointerId);
+svg.addEventListener('pointerup',up);
+svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:370});
+document.getElementById('zreset').onclick=reset;
+
+const fsBtn=document.getElementById('fs'), de=document.documentElement, fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{
+  const on=!document.body.classList.contains('fs');
+  if(on){
+    const r=de.requestFullscreen||de.webkitRequestFullscreen;
+    if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+    setFs(true);
+  } else {
+    if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}
+    setFs(false);
+  }
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{
+  if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);
+}));
+
+/* تشغيل البدء */
+buildDots();
+apply();
+go(0);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
