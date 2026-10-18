@@ -27,7 +27,6 @@
       overflow-x: hidden;
     }
 
-    /* شريط علوي */
     header {
       height: 54px;
       background: #0b1526;
@@ -73,7 +72,6 @@
       cursor: pointer;
     }
 
-    /* شبكة عرض التجارب */
     .container {
       flex: 1;
       max-width: 1100px;
@@ -158,7 +156,6 @@
       border-radius: 6px;
     }
 
-    /* نافذة إدخال كود التفعيل */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -211,7 +208,6 @@
       font-weight: bold;
       text-align: center;
       outline: none;
-      transition: all 0.2s;
     }
 
     .modal-input:focus {
@@ -228,11 +224,6 @@
       font-size: 0.95rem;
       font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
-    }
-
-    .modal-btn:active {
-      transform: scale(0.98);
     }
 
     .modal-status {
@@ -241,7 +232,6 @@
       font-weight: bold;
     }
 
-    /* مشغل المحاكاة */
     #viewerScreen {
       position: fixed;
       top: 0;
@@ -273,9 +263,6 @@
       font-weight: 900;
       font-size: 0.82rem;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
     iframe {
@@ -288,7 +275,6 @@
 </head>
 <body>
 
-  <!-- واجهة المنصة -->
   <header>
     <div class="brand">منصة المختبرات التفاعلية</div>
     <div class="header-left">
@@ -299,7 +285,7 @@
 
   <div class="container" id="mainCatalog">
     
-    <!-- الفصل الأول: المتسعات -->
+    <!-- الفصل الأول -->
     <div class="chapter-section" data-chapter="ch1">
       <div class="chapter-title">⚡ الفصل الأول: المتسعات</div>
       <div class="cards-grid">
@@ -311,7 +297,7 @@
       </div>
     </div>
 
-    <!-- الفصل الثاني: الحث الكهرومغناطيسي -->
+    <!-- الفصل الثاني -->
     <div class="chapter-section" data-chapter="ch2">
       <div class="chapter-title">🧲 الفصل الثاني: الحث الكهرومغناطيسي</div>
       <div class="cards-grid">
@@ -323,7 +309,7 @@
       </div>
     </div>
 
-    <!-- الفصل الثالث: الرياضيات -->
+    <!-- الفصل الثالث -->
     <div class="chapter-section" data-chapter="ch3">
       <div class="chapter-title">📐 الرياضيات: تطبيقات التفاضل</div>
       <div class="cards-grid">
@@ -366,7 +352,6 @@
     </div>
   </div>
 
-  <!-- شاشة عرض المحاكاة -->
   <div id="viewerScreen">
     <div class="viewer-bar">
       <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">المحاكاة التفاعلية</span>
@@ -391,63 +376,62 @@
       return localStorage.getItem('moe_teacher_key') || "";
     }
 
-    // تقنية JSONP المعتمدة لتخطي حظر متصفح سفاري
-    function verifySubscription(keyToTest) {
+    async function verifySubscription(keyToTest) {
       if (!keyToTest) {
         openKeyModal();
         return;
       }
 
-      document.getElementById('teacherDisplay').innerText = "جاري التحقق من السيرفر...";
+      const badge = document.getElementById('teacherDisplay');
+      badge.innerText = "جاري التحقق من السيرفر...";
+      badge.style.color = "#38bdf8";
+      badge.style.borderColor = "#38bdf8";
 
-      // إنشاء دالة استدعاء فريدة ومؤقتة
-      const callbackName = 'gasCallback_' + Math.floor(Math.random() * 1000000);
-      
-      const script = document.createElement('script');
-      script.id = 'gasScriptTag';
-
-      window[callbackName] = function(data) {
-        // تنظيف بعد استلام الرد
-        delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
-
-        handleServerResponse(data, keyToTest);
-      };
-
-      script.onerror = function() {
-        delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
-        document.getElementById('teacherDisplay').innerText = "⚠️ تعذر الاتصال بالسيرفر";
-        openKeyModal("تعذر الاتصال بالسيرفر، تأكد من الإنترنت.");
-      };
-
-      script.src = `${API_URL}?key=${encodeURIComponent(keyToTest)}&callback=${callbackName}`;
-      document.body.appendChild(script);
-    }
-
-    function handleServerResponse(data, keyToTest) {
-      if (!data.allowed) {
-        document.getElementById('teacherDisplay').innerText = "⚠️ الاشتراك غير مفعّل";
-        document.getElementById('teacherDisplay').style.color = "#ef4444";
-        document.getElementById('teacherDisplay').style.borderColor = "#ef4444";
-        
-        openKeyModal(data.message || "كود الاشتراك غير صالح أو منتهي.");
-        allowedChapters = [];
-        lockAllChapters();
-        return;
+      const status = document.getElementById('modalStatus');
+      if (status) {
+        status.innerText = "جاري التحقق من الكود...";
+        status.style.color = "#38bdf8";
       }
 
-      // نجاح التفعيل الفوري
-      currentKey = keyToTest;
-      localStorage.setItem('moe_teacher_key', keyToTest);
-      document.getElementById('keyModal').style.display = 'none';
+      try {
+        const fetchUrl = `${API_URL}?key=${encodeURIComponent(keyToTest)}&_t=${Date.now()}`;
+        const response = await fetch(fetchUrl, {
+          method: 'GET',
+          redirect: 'follow'
+        });
 
-      document.getElementById('teacherDisplay').innerText = `إعداد الأستاذ: ${data.teacher}`;
-      document.getElementById('teacherDisplay').style.color = "#38bdf8";
-      document.getElementById('teacherDisplay').style.borderColor = "#38bdf8";
+        const data = await response.json();
 
-      allowedChapters = data.chapters ? data.chapters.split(',').map(s => s.trim()) : [];
-      updateChapterLocks();
+        if (!data.allowed) {
+          badge.innerText = "⚠️ الاشتراك غير مفعّل";
+          badge.style.color = "#ef4444";
+          badge.style.borderColor = "#ef4444";
+
+          openKeyModal(data.message || "كود الاشتراك غير صالح أو منتهي الصلاحية.");
+          allowedChapters = [];
+          lockAllChapters();
+          return;
+        }
+
+        // نجاح التفعيل
+        currentKey = keyToTest;
+        localStorage.setItem('moe_teacher_key', keyToTest);
+        document.getElementById('keyModal').style.display = 'none';
+
+        badge.innerText = `إعداد الأستاذ: ${data.teacher}`;
+        badge.style.color = "#38bdf8";
+        badge.style.borderColor = "#38bdf8";
+
+        allowedChapters = data.chapters ? data.chapters.split(',').map(s => s.trim()) : [];
+        updateChapterLocks();
+
+      } catch (err) {
+        console.error("فشل الاتصال:", err);
+        badge.innerText = "⚠️ تعذر الاتصال بالسيرفر";
+        badge.style.color = "#ef4444";
+        badge.style.borderColor = "#ef4444";
+        openKeyModal("تعذر الاتصال بالسيرفر. تأكد من الإنترنت وحاول ثانية.");
+      }
     }
 
     function updateChapterLocks() {
