@@ -74,6 +74,9 @@
       font-size: 0.75rem;
       font-weight: bold;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .main-wrapper {
@@ -445,6 +448,8 @@
     <div class="brand">🧪 منصة المختبرات العلمية التفاعلية</div>
     <div class="header-left">
       <div class="teacher-badge" id="teacherDisplay">@DESNEOO</div>
+      <!-- زر التحديث السريع والآمن -->
+      <button class="btn-key-change" onclick="forceSyncPermissions()" title="تحديث الصلاحيات والفصول" style="border-color:#10b981; color:#34d399;">🔄 تحديث الصلاحيات</button>
       <button class="btn-key-change" onclick="openKeyModal()" title="تغيير كود الاشتراك">🔑 الكود</button>
     </div>
   </header>
@@ -576,7 +581,7 @@
           </div>
         </div>
 
-        <!-- ================= الفصل الثاني المحدّث كاملاً بالـ 14 محاكاة ================= -->
+        <!-- الفصل الثاني -->
         <div class="chapter-section" data-chapter="bio_ch2">
           <div class="chapter-title">🌿 الفصل الثاني: الأنسجة (النباتية والحيوانية)</div>
           <div class="cards-grid">
@@ -760,7 +765,7 @@
     </div>
   </div>
 
-  <!-- نافذة العرض الداخلي للمحاكاة (Viewer Screen) -->
+  <!-- مشغل المحاكاة الداخلي -->
   <div id="viewerScreen">
     <div class="viewer-bar">
       <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">المحاكاة التفاعلية</span>
@@ -772,7 +777,7 @@
   <script>
     const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1iYfqiK-IKHPhLClPO_P3GMQBSprkemJ10QKB6W4_TwA/gviz/tq";
     const OFFLINE_GRACE_DAYS = 30;
-    const MASTER_KEY = "ADMIN2026"; // كود المدير العام الخارق
+    const MASTER_KEY = "ADMIN2026";
 
     let rawPermissions = "";
     let currentKey = "";
@@ -816,7 +821,6 @@
 
         if (lic.key.toLowerCase() !== keyToTest.trim().toLowerCase()) return false;
 
-        // التحقق من صلاحية المدير
         if (lic.key.toUpperCase() === MASTER_KEY || lic.permissions === 'all') {
           currentKey = lic.key;
           rawPermissions = "all";
@@ -845,7 +849,7 @@
         rawPermissions = lic.permissions;
 
         const badge = document.getElementById('teacherDisplay');
-        badge.innerText = "@DESNEOO";
+        badge.innerText = lic.teacher || "@DESNEOO";
         badge.style.color = "#38bdf8";
         badge.style.borderColor = "#38bdf8";
 
@@ -859,7 +863,7 @@
 
     function setAdminBadge() {
       const badge = document.getElementById('teacherDisplay');
-      badge.innerText = "👑 المدير العام (كامل الصلاحيات)";
+      badge.innerText = "👑 المدير العام";
       badge.style.color = "#f59e0b";
       badge.style.borderColor = "#f59e0b";
       badge.style.background = "rgba(245, 158, 11, 0.15)";
@@ -871,7 +875,6 @@
         return;
       }
 
-      // تفعيل فوري ومباشر لكود المدير العام بدون إنترنت
       if (keyToTest.trim().toUpperCase() === MASTER_KEY) {
         currentKey = MASTER_KEY;
         rawPermissions = "all";
@@ -913,7 +916,7 @@
             openKeyModal("تعذر الاتصال بقاعدة البيانات. تأكد من الإنترنت.");
           }
         }
-      }, 3500);
+      }, 8000);
 
       window[callbackName] = function(response) {
         if (responded) return;
@@ -1019,23 +1022,47 @@
       document.getElementById('keyModal').style.display = 'none';
 
       rawPermissions = userData.permissions;
+      const badge = document.getElementById('teacherDisplay');
       if (rawPermissions.includes('all') || rawPermissions.includes('*') || rawPermissions.includes('admin')) {
         setAdminBadge();
       } else {
-        const badge = document.getElementById('teacherDisplay');
-        badge.innerText = "@DESNEOO";
+        badge.innerText = userData.teacher || "@DESNEOO";
         badge.style.color = "#38bdf8";
         badge.style.borderColor = "#38bdf8";
+        badge.style.background = "rgba(56, 189, 248, 0.1)";
       }
 
       renderPortals();
+    }
+
+    // الدالة الآمنة لتحديث الصلاحيات بدون كسر وضع الأوفلاين
+    function forceSyncPermissions() {
+      if (!navigator.onLine) {
+        alert("⚠️ أنت تعمل حالياً في وضع الأوفلاين (بدون إنترنت). رخصتك الحالية سارية ومحمية، ولا يلزم التحديث إلا عند تفعيل فصول جديدة مع توفر إنترنت.");
+        return;
+      }
+
+      const key = getStoredKey();
+      if (!key) {
+        openKeyModal("يرجى إدخال الكود أولاً.");
+        return;
+      }
+
+      const badge = document.getElementById('teacherDisplay');
+      badge.innerText = "⏳ جاري التحديث...";
+      badge.style.color = "#fef08a";
+
+      verifySubscription(key);
+
+      setTimeout(() => {
+        alert("✅ تم تحديث الصلاحيات وتجديد رخصة الأوفلاين بنجاح!");
+      }, 1800);
     }
 
     function isSubjectAllowed(subj) {
       if (!rawPermissions) return false;
       const perms = rawPermissions.split(',').map(s => s.trim().toLowerCase());
 
-      // صلاحية المدير العام الشاملة
       if (perms.includes('all') || perms.includes('*') || perms.includes('admin') || currentKey.toUpperCase() === MASTER_KEY) return true;
 
       if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
@@ -1053,7 +1080,6 @@
       if (!rawPermissions) return false;
       const perms = rawPermissions.split(',').map(s => s.trim().toLowerCase());
 
-      // صلاحية المدير العام الشاملة
       if (perms.includes('all') || perms.includes('*') || perms.includes('admin') || currentKey.toUpperCase() === MASTER_KEY) return true;
 
       if (isSubjectAllowed(subj)) {
