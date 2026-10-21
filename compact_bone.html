@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>العظم المصمت</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.4vw,22px);font-weight:bold;text-align:center;line-height:1.3}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">العظم المصمت</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="gMatrix" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#f7eed7"/>
+        <stop offset="70%" stop-color="#efe2c2"/>
+        <stop offset="100%" stop-color="#e5d4ab"/>
+      </radialGradient>
+      <linearGradient id="gPeri" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#b58d67"/>
+        <stop offset="50%" stop-color="#8f6845"/>
+        <stop offset="100%" stop-color="#6b492b"/>
+      </linearGradient>
+      <clipPath id="boneClip">
+        <path d="M 250,40 L 555,40 Q 675,340 705,650 L 250,650 Z"/>
+      </clipPath>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0L10,5L0,10Z" fill="#e0552a"/>
+      </marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+let rs=17;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const lerp=(a,b,u)=>a+(b-a)*u;
+
+/* ---------- constants & geometry ---------- */
+const CX=425, CY=305; // Main Haversian system center
+const RX=148, RY=242; // Outer osteon radii
+const ringScales=[0.24, 0.43, 0.62, 0.81, 1.0];
+
+// Main clipped container for the histological section
+const section=G(view,{'clip-path':'url(#boneClip)'});
+
+// Base bone matrix background
+el('rect',{x:240,y:30,width:480,height:630,fill:'url(#gMatrix)'},section);
+
+/* ---------- 1. Interstitial & Secondary Osteons (Bottom & Top-Left) ---------- */
+function drawPartialOsteon(cx,cy,rx,ry,rings){
+  const g=G(section);
+  el('ellipse',{cx,cy,rx,ry,fill:'url(#gMatrix)',stroke:'#fff','stroke-width':4},g);
+  for(let s of rings){
+    el('ellipse',{cx,cy,rx:rx*s,ry:ry*s,fill:'none',stroke:'#c4a97d','stroke-width':1.6},g);
+  }
+  // Radial canaliculi
+  for(let i=0;i<72;i++){
+    const a=i*PI*2/72;
+    const x1=cx+rx*0.15*Math.cos(a), y1=cy+ry*0.15*Math.sin(a);
+    const x2=cx+rx*Math.cos(a), y2=cy+ry*Math.sin(a);
+    const mx=(x1+x2)/2+(rnd()-.5)*6, my=(y1+y2)/2+(rnd()-.5)*6;
+    el('path',{d:`M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`,stroke:'#785c38','stroke-width':0.9,fill:'none',opacity:0.75},g);
+  }
+  // Osteocytes on rings
+  for(let s of rings.slice(0,-1)){
+    const cnt=Math.round(s*24);
+    for(let i=0;i<cnt;i++){
+      const a=i*PI*2/cnt + s;
+      const x=cx+rx*s*Math.cos(a), y=cy+ry*s*Math.sin(a);
+      const deg=(a*180/PI)+90;
+      const cg=G(g,{transform:`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${deg.toFixed(1)})`});
+      el('ellipse',{rx:6.5,ry:2.7,fill:'#8c3b2b',stroke:'#4a1c13','stroke-width':0.8},cg);
+    }
+  }
+}
+
+// Bottom osteons (providing target for "صفائح عظمية")
+drawPartialOsteon(340, 665, 130, 145, [0.35, 0.58, 0.8, 1.0]);
+drawPartialOsteon(555, 690, 115, 125, [0.4, 0.7, 1.0]);
+// Top-left interstitial remnant
+drawPartialOsteon(255, 60, 110, 120, [0.45, 0.75, 1.0]);
+// Mid-left remnant
+drawPartialOsteon(210, 440, 95, 140, [0.5, 0.8, 1.0]);
+
+/* ---------- 2. Circumferential Lamellae & Periosteum (Right Curved Border) ---------- */
+const periG=G(section);
+const xAtY=(y,off)=>{
+  const t=(y-40)/610;
+  return (1-t)*(1-t)*(555+off) + 2*(1-t)*t*(675+off) + t*t*(705+off);
+};
+
+// Parallel lamellae lines along the outer edge
+const lamOffsets=[-85, -66, -47, -28, -12];
+lamOffsets.forEach((off,idx)=>{
+  el('path',{
+    d:`M ${555+off},40 Q ${675+off},340 ${705+off},650`,
+    fill:'none',stroke:'#b89b6c','stroke-width':2
+  },periG);
+
+  // Canaliculi across circumferential lamellae
+  if(idx<lamOffsets.length-1){
+    const nextOff=lamOffsets[idx+1];
+    for(let y=50;y<=640;y+=9){
+      const x1=xAtY(y,off), x2=xAtY(y,nextOff);
+      const my=y+(rnd()-.5)*5;
+      el('path',{d:`M${x1.toFixed(1)},${y} Q${((x1+x2)/2).toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${(y+2).toFixed(1)}`,stroke:'#785c38','stroke-width':0.85,fill:'none',opacity:0.7},periG);
+    }
+  }
+});
+
+// Osteocytes in circumferential lamellae
+const circCells=[];
+[-66, -47, -28].forEach((off,li)=>{
+  for(let y=65+li*14;y<=625;y+=42){
+    const x=xAtY(y,off);
+    const cg=G(periG,{transform:`translate(${x.toFixed(1)} ${y}) rotate(78)`});
+    for(let k=-3;k<=3;k++){
+      el('line',{x1:k*2,y1:-2,x2:k*2.6,y2:-8,stroke:'#5c3824','stroke-width':0.8},cg);
+      el('line',{x1:k*2,y1:2,x2:k*2.6,y2:8,stroke:'#5c3824','stroke-width':0.8},cg);
+    }
+    const body=el('ellipse',{rx:7.5,ry:2.8,fill:'#8c3b2b',stroke:'#4a1c13','stroke-width':0.8},cg);
+    circCells.push({body,ph:rnd()*6.28});
+  }
+});
+
+// Outer Periosteum fibrous layer (سمحاق العظم)
+el('path',{
+  d:`M 543,40 Q 663,340 693,650 L 712,650 Q 682,340 562,40 Z`,
+  fill:'url(#gPeri)',stroke:'#4d331c','stroke-width':2
+},periG);
+// Fibrous texture lines inside periosteum
+for(let off of [-6, -2, 2]){
+  el('path',{
+    d:`M ${553+off},40 Q ${673+off},340 ${703+off},650`,
+    fill:'none',stroke:'#d6b999','stroke-width':1,'stroke-dasharray':'8,6',opacity:0.65
+  },periG);
+}
+
+/* ---------- 3. Main Central Osteon (Haversian System) ---------- */
+const osteonG=G(section);
+
+// White cement line boundary around main osteon
+el('ellipse',{cx:CX,cy:CY,rx:RX+3,ry:RY+3,fill:'url(#gMatrix)',stroke:'#fff','stroke-width':4.5},osteonG);
+
+// Concentric Lamellae rings
+ringScales.forEach(s=>{
+  el('ellipse',{cx:CX,cy:CY,rx:RX*s,ry:RY*s,fill:'none',stroke:'#bf9f6f','stroke-width':1.8},osteonG);
+});
+
+// Dense branching Canaliculi network radiating from Haversian canal
+const canG=G(osteonG);
+const numRays=110;
+for(let i=0;i<numRays;i++){
+  const a=(i/numRays)*PI*2;
+  const s0=0.17, s1=1.0;
+  const x0=CX+RX*s0*Math.cos(a), y0=CY+RY*s0*Math.sin(a);
+  const x1=CX+RX*s1*Math.cos(a), y1=CY+RY*s1*Math.sin(a);
+  const da1=(rnd()-.5)*0.06, da2=(rnd()-.5)*0.06;
+  const xm1=CX+RX*0.45*Math.cos(a+da1), ym1=CY+RY*0.45*Math.sin(a+da1);
+  const xm2=CX+RX*0.75*Math.cos(a+da2), ym2=CY+RY*0.75*Math.sin(a+da2);
+  el('path',{
+    d:`M${x0.toFixed(1)},${y0.toFixed(1)} C${xm1.toFixed(1)},${ym1.toFixed(1)} ${xm2.toFixed(1)},${ym2.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`,
+    stroke:'#755833','stroke-width':0.95,fill:'none',opacity:0.78
+  },canG);
+}
+
+// Animated nutrient / signaling pulses traveling along canaliculi
+const pulses=[];
+const pulseG=G(osteonG);
+for(let i=0;i<28;i++){
+  const a=rnd()*PI*2;
+  const dot=el('circle',{r:2.1,fill:'#d94e28',opacity:0.75},pulseG);
+  pulses.push({a, off:rnd(), speed:0.18+rnd()*0.15, dot});
+}
+
+// Osteocytes (خلية عظمية) arranged on the concentric rings
+const osteocytes=[];
+const cellRings=[0.24, 0.43, 0.62, 0.81];
+const cellCounts=[10, 16, 22, 28];
+
+cellRings.forEach((s,ri)=>{
+  const cnt=cellCounts[ri];
+  for(let i=0;i<cnt;i++){
+    const a=(i/cnt)*PI*2 + (ri*0.23);
+    const x=CX+RX*s*Math.cos(a);
+    const y=CY+RY*s*Math.sin(a);
+    // Tangent angle to ellipse
+    const tx=-RX*Math.sin(a), ty=RY*Math.cos(a);
+    const deg=Math.atan2(ty,tx)*180/PI;
+
+    const cg=G(osteonG,{transform:`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${deg.toFixed(1)})`});
+    // Fine cytoplasmic processes (dendrites)
+    for(let k=-4;k<=4;k++){
+      const lx=k*1.9;
+      el('line',{x1:lx,y1:-2,x2:lx*1.3,y2:-8.5,stroke:'#5c3824','stroke-width':0.85},cg);
+      el('line',{x1:lx,y1:2,x2:lx*1.3,y2:8.5,stroke:'#5c3824','stroke-width':0.85},cg);
+    }
+    const body=el('ellipse',{rx:8,ry:3.1,fill:'#8c3b2b',stroke:'#421810','stroke-width':0.9},cg);
+    el('ellipse',{rx:2.6,ry:1.3,fill:'#52190e'},cg); // Nucleus
+    osteocytes.push({x,y,a,ri,i,body,cg,ph:rnd()*6.28});
+  }
+});
+
+/* ---------- 4. Central Haversian Canal & Blood Vessels ---------- */
+const canalG=G(osteonG);
+// Haversian canal lumen
+el('ellipse',{cx:CX,cy:CY,rx:25,ry:38,fill:'#cbbca8',stroke:'#6e563a','stroke-width':2.5},canalG);
+el('ellipse',{cx:CX,cy:CY,rx:20,ry:32,fill:'#9e8c78'},canalG);
+
+// Artery (Red - top/left inside canal)
+const artG=G(canalG);
+el('ellipse',{cx:CX-5,cy:CY-7,rx:11,ry:15,fill:'#d62828',stroke:'#7a1111','stroke-width':1.8},artG);
+el('ellipse',{cx:CX-5,cy:CY-7,rx:6,ry:9,fill:'#8f1111'},artG);
+el('ellipse',{cx:CX-8,cy:CY-11,rx:2.2,ry:3.5,fill:'#ff9999',opacity:0.7},artG);
+
+// Vein (Blue - bottom/right inside canal)
+const veinG=G(canalG);
+el('ellipse',{cx:CX+6,cy:CY+9,rx:10,ry:13,fill:'#2b59c3',stroke:'#142d6e','stroke-width':1.8},veinG);
+el('ellipse',{cx:CX+6,cy:CY+9,rx:5.5,ry:7.5,fill:'#153075'},veinG);
+el('ellipse',{cx:CX+3,cy:CY+5,rx:2,ry:3,fill:'#99b8ff',opacity:0.65},veinG);
+
+// Frame border lines top & bottom of section
+el('line',{x1:250,y1:40,x2:558,y2:40,stroke:'#785c38','stroke-width':2});
+el('line',{x1:250,y1:650,x2:708,y2:650,stroke:'#785c38','stroke-width':2});
+el('line',{x1:250,y1:40,x2:250,y2:650,stroke:'#785c38','stroke-width':2});
+
+/* ---------- 5. Labels (Matching Original Diagram Positions) ---------- */
+const labs=[];
+function label(txt,cx,py,w,tfs){
+  const h=36,g=G(view,{'pointer-events':'none'}),
+  lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},g));
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:18},g);
+  el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
+  labs.push(()=>tfs.forEach((f,i)=>{
+    const p=f(),a=lns[i];
+    a.setAttribute('x1',p.sx!==undefined?p.sx:cx);
+    a.setAttribute('y1',p.sy!==undefined?p.sy:py);
+    a.setAttribute('x2',p[0].toFixed(1));
+    a.setAttribute('y2',p[1].toFixed(1));
+  }));
+}
+
+// Pick 2 distinct osteocytes on upper-left of the osteon for "خلية عظمية"
+const targetCell1 = osteocytes.find(c=>c.ri===2 && Math.abs(c.a - 3.45)<0.35) || osteocytes[36];
+const targetCell2 = osteocytes.find(c=>c.ri===1 && Math.abs(c.a - 3.25)<0.45) || osteocytes[18];
+
+// Right side labels (سمحاق العظم & صفائح محيطية)
+label('سمحاق العظم', 805, 175, 145, [
+  ()=>{ const p=[596, 175]; p.sx=732; p.sy=175; return p; }
+]);
+
+label('صفائح محيطية', 795, 265, 145, [
+  ()=>{ const p=[562, 265]; p.sx=722; p.sy=265; return p; }
+]);
+
+// Left side labels (خلية عظمية، اوعية دموية، قناة هافرس، صفائح عظمية)
+label('خلية عظمية', 110, 145, 145, [
+  ()=>{ const p=[targetCell1.x, targetCell1.y]; p.sx=182; p.sy=145; return p; },
+  ()=>{ const p=[targetCell2.x, targetCell2.y]; p.sx=182; p.sy=145; return p; }
+]);
+
+label('اوعية دموية', 110, 255, 145, [
+  ()=>{ const p=[CX-7, CY-10]; p.sx=182; p.sy=250; return p; },
+  ()=>{ const p=[CX+6, CY+11]; p.sx=182; p.sy=260; return p; }
+]);
+
+label('قناة هافرس', 110, 340, 145, [
+  ()=>{ const p=[CX-14, CY+22]; p.sx=182; p.sy=340; return p; }
+]);
+
+label('صفائح عظمية', 110, 575, 155, [
+  ()=>{ const p=[328, 575]; p.sx=187; p.sy=575; return p; }
+]);
+
+/* ---------- 6. Animation Loop ---------- */
+let T=0,last=performance.now(),paused=false;
+function frame(ms){
+  const dt=Math.min(.05,(ms-last)/1000);last=ms;if(!paused)T+=dt;const t=T;
+
+  // 1. Subtle rhythmic pulse in blood vessels inside Haversian canal
+  const artScale = 1 + 0.08*Math.sin(t*4.2);
+  const veinScale = 1 + 0.05*Math.sin(t*4.2 - 1.2);
+  artG.setAttribute('transform',`translate(${CX-5} ${CY-7}) scale(${artScale.toFixed(3)}) translate(${-(CX-5)} ${-(CY-7)})`);
+  veinG.setAttribute('transform',`translate(${CX+6} ${CY+9}) scale(${veinScale.toFixed(3)}) translate(${-(CX+6)} ${-(CY+9)})`);
+
+  // 2. Nutrient particles flowing radially along canaliculi from Haversian canal to osteocytes
+  pulses.forEach(p=>{
+    const u=(t*p.speed + p.off)%1;
+    const s=lerp(0.18, 0.96, u);
+    const px=CX + RX*s*Math.cos(p.a);
+    const py=CY + RY*s*Math.sin(p.a);
+    const alpha=Math.sin(u*PI)*0.85;
+    p.dot.setAttribute('cx',px.toFixed(1));
+    p.dot.setAttribute('cy',py.toFixed(1));
+    p.dot.setAttribute('opacity',alpha.toFixed(2));
+  });
+
+  // 3. Gentle metabolic shimmer on osteocytes
+  osteocytes.forEach(c=>{
+    const sc=1 + 0.04*Math.sin(t*2.2 + c.ph);
+    c.body.setAttribute('rx',(8*sc).toFixed(2));
+    c.body.setAttribute('ry',(3.1*sc).toFixed(2));
+  });
+
+  labs.forEach(f=>f());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:350});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:350});
+document.getElementById('zreset').onclick=reset;
+
+/* ---------- fullscreen ---------- */
+const fsBtn=document.getElementById('fs'),de=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{
+  const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;
+    if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+    setFs(true);
+  }else{
+    if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}
+    setFs(false);
+  }
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+})();
+</script>
+</body>
+</html>
