@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>نسيج اللحاء ثلاثي الأبعاد (Phloem Tissue 3D)</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0d1821;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#142433;padding:0 8px;box-sizing:border-box;z-index:20;box-shadow:0 3px 12px rgba(0,0,0,0.4)}
+  #title{color:#fff;font-size:clamp(14px,3.2vw,22px);font-weight:bold;text-align:center;letter-spacing:0.5px}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:radial-gradient(circle at 50% 40%,#182e42 0%,#09131c 100%)}
+  #webgl-container{position:absolute;top:0;left:0;width:100%;height:100%;cursor:grab}
+  #webgl-container:active{cursor:grabbing}
+  
+  /* طبقة التأشيرات التفاعلية المرتبطة بالمجسم ثلاثي الأبعاد */
+  #overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:15}
+  
+  /* أزرار التحكم الجانبية */
+  .zb{position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:9px;z-index:25}
+  .zb button{width:44px;height:44px;border-radius:50%;border:2px solid #325373;background:#172a3d;color:#e3f1fc;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.4);transition:all .2s}
+  .zb button:hover{background:#223c57;border-color:#5083b5;color:#fff}
+  .zb button:active{transform:scale(0.92)}
+  
+  /* كبسولات التأشير الاحترافية الموجهة */
+  .pill{fill:#ffffff;stroke:#e0552a;stroke-width:2.4;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.55))}
+  .lbl{fill:#8a2806;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.2;fill:none}
+  .anchor-dot{fill:#e0552a;stroke:#fff;stroke-width:2}
+  
+  .cap-bar{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#b2d3ee;font-size:19px;font-weight:bold;pointer-events:none;z-index:20;text-shadow:0 2px 6px rgba(0,0,0,0.8)}
+  .hint{position:absolute;bottom:48px;left:0;right:0;text-align:center;color:#6087a8;font-size:13px;pointer-events:none;z-index:20}
+  
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+</style>
+<!-- مكتبات Three.js و OrbitControls للرسم ثلاثي الأبعاد فائق الواقعية -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+<div id="top"><div id="title">الأنسجة الوعائية النباتية: تركيب نسيج اللحاء (شكل 2-6)</div></div>
+<div id="stage">
+  <div class="zb">
+    <button id="zin" title="تكبير">+</button>
+    <button id="zout" title="تصغير">−</button>
+    <button id="zreset" title="إعادة ضبط">⟲</button>
+    <button id="pause" title="إيقاف مؤقت">⏸</button>
+    <button id="fs" title="ملء الشاشة">⛶</button>
+  </div>
+
+  <div id="webgl-container"></div>
+  
+  <!-- طبقة SVG لحساب وتتبع التأشيرات ثلاثية الأبعاد بدقة على الشاشة -->
+  <svg id="overlay"></svg>
+  
+  <div class="hint">اسحب بالماوس أو اللمس لتدوير النسيج ثلاثي الأبعاد • استخدم العجلة للتكبير</div>
+  <div class="cap-bar">شكل (2-6): نسيج اللحاء (Phloem Tissue)</div>
+</div>
+
+<script>
+(function(){
+const container = document.getElementById('webgl-container');
+const svgOverlay = document.getElementById('overlay');
+
+/* ---------------- إعداد المشهد والكاميرا والإضاءة ثلاثية الأبعاد ---------------- */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 3000);
+camera.position.set(0, 0, 480);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+container.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.rotateSpeed = 0.85;
+controls.minDistance = 200;
+controls.maxDistance = 850;
+
+// نظام إضاءة أحيائي مجسم ثلاثي المستويات
+const ambientLight = new THREE.AmbientLight(0xd9ecff, 0.75);
+scene.add(ambientLight);
+
+const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight1.position.set(220, 300, 260);
+scene.add(dirLight1);
+
+const dirLight2 = new THREE.DirectionalLight(0x73c2fb, 0.7);
+dirLight2.position.set(-250, -150, -200);
+scene.add(dirLight2);
+
+const rimLight = new THREE.DirectionalLight(0xa3ff75, 0.6);
+rimLight.position.set(0, -300, 150);
+scene.add(rimLight);
+
+/* ---------------- بناء خامة الصفيحة المنخلية المثقبة بدقة ---------------- */
+function createSievePlateTexture(){
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // أرضية الصفيحة المنخلية العاجية المخضرة
+  const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 250);
+  grad.addColorStop(0, '#ebfaaf');
+  grad.addColorStop(0.7, '#c2eb83');
+  grad.addColorStop(1, '#81b83d');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(256, 256, 250, 0, Math.PI * 2);
+  ctx.fill();
+
+  // شبكة الثقوب المنخلية (Sieve Pores)
+  ctx.fillStyle = '#1e380a';
+  ctx.strokeStyle = '#5a8f22';
+  ctx.lineWidth = 4;
+
+  const rings = [
+    { r: 42, count: 6 },
+    { r: 92, count: 12 },
+    { r: 145, count: 18 },
+    { r: 198, count: 24 }
+  ];
+
+  // ثقب مركزي
+  ctx.beginPath();
+  ctx.arc(256, 256, 12, 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+
+  rings.forEach(ring => {
+    for(let i=0; i<ring.count; i++){
+      const ang = (i / ring.count) * Math.PI * 2;
+      const px = 256 + Math.cos(ang) * ring.r;
+      const py = 256 + Math.sin(ang) * ring.r;
+      ctx.beginPath();
+      ctx.arc(px, py, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+  });
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 8;
+  return texture;
+}
+
+const sieveTexture = createSievePlateTexture();
+
+/* ---------------- بناء مجسم الأنبوب المنخلي ثلاثي الأبعاد ---------------- */
+const rootModel = new THREE.Group();
+rootModel.position.x = -35; // إزاحة بسيطة لليسار لمنح مساحة للتأشيرات
+scene.add(rootModel);
+
+const TUBE_R = 54;
+const TUBE_H = 340;
+
+// جدار الأنبوب المنخلي المقطوع طولياً لإظهار التجويف والصفائح بالداخل
+const tubeGeo = new THREE.CylinderGeometry(
+  TUBE_R, TUBE_R, TUBE_H, 64, 1, true,
+  -Math.PI * 0.72, Math.PI * 1.44
+);
+
+const tubeMat = new THREE.MeshStandardMaterial({
+  color: 0x589e30,
+  roughness: 0.35,
+  metalness: 0.08,
+  side: THREE.DoubleSide
+});
+
+const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+rootModel.add(tubeMesh);
+
+// بطانة السيتوبلازم الشفافة الداخلية للأنبوب
+const lumenGeo = new THREE.CylinderGeometry(
+  TUBE_R - 3.5, TUBE_R - 3.5, TUBE_H - 4, 48, 1, true,
+  -Math.PI * 0.72, Math.PI * 1.44
+);
+const lumenMat = new THREE.MeshStandardMaterial({
+  color: 0x82db44,
+  roughness: 0.2,
+  metalness: 0.05,
+  transparent: true,
+  opacity: 0.65,
+  side: THREE.DoubleSide
+});
+const lumenMesh = new THREE.Mesh(lumenGeo, lumenMat);
+rootModel.add(lumenMesh);
+
+// الصفائح المنخلية الثلاثة (علوية، وسطى، سفلية)
+const plateGeo = new THREE.CylinderGeometry(TUBE_R - 2, TUBE_R - 2, 7, 48);
+const plateMaterials = [
+  new THREE.MeshStandardMaterial({ color: 0x3d701e, roughness: 0.5 }), // الجدار المحيطي للصفيحة
+  new THREE.MeshStandardMaterial({ map: sieveTexture, roughness: 0.35 }), // الوجه العلوي المثقب
+  new THREE.MeshStandardMaterial({ map: sieveTexture, roughness: 0.35 })  // الوجه السفلي
+];
+
+function addSievePlate(yPos){
+  const plate = new THREE.Mesh(plateGeo, plateMaterials);
+  plate.position.y = yPos;
+  rootModel.add(plate);
+  return plate;
+}
+
+const plateTop = addSievePlate(120);
+const plateMid = addSievePlate(0);
+const plateBot = addSievePlate(-120);
+
+/* ---------------- بناء الخلايا المرافقة المجسمة (Companion Cells) ---------------- */
+function createCompanionCell(posX, posY, rotZ){
+  const cellGroup = new THREE.Group();
+  cellGroup.position.set(posX, posY, 0);
+  cellGroup.rotation.z = rotZ;
+
+  // شكل الخلية المتطاولة والمدببة عند الأطراف بدقة
+  const compGeo = new THREE.SphereGeometry(18, 32, 32);
+  compGeo.scale(1.1, 4.2, 1.1);
+
+  const compMat = new THREE.MeshStandardMaterial({
+    color: 0x76b837,
+    roughness: 0.3,
+    metalness: 0.05,
+    transparent: true,
+    opacity: 0.88
+  });
+
+  const compMesh = new THREE.Mesh(compGeo, compMat);
+  cellGroup.add(compMesh);
+
+  // النواة الخلوية البيضاوية الكبيرة المميزة للخلية المرافقة
+  const nucGeo = new THREE.SphereGeometry(7.5, 24, 24);
+  nucGeo.scale(1, 2.2, 1);
+  const nucMat = new THREE.MeshStandardMaterial({
+    color: 0x2b5409,
+    roughness: 0.25,
+    metalness: 0.1
+  });
+  const nucMesh = new THREE.Mesh(nucGeo, nucMat);
+  nucMesh.position.set(0, 0, 3);
+  cellGroup.add(nucMesh);
+
+  // نوية داخلية مضيئة
+  const nclGeo = new THREE.SphereGeometry(2.5, 16, 16);
+  const nclMat = new THREE.MeshBasicMaterial({ color: 0xc4ff66 });
+  const nclMesh = new THREE.Mesh(nclGeo, nclMat);
+  nclMesh.position.set(1.5, 2, 8);
+  cellGroup.add(nclMesh);
+
+  // روابط بلازمية دقيقة بين الخلية المرافقة والأنبوب
+  for(let y=-35; y<=35; y+=18){
+    const linkGeo = new THREE.CylinderGeometry(1.2, 1.2, 16, 12);
+    const linkMat = new THREE.MeshStandardMaterial({ color: 0xffdf66, roughness: 0.3 });
+    const link = new THREE.Mesh(linkGeo, linkMat);
+    link.rotation.z = Math.PI / 2;
+    link.position.set(posX > 0 ? -11 : 11, y, 0);
+    cellGroup.add(link);
+  }
+
+  rootModel.add(cellGroup);
+  return { cellGroup, nucMesh };
+}
+
+// 4 خلايا مرافقة على جانبي الأنبوب المنخلي (يمين ويسار)[span_6](start_span)[span_6](end_span)
+const compRT = createCompanionCell(TUBE_R + 15, 65, -0.05);
+const compRB = createCompanionCell(TUBE_R + 15, -65, 0.05);
+const compLT = createCompanionCell(-TUBE_R - 15, 65, 0.05);
+const compLB = createCompanionCell(-TUBE_R - 15, -65, -0.05);
+
+/* ---------------- جسيمات عصارة اللحاء ثلاثية الأبعاد المتحركة ---------------- */
+const SAP_COUNT = 65;
+const sapParticles = [];
+const sapGeo = new THREE.SphereGeometry(2.4, 16, 16);
+const sapMat = new THREE.MeshStandardMaterial({
+  color: 0xffd53d,
+  roughness: 0.2,
+  metalness: 0.1,
+  emissive: 0xcc8800,
+  emissiveIntensity: 0.45
+});
+
+for(let i=0; i<SAP_COUNT; i++){
+  const p = new THREE.Mesh(sapGeo, sapMat);
+  const rad = Math.random() * (TUBE_R - 12);
+  const ang = Math.random() * Math.PI * 2;
+  p.position.set(
+    Math.cos(ang) * rad,
+    -160 + Math.random() * 320,
+    Math.sin(ang) * rad * 0.65
+  );
+  p.userData = {
+    spd: 0.8 + Math.random() * 0.9,
+    baseRad: rad,
+    ang: ang,
+    sway: Math.random() * Math.PI
+  };
+  rootModel.add(p);
+  sapParticles.push(p);
+}
+
+/* ---------------- نقاط الربط ثلاثية الأبعاد (3D Anchors) ---------------- */
+const anchorTube = new THREE.Vector3(0, 75, 20);
+const anchorComp = new THREE.Vector3(TUBE_R + 15, 65, 5);
+const anchorPlate = new THREE.Vector3(0, -120, 10);
+
+/* ---------------- طبقة التأشيرات التفاعلية المحدثة ---------------- */
+svgOverlay.innerHTML = `
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0L10,5L0,10Z" fill="#e0552a"/>
+    </marker>
+  </defs>
+
+  <!-- تأشير أنبوب منخلي -->
+  <g id="lblTube">
+    <line class="ln" marker-end="url(#ah)" id="lnTube"/>
+    <circle class="anchor-dot" r="4.5" id="dotTube"/>
+    <rect class="pill" width="165" height="40" rx="20" id="pillTube"/>
+    <text class="lbl" id="txtTube">أنبوب منخلي</text>
+  </g>
+
+  <!-- تأشير خلية مرافقة -->
+  <g id="lblComp">
+    <line class="ln" marker-end="url(#ah)" id="lnComp"/>
+    <circle class="anchor-dot" r="4.5" id="dotComp"/>
+    <rect class="pill" width="165" height="40" rx="20" id="pillComp"/>
+    <text class="lbl" id="txtComp">خلية مرافقة</text>
+  </g>
+
+  <!-- تأشير صفيحة منخلية -->
+  <g id="lblPlate">
+    <line class="ln" marker-end="url(#ah)" id="lnPlate"/>
+    <circle class="anchor-dot" r="4.5" id="dotPlate"/>
+    <rect class="pill" width="165" height="40" rx="20" id="pillPlate"/>
+    <text class="lbl" id="txtPlate">صفيحة منخلية</text>
+  </g>
+`;
+
+const elPillTube = document.getElementById('pillTube'), elTxtTube = document.getElementById('txtTube'), elLnTube = document.getElementById('lnTube'), elDotTube = document.getElementById('dotTube');
+const elPillComp = document.getElementById('pillComp'), elTxtComp = document.getElementById('txtComp'), elLnComp = document.getElementById('lnComp'), elDotComp = document.getElementById('dotComp');
+const elPillPlate = document.getElementById('pillPlate'), elTxtPlate = document.getElementById('txtPlate'), elLnPlate = document.getElementById('lnPlate'), elDotPlate = document.getElementById('dotPlate');
+
+function toScreen(pos){
+  const v = pos.clone().applyMatrix4(rootModel.matrixWorld).project(camera);
+  const w = window.innerWidth, h = window.innerHeight;
+  return {
+    x: (v.x * 0.5 + 0.5) * w,
+    y: (-(v.y * 0.5) + 0.5) * h,
+    visible: v.z < 1.0
+  };
+}
+
+function updateOverlayLabels(){
+  const sTube = toScreen(anchorTube);
+  const sComp = toScreen(anchorComp);
+  const sPlate = toScreen(anchorPlate);
+
+  const pillW = 165, pillH = 40;
+  // تثبيت الكبسولات في مسار أنيق على اليمين يمنع التداخل
+  const rightBaseX = Math.min(window.innerWidth - 180, Math.max(window.innerWidth * 0.65, sComp.x + 80));
+
+  // 1. أنبوب منخلي
+  const y1 = Math.max(90, sTube.y - 40);
+  elPillTube.setAttribute('x', rightBaseX);
+  elPillTube.setAttribute('y', y1 - pillH/2);
+  elTxtTube.setAttribute('x', rightBaseX + pillW/2);
+  elTxtTube.setAttribute('y', y1);
+  elLnTube.setAttribute('x1', rightBaseX);
+  elLnTube.setAttribute('y1', y1);
+  elLnTube.setAttribute('x2', sTube.x);
+  elLnTube.setAttribute('y2', sTube.y);
+  elDotTube.setAttribute('cx', sTube.x);
+  elDotTube.setAttribute('cy', sTube.y);
+
+  // 2. خلية مرافقة
+  const y2 = Math.max(y1 + 65, sComp.y);
+  elPillComp.setAttribute('x', rightBaseX);
+  elPillComp.setAttribute('y', y2 - pillH/2);
+  elTxtComp.setAttribute('x', rightBaseX + pillW/2);
+  elTxtComp.setAttribute('y', y2);
+  elLnComp.setAttribute('x1', rightBaseX);
+  elLnComp.setAttribute('y1', y2);
+  elLnComp.setAttribute('x2', sComp.x);
+  elLnComp.setAttribute('y2', sComp.y);
+  elDotComp.setAttribute('cx', sComp.x);
+  elDotComp.setAttribute('cy', sComp.y);
+
+  // 3. صفيحة منخلية
+  const y3 = Math.max(y2 + 65, sPlate.y + 15);
+  elPillPlate.setAttribute('x', rightBaseX);
+  elPillPlate.setAttribute('y', y3 - pillH/2);
+  elTxtPlate.setAttribute('x', rightBaseX + pillW/2);
+  elTxtPlate.setAttribute('y', y3);
+  elLnPlate.setAttribute('x1', rightBaseX);
+  elLnPlate.setAttribute('y1', y3);
+  elLnPlate.setAttribute('x2', sPlate.x);
+  elLnPlate.setAttribute('y2', sPlate.y);
+  elDotPlate.setAttribute('cx', sPlate.x);
+  elDotPlate.setAttribute('cy', sPlate.y);
+}
+
+/* ---------------- حلقة التحريك والأنيميشن ---------------- */
+let T = 0, lastTime = performance.now(), paused = false;
+
+function animate(now){
+  requestAnimationFrame(animate);
+  const dt = paused ? 0 : Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+  T += dt;
+
+  if(!paused){
+    // دوران بطيء تلقائي عند عدم لمس الشاشة لإبراز الأبعاد الثلاثية
+    if(!controls.state || controls.state === -1){
+      rootModel.rotation.y = Math.sin(T * 0.4) * 0.28;
+    }
+
+    // حركة تدفق عصارة اللحاء وانضغاطها عند اجتياز الصفيحة المنخلية
+    sapParticles.forEach(p => {
+      p.position.y -= dt * 62 * p.userData.spd;
+      if(p.position.y < -165) p.position.y = 165;
+
+      const nearPlate = Math.abs(p.position.y) < 16 || Math.abs(p.position.y - 120) < 16 || Math.abs(p.position.y + 120) < 16;
+      const squeeze = nearPlate ? 0.72 : 1.0;
+      p.scale.set(squeeze, squeeze, squeeze);
+
+      const sway = Math.sin(T * 3 + p.userData.sway) * 1.5;
+      p.position.x = Math.cos(p.userData.ang) * (p.userData.baseRad + sway);
+      p.position.z = Math.sin(p.userData.ang) * (p.userData.baseRad + sway) * 0.65;
+    });
+
+    // نبض حيوي هادئ لنواة الخلية المرافقة
+    const nucScale = 1 + 0.03 * Math.sin(T * 2.8);
+    compRT.nucMesh.scale.set(nucScale, 2.2 * nucScale, nucScale);
+    compRB.nucMesh.scale.set(nucScale, 2.2 * nucScale, nucScale);
+    compLT.nucMesh.scale.set(nucScale, 2.2 * nucScale, nucScale);
+    compLB.nucMesh.scale.set(nucScale, 2.2 * nucScale, nucScale);
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+  updateOverlayLabels();
+}
+
+/* ---------------- عناصر التحكم والتكبير وملء الشاشة ---------------- */
+document.getElementById('zin').onclick = () => {
+  camera.position.multiplyScalar(0.82);
+  controls.update();
+};
+document.getElementById('zout').onclick = () => {
+  camera.position.multiplyScalar(1.2);
+  controls.update();
+};
+document.getElementById('zreset').onclick = () => {
+  camera.position.set(0, 0, 480);
+  rootModel.rotation.set(0, 0, 0);
+  controls.target.set(0, 0, 0);
+  controls.update();
+};
+document.getElementById('pause').onclick = function(){
+  paused = !paused;
+  this.textContent = paused ? '▶' : '⏸';
+};
+
+const fsBtn = document.getElementById('fs');
+const de = document.documentElement;
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+
+function setFs(on){
+  document.body.classList.toggle('fs', on);
+  fsBtn.textContent = on ? '✕' : '⛶';
+  setTimeout(onResize, 100);
+}
+
+fsBtn.onclick = () => {
+  const on = !document.body.classList.contains('fs');
+  if(on){
+    const r = de.requestFullscreen || de.webkitRequestFullscreen;
+    if(r) { try{ r.call(de); }catch(e){} }
+    setFs(true);
+  } else {
+    if(fsEl()){
+      const x = document.exitFullscreen || document.webkitExitFullscreen;
+      try{ x.call(document); }catch(e){}
+    }
+    setFs(false);
+  }
+};
+
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => {
+  document.addEventListener(ev, () => {
+    if(!fsEl() && document.body.classList.contains('fs')) setFs(false);
+  });
+});
+
+function onResize(){
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  updateOverlayLabels();
+}
+
+window.addEventListener('resize', onResize);
+
+// بدء التشغيل
+requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
