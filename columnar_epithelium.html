@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>النسيج الظهاري العمودي البسيط</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.4vw,22px);font-weight:bold;text-align:center;line-height:1.3}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .zone{fill:#e0693a;font-size:23px;font-weight:bold;text-anchor:middle}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">شكل (1-8): النسيج الظهاري العمودي البسيط</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="gNuc" cx="0.35" cy="0.35" r="0.75"><stop offset="0" stop-color="#6fc0e3"/><stop offset="0.6" stop-color="#2f86b5"/><stop offset="1" stop-color="#1d5f86"/></radialGradient>
+      <linearGradient id="gCell" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9a3a8"/><stop offset="0.5" stop-color="#f2bcbc"/><stop offset="1" stop-color="#e9a3a8"/></linearGradient>
+      <linearGradient id="gCT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8d56e"/><stop offset="1" stop-color="#d9c45a"/></linearGradient>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+let rs=7;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const lerp=(a,b,u)=>a+(b-a)*u;
+
+/* ---------- constants ---------- */
+const X0=170,W=90,NC=6,X1=X0+W*NC,TY=250,BY=432,CTB=565,CL=58;
+
+/* ---------- connective tissue ---------- */
+el('rect',{x:X0-6,y:BY,width:X1-X0+12,height:CTB-BY,fill:'url(#gCT)'});
+/* collagen fibres */
+const fibres=[];
+for(let i=0;i<9;i++){fibres.push({y:BY+22+i*13+rnd()*6,ph:rnd()*6.28,a:2+rnd()*3,w:.8+rnd()*.5,
+  e:el('polyline',{fill:'none',stroke:i%2?'#f6efc2':'#b9a244','stroke-width':i%2?1.6:1.3,'stroke-linecap':'round',opacity:.85})});}
+/* fibroblast cells */
+const fibro=[{x:260,y:500,s:1},{x:430,y:524,s:.9},{x:600,y:495,s:1.1}].map((f,i)=>{
+  const g=G(view);el('ellipse',{rx:36*f.s,ry:12*f.s,fill:'#c9ae4a',stroke:'#9b8330','stroke-width':1.5},g);
+  el('ellipse',{rx:15*f.s,ry:7*f.s,fill:'#7c6a2c'},g);f.g=g;f.ph=i*2.1;return f;});
+
+/* ---------- columnar cells ---------- */
+const cellG=G(view),nucG=G(view);
+const cells=[];
+for(let i=0;i<NC;i++){const x=X0+i*W;
+  el('rect',{x:x+1,y:TY,width:W-2,height:BY-TY,rx:3,fill:'url(#gCell)',stroke:'#c0646e','stroke-width':1.8},cellG);
+  el('rect',{x:x+1,y:TY,width:W-2,height:7,fill:'#5a3b4a'},cellG);
+  const grans=[];for(let k=0;k<7;k++){grans.push({x:x+14+rnd()*(W-28),y:TY+22+rnd()*85,ph:rnd()*6.28,e:el('circle',{r:1.8+rnd()*1.4,fill:'#cf7f88',opacity:.8},cellG)});}
+  const nx=x+W/2,ny=392;
+  const ng=G(nucG);el('circle',{r:23,fill:'url(#gNuc)',stroke:'#17506f','stroke-width':2},ng);
+  el('circle',{cx:-5,cy:-4,r:5.5,fill:'#1a4d70',opacity:.8},ng);
+  cells.push({x,nx,ny,ng,grans,ph:rnd()*6.28});
+}
+/* basement membrane */
+const bm=el('polyline',{fill:'none',stroke:'#3a2a2a','stroke-width':4.5,'stroke-linejoin':'round'});
+const bmPts=[];for(let x=X0-6;x<=X1+6;x+=10)bmPts.push(x);
+
+/* ---------- cilia ---------- */
+const cilia=[];
+for(let i=0;i<NC;i++)for(let j=0;j<6;j++){const x=X0+i*W+9+j*(W-18)/5;
+  cilia.push({x,i,j,rp:rnd()*.6,e:el('polyline',{fill:'none',stroke:'#5b4452','stroke-width':2.2,'stroke-linecap':'round'}),mid:[x,TY-30],tip:[x,TY-CL]});}
+
+/* ---------- particles carried by cilia ---------- */
+const parts=[];
+for(let i=0;i<10;i++)parts.push({x:X0+rnd()*(X1-X0),y:TY-CL-14+rnd()*10,sp:14+rnd()*8,ph:rnd()*6.28,r:3+rnd()*2.5,e:el('circle',{r:3,fill:i%3?'#9a8a60':'#6a7a5a',opacity:.9})});
+parts.forEach(p=>p.e.setAttribute('r',p.r.toFixed(1)));
+
+/* ---------- labels ---------- */
+const labs=[];
+function label(txt,cx,py,w,tfs){const h=34,g=G(view,{'pointer-events':'none'}),
+  lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},g));
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:17},g);el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
+  labs.push(()=>tfs.forEach((f,i)=>{const p=f(),a=lns[i];a.setAttribute('x1',cx);a.setAttribute('y1',py);a.setAttribute('x2',p[0].toFixed(1));a.setAttribute('y2',p[1].toFixed(1));}));}
+el('text',{class:'zone',x:85,y:190},view).textContent='السطح الحر';
+el('text',{class:'zone',x:85,y:520},view).textContent='جهة القاعدة';
+const cLast=cells[NC-1],cil=cilia[NC*6-3],cil2=cilia[(NC-1)*6+1];
+label('أهداب',812,150,120,[()=>cil.mid,()=>cilia[2*6+3].mid]);
+label('خلية عمودية',812,300,150,[()=>[X1-8,300]]);
+label('النواة',812,392,110,[()=>[cLast.nx+cLast.dx+22,cLast.ny+cLast.dy-3]]);
+label('غشاء قاعدي',812,468,150,[()=>[X1-30,BY+2]]);
+label('نسيج ضام',812,520,130,[()=>[X1-45,505]]);
+
+/* ---------- animation ---------- */
+let T=0,last=performance.now(),paused=false;
+function frame(ms){
+  const dt=Math.min(.05,(ms-last)/1000);last=ms;const de=paused?0:dt;T+=de;const t=T;
+  /* cilia */
+  cilia.forEach(c=>{
+    const w=t*5.2-c.x*.028+c.rp;
+    const a=.62*Math.sin(w)+.28*Math.sin(2*w+.9);
+    let x=c.x,y=TY;const pts=[x.toFixed(1)+','+y.toFixed(1)];
+    for(let k=1;k<=8;k++){const th=a*Math.pow(k/8,1.1);x+=Math.sin(th)*CL/8;y-=Math.cos(th)*CL/8;pts.push(x.toFixed(1)+','+y.toFixed(1));if(k===4)c.mid=[x,y];}
+    c.tip=[x,y];c.e.setAttribute('points',pts.join(' '));
+  });
+  /* particles pushed by the cilia */
+  parts.forEach(p=>{p.x+=p.sp*de;if(p.x>X1+10)p.x=X0-10;
+    p.e.setAttribute('cx',p.x.toFixed(1));p.e.setAttribute('cy',(p.y+3*Math.sin(t*2.3+p.ph)).toFixed(1));});
+  /* cells: nuclei and granules */
+  cells.forEach(c=>{c.dx=2.5*Math.sin(t*.6+c.ph);c.dy=2.2*Math.sin(t*.8+c.ph*1.7);
+    c.ng.setAttribute('transform',`translate(${(c.nx+c.dx).toFixed(1)} ${(c.ny+c.dy).toFixed(1)})`);
+    c.grans.forEach(g=>{g.e.setAttribute('cx',(g.x+3*Math.sin(t*.9+g.ph)).toFixed(1));g.e.setAttribute('cy',(g.y+3*Math.cos(t*.7+g.ph)).toFixed(1));});});
+  /* basement membrane */
+  bm.setAttribute('points',bmPts.map(x=>x+','+(BY+1.2*Math.sin(x*.05+t*.8)).toFixed(1)).join(' '));
+  /* connective fibres */
+  fibres.forEach(f=>{const p=[];for(let x=X0;x<=X1;x+=12)p.push(x+','+(f.y+f.a*Math.sin(x*.03*f.w+f.ph+t*.7)).toFixed(1));f.e.setAttribute('points',p.join(' '));});
+  fibro.forEach(f=>f.g.setAttribute('transform',`translate(${(f.x+6*Math.sin(t*.35+f.ph)).toFixed(1)} ${(f.y+3*Math.sin(t*.5+f.ph)).toFixed(1)}) rotate(${(4*Math.sin(t*.4+f.ph)).toFixed(1)})`));
+  labs.forEach(f=>f());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:350});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:350});
+document.getElementById('zreset').onclick=reset;
+
+/* ---------- fullscreen ---------- */
+const fsBtn=document.getElementById('fs'),de=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{
+  const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;
+    if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+    setFs(true);
+  }else{
+    if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}
+    setFs(false);
+  }
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+})();
+</script>
+</body>
+</html>
