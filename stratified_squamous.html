@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>النسيج الظهاري المطبق الحرشفي</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.4vw,22px);font-weight:bold;text-align:center;line-height:1.3}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .zone{fill:#e0693a;font-size:23px;font-weight:bold;text-anchor:middle}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">النسيج الظهاري المطبق الحرشفي</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="gCT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ecdc78"/><stop offset="1" stop-color="#dcc85e"/></linearGradient>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+let rs=21;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+/* ---------- geometry ---------- */
+const FX0=150,FX1=570,DX=100,DY=-80,TOP=290,BM=482,BOT=600;
+const mapF=(s,y)=>[FX0+s*(FX1-FX0),y];
+const mapS=(d,y)=>[FX1+d*DX,y+d*DY];
+const mapT=(s,d)=>[FX0+s*(FX1-FX0)+d*DX,TOP+d*DY];
+const dk=(hex,f)=>{const n=parseInt(hex.slice(1),16);const r=Math.round((n>>16)*f),g=Math.round(((n>>8)&255)*f),b=Math.round((n&255)*f);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);};
+
+/* ---------- connective tissue ---------- */
+el('polygon',{points:`${FX0},${BM} ${FX1},${BM} ${FX1},${BOT} ${FX0},${BOT}`,fill:'url(#gCT)'});
+el('polygon',{points:`${FX1},${BM} ${FX1+DX},${BM+DY} ${FX1+DX},${BOT+DY} ${FX1},${BOT}`,fill:'#c9b44e'});
+const fibres=[];
+for(let i=0;i<8;i++){const y=BM+16+i*14+rnd()*5,ph=rnd()*6.28,a=2+rnd()*3,w=.8+rnd()*.5,lt=i%2;
+  fibres.push({y,ph,a,w,f:el('polyline',{fill:'none',stroke:lt?'#f7f0c4':'#b9a244','stroke-width':lt?1.6:1.3,'stroke-linecap':'round',opacity:.85}),
+    s:el('polyline',{fill:'none',stroke:lt?'#e6dc9c':'#9d8a38','stroke-width':lt?1.4:1.2,'stroke-linecap':'round',opacity:.8})});}
+const fibro=[{x:260,y:535,s:1},{x:430,y:560,s:.9}].map((f,i)=>{
+  const g=G(view);el('ellipse',{rx:34*f.s,ry:11*f.s,fill:'#c9ae4a',stroke:'#9b8330','stroke-width':1.5},g);
+  el('ellipse',{rx:14*f.s,ry:6.5*f.s,fill:'#7c6a2c'},g);f.g=g;f.ph=i*2.1;return f;});
+
+/* ---------- epithelial layers (front + right face) ---------- */
+const LAY=[
+ {y0:TOP,y1:312,rows:1,cols:[6,2],fills:['#e8a6c6','#e29bbd','#eeb3cf'],nuc:[9,2.6,'#6b2f78']},
+ {y0:312,y1:344,rows:2,cols:[7,3],fills:['#e5a0c4','#dc94bd','#ecb0cf'],nuc:[8,2.8,'#6b2f78']},
+ {y0:344,y1:416,rows:3,cols:[10,3],fills:['#d9a9d6','#cf9bcf','#e3b8de'],nuc:[5,4.2,'#6a3a8e']},
+ {y0:416,y1:BM,rows:3,cols:[15,4],fills:['#c58bc8','#b97dbf','#d29ad2'],nuc:[5,5.5,'#4a2a7e']}
+];
+const allCells=[];
+function buildFace(map,which,side){
+  const out=[];
+  LAY.forEach((L,li)=>{
+    const R=L.rows,C=L.cols[which],h=(L.y1-L.y0)/R,V=[];
+    for(let r=0;r<=R;r++){V[r]=[];for(let c=0;c<=C;c++){
+      const eC=(c===0||c===C),eR=(r===0||r===R);let s=c/C,y=L.y0+h*r;
+      if(!eC)s+=(r%2?.2:0)/C+(rnd()-.5)*.5/C;
+      if(!eR&&!eC)y+=(rnd()-.5)*h*.4;
+      V[r][c]={s,y,ph:rnd()*6.28,mov:!(eR||eC)};}}
+    for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+      const base=L.fills[Math.floor(rnd()*L.fills.length)];
+      const p=el('polygon',{fill:side?dk(base,.84):base,stroke:side?'#4a2438':'#5a2a40','stroke-width':1.3,'stroke-linejoin':'round'});
+      let n=null;if(!side)n=el('ellipse',{rx:L.nuc[0]*(.85+rnd()*.3),ry:L.nuc[1],fill:L.nuc[2],opacity:.9});
+      out.push({p,n,li,r,c,v:[V[r][c],V[r][c+1],V[r+1][c+1],V[r+1][c]],map,cx:0,cy:0});}
+  });
+  return out;
+}
+const frontCells=buildFace(mapF,0,false),sideCells=buildFace(mapS,1,true);
+
+/* ---------- top face ---------- */
+const TC=10,TR=5,TV=[];
+for(let r=0;r<=TR;r++){TV[r]=[];for(let c=0;c<=TC;c++){
+  const e=(r===0||r===TR||c===0||c===TC);
+  TV[r][c]={s:c/TC+(e?0:(rnd()-.5)*.5/TC+(r%2?.2:0)/TC),d:r/TR+(e?0:(rnd()-.5)*.45/TR),ph:rnd()*6.28,mov:!e};}}
+const TFILL=['#e8a0c0','#e094b8','#eeb0cb','#e38fb2'];
+const topCells=[];
+for(let r=0;r<TR;r++)for(let c=0;c<TC;c++){
+  const p=el('polygon',{fill:TFILL[Math.floor(rnd()*TFILL.length)],stroke:'#5a2a40','stroke-width':1.5,'stroke-linejoin':'round'});
+  topCells.push({p,r,c,v:[TV[r][c],TV[r][c+1],TV[r+1][c+1],TV[r+1][c]],cx:0,cy:0,st:0,u:0,next:6+rnd()*22});}
+const labelCell=topCells.find(q=>q.r===1&&q.c===7);
+
+/* ---------- basement membrane + outlines ---------- */
+const bmF=el('polyline',{fill:'none',stroke:'#3a2a2a','stroke-width':4,'stroke-linejoin':'round'});
+const bmS=el('polyline',{fill:'none',stroke:'#2a1c1c','stroke-width':4,'stroke-linejoin':'round'});
+const out=(pts)=>el('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:'#4a3040','stroke-width':1.8,'stroke-linejoin':'round'});
+out([mapF(0,TOP),mapF(0,BOT),mapF(1,BOT),mapS(1,BOT),mapS(1,TOP),mapT(1,1),mapT(0,1),mapF(0,TOP),mapF(1,TOP),mapS(0,TOP)]);
+out([mapF(1,TOP),mapF(1,BOT)]);
+out([mapT(1,0),mapT(1,1)]);
+
+/* ---------- labels ---------- */
+const labs=[];
+function label(txt,cx,py,w,tfs){const h=34,g=G(view,{'pointer-events':'none'}),
+  lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},g));
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:17},g);el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
+  labs.push(()=>tfs.forEach((f,i)=>{const p=f(),a=lns[i];a.setAttribute('x1',cx);a.setAttribute('y1',py);a.setAttribute('x2',p[0].toFixed(1));a.setAttribute('y2',p[1].toFixed(1));}));}
+el('text',{class:'zone',x:75,y:235},view).textContent='السطح الحر';
+el('text',{class:'zone',x:75,y:565},view).textContent='جهة القاعدة';
+const basCell=sideCells.find(q=>q.li===3&&q.r===1&&q.c===1);
+let bmWob=0;
+label('خلية حرشفية',785,175,160,[()=>[labelCell.cx,labelCell.cy]]);
+label('خلية مكعبة قاعدية',785,350,210,[()=>[basCell.cx,basCell.cy]]);
+label('غشاء قاعدي',785,440,160,[()=>{const p=mapS(.8,BM);return[p[0],p[1]+bmWob];}]);
+label('نسيج ضام',785,535,140,[()=>mapS(.55,545)]);
+
+/* ---------- animation ---------- */
+let T=0,last=performance.now(),paused=false;
+const wob=(v,t)=>v.mov?[1.6*Math.sin(t*.8+v.ph),1.2*Math.cos(t*.7+v.ph)]:[0,0];
+function frame(ms){
+  const dt=Math.min(.05,(ms-last)/1000);last=ms;const de=paused?0:dt;T+=de;const t=T;
+  /* front & side layers */
+  [frontCells,sideCells].forEach(list=>list.forEach(c=>{
+    let sx=0,sy=0;const pts=c.v.map(v=>{const m=c.map(v.s,v.y),w=wob(v,t),x=m[0]+w[0],y=m[1]+w[1];sx+=x;sy+=y;return x.toFixed(1)+','+y.toFixed(1);});
+    c.p.setAttribute('points',pts.join(' '));c.cx=sx/4;c.cy=sy/4;
+    if(c.n){c.n.setAttribute('cx',c.cx.toFixed(1));c.n.setAttribute('cy',c.cy.toFixed(1));}
+  }));
+  /* top face (outermost cells are shed and replaced) */
+  topCells.forEach(c=>{
+    if(!paused){
+      if(c.st===0&&t>c.next&&c!==labelCell){c.st=1;c.u=0;}
+      else if(c.st===1){c.u+=de/3.5;if(c.u>=1){c.st=2;c.u=0;}}
+      else if(c.st===2){c.u+=de/1.8;if(c.u>=1){c.st=0;c.u=0;c.next=t+8+rnd()*22;}}
+    }
+    let lift=0,op=1;
+    if(c.st===1){lift=-24*c.u;op=1-c.u;}else if(c.st===2){op=c.u;}
+    let sx=0,sy=0;const pts=c.v.map(v=>{const m=mapT(v.s,v.d),w=wob(v,t),x=m[0]+w[0],y=m[1]+w[1]+lift;sx+=x;sy+=y;return x.toFixed(1)+','+y.toFixed(1);});
+    c.p.setAttribute('points',pts.join(' '));c.p.setAttribute('opacity',op.toFixed(2));c.cx=sx/4;c.cy=sy/4-lift;
+  });
+  /* basement membrane */
+  bmWob=1.2*Math.sin(t*.8);
+  const pf=[],ps=[];for(let s=0;s<=1.001;s+=.05){pf.push(mapF(s,BM+1.2*Math.sin(s*14+t*.8)).map(n=>n.toFixed(1)).join(','));ps.push(mapS(s,BM+1.2*Math.sin(s*14+t*.8+1)).map(n=>n.toFixed(1)).join(','));}
+  bmF.setAttribute('points',pf.join(' '));bmS.setAttribute('points',ps.join(' '));
+  /* connective fibres */
+  fibres.forEach(f=>{const p=[],q=[];
+    for(let x=FX0;x<=FX1;x+=12)p.push(x+','+(f.y+f.a*Math.sin(x*.03*f.w+f.ph+t*.7)).toFixed(1));
+    for(let d=0;d<=1.001;d+=.1){const m=mapS(d,f.y+f.a*Math.sin(d*5*f.w+f.ph+t*.7));q.push(m[0].toFixed(1)+','+m[1].toFixed(1));}
+    f.f.setAttribute('points',p.join(' '));f.s.setAttribute('points',q.join(' '));});
+  fibro.forEach(f=>f.g.setAttribute('transform',`translate(${(f.x+6*Math.sin(t*.35+f.ph)).toFixed(1)} ${(f.y+3*Math.sin(t*.5+f.ph)).toFixed(1)}) rotate(${(4*Math.sin(t*.4+f.ph)).toFixed(1)})`));
+  labs.forEach(f=>f());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:350});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:350});
+document.getElementById('zreset').onclick=reset;
+
+/* ---------- fullscreen ---------- */
+const fsBtn=document.getElementById('fs'),de=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{
+  const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;
+    if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+    setFs(true);
+  }else{
+    if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}
+    setFs(false);
+  }
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+})();
+</script>
+</body>
+</html>
