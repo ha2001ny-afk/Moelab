@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التكاثر اللاجنسي في البكتريا</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(16px,3.8vw,24px);font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:14px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .bt{fill:#fff;font-weight:bold;font-size:23px;text-anchor:middle;dominant-baseline:central}
+  #bn{transition:fill .5s}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التكاثر اللاجنسي في البكتريا</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe49a"/><stop offset=".55" stop-color="#f5c45a"/><stop offset="1" stop-color="#d4921f"/></linearGradient>
+        <linearGradient id="gCyto" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4d2fa"/><stop offset=".35" stop-color="#a7a4ec"/><stop offset="1" stop-color="#5f5cc4"/></linearGradient>
+        <radialGradient id="gSite"><stop offset="0" stop-color="#7dffb0"/><stop offset="1" stop-color="#1f8a48"/></radialGradient>
+        <filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+let seed=5;const rnd=()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const rr=(a,b)=>a+(b-a)*rnd();
+
+const STG=[
+  ['اتصال الكروموسوم بالغشاء البلازمي','#2e8b57'],
+  ['استطالة الخلية البكتيرية','#e0902a'],
+  ['تضاعف الكروموسوم وبدء التخصر','#2f6fd6'],
+  ['تباعد الكروموسومين وزيادة التخصر','#7b4bb3'],
+  ['انقسام الخلية إلى خليتين متماثلتين','#c4423a']];
+
+/* ---------------- cell shape: a capsule that elongates, pinches, then splits ---------------- */
+const CX=450,CY=400,H=95,PW=70,L0=180;
+const cap=(x,L,h)=>{const k=L-h,a=Math.abs(x);return a<=k?h:Math.sqrt(Math.max(0,h*h-(a-k)*(a-k)));};
+const SH={L:L0,c:0,split:false,q:0,sep:0};
+const pinch=x=>1-SH.c*Math.exp(-(x/PW)*(x/PW));
+/* point on a daughter (side -1 / +1) at param t in [0,1], inset d -> [x, halfHeight, centerY] */
+function dPt(s,t,d){const L=SH.L,l=L/2,q=SH.q;
+  const xp=s<0?lerp(-(L-d),0,t):lerp(0,L-d,t),hp=cap(xp,L-d,H-d)*pinch(xp);
+  const xc=s*(l+SH.sep),xk=lerp(xc-(l-d),xc+(l-d),t),hk=cap(xk-xc,l-d,H-d);
+  return[lerp(xp,xk,q),lerp(hp,hk,q),-s*14*q];}
+const N=90,sp=i=>(1-Math.cos(PI*i/N))/2;
+function outline(d){let top=[],bot=[];
+  if(!SH.split){for(let i=0;i<=N;i++){const x=lerp(-(SH.L-d),SH.L-d,sp(i)),h=cap(x,SH.L-d,H-d)*pinch(x);top.push([x,-h]);bot.push([x,h]);}
+    return poly(top,bot,0);}
+  let out='';[-1,1].forEach(s=>{top=[];bot=[];let dy=0;
+    for(let i=0;i<=N;i++){const p=dPt(s,sp(i),d);dy=p[2];top.push([p[0],-p[1]]);bot.push([p[0],p[1]]);}
+    out+=poly(top,bot,dy);});return out;}
+function poly(top,bot,dy){let s='';top.forEach((p,i)=>s+=(i?'L':'M')+f1(CX+p[0])+','+f1(CY+dy+p[1]));
+  for(let i=bot.length-1;i>=0;i--)s+='L'+f1(CX+bot[i][0])+','+f1(CY+dy+bot[i][1]);return s+'Z';}
+
+/* ---------------- layers ---------------- */
+const shadow=el('path',{fill:'#1f3a52',opacity:.16,filter:'url(#blur)',transform:'translate(0 26)'});
+const wall=el('path',{fill:'url(#gWall)',stroke:'#b9801c','stroke-width':2,'stroke-linejoin':'round'});
+const memb=el('path',{fill:'#bfe8c4',stroke:'#2f9e5a','stroke-width':3.4,'stroke-linejoin':'round'});
+const cyto=el('path',{fill:'url(#gCyto)'});
+const shine=el('path',{fill:'none',stroke:'#fff',opacity:.35,'stroke-width':5,'stroke-linecap':'round'});
+
+/* ribosomes: stored in cell-relative coordinates so they stretch and split with the cell */
+const ribG=G(view),ribs=[];
+for(let i=0;i<46;i++){const u=rr(-.92,.92),v=rr(-.85,.85);
+  if(Math.abs(u)<.06)continue;ribs.push({u,v,e:el('circle',{r:3,fill:'#3d3a96',opacity:.55},ribG)});}
+function cellPt(u,v,d){
+  if(!SH.split){const x=u*(SH.L-d),h=cap(x,SH.L-d,H-d)*pinch(x);return[CX+x,CY+v*h*.8];}
+  const s=u<0?-1:1,p=dPt(s,u<0?u+1:u,d);return[CX+p[0],CY+p[2]+v*p[1]*.8];}
+
+/* chromosome: a looped double strand */
+let chd='';for(let i=0;i<=240;i++){const a=i/240*2*PI,k=.42;
+  chd+=(i?'L':'M')+f1(26*(Math.cos(a)+k*Math.cos(4*a+.3)))+','+f1(15*(Math.sin(a)-k*Math.sin(4*a+.3)));}
+const chrG=G(view);
+function Chrom(){const g=G(chrG),stalk=el('line',{stroke:'#5a0f22','stroke-width':3.4,'stroke-linecap':'round'},chrG),
+  site=el('circle',{r:5.5,fill:'url(#gSite)',stroke:'#fff','stroke-width':1.5},chrG),
+  o=el('path',{d:chd+'Z',fill:'none',stroke:'#5a0f22','stroke-width':5,'stroke-linejoin':'round'},g),
+  i=el('path',{d:chd+'Z',fill:'none',stroke:'#e2445f','stroke-width':2.2,'stroke-linejoin':'round'},g);
+  return{g,stalk,site,o,i};}
+const A=Chrom(),B=Chrom(),CL=B.i.getTotalLength();
+function setChrom(c,x,y,rot,op,att,rev){
+  c.g.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) rotate(${f1(rot)}) scale(1.5)`);c.g.setAttribute('opacity',f2(op));
+  const top=y-30,mt=memTop(x);
+  c.stalk.setAttribute('x1',f1(x));c.stalk.setAttribute('y1',f1(top));c.stalk.setAttribute('x2',f1(x));c.stalk.setAttribute('y2',f1(lerp(top,mt,att)));
+  c.stalk.setAttribute('opacity',f2(att>0.01?op:0));c.site.setAttribute('cx',f1(x));c.site.setAttribute('cy',f1(mt));
+  c.site.setAttribute('opacity',f2(att*op));c.site.setAttribute('r',f1(4.5+1.5*att));
+  [c.o,c.i].forEach(p=>{if(rev<1){p.setAttribute('stroke-dasharray',`${f1(CL*rev)} ${f1(CL+10)}`);}else p.removeAttribute('stroke-dasharray');});}
+function memTop(x){
+  if(!SH.split)return CY-cap(x-CX,SH.L-8,H-8)*pinch(x-CX);
+  const s=x<CX?-1:1;return CY-s*14*SH.q-(H-8);}
+
+/* banner */
+const bn=el('rect',{id:'bn',x:100,y:14,width:700,height:58,rx:20,fill:'#2e8b57'}),bt=el('text',{class:'bt',x:450,y:43});
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:4.6};
+let stage=0,T=0,t0=0,last=performance.now(),paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(t){
+  const u1=clamp(P,0,1),u2=clamp(P-1,0,1),u3=clamp(P-2,0,1),u4=clamp(P-3,0,1),u5=clamp(P-4,0,1);
+  SH.L=L0+130*sm(u2,.05,.9)+40*sm(u4,0,.7);
+  SH.c=.25*sm(u3,.3,1)+.67*sm(u4,.1,1)+.08*sm(u5,0,.3);
+  SH.split=u5>=.3;SH.q=sm(u5,.3,.85);SH.sep=30*SH.q;
+  const breathe=1.2*Math.sin(t*1.6);
+  const Hb=H;  /* keep geometry stable; breathing done via shine */
+  wall.setAttribute('d',outline(0));shadow.setAttribute('d',outline(0));
+  memb.setAttribute('d',outline(8));cyto.setAttribute('d',outline(10));
+  /* highlight streak along the top of each cell */
+  let sh='';const segs=SH.split?[-1,1]:[0];
+  segs.forEach(s=>{let first=true;for(let i=8;i<=N-8;i+=2){const tt=sp(i);let x,y;
+      if(s===0){x=lerp(-(SH.L-30),SH.L-30,tt);const h=cap(x,SH.L-14,H-14)*pinch(x);if(h<20){first=true;continue;}y=CY-h+10;}
+      else{const p=dPt(s,tt,30);if(p[1]<20){first=true;continue;}x=p[0];y=CY+p[2]-(cap(0,H,H)-14)+10;}
+      sh+=(first?'M':'L')+f1(CX+x)+','+f1(y+breathe*.3);first=false;}});
+  shine.setAttribute('d',sh);
+  ribs.forEach((r,k)=>{const p=cellPt(r.u+.008*Math.sin(t*1.3+k),r.v+.05*Math.sin(t*1.7+k*2),22);r.e.setAttribute('cx',f1(p[0]));r.e.setAttribute('cy',f1(p[1]));});
+
+  /* chromosomes */
+  const wob=k=>4*Math.sin(t*1.3+k);
+  const a1=sm(u1,.1,.7),att=sm(u1,.55,.95);
+  const rep=sm(u3,.05,.55),mv3=sm(u3,.4,.9),mv4=sm(u4,0,.8),attB=sm(u3,.5,.68);
+  let ax=-62*mv3,bx=62*mv3;
+  ax=lerp(ax,-SH.L/2,mv4);bx=lerp(bx,SH.L/2,mv4);
+  let ay=lerp(CY+15,CY-38,a1)+Math.sin(t*1.1)*3*(1-a1),by=CY-38;
+  if(SH.split){ax=-(SH.L/2+SH.sep);bx=SH.L/2+SH.sep;ay=CY-38+14*SH.q;by=CY-38-14*SH.q;}
+  const bOff=1-sm(u3,.35,.6);
+  setChrom(A,CX+ax+(1-a1)*0,ay,wob(0),1,att,1);
+  setChrom(B,CX+bx+8*bOff,by+6*bOff,wob(2),P>2?1:0,attB,rep>0.999?1:rep);
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+STG.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){bn.style.fill=STG[stage][1];bt.removeAttribute('textLength');bt.textContent=STG[stage][0];
+  try{if(bt.getComputedTextLength()>670){bt.setAttribute('textLength',670);bt.setAttribute('lengthAdjust','spacingAndGlyphs');}}catch(e){}
+  [...dotsEl.children].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+STG.length)%STG.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,4.6*(tgt-P));
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:400});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:400});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

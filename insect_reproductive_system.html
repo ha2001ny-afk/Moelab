@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>جهاز التكاثر في الحشرات</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px;overflow:hidden}
+  #gl{position:absolute;top:0;left:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #gl.drag{cursor:grabbing}
+  #arrows{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .ah{stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+  .am{stroke:#14202b;stroke-width:2;stroke-linecap:round}
+  #labels{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
+  .lb{position:absolute;left:0;top:0;white-space:nowrap;text-align:center;font-weight:bold;color:#14202b;font-size:clamp(13px,2.4vmin,20px);line-height:1.25;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 6px #fff,0 0 8px #fff;will-change:transform}
+  .lb.big{font-size:clamp(22px,4.6vmin,40px)}
+  #banner{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(calc(100% - 130px),780px);min-height:48px;box-sizing:border-box;padding:4px 12px;border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-weight:bold;font-size:clamp(14px,2.9vw,23px);line-height:1.3;background:#2f6fd6;transition:background .5s;pointer-events:none;box-shadow:0 3px 8px rgba(0,0,0,.18);z-index:3}
+  #hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(31,58,82,.88);color:#fff;font-size:clamp(11px,2.6vw,14px);padding:6px 14px;border-radius:14px;pointer-events:none;transition:opacity .8s;white-space:nowrap;z-index:3}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #nogl{display:none;position:absolute;top:45%;left:0;right:0;text-align:center;color:#c4423a;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">جهاز التكاثر الذكري والأنثوي في الحشرات</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <canvas id="gl"></canvas>
+    <svg id="arrows" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ahd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,1L10,5L0,9z" fill="#14202b"/></marker></defs>
+      <g id="lg0"></g><g id="lg1"></g>
+    </svg>
+    <div id="labels"></div>
+    <div id="banner"></div>
+    <div id="hint">اسحب لتدوير المجسّم بكل الاتجاهات • إصبعان للتكبير والتحريك</div>
+    <div id="nogl">المتصفح لا يدعم العرض ثلاثي الأبعاد (WebGL)</div>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="الصفحة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="الصفحة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const PI=Math.PI,clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,u)=>a+(b-a)*u,
+  ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+  smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s],
+  dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  len=a=>Math.hypot(a[0],a[1],a[2]),nrm=a=>{const l=len(a)||1;return[a[0]/l,a[1]/l,a[2]/l];},
+  mix=(a,b,u)=>[lerp(a[0],b[0],u),lerp(a[1],b[1],u),lerp(a[2],b[2],u)];
+const hex=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
+
+const STG=[
+  ['الجهاز التكاثري الذكري في الحشرات','#2f6fd6'],
+  ['الجهاز التكاثري الأنثوي في الحشرات','#c2456e']];
+
+/* ================= geometry toolkit ================= */
+/* centripetal Catmull-Rom curve → dense polyline with arc-length lookup */
+function Path(P,ns){P=P.map(p=>[p[0],p[1],p[2]||0]);ns=ns||16;const n=P.length,out=[];
+  if(n===2){for(let k=0;k<=ns;k++)out.push(mix(P[0],P[1],k/ns));}
+  else{const E=[sub(mul(P[0],2),P[1]),...P,sub(mul(P[n-1],2),P[n-2])];
+    const d=(a,b)=>Math.max(1e-4,Math.sqrt(len(sub(b,a))));
+    for(let i=1;i<n;i++){const p0=E[i-1],p1=E[i],p2=E[i+1],p3=E[i+2];
+      const t0=0,t1=d(p0,p1),t2=t1+d(p1,p2),t3=t2+d(p2,p3);
+      for(let k=0;k<ns;k++){const t=lerp(t1,t2,k/ns);
+        const A1=add(mul(p0,(t1-t)/(t1-t0)),mul(p1,(t-t0)/(t1-t0))),A2=add(mul(p1,(t2-t)/(t2-t1)),mul(p2,(t-t1)/(t2-t1))),A3=add(mul(p2,(t3-t)/(t3-t2)),mul(p3,(t-t2)/(t3-t2)));
+        const B1=add(mul(A1,(t2-t)/(t2-t0)),mul(A2,(t-t0)/(t2-t0))),B2=add(mul(A2,(t3-t)/(t3-t1)),mul(A3,(t-t1)/(t3-t1)));
+        out.push(add(mul(B1,(t2-t)/(t2-t1)),mul(B2,(t-t1)/(t2-t1))));}}
+    out.push(P[n-1]);}
+  const cum=[0];for(let i=1;i<out.length;i++)cum.push(cum[i-1]+len(sub(out[i],out[i-1])));
+  const L=cum[cum.length-1];
+  function at(s){const dd=clamp(s,0,1)*L;let lo=0,hi=cum.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(cum[m]<=dd)lo=m;else hi=m;}
+    return mix(out[lo],out[hi],(dd-cum[lo])/((cum[hi]-cum[lo])||1));}
+  return{at,L};}
+function MB(){return{p:[],n:[],c:[],i:[]};}
+function vtx(m,p,n,c){m.p.push(p[0],p[1],p[2]);m.n.push(n[0],n[1],n[2]);m.c.push(c[0],c[1],c[2]);return m.p.length/3-1;}
+/* variable-radius tube along a path (parallel-transport frames) */
+function tube(m,path,rfn,cfn,o){o=o||{};const R=o.rad||16,S=Math.max(12,Math.ceil(path.L*(o.dens||45)));
+  const col=s=>typeof cfn==='function'?cfn(s):cfn;
+  const P=[],T=[];for(let i=0;i<=S;i++)P.push(path.at(i/S));
+  for(let i=0;i<=S;i++)T.push(nrm(sub(P[Math.min(S,i+1)],P[Math.max(0,i-1)])));
+  let N=Math.abs(T[0][1])<.9?nrm(cross(T[0],[0,1,0])):nrm(cross(T[0],[1,0,0]));
+  const base=m.p.length/3;
+  for(let i=0;i<=S;i++){const s=i/S;if(i)N=nrm(sub(N,mul(T[i],dot(N,T[i]))));const B=cross(T[i],N);
+    const r=rfn(s),sa=Math.max(0,s-1/S),sb=Math.min(1,s+1/S),dr=(rfn(sb)-rfn(sa))/((sb-sa)*path.L),c=col(s);
+    for(let j=0;j<=R;j++){const a=j/R*2*PI,rd=add(mul(N,Math.cos(a)),mul(B,Math.sin(a)));
+      vtx(m,add(P[i],mul(rd,r)),nrm(sub(rd,mul(T[i],dr))),c);}}
+  for(let i=0;i<S;i++)for(let j=0;j<R;j++){const a=base+i*(R+1)+j,b=a+R+1;m.i.push(a,a+1,b,b,a+1,b+1);}
+  if(o.caps!==false){if(rfn(0)>.012)sphere(m,P[0],rfn(0),col(0));if(rfn(1)>.012)sphere(m,P[S],o.knob||rfn(1),col(1));}
+}
+function sphere(m,ctr,r,col,o){o=o||{};const W=o.w||20,H=o.h||14,sc=o.sc||[1,1,1],base=m.p.length/3;
+  for(let i=0;i<=H;i++){const th=i/H*PI;for(let j=0;j<=W;j++){const ph=j/W*2*PI;
+    const u=[Math.sin(th)*Math.cos(ph),Math.cos(th),Math.sin(th)*Math.sin(ph)];
+    let rr=r,c=col;if(o.f){const q=o.f(u);rr=r*q[0];c=q[1];}
+    vtx(m,[ctr[0]+u[0]*rr*sc[0],ctr[1]+u[1]*rr*sc[1],ctr[2]+u[2]*rr*sc[2]],nrm([u[0]/sc[0],u[1]/sc[1],u[2]/sc[2]]),c);}}
+  for(let i=0;i<H;i++)for(let j=0;j<W;j++){const a=base+i*(W+1)+j,b=a+W+1;m.i.push(a,b,a+1,b,b+1,a+1);}}
+/* smooth normals for displaced geometry (welds seams by position) */
+function renormal(m,v0,i0){const nv=m.p.length/3,acc=new Map(),key=v=>m.p[3*v].toFixed(4)+','+m.p[3*v+1].toFixed(4)+','+m.p[3*v+2].toFixed(4);
+  const P=v=>[m.p[3*v],m.p[3*v+1],m.p[3*v+2]];
+  for(let k=i0;k<m.i.length;k+=3){const a=m.i[k],b=m.i[k+1],c=m.i[k+2],fn=cross(sub(P(b),P(a)),sub(P(c),P(a)));
+    [a,b,c].forEach(v=>{const kk=key(v),s=acc.get(kk)||[0,0,0];acc.set(kk,add(s,fn));});}
+  for(let v=v0;v<nv;v++){let n=nrm(acc.get(key(v))||[0,1,0]);const old=[m.n[3*v],m.n[3*v+1],m.n[3*v+2]];if(dot(n,old)<0)n=mul(n,-1);
+    m.n[3*v]=n[0];m.n[3*v+1]=n[1];m.n[3*v+2]=n[2];}}
+/* surface of revolution around the y axis: prof = [[r,y],...] */
+function lathe(m,prof,col,seg){seg=seg||48;const base=m.p.length/3,n=prof.length;
+  for(let i=0;i<n;i++){const [r,y]=prof[i],a=prof[Math.max(0,i-1)],b=prof[Math.min(n-1,i+1)];
+    let nr=b[1]-a[1],ny=-(b[0]-a[0]);const l=Math.hypot(nr,ny)||1;nr/=l;ny/=l;
+    for(let j=0;j<=seg;j++){const ph=j/seg*2*PI,cs=Math.cos(ph),sn=Math.sin(ph);vtx(m,[r*cs,y,r*sn],[nr*cs,ny,nr*sn],col);}}
+  for(let i=0;i<n-1;i++)for(let j=0;j<seg;j++){const a=base+i*(seg+1)+j,b=a+seg+1;m.i.push(a,b,a+1,b,b+1,a+1);}}
+/* flow route for moving particles */
+function Flow(list){const pts=[],rs=[];
+  list.forEach(([p,r,s0,s1])=>{s0=s0||0;s1=s1==null?1:s1;const n=Math.max(2,Math.ceil(p.L*(s1-s0)*40));
+    for(let i=0;i<=n;i++){pts.push(p.at(lerp(s0,s1,i/n)));rs.push(r);}});
+  const cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+len(sub(pts[i],pts[i-1])));
+  return{pts,rs,cum,L:cum[cum.length-1]};}
+function flowAt(F,d){let lo=0,hi=F.cum.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(F.cum[m]<=d)lo=m;else hi=m;}
+  const u=(d-F.cum[lo])/((F.cum[hi]-F.cum[lo])||1);return[mix(F.pts[lo],F.pts[hi],u),lerp(F.rs[lo],F.rs[hi],u)];}
+
+/* ================= male reproductive system ================= */
+function buildMale(){const m=MB(),tr=MB(),routes=[];
+  const cTL=hex('#bb8b6e'),cTD=hex('#6a4130'),cDuct=hex('#e4cbab'),cVes=hex('#efe7dc'),cGl=hex('#cfa274'),cEj=hex('#d6b38c'),cPen=hex('#e6d3bb');
+  const testF=u=>{const [x,y,z]=u;
+    const f=Math.sin(9*x+2.2*Math.sin(7*y+1))+Math.sin(9*y+2.2*Math.sin(7*z+2))+Math.sin(9*z+2.2*Math.sin(7*x+3));
+    const g=Math.exp(-f*f*5);return[1-.085*g+.012*Math.sin(23*x)*Math.sin(19*y),mix(cTL,cTD,.85*g)];};
+  [-1,1].forEach(sx=>{const k=-sx,X=a=>a.map(p=>[p[0]*k,p[1],p[2]||0]);
+    /* testis */
+    const v0=m.p.length/3,i0=m.i.length;
+    sphere(m,[1.25*sx,2.25,0],.48,cTL,{w:150,h:110,sc:[1,.95,.9],f:testF});renormal(m,v0,i0);
+    /* coiled vas deferens */
+    const vas=Path(X([[-1.55,2.0],[-1.82,1.9,.04],[-2.02,1.78,.08],[-2.13,1.6,.1],[-2.12,1.45,.08],[-2.24,1.34,.04],[-2.38,1.42,0],[-2.37,1.6,-.04],[-2.24,1.66,-.06],[-2.14,1.52,-.05],[-2.2,1.28,-.03],[-2.33,1.08],[-2.4,.92],[-2.35,.8]]));
+    tube(m,vas,()=>.036,cDuct,{rad:12});
+    /* seminal vesicle */
+    const ves=Path(X([[-2.35,.8],[-2.08,.42,.03],[-1.75,-.02,.04],[-1.44,-.36,.02],[-1.18,-.58]]));
+    tube(m,ves,s=>.05+.28*Math.pow(Math.sin(PI*Math.pow(s,.85)),1.1),cVes,{rad:28,dens:60});
+    const vd=Path(X([[-1.18,-.58],[-.9,-.8,.05],[-.5,-.92,.06],[-.18,-.98,.04],[0,-1.0]]));
+    tube(m,vd,s=>.07+.02*s,cDuct,{rad:14});
+    /* accessory gland */
+    const gl=Path(X([[-.42,1.68,-.04],[-.6,1.12,-.05],[-.63,.5,-.05],[-.5,-.1,-.05],[-.28,-.62,-.04],[-.07,-.95]]));
+    tube(m,gl,s=>.125-.045*s*s,cGl,{rad:22});
+    routes.push([[vas,.036],[ves,.045],[vd,.08]]);
+  });
+  /* ejaculatory duct + penis */
+  const ej=Path([[0,-1],[0,-2],[0,-2.95]],6);tube(m,ej,()=>.1,cEj,{rad:16,caps:false});sphere(m,[0,-1,0],.16,cEj);
+  lathe(tr,[[.115,-2.98],[.13,-2.9],[.16,-2.75],[.19,-2.6],[.25,-2.46],[.32,-2.34],[.36,-2.28],[.35,-2.25]],cPen,56);
+  const out=Path([[0,-2.95],[0,-3.4]],2);
+  return{m,tr,off:.15,tint:[.45,.75,1],em:.5,speed:.55,
+    flows:routes.map(r=>Flow([...r,[ej,.1],[out,.1]])),
+    labels:[
+      {t:'ذكر',at:[-2.6,2.35],big:1},
+      {t:'خصية',at:[0,2.4],to:[[-.79,2.25,.05],[.79,2.25,.05]]},
+      {t:'خصية',at:[-1.6,1.05],to:[[-1.33,1.8,.1]]},
+      {t:'غدة<br>مساعدة',at:[0,.4],to:[[-.5,1.05,0],[.5,1.05,0]]},
+      {t:'وعاء ناقل',at:[-2.9,-.15],to:[[-2.4,.94,0]]},
+      {t:'حويصلة منوية',at:[-2.55,-1.35],to:[[-1.62,-.42,0]]},
+      {t:'القناة القاذفة',at:[1.75,-1.25],to:[[.1,-1.5,0]]},
+      {t:'قضيب',at:[-2.2,-3.0],to:[[-.23,-2.55,0]]}]};
+}
+
+/* ================= female reproductive system ================= */
+function buildFemale(){const m=MB(),routes=[];
+  const cPink=hex('#cf8a7c'),cCream=hex('#f4e2d0'),cDuct=hex('#d89a8b'),cVag=hex('#c97e72'),cGl=hex('#d9988a'),cSac=hex('#d59a8c'),cLong=hex('#cc7a72');
+  [-1,1].forEach(sx=>{const k=-sx,X=a=>a.map(p=>[p[0]*k,p[1],p[2]||0]);
+    /* ovary: a fan of ovarioles with eggs growing toward the base */
+    const Tp=[-.95*k,1.95,0],Bp=[-.58*k,-.32,0],ax=nrm(sub(Bp,Tp)),ex=[-ax[1],ax[0],0],ez=[0,0,1],ox=[sx,0,0];
+    const NO=7;let front=null,best=-9;
+    const rf=s=>{const base=.03+.12*Math.pow(s,.75),tp=1-.62*smooth(.84,1,s),bd=.68+.32*Math.pow(Math.cos(PI*s*7.5),2);return base*tp*lerp(1,bd,smooth(.1,.3,s));};
+    const cf=s=>mix(cPink,cCream,.85*Math.pow(Math.cos(PI*s*7.5),2)*smooth(.15,.4,s)*(1-smooth(.85,.97,s)));
+    for(let q=0;q<NO;q++){const ph=q/NO*2*PI+.35,pts=[];
+      for(let j=0;j<=14;j++){const s=j/14,A=mix(Tp,Bp,s),b=Math.pow(Math.sin(PI*Math.pow(s,.85)),.9);
+        pts.push(add(A,add(add(mul(ex,Math.cos(ph)*.42*b),mul(ez,Math.sin(ph)*.36*b)),mul(ox,.38*b))));}
+      const P=Path(pts);tube(m,P,rf,cf,{rad:14,caps:false,dens:70});
+      if(Math.sin(ph)>best){best=Math.sin(ph);front=P;}}
+    /* terminal filament */
+    tube(m,Path([Tp,[-.93*k,2.5],[-.88*k,3.05]]),s=>.035-.015*s,cPink,{rad:10});
+    /* lateral oviduct */
+    const lat=Path(X([[-.58,-.32],[-.5,-.65],[-.3,-.98],[-.08,-1.13],[0,-1.17]]));
+    tube(m,lat,()=>.08,cDuct,{rad:14});
+    routes.push([[front,.09,.55,1],[lat,.08]]);
+  });
+  /* common oviduct + vagina */
+  const com=Path([[0,-1.17],[0,-1.6]],3);tube(m,com,()=>.1,cDuct,{rad:16,caps:false});sphere(m,[0,-1.17,0],.12,cDuct);
+  const vp=[[.1,-1.52],[.2,-1.57],[.29,-1.63],[.35,-1.71],[.38,-1.8]];
+  for(let j=0;j<=24;j++)vp.push([.383+.018*Math.pow(Math.sin(j/24*PI*6),2),-1.82-j*.019]);
+  vp.push([.37,-2.3],[.34,-2.32],[.31,-2.3],[.3,-2.25]);
+  lathe(m,vp,cVag,56);
+  /* left accessory gland (branched) */
+  const knob=(p,r,c)=>sphere(m,p,r,c);
+  tube(m,Path([[-.32,-1.92,.05],[-.8,-1.86,.06],[-1.3,-1.7,.06],[-1.75,-1.53,.05],[-2.12,-1.43,.04],[-2.38,-1.37,.03]]),s=>.055+.075*smooth(.72,.95,s),cGl,{rad:16});
+  [[[-1.5,-1.6,.05],[-1.52,-1.3,.08],[-1.47,-1.05,.1],[-1.42,-.9,.1]],
+   [[-1.6,-1.57,.05],[-1.75,-1.3,0],[-1.85,-1.08,-.05]],
+   [[-1.4,-1.62,.05],[-1.28,-1.38,.12],[-1.18,-1.2,.15]],
+   [[-1.5,-1.22,.09],[-1.62,-1.08,.12],[-1.68,-.98,.14]],
+   [[-1.76,-1.25,0],[-1.92,-1.22,-.02],[-2.0,-1.12,-.03]]].forEach((b,i)=>{
+     tube(m,Path(b),()=>i<3?.034:.026,cGl,{rad:10,knob:i<3?.05:.04});});
+  /* spermatheca + its gland */
+  tube(m,Path([[.22,-1.68,.05],[.5,-1.42,.1],[.72,-1.16,.14],[.86,-.98,.06],[1.0,-.86,-.04],[1.12,-.7,0],[1.27,-.55,0]]),()=>.035,cDuct,{rad:10});
+  sphere(m,[1.5,-.45,0],.28,cSac,{w:32,h:22,sc:[1,.72,.72]});
+  tube(m,Path([[1.36,-.3],[1.28,-.08,.04],[1.36,.14,.06],[1.56,.3,.03],[1.78,.38]]),()=>.04,cSac,{rad:10,knob:.065});
+  /* right gland tube */
+  tube(m,Path([[.36,-2.0,-.05],[.9,-1.86,-.08],[1.5,-1.62,-.08],[2.1,-1.36,-.06],[2.55,-1.15,-.04]]),s=>.085+.03*s,cLong,{rad:18});
+  const vag=Path([[0,-1.6],[0,-2.45]],2);
+  return{m,tr:null,off:-.15,tint:[1,.82,.35],em:.35,speed:.4,
+    flows:routes.map(r=>Flow([...r,[com,.1],[vag,.12]])),
+    labels:[
+      {t:'أنثى',at:[-2.1,2.4],big:1},
+      {t:'مبيض',at:[0,1.7],to:[[-.7,1.05,0],[.7,1.05,0]]},
+      {t:'قناة بيض<br>جانبية',at:[.05,-.3],to:[[-.42,-.82,0]]},
+      {t:'غدة مساعدة',at:[-2.6,-.75],to:[[-2.33,-1.24,0]]},
+      {t:'قناة البيض<br>الرئيسة',at:[-2.55,-2.3],to:[[-.1,-1.38,0]]},
+      {t:'مهبل',at:[-1.0,-2.45],to:[[-.38,-2.02,0]]},
+      {t:'مستودع منوي وغدته',at:[1.85,-2.75],to:[[1.52,-.62,0]]}]};
+}
+
+/* ================= WebGL ================= */
+const cv=$('cv'),canvas=$('gl');
+let gl=null;try{gl=canvas.getContext('webgl2',{antialias:true,alpha:false})||canvas.getContext('webgl',{antialias:true,alpha:false});}catch(e){}
+if(!gl){$('nogl').style.display='block';}
+const GL2=gl&&typeof WebGL2RenderingContext!=='undefined'&&gl instanceof WebGL2RenderingContext;
+if(gl&&!GL2)gl.getExtension('OES_element_index_uint');
+const VS=`attribute vec3 aP;attribute vec3 aN;attribute vec3 aC;
+uniform mat4 uM;uniform mat4 uVP;uniform vec4 uI;
+varying vec3 vN;varying vec3 vC;varying vec3 vW;
+void main(){vec4 w=uM*vec4(aP*uI.w+uI.xyz,1.0);vW=w.xyz;vN=(uM*vec4(aN,0.0)).xyz;vC=aC;gl_Position=uVP*w;}`;
+const FS=`precision highp float;
+varying vec3 vN;varying vec3 vC;varying vec3 vW;
+uniform vec3 uCam;uniform vec3 uT;uniform float uE;uniform float uA;
+void main(){vec3 n=normalize(vN);vec3 v=normalize(uCam-vW);if(dot(n,v)<0.0)n=-n;
+  vec3 c=vC*uT;
+  vec3 L1=normalize(vec3(.45,.75,.9)),L2=normalize(vec3(-.8,.15,.5)),L3=normalize(vec3(.1,.5,-1.));
+  float hemi=.5+.5*n.y;
+  vec3 col=c*mix(vec3(.40,.35,.33),vec3(.60,.60,.62),hemi);
+  col+=c*(max(dot(n,L1),0.)*.72+max(dot(n,L2),0.)*.26+max(dot(n,L3),0.)*.15);
+  float sp=pow(max(dot(n,normalize(L1+v)),0.),46.)*.42+pow(max(dot(n,normalize(L2+v)),0.),30.)*.1;
+  float rim=pow(1.-max(dot(n,v),0.),3.)*.22;
+  col+=vec3(sp)+vec3(rim)*vec3(1.,.97,.95)+c*uE;
+  gl_FragColor=vec4(col,uA);}`;
+let prog,A={},U={};
+function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));return o;}
+function upload(m){const b=k=>{const x=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,x);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(m[k]),gl.STATIC_DRAW);return x;};
+  const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(m.i),gl.STATIC_DRAW);
+  return{p:b('p'),n:b('n'),c:b('c'),ib,count:m.i.length};}
+if(gl){prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);
+  ['aP','aN','aC'].forEach(k=>A[k]=gl.getAttribLocation(prog,k));['uM','uVP','uI','uCam','uT','uE','uA'].forEach(k=>U[k]=gl.getUniformLocation(prog,k));
+  gl.useProgram(prog);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.clearColor(1,1,1,1);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);}
+function draw(G,M,VP,o){
+  gl.uniformMatrix4fv(U.uM,false,M);gl.uniformMatrix4fv(U.uVP,false,VP);gl.uniform4fv(U.uI,o.I||[0,0,0,1]);
+  gl.uniform3fv(U.uT,o.tint||[1,1,1]);gl.uniform1f(U.uE,o.em||0);gl.uniform1f(U.uA,o.a==null?1:o.a);gl.uniform3f(U.uCam,0,0,D);
+  [['p','aP'],['n','aN'],['c','aC']].forEach(([k,a])=>{gl.bindBuffer(gl.ARRAY_BUFFER,G[k]);gl.enableVertexAttribArray(A[a]);gl.vertexAttribPointer(A[a],3,gl.FLOAT,false,0,0);});
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,G.ib);gl.drawElements(gl.TRIANGLES,G.count,gl.UNSIGNED_INT,0);}
+
+/* ---------------- matrices ---------------- */
+const m4=(a,b)=>{const o=new Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;}return o;};
+const tr4=(x,y,z)=>[1,0,0,0,0,1,0,0,0,0,1,0,x,y,z,1];
+const qAxis=(a,t)=>{const s=Math.sin(t/2);return[a[0]*s,a[1]*s,a[2]*s,Math.cos(t/2)];};
+const qmul=(a,b)=>[a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]];
+const qn=q=>{const l=Math.hypot(...q)||1;return q.map(x=>x/l);};
+const qmat=q=>{const[x,y,z,w]=q;return[1-2*(y*y+z*z),2*(x*y+z*w),2*(x*z-y*w),0,2*(x*y-z*w),1-2*(x*x+z*z),2*(y*z+x*w),0,2*(x*z+y*w),2*(y*z-x*w),1-2*(x*x+y*y),0,0,0,0,1];};
+const FOV=30*PI/180,BAN=66;
+let W=1,H=1,D=12,Z=1,OX=0,OY=0,BASEX=0,BASEY=-BAN/2,userQ=[0,0,0,1];
+function proj(){const n=.1,f=200;let top=n*Math.tan(FOV/2)/Z;const h=2*top,w=h*W/H;let left=-w/2;left+=OX*w/W;top-=OY*h/H;const r=left+w,b=top-h;
+  return[2*n/(r-left),0,0,0,0,2*n/(top-b),0,0,(r+left)/(r-left),(top+b)/(top-b),-(f+n)/(f-n),-1,0,0,-2*f*n/(f-n),0];}
+function scr(M,VP,p){const w=m4(VP,M);const x=p[0],y=p[1],z=p[2]||0;
+  const cx=w[0]*x+w[4]*y+w[8]*z+w[12],cy=w[1]*x+w[5]*y+w[9]*z+w[13],cw=w[3]*x+w[7]*y+w[11]*z+w[15];
+  return[(cx/cw+1)/2*W,(1-cy/cw)/2*H];}
+
+/* ---------------- models & labels ---------------- */
+const SNS='http://www.w3.org/2000/svg',lbLayer=$('labels');
+const MODELS=[buildMale(),buildFemale()];
+const PART=MB();sphere(PART,[0,0,0],1,[1,1,1],{w:16,h:12});
+let partG=null;
+if(gl){MODELS.forEach(M=>{M.G=upload(M.m);if(M.tr)M.T=upload(M.tr);});partG=upload(PART);}
+MODELS.forEach((M,mi)=>{const lg=$('lg'+mi);M.lg=lg;
+  M.L=M.labels.map(L=>{const d=document.createElement('div');d.className='lb'+(L.big?' big':'');d.innerHTML=L.t;lbLayer.appendChild(d);
+    const arr=(L.to||[]).map(tp=>{const h=document.createElementNS(SNS,'line'),k=document.createElementNS(SNS,'line');
+      h.setAttribute('class','ah');k.setAttribute('class','am');k.setAttribute('marker-end','url(#ahd)');lg.appendChild(h);lg.appendChild(k);return{tp,h,k};});
+    return{d,at:L.at,arr,w:0,h:0};});});
+function measure(){MODELS.forEach(M=>M.L.forEach(l=>{l.w=l.d.offsetWidth;l.h=l.d.offsetHeight;}));}
+function setLine(e,x1,y1,x2,y2){e.setAttribute('x1',x1.toFixed(1));e.setAttribute('y1',y1.toFixed(1));e.setAttribute('x2',x2.toFixed(1));e.setAttribute('y2',y2.toFixed(1));}
+function labels(M,Mm,VP,vis){
+  M.lg.style.opacity=vis.toFixed(2);M.lg.style.display=vis<.01?'none':'';
+  M.L.forEach(l=>{l.d.style.visibility=vis<.01?'hidden':'visible';if(vis<.01)return;
+    const s=scr(Mm,VP,l.at);l.d.style.opacity=vis.toFixed(2);
+    l.d.style.transform=`translate(${(s[0]-l.w/2).toFixed(1)}px,${(s[1]-l.h/2).toFixed(1)}px)`;
+    l.arr.forEach(a=>{const t=scr(Mm,VP,a.tp),dx=t[0]-s[0],dy=t[1]-s[1];
+      const kk=Math.min((l.w/2+5)/Math.max(Math.abs(dx),1e-6),(l.h/2+4)/Math.max(Math.abs(dy),1e-6));
+      if(kk>=.9){a.h.style.display=a.k.style.display='none';return;}
+      a.h.style.display=a.k.style.display='';
+      const x1=s[0]+dx*kk,y1=s[1]+dy*kk;setLine(a.h,x1,y1,t[0],t[1]);setLine(a.k,x1,y1,t[0],t[1]);});});}
+
+/* ---------------- state / loop ---------------- */
+let cur=0,prev=-1,dir=1,tt0=-9,RT=0,T=0,last=performance.now(),paused=false;
+function frame(ms){const dt=Math.min(.05,(ms-last)/1000);last=ms;RT+=dt;if(!paused)T+=dt;
+  const k=ease(clamp((RT-tt0)/.9,0,1));
+  const VP=m4(proj(),tr4(0,0,-D));
+  const R=qmat(qmul(userQ,qAxis([0,1,0],.12*Math.sin(T*.5))));
+  if(gl){gl.viewport(0,0,canvas.width,canvas.height);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);}
+  MODELS.forEach((M,i)=>{let vis=0,x=0;
+    if(i===cur){vis=k;x=dir*12*(1-k);}else if(i===prev&&k<1){vis=1-k;x=-dir*12*k;}
+    const Mm=m4(m4(tr4(x,0,0),R),tr4(0,M.off,0));
+    labels(M,Mm,VP,vis);
+    if(!gl||vis<.01)return;
+    gl.disable(gl.BLEND);gl.depthMask(true);
+    draw(M.G,Mm,VP,{});
+    M.flows.forEach((F,fi)=>{const N=Math.max(3,Math.round(F.L/.85));
+      for(let j=0;j<N;j++){const d=((j/N)*F.L+T*M.speed+fi*.37)%F.L,[p,r]=flowAt(F,d);
+        const s=Math.max(.045,r*1.25)*smooth(0,.12,d)*(1-smooth(F.L-.35,F.L,d));if(s<.005)continue;
+        draw(partG,Mm,VP,{I:[p[0],p[1],p[2],s],tint:M.tint,em:M.em});}});
+    if(M.T){gl.enable(gl.BLEND);gl.depthMask(false);draw(M.T,Mm,VP,{a:.72});gl.depthMask(true);gl.disable(gl.BLEND);}
+  });
+  requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=$('dots'),banner=$('banner');
+STG.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','الصفحة '+(i+1));b.onclick=()=>go(i,i>cur?1:-1);dotsEl.appendChild(b);});
+function setUI(){banner.style.background=STG[cur][1];banner.textContent=STG[cur][0];
+  [...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===cur));}
+function go(i,d){i=(i+STG.length)%STG.length;if(i===cur)return;prev=cur;cur=i;dir=d;tt0=RT;setUI();}
+$('next').onclick=()=>go(cur+1,1);
+$('prev').onclick=()=>go(cur-1,-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(cur+1,1);if(e.key==='ArrowRight')go(cur-1,-1);});
+$('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- rotate, zoom, pan, fullscreen ---------------- */
+const MIN=.6,MAX=8;
+function resetView(rot){Z=1;OX=BASEX;OY=BASEY;if(rot!==false)userQ=[0,0,0,1];}
+function zoomAt(f,p){const nz=clamp(Z*f,MIN,MAX),r=nz/Z;OX=r*(p.x+OX)-p.x;OY=r*(p.y+OY)-p.y;Z=nz;}
+function rotBy(dx,dy){const a=Math.hypot(dx,dy)*.009;if(a<1e-6)return;userQ=qn(qmul(qAxis(nrm([dy,dx,0]),a),userQ));}
+const rel=e=>{const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left-W/2,y:e.clientY-b.top-H/2};};
+const hint=$('hint');let hinted=false;const hideHint=()=>{if(!hinted){hinted=true;hint.style.opacity=0;}};
+setTimeout(hideHint,9000);
+const ptrs=new Map();
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,b:e.button});canvas.classList.add('drag');hideHint();});
+canvas.addEventListener('pointermove',e=>{const o=ptrs.get(e.pointerId);if(!o)return;const prv=new Map(ptrs),cu={x:e.clientX,y:e.clientY,b:o.b};ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const dx=cu.x-o.x,dy=cu.y-o.y;if(o.b===1||o.b===2||e.shiftKey){OX-=dx;OY-=dy;}else rotBy(dx,dy);}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y);
+    const m0={clientX:(a0.x+b0.x)/2,clientY:(a0.y+b0.y)/2},m1={clientX:(a1.x+b1.x)/2,clientY:(a1.y+b1.y)/2};
+    OX-=m1.clientX-m0.clientX;OY-=m1.clientY-m0.clientY;zoomAt(d1/d0,rel(m1));}});
+const up=e=>{ptrs.delete(e.pointerId);if(!ptrs.size)canvas.classList.remove('drag');};
+canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,rel(e));},{passive:false});
+canvas.addEventListener('dblclick',()=>resetView());
+$('zin').onclick=()=>zoomAt(1.3,{x:-BASEX,y:BAN/2});
+$('zout').onclick=()=>zoomAt(1/1.3,{x:-BASEX,y:BAN/2});
+$('zreset').onclick=()=>resetView();
+const fsBtn=$('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+
+function resize(){W=Math.max(1,cv.clientWidth);H=Math.max(1,cv.clientHeight);const dpr=Math.min(2,window.devicePixelRatio||1);
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  const avail=Math.max(60,H-BAN),narrow=W<700,halfH=Math.max(3.2,(narrow?4.05:3.5)*avail/W);
+  D=(halfH*H/avail)/Math.tan(FOV/2);BASEY=-BAN/2;BASEX=narrow?-24:0;resetView(false);measure();}
+if(window.ResizeObserver)new ResizeObserver(resize).observe(cv);else addEventListener('resize',resize);
+resize();setUI();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

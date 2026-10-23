@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التكاثر ودورة الحياة في الضفدع</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go{min-width:170px;height:56px;padding:0 26px;border-radius:28px;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active{background:#d9ebf7}
+  #go:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  .bx{fill:#1f3a52;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lb,.lw,.lg{fill:#1f3a52;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lw{fill:#1e5f99}
+  .lg{fill:#3d6b1f}
+  .lr{fill:#b5321f;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التكاثر ودورة الحياة في الضفدع</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gF" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#d9ef8f"/><stop offset=".55" stop-color="#7aa83a"/><stop offset="1" stop-color="#3f6118"/></radialGradient>
+        <radialGradient id="gT" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#a3a17e"/><stop offset=".55" stop-color="#5a5939"/><stop offset="1" stop-color="#2a2a1c"/></radialGradient>
+        <radialGradient id="gP" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#f3e0ff"/><stop offset=".55" stop-color="#b383d6"/><stop offset="1" stop-color="#6a3591"/></radialGradient>
+        <radialGradient id="gY" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fff8e2"/><stop offset=".6" stop-color="#f0d59a"/><stop offset="1" stop-color="#c79a4e"/></radialGradient>
+        <radialGradient id="gE" cx=".4" cy=".2" r=".9"><stop offset="0" stop-color="#6b5848"/><stop offset=".5" stop-color="#2d2119"/><stop offset="1" stop-color="#0e0906"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <clipPath id="clE"><ellipse cx="450" cy="395" rx="300" ry="250"/></clipPath>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const lp2=(p,q,u)=>[lerp(p[0],q[0],u),lerp(p[1],q[1],u)];
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+const TR=(p,deg,s)=>`translate(${f1(p[0])} ${f1(p[1])}) rotate(${deg}) scale(${f2(s)})`;
+
+const DUR=[4,5,7,5,6,5,5,6,6,6];
+const DARK='#1f2a44',BLU='#2b6cb0';
+const world=G(view);
+/* land / water background (revealed in the last stage) */
+const env=G(world,{'clip-path':'url(#clE)'});
+el('rect',{x:150,y:145,width:600,height:250,fill:'#eef6e2'},env);
+el('rect',{x:150,y:395,width:600,height:250,fill:'#ddeffd'},env);
+[425,470,515,560,605].forEach((y,i)=>el('path',{d:`M150,${y} q25,-8 50,0 t50,0 t50,0 t50,0 t50,0 t50,0 t50,0 t50,0 t50,0 t50,0 t50,0 t50,0`,fill:'none',stroke:'#bcdcf4','stroke-width':2},env));
+el('ellipse',{cx:450,cy:395,rx:300,ry:250,fill:'none',stroke:'#e6ebf0','stroke-width':2,'stroke-dasharray':'8 10'},world);
+const Larr=G(world),Lobj=G(world),Ltok=G(world);
+
+/* ---------------- building blocks ---------------- */
+const STK={gF:'#2f4a14',gP:'#4b2066',gT:'#1a1a10'};
+function Ball(parent,grad,r){const g=G(parent);
+  el('circle',{r,fill:`url(#${grad})`,stroke:STK[grad],'stroke-width':1},g);
+  el('ellipse',{cx:-r*.35,cy:-r*.4,rx:r*.3,ry:r*.2,fill:'#fff',opacity:.55},g);return{g,r};}
+function setBall(b,p,s,op){if(!show(b.g,op*(s>.02?1:0)))return;b.g.setAttribute('transform',`translate(${f1(p[0])} ${f1(p[1])}) scale(${f2(s)})`);}
+function Egg(parent,R){const g=G(parent),r=R*.6;
+  el('circle',{r:R,fill:'rgba(215,232,255,.65)',stroke:'#9db4d4','stroke-width':1.2},g);
+  el('circle',{r,fill:'url(#gY)',stroke:'#8a6a3a','stroke-width':.8},g);
+  el('path',{d:`M${-r},0 A${r},${r} 0 0 1 ${r},0 Q0,${r*.35} ${-r},0Z`,fill:'url(#gE)'},g);
+  el('ellipse',{cx:-R*.35,cy:-R*.5,rx:R*.22,ry:R*.13,fill:'#fff',opacity:.7},g);return{g,r:R};}
+function Box(x,y,w,h,lines){const g=G(Lobj);
+  el('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:4,fill:'#fff',stroke:'#1f3a52','stroke-width':2.2},g);
+  lines.forEach((s,i)=>{const t=el('text',{class:'bx',x:0,y:(i-(lines.length-1)/2)*27},g);t.textContent=s;});
+  return{g,x,y};}
+function setBox(b,v){if(show(b.g,v))b.g.setAttribute('transform',`translate(${b.x} ${b.y}) scale(${f2(.85+.15*v)})`);}
+function Txt(x,y,s,cls,rot){const t=el('text',{class:cls||'lb',x,y},Lobj);t.textContent=s;if(rot)t.setAttribute('transform',`rotate(${rot} ${x} ${y})`);return t;}
+function Arr(d,col){const g=G(Larr),p=el('path',{d,fill:'none',stroke:col,'stroke-width':3.2,'stroke-linecap':'round'},g),L=p.getTotalLength();
+  const e=p.getPointAtLength(L),q=p.getPointAtLength(L-10),a=Math.atan2(e.y-q.y,e.x-q.x),c=Math.cos(a),s=Math.sin(a);
+  const h=el('polygon',{points:[[e.x,e.y],[e.x-15*c+7*s,e.y-15*s-7*c],[e.x-15*c-7*s,e.y-15*s+7*c]].map(v=>v.map(f1).join(',')).join(' '),fill:col},g);
+  return{g,p,h,L,at:u=>{const v=p.getPointAtLength(u*L);return[v.x,v.y];}};}
+function drawArr(A,v){if(!show(A.g,v>.005?1:0))return;A.p.setAttribute('stroke-dasharray',`${f1(v*(A.L-8))} ${f1(A.L+20)}`);A.h.setAttribute('opacity',f2(sm(v,.9,1)));}
+const CL=(()=>{const pos=[[0,0]];for(let k=0;k<6;k++){const a=k/6*2*PI;pos.push([27*Math.cos(a),27*Math.sin(a)]);}
+  for(let k=0;k<6;k++){const a=(k+.5)/6*2*PI;pos.push([47*Math.cos(a),47*Math.sin(a)]);}return pos;})();
+
+/* frog seen from above, head pointing up (-y) */
+function Frog(parent){const g=G(parent),tail=el('path',{fill:'url(#gT)',stroke:'#1a1a10','stroke-width':1.2},g);
+  const H='M14,20 L40,10 L31,42 L47,57',Fr='M13,-10 L28,-2 L29,-17',ln={fill:'none','stroke-linecap':'round','stroke-linejoin':'round'};
+  [1,-1].forEach(sx=>{const l=G(g,{transform:`scale(${sx} 1)`});
+    el('path',{...ln,d:H,stroke:'#2f4a14','stroke-width':12},l);el('path',{...ln,d:Fr,stroke:'#2f4a14','stroke-width':9},l);
+    el('path',{...ln,d:H,stroke:'#86b443','stroke-width':8},l);el('path',{...ln,d:Fr,stroke:'#86b443','stroke-width':5.5},l);
+    el('path',{...ln,d:'M47,57 L57,55 M47,57 L56,63 M47,57 L49,66 M29,-17 L35,-23 M29,-17 L28,-26 M29,-17 L23,-23',stroke:'#2f4a14','stroke-width':3},l);
+    el('path',{...ln,d:'M14,-20 Q17,5 10,28',stroke:'#b6d870','stroke-width':2,opacity:.8},l);});
+  el('path',{d:'M0,-44 C17,-44 25,-31 24,-16 C26,4 25,27 0,36 C-25,27 -26,4 -24,-16 C-25,-31 -17,-44 0,-44Z',fill:'url(#gF)',stroke:'#2f4a14','stroke-width':2},g);
+  [[9,2,5,7],[-10,8,4.5,6],[1,20,5,4],[-5,-8,4,5],[11,16,3.5,4.5]].forEach(([x,y,a,b])=>el('ellipse',{cx:x,cy:y,rx:a,ry:b,fill:'#4e7a22',opacity:.55},g));
+  [-13,13].forEach(x=>{el('circle',{cx:x,cy:-28,r:7,fill:'url(#gF)',stroke:'#2f4a14','stroke-width':1.5},g);
+    el('circle',{cx:x,cy:-28,r:3.6,fill:'#111'},g);el('circle',{cx:x-1.3,cy:-29.5,r:1.2,fill:'#fff'},g);
+    el('circle',{cx:x*.3,cy:-39,r:1.2,fill:'#2f4a14'},g);});
+  return{g,tail};}
+function setFrog(F,p,rot,s,op,tl){if(!show(F.g,op*(s>.02?1:0)))return;F.g.setAttribute('transform',TR(p,rot,s));
+  if(tl>.5){F.tail.style.display='';F.tail.setAttribute('d',`M-9,24 Q-6,${f1(24+tl*.6)} 0,${f1(24+tl)} Q6,${f1(24+tl*.6)} 9,24Z`);}else F.tail.style.display='none';}
+
+/* tadpole seen from above, head pointing up */
+function Tad(parent){const g=G(parent),tail=el('path',{fill:'url(#gT)',stroke:'#1a1a10','stroke-width':1},g);
+  const ln={fill:'none','stroke-linecap':'round','stroke-linejoin':'round'};
+  const leg=(d,w)=>[1,-1].map(sx=>{const l=G(g);el('path',{...ln,d,stroke:'#2a2a1c','stroke-width':w+2},l);el('path',{...ln,d,stroke:'#7d7b56','stroke-width':w},l);return{l,sx};});
+  const hl=leg('M0,0 L10,7 L5,17 L12,22',4.5),fl=leg('M0,0 L9,4 L10,-6',3.5);
+  const gi=G(g);[1,-1].forEach(sx=>el('path',{...ln,d:`M${sx*13},-5 l${sx*10},-7 M${sx*14},-1 l${sx*12},0 M${sx*13},3 l${sx*10},7 M${sx*18},-8 l${sx*3},2 M${sx*20},-1 l${sx*2},3 M${sx*18},6 l${sx*3},-2`,stroke:'#c0504d','stroke-width':2.4},gi));
+  el('ellipse',{cx:0,cy:0,rx:15,ry:19,fill:'url(#gT)',stroke:'#1a1a10','stroke-width':1.2},g);
+  [-9,9].forEach(x=>{el('circle',{cx:x,cy:-10,r:3.6,fill:'#111',stroke:'#c9c08a','stroke-width':1},g);el('circle',{cx:x-1,cy:-11,r:1,fill:'#fff'},g);});
+  return{g,tail,hl,fl,gi};}
+function tailD(len,t){const N=12,L=[],R=[];for(let i=0;i<=N;i++){const v=i/N,y=12+v*len,x=5*Math.sin(v*3.2-t*7)*v,w=7.5*Math.pow(1-v,.7)+.4;
+  L.push(f1(x-w)+','+f1(y));R.push(f1(x+w)+','+f1(y));}return 'M'+L.join(' L')+' L'+R.reverse().join(' L')+'Z';}
+function setTad(D,p,rot,s,op,t,o){if(!show(D.g,op*(s>.02?1:0)))return;D.g.setAttribute('transform',TR(p,rot,s));
+  D.tail.setAttribute('d',tailD(o.len,t));
+  D.hl.forEach(({l,sx})=>{if(show(l,o.hl>.02?1:0))l.setAttribute('transform',`translate(${sx*7} 14) scale(${f2(sx*o.hl)} ${f2(o.hl)})`);});
+  D.fl.forEach(({l,sx})=>{if(show(l,o.fl>.02?1:0))l.setAttribute('transform',`translate(${sx*12} 0) scale(${f2(sx*o.fl)} ${f2(o.fl)})`);});
+  show(D.gi,o.gi);}
+
+/* embryo outline: circle (m=0) → curved elongated embryo (m=1), head on the right */
+function embryoD(m){const a=lerp(.01,30,m),hR=lerp(18,14,m),tR=lerp(18,5,m),c=lerp(0,7,m),N=14,top=[],bot=[];
+  for(let i=0;i<=N;i++){const v=i/N,x=lerp(-a,a,v),r=lerp(tR,hR,Math.pow(v,.6)),y=-c*(1-Math.pow(2*v-1,2));top.push([x,y-r]);bot.push([x,y+r]);}
+  const P=q=>f1(q[0])+','+f1(q[1]);
+  return 'M'+top.map(P).join(' L')+` A${f1(hR)},${f1(hR)} 0 0 1 `+P(bot[N])+' L'+bot.slice().reverse().map(P).join(' L')+` A${f1(tR)},${f1(tR)} 0 0 1 `+P(top[0])+'Z';}
+
+/* ---------------- the cycle ---------------- */
+/* 1 adult */
+const AP=[450,172];
+const glA=el('circle',{cx:AP[0],cy:AP[1],r:95,fill:'url(#gGlow)',opacity:0},Lobj);
+const adult=Frog(Lobj);
+const BXa=Box(450,64,210,50,['الحيوان البالغ']);
+/* 2 mating */
+const A2=Arr('M392,152Q300,118 248,200',DARK);
+const MF=[195,268],MM=[195,246],fem=Frog(Lobj),mal=Frog(Lobj);
+const BXr=Box(160,152,180,46,['التكاثر الجنسي']);
+/* 3 eggs + external fertilisation */
+const A3=Arr('M182,330L170,384',BLU);
+const EC=[160,452];
+const glE=el('circle',{cx:EC[0],cy:EC[1],r:85,fill:'url(#gGlow)',opacity:0},Lobj);
+const eggs=CL.map(()=>Egg(Lobj,15));
+const lE1=Txt(60,440,'كتلة'),lE2=Txt(60,467,'البيوض');
+const BXx=Box(340,300,170,46,['إخصاب خارجي']);
+const SPT=[0,1,3,5,8,11],sperm=SPT.map(()=>{const g=G(Ltok);el('path',{d:'M0,0 Q-6,-3 -13,0',fill:'none',stroke:'#3b47c4','stroke-width':1.6},g);el('ellipse',{rx:3.6,ry:2.6,fill:'#3b47c4'},g);return g;});
+/* 4 zygote */
+const A4=Arr('M196,512Q205,566 222,584',BLU);
+const ZP=[252,598],zyg=Egg(Lobj,30),lZy=Txt(252,650,'الزيجة');
+/* 5 cleavage */
+const A5=Arr('M284,610Q320,632 351,632',BLU);
+const CC=[385,632],cg=G(Lobj,{transform:`translate(${CC[0]} ${CC[1]})`});
+const memb=el('circle',{r:30,fill:'rgba(215,232,255,.65)',stroke:'#9db4d4','stroke-width':1.2},cg);
+const ring=(n,R,o)=>Array.from({length:n},(_,k)=>[R*Math.cos(k/n*2*PI+(o||0)),R*Math.sin(k/n*2*PI+(o||0))]);
+const LV=[[[0,0]],[[-9,0],[9,0]],[[-8,-8],[8,-8],[-8,8],[8,8]],ring(8,11,PI/8),[[0,0],...ring(6,8),...ring(9,15.5,.3)]],RV=[18,10,8.5,6.5,4.4];
+const cells=LV.map((L,k)=>L.map(p=>({p,b:Ball(cg,'gP',RV[k])})));
+const lCl=Txt(385,684,'التفلج');
+/* 6 organ formation */
+const A6=Arr('M418,632L490,632',BLU);
+const OP=[540,632],og=G(Lobj);
+const ojel=el('ellipse',{rx:30,ry:30,fill:'rgba(215,232,255,.65)',stroke:'#9db4d4','stroke-width':1.2},og);
+const emb=el('path',{fill:'url(#gP)',stroke:'#4b2066','stroke-width':1.2},og),eye=el('circle',{r:0,fill:'#2a1238'},og);
+const lOr=Txt(540,684,'تكوين الأعضاء');
+/* 7 larva */
+const A7=Arr('M588,620Q626,614 652,602',BLU);
+const LP=[702,548],larva=Tad(Lobj),lL1=Txt(812,600,'يرقة بغلاصم'),lL2=Txt(812,625,'خارجية');
+/* 8 tadpole */
+const A8=Arr('M724,512Q752,498 760,476',BLU);
+const TP=[792,428],tad=Tad(Lobj),lTd=Txt(862,368,'الدعموص');
+/* 9 froglet */
+const A9=Arr('M790,385Q782,318 752,290',DARK);
+const FP=[718,252],frl=Frog(Lobj),lF1=Txt(822,196,'ضفدع صغير'),lF2=Txt(822,222,'ضمور الذيل');
+/* 10 back to adult + land / water */
+const A10=Arr('M682,214Q600,138 516,158',DARK);
+const midL=el('line',{x1:247,y1:395,x2:668,y2:395,stroke:'#b5321f','stroke-width':2.5},Lobj);
+const lUp=Txt(457,366,'طور بري: يتنفس بالرئتين والجلد','lg'),lDn=Txt(457,424,'طور مائي: يتنفس بالغلاصم','lw');
+/* travelling tokens */
+const TK=[[A2,Ball(Ltok,'gF',11),2],[A4,Egg(Ltok,11),4],[A5,Ball(Ltok,'gP',10),5],[A6,Ball(Ltok,'gP',10),6],
+          [A7,Ball(Ltok,'gT',9),7],[A8,Ball(Ltok,'gT',9),8],[A9,Ball(Ltok,'gT',10),9],[A10,Ball(Ltok,'gF',11),10]];
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const u=i=>clamp(P-(i-1),0,1),s=[0,u(1),u(2),u(3),u(4),u(5),u(6),u(7),u(8),u(9),u(10)];
+  const br=k=>1+.03*Math.sin(t*1.6+k);
+
+  /* arrows + tokens (common pattern) */
+  TK.forEach(([A,b,i])=>{drawArr(A,sm(s[i],0,.45));setBall(b,A.at(sm(s[i],.05,.5)),1,(s[i]>.05&&s[i]<1)?1-sm(s[i],.5,.56):0);});
+
+  /* 1 adult (pulses when the cycle closes) */
+  const pulse=Math.sin(PI*sm(s[10],.45,.7));
+  setBox(BXa,sm(s[1],0,.3));
+  setFrog(adult,AP,0,pop(sm(s[1],.2,.7))*br(0)*(1+.1*pulse),1,0);
+  glA.setAttribute('opacity',f2(.8*pulse));
+  /* 2 mating */
+  setFrog(fem,MF,0,.82*pop(sm(s[2],.5,.75))*br(1),1,0);
+  setFrog(mal,MM,0,.68*pop(sm(s[2],.6,.85))*br(2),1,0);
+  setBox(BXr,sm(s[2],.7,.9));
+  /* 3 eggs laid, then sperm reach them */
+  drawArr(A3,sm(s[3],0,.25));
+  eggs.forEach((e,k)=>setBall(e,[EC[0]+CL[k][0],EC[1]+CL[k][1]],pop(sm(s[3],.15+.025*k,.27+.025*k))*br(k),1));
+  show(lE1,sm(s[3],.4,.6));show(lE2,sm(s[3],.42,.62));
+  setBox(BXx,sm(s[3],.55,.7));
+  const m3=sm(s[3],.55,.8),o3=(s[3]>.55&&s[3]<1)?1-sm(s[3],.78,.84):0;
+  sperm.forEach((g,i)=>{const q=CL[SPT[i]],to=[EC[0]+q[0],EC[1]+q[1]],from=[MM[0]+(i-2.5)*6,MM[1]+10];
+    const p=lp2(from,to,m3),a=Math.atan2(to[1]-from[1],to[0]-from[0]),w=4*Math.sin(t*12+i)*(1-m3);
+    if(show(g,o3))g.setAttribute('transform',`translate(${f1(p[0]-w*Math.sin(a))} ${f1(p[1]+w*Math.cos(a))}) rotate(${f1(a*180/PI)})`);});
+  glE.setAttribute('opacity',f2(Math.sin(PI*sm(s[3],.75,1))));
+  /* 4 zygote */
+  setBall(zyg,ZP,pop(sm(s[4],.5,.7))*br(3),1);show(lZy,sm(s[4],.65,.85));
+  /* 5 cleavage 1→2→4→8→16 */
+  const a5=pop(sm(s[5],.5,.6));
+  if(show(memb,s[5]>.5?1:0))memb.setAttribute('r',f1(30*a5*br(4)));
+  const L=4*sm(s[5],.55,.95),fl=Math.min(3,Math.floor(L)),fr=L-fl;
+  cells.forEach((lv,k)=>{let op=L>=4?(k===4?1:0):k===fl?1-sm(fr,.7,1):k===fl+1?sm(fr,.7,1):0;
+    const sp=(L<4&&k===fl)?1+.15*sm(fr,0,.7):1;
+    lv.forEach((c,j)=>setBall(c.b,[c.p[0]*sp,c.p[1]*sp],a5*br(j),s[5]>.5?op:0));});
+  show(lCl,sm(s[5],.6,.8));
+  /* 6 organ formation */
+  const a6=pop(sm(s[6],.5,.6)),m6=sm(s[6],.55,.95);
+  if(show(og,s[6]>.5?1:0)){og.setAttribute('transform',`translate(${OP[0]} ${OP[1]}) scale(${f2(a6*br(5))})`);
+    ojel.setAttribute('rx',f1(lerp(30,48,m6)));emb.setAttribute('d',embryoD(m6));
+    eye.setAttribute('cx',f1(lerp(0,26,m6)));eye.setAttribute('cy',f1(-3*m6));eye.setAttribute('r',f1(3.5*m6));}
+  show(lOr,sm(s[6],.6,.8));
+  /* 7 larva hatches (external gills) */
+  setTad(larva,LP,35,.78*pop(sm(s[7],.5,.7)),1,t,{len:46,hl:0,fl:0,gi:1});
+  show(lL1,sm(s[7],.65,.85));show(lL2,sm(s[7],.67,.87));
+  /* 8 tadpole grows hind then front legs */
+  setTad(tad,TP,-17,pop(sm(s[8],.5,.62)),1,t+1.3,{len:56,hl:sm(s[8],.6,.78),fl:sm(s[8],.78,.95),gi:0});
+  show(lTd,sm(s[8],.6,.8));
+  /* 9 froglet: tail is absorbed */
+  setFrog(frl,FP,-60,.62*pop(sm(s[9],.5,.62))*br(6),1,lerp(50,6,sm(s[9],.6,.95)));
+  show(lF1,sm(s[9],.6,.8));show(lF2,sm(s[9],.7,.9));
+  /* 10 land / water */
+  const lv=sm(s[10],.55,.75);midL.setAttribute('x2',f1(lerp(247,668,lv)));show(midL,lv>.005?1:0);
+  show(env,.85*sm(s[10],.55,.8));
+  show(lUp,sm(s[10],.65,.85));show(lDn,sm(s[10],.7,.9));
+}
+
+/* ---------------- one button ---------------- */
+const btn=document.getElementById('go');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;}go(stage+1);};
+let lbl='';
+let paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:400});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:400});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

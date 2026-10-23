@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التكاثر في الفيروسات</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(16px,3.8vw,24px);font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:14px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .bt{fill:#fff;font-weight:bold;font-size:23px;text-anchor:middle;dominant-baseline:central}
+  #bn{transition:fill .5s}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التكاثر في الفيروسات</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gCyto" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#fdfff0"/><stop offset="1" stop-color="#d3e8a3"/></radialGradient>
+        <linearGradient id="gHead" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f0ff"/><stop offset="1" stop-color="#a395dc"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffb02e" stop-opacity=".95"/><stop offset=".55" stop-color="#ff8a1e" stop-opacity=".45"/><stop offset="1" stop-color="#ff7a10" stop-opacity="0"/></radialGradient>
+        <pattern id="stripe" patternUnits="userSpaceOnUse" width="40" height="7"><rect width="40" height="7" fill="#a497de"/><rect y="5" width="40" height="2" fill="#5b4a9b"/></pattern>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const backOut=x=>x<=0?0:1+2.70158*Math.pow(x-1,3)+1.70158*Math.pow(x-1,2);
+let seed=11;const rnd=()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const rr=(a,b)=>a+(b-a)*rnd();
+const D2R=PI/180;
+
+const STG=[
+  ['مرحلة الاتصال (Attachment)','#2e8b57'],
+  ['مرحلة الاختراق (Penetration)','#e0902a'],
+  ['مرحلة التخليق أو البناء (Biosynthesis)','#2f6fd6'],
+  ['مرحلة الانضاج (Maturation)','#7b4bb3'],
+  ['مرحلة التحرر (Release)','#c4423a']];
+
+/* ---------------- geometry: bacterium is a stadium (rod) ---------------- */
+const CX=450,CY=505,BW=320,BH=150,TOP=CY-BH,BASEY=TOP-6;
+function stad(s,cx,cy,W,H){const k=W-H,per=4*k+2*PI*H;let d=(((s%1)+1)%1)*per;
+  if(d<k)return[cx+d,cy-H,0,-1];d-=k;
+  if(d<PI*H){const a=-PI/2+d/H;return[cx+k+H*Math.cos(a),cy+H*Math.sin(a),Math.cos(a),Math.sin(a)];}d-=PI*H;
+  if(d<2*k)return[cx+k-d,cy+H,0,1];d-=2*k;
+  if(d<PI*H){const a=PI/2+d/H;return[cx-k+H*Math.cos(a),cy+H*Math.sin(a),Math.cos(a),Math.sin(a)];}d-=PI*H;
+  return[cx-k+d,cy-H,0,-1];}
+function stadPath(cx,cy,W,H){let d='';for(let i=0;i<=160;i++){const p=stad(i/160,cx,cy,W,H);d+=(i?'L':'M')+f1(p[0])+','+f1(p[1]);}return d+'Z';}
+
+/* ---------------- layers ---------------- */
+const lyrSmall=G(view),cellA=G(view),lyrIn=G(view),cellB=G(view),lyrTop=G(view),lyrBn=G(view);
+
+/* other (healthy) bacteria that appear on release */
+const smallB=[[95,680],[805,680]].map(([x,y])=>{const g=G(lyrSmall,{opacity:0});
+  el('path',{d:stadPath(x,y,75,30),fill:'url(#gCyto)',stroke:'#a5692a','stroke-width':5},g);
+  let d='';for(let i=0;i<=60;i++){const a=i/60*2*PI,r=1+.18*Math.sin(5*a);d+=(i?'L':'M')+f1(x+38*r*Math.cos(a))+','+f1(y+12*r*Math.sin(a));}
+  el('path',{d:d+'Z',fill:'none',stroke:'#2f6fd6','stroke-width':2.4},g);return g;});
+
+/* cytoplasm */
+el('path',{d:stadPath(CX,CY,BW,BH),fill:'url(#gCyto)'},cellA);
+
+/* ribosomes */
+const ribG=G(lyrIn),ribs=[];
+while(ribs.length<34){const x=rr(CX-270,CX+270),y=rr(CY-120,CY+120);
+  if(((x-CX)/270)**2+((y-CY)/120)**2<1){ribs.push([x,y]);el('circle',{cx:f1(x),cy:f1(y),r:3.3,fill:'#9a7bb8',opacity:.8},ribG);}}
+
+/* bacterial chromosome (blue loop) split into fragments */
+const bPts=[];for(let i=0;i<=200;i++){const a=i/200*2*PI,r=1+.12*Math.sin(7*a)+.07*Math.sin(13*a+1);bPts.push([CX+200*r*Math.cos(a),CY+80*r*Math.sin(a)]);}
+const NF=10,frags=[];
+for(let j=0;j<NF;j++){const seg=bPts.slice(j*20,j*20+21);let d='';seg.forEach((p,i)=>d+=(i?'L':'M')+f1(p[0])+','+f1(p[1]));
+  const m=seg[10],dx=m[0]-CX,dy=m[1]-CY,dl=Math.hypot(dx,dy)||1;
+  frags.push({e:el('path',{d,fill:'none',stroke:'#2f6fd6','stroke-width':3.6,'stroke-linecap':'round','stroke-linejoin':'round'},lyrIn),cx:m[0],cy:m[1],nx:dx/dl,ny:dy/dl,rot:rr(-40,40)});}
+
+/* injected viral DNA */
+const COIL={x:CX,y:519};
+const vPts=[[CX,267],[CX,COIL.y-38]];
+for(let i=1;i<=220;i++){const q=i/220,a=-PI/2+q*2.75*2*PI,r=lerp(38,8,q)+3*Math.sin(9*a);vPts.push([COIL.x+r*Math.cos(a),COIL.y+r*Math.sin(a)]);}
+let vd='';vPts.forEach((p,i)=>vd+=(i?'L':'M')+f1(p[0])+','+f1(p[1]));
+const injG=G(lyrIn,{opacity:0});
+const injO=el('path',{d:vd,fill:'none',stroke:'#7a1a10','stroke-width':6.5,'stroke-linecap':'round','stroke-linejoin':'round'},injG);
+const injI=el('path',{d:vd,fill:'none',stroke:'#ff5a3c','stroke-width':3.4,'stroke-linecap':'round','stroke-linejoin':'round'},injG);
+const Lt=injI.getTotalLength(),Ls=COIL.y-38-267;
+
+/* viral mRNA */
+const MR=[...Array(7)].map((_,j)=>({g:G(lyrIn,{opacity:0}),tg:ribs[(j*5+3)%ribs.length],r0:rr(0,180)}));
+MR.forEach(m=>el('path',{d:'M-15,0Q-11,-6 -7.5,0T0,0T7.5,0T15,0',fill:'none',stroke:'#1f9a52','stroke-width':2.8,'stroke-linecap':'round'},m.g));
+
+/* ---------------- bacteriophage builder ---------------- */
+let hd='';for(let i=0;i<=140;i++){const a=i/140*2*PI;hd+=(i?'L':'M')+f1(15*Math.sin(3*a+.3)*Math.cos(a*.5))+','+f1(-40+27*Math.sin(2*a));}
+let cd='';for(let i=0;i<=80;i++){const a=i/80*2*PI;cd+=(i?'L':'M')+f1(9*Math.sin(3*a)+2*Math.cos(7*a))+','+f1(7.5*Math.sin(2*a+.4));}
+const FIB=[[12,14,-30,32,-26,20,-10,50,1,'#3b2a6b'],[8,10,-28,22,-20,14,-8,34,1,'#6d5cae']];
+function Phage(parent){
+  const root=G(parent),tail=G(root),head=G(root);
+  const fib=[];FIB.slice().reverse().forEach(f=>[1,-1].forEach(sg=>fib.push({e:el('polyline',{fill:'none',stroke:f[9],'stroke-width':3.2,'stroke-linejoin':'round','stroke-linecap':'round'},tail),f,sg})));
+  const core=el('rect',{x:-3.2,width:6.4,rx:2,fill:'#4a3a85'},tail);
+  const sheath=el('rect',{fill:'url(#stripe)',stroke:'#3b2a6b','stroke-width':2,rx:3},tail);
+  const collar=el('rect',{x:-14,width:28,height:5,rx:2,fill:'#5b4a9b',stroke:'#3b2a6b','stroke-width':1.5},tail);
+  el('rect',{x:-17,y:-7,width:34,height:7,rx:2.5,fill:'#5b4a9b',stroke:'#3b2a6b','stroke-width':1.5},tail);
+  el('polygon',{points:'0,0 28,-18 28,-62 0,-80 -28,-62 -28,-18',fill:'url(#gHead)',stroke:'#3b2a6b','stroke-width':2.5,'stroke-linejoin':'round'},head);
+  el('path',{d:'M-28,-18L0,-30L28,-18M-28,-62L0,-50L28,-62M0,-30V-50',fill:'none',stroke:'#8b7bcc','stroke-width':1.6},head);
+  const dna=el('path',{d:hd,fill:'none',stroke:'#e0432a','stroke-width':2.6,'stroke-linecap':'round','stroke-linejoin':'round'},head);
+  return{root,tail,head,fib,core,sheath,collar,dna};}
+function setPhage(p,o){
+  const Hs=o.Hs??60,sw=o.sw??18,sp=o.splay??1;
+  p.root.setAttribute('transform',`translate(${f1(o.x)} ${f1(o.y)}) rotate(${f1(o.r||0)}) scale(${f2(o.s??1)})`);
+  p.root.setAttribute('opacity',f2(o.op??1));
+  p.sheath.setAttribute('x',f1(-sw/2));p.sheath.setAttribute('y',f1(-7-Hs));p.sheath.setAttribute('width',f1(sw));p.sheath.setAttribute('height',f1(Hs));
+  p.collar.setAttribute('y',f1(-12-Hs));p.core.setAttribute('y',f1(-7-Hs));p.core.setAttribute('height',67);
+  p.fib.forEach(({e,f,sg})=>{e.setAttribute('points',`${sg*f[0]},-4 ${f1(sg*lerp(f[1],f[3],sp))},${f1(lerp(f[2],f[4],sp))} ${f1(sg*lerp(f[5],f[7],sp))},${f1(lerp(f[6],f[8],sp))}`);
+    e.setAttribute('opacity',f2(o.fib??1));});
+  p.head.setAttribute('transform',`translate(${f1(o.hx||0)} ${f1(-12-Hs+(o.hy||0))}) rotate(${f1(o.hr||0)}) scale(${f2(o.hs??1)})`);
+  p.tail.setAttribute('transform',`translate(${f1(o.tx||0)} ${f1(o.ty||0)}) rotate(${f1(o.tr||0)}) scale(${f2(o.ts??1)})`);
+  p.dna.setAttribute('opacity',f2(o.dna??1));}
+
+/* ---------------- new phages: slots, scattered parts, destinations ---------------- */
+const SS=.34;
+const DEST=[[95,646,0],[120,260,-35],[330,180,-10],[570,175,12],[780,250,35],[60,470,-50],[330,700,-15],[600,700,15],[845,470,50],[805,646,0]];
+const slots=[];
+[475,615].forEach(y=>[235,342,450,558,665].forEach(x=>slots.push({x,y})));
+const copyG=[];
+slots.forEach((s,i)=>{
+  s.h=[rr(-70,-40)*(i%2?1:-1),rr(20,45),rr(-80,80)];
+  s.t=[rr(30,55)*(i%2?-1:1),rr(-30,-10),rr(-70,70)];
+  s.cp=[s.x+rr(-25,25),s.y+rr(-78,-58)];
+  s.dx=DEST[i][0];s.dy=DEST[i][1];s.dr=DEST[i][2];s.ph=rr(0,6);
+  s.p=Phage(lyrIn);
+});
+slots.forEach(()=>{const g=G(lyrIn,{opacity:0});el('path',{d:cd,fill:'none',stroke:'#7a1a10','stroke-width':4.4,'stroke-linecap':'round'},g);
+  el('path',{d:cd,fill:'none',stroke:'#ff5a3c','stroke-width':2.2,'stroke-linecap':'round'},g);copyG.push(g);});
+
+/* ---------------- cell wall (pieces, so it can burst) ---------------- */
+const NP=30,pieces=[];
+const pathOff=(j,off)=>{let d='';for(let k=0;k<=8;k++){const p=stad((j+k/8)/NP,CX,CY,BW,BH);d+=(k?'L':'M')+f1(p[0]+p[2]*off)+','+f1(p[1]+p[3]*off);}return d;};
+for(let j=0;j<NP;j++){const g=G(cellB),m=stad((j+.5)/NP,CX,CY,BW,BH);
+  el('path',{d:pathOff(j,0),fill:'none',stroke:'#a5692a','stroke-width':10,'stroke-linecap':'round'},g);
+  el('path',{d:pathOff(j,-11),fill:'none',stroke:'#e9c46a','stroke-width':4,'stroke-linecap':'round'},g);
+  pieces.push({g,cx:m[0],cy:m[1],nx:m[2],ny:m[3],rot:rr(-80,80),d:rr(90,180)});}
+const hole=el('ellipse',{cx:CX,cy:TOP+3,rx:0,ry:9,fill:'#d6eaa8'},cellB);
+const recG=G(cellB);
+[-50,-34,34,50].forEach(dx=>{const x=CX+dx;el('path',{d:`M${x-5},${TOP-5}A5,5 0 0 1 ${x+5},${TOP-5}Z`,fill:'#2bb3a3',stroke:'#17766b','stroke-width':1.2},recG);});
+
+/* ---------------- top layer: glows, main phage, burst ---------------- */
+const recGlow=[-50,-34,34,50].map(dx=>el('circle',{cx:CX+dx,cy:TOP-6,r:8,fill:'none',stroke:'#ffd23a','stroke-width':2.6,opacity:0},lyrTop));
+const glow=el('circle',{cx:CX,cy:TOP-2,r:32,fill:'url(#gGlow)',opacity:0},lyrTop);
+const main=Phage(lyrTop);
+const enz=[...Array(9)].map(()=>({e:el('circle',{r:2.8,fill:'#ff8a1e',stroke:'#b85a00','stroke-width':.8,opacity:0},lyrTop),a:rr(-14,14),b:rr(-22,22),o:rnd()}));
+const ring=el('circle',{cx:CX,cy:CY,r:160,fill:'none',stroke:'#b9dc7a',opacity:0},lyrTop);
+
+/* banner */
+const bn=el('rect',{id:'bn',x:100,y:14,width:700,height:58,rx:20,fill:'#2e8b57'},lyrBn),bt=el('text',{class:'bt',x:450,y:43},lyrBn);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:4.6};
+let stage=0,T=0,t0=0,last=performance.now(),paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(t){
+  const u1=clamp(P,0,1),u2=clamp(P-1,0,1),u3=clamp(P-2,0,1),u4=clamp(P-3,0,1),u5=clamp(P-4,0,1);
+
+  /* bacterium: swell, burst */
+  const sw5=sm(u5,0,.35),cf=sm(u5,.35,.55),bu=sm(u5,.35,.8);
+  const scl=1+.045*sw5*(1-cf)+.012*Math.sin(t*15)*sw5*(1-sm(u5,.3,.4));
+  const tr=`translate(${CX} ${CY}) scale(${scl.toFixed(4)}) translate(${-CX} ${-CY})`;
+  cellA.setAttribute('transform',tr);cellA.setAttribute('opacity',f2(1-cf));cellB.setAttribute('transform',tr);
+  pieces.forEach(pc=>{pc.g.setAttribute('transform',`translate(${f1(pc.nx*pc.d*bu)} ${f1(pc.ny*pc.d*bu)}) rotate(${f1(pc.rot*bu)} ${f1(pc.cx)} ${f1(pc.cy)})`);
+    pc.g.setAttribute('opacity',f2(1-sm(u5,.4,.85)));});
+  hole.setAttribute('rx',f1(9*sm(u2,.15,.45)));hole.setAttribute('opacity',f2(1-sm(u5,.35,.45)));
+  recG.setAttribute('opacity',f2(1-sm(u5,.35,.5)));
+  ribG.setAttribute('opacity',f2(.85*(1-cf)));
+  const b2=sm(u5,.35,.72);ring.setAttribute('r',f1(lerp(160,470,b2)));ring.setAttribute('stroke-width',f1(12*(1-b2)+1));ring.setAttribute('opacity',f2(b2>0&&b2<1?.6*(1-b2):0));
+  smallB.forEach((g,k)=>{const o=sm(u5,.45,.8);g.setAttribute('opacity',f2(o));});
+
+  /* attachment */
+  const m=sm(u1,0,.75),spl=sm(u1,.5,.9),con=sm(u2,.3,.5),inj=sm(u2,.45,.85),gone=sm(u5,.35,.6);
+  setPhage(main,{x:lerp(215,CX,m),y:lerp(150,BASEY,m)-55*Math.sin(PI*m)-30*gone,r:lerp(-35,0,m)+Math.sin(t*2.3)*6*(1-m),
+    op:sm(u1,0,.12)*(1-gone),Hs:lerp(60,30,con),sw:lerp(18,24,con),splay:spl,dna:1-inj});
+  const rg=sm(u1,.82,1)*(1-sm(u2,.15,.4));
+  recGlow.forEach((c,k)=>{c.setAttribute('opacity',f2(rg));c.setAttribute('r',f1(7+2.5*Math.sin(t*6+k)));});
+
+  /* penetration: enzyme, hole, DNA injection */
+  const g=Math.sin(PI*sm(u2,0,.5));
+  glow.setAttribute('opacity',f2(g));glow.setAttribute('r',f1(28+4*Math.sin(t*7)));
+  enz.forEach(z=>{const q=(t*.9+z.o)%1;z.e.setAttribute('cx',f1(CX+lerp(z.a,z.b,q)));z.e.setAttribute('cy',f1(lerp(BASEY-4,TOP+4,q)));
+    z.e.setAttribute('opacity',f2(g*Math.sin(PI*q)));});
+  const pe=sm(u2,.45,.95),e=Lt*pe,s=Ls*sm(u2,.62,1),len=Math.max(0,e-s);
+  [injO,injI].forEach(p=>{p.setAttribute('stroke-dasharray',`${f1(len)} ${f1(Lt+20)}`);p.setAttribute('stroke-dashoffset',f1(-s));});
+  injG.setAttribute('opacity',f2(e>1?(1-sm(u3,.75,.95))*(1-.15*Math.sin(t*5)*sm(u3,.2,.4)):0));
+
+  /* biosynthesis: host DNA broken down, mRNA, copies */
+  frags.forEach((f,j)=>{const k=sm(u3,.05+j*.025,.35+j*.025),sc=1-.6*k;
+    f.e.setAttribute('transform',`translate(${f1(f.nx*16*k)} ${f1(f.ny*16*k)}) translate(${f1(f.cx)} ${f1(f.cy)}) rotate(${f1(f.rot*k)}) scale(${f2(sc)}) translate(${f1(-f.cx)} ${f1(-f.cy)})`);
+    f.e.setAttribute('opacity',f2(1-sm(u3,.2+j*.025,.5+j*.025)));});
+  MR.forEach((r,j)=>{const k=sm(u3,.1+j*.04,.42+j*.04);
+    r.g.setAttribute('opacity',f2(clamp(k*5,0,1)*(1-sm(u3,.55+j*.03,.7+j*.03))));
+    r.g.setAttribute('transform',`translate(${f1(lerp(COIL.x,r.tg[0],k))} ${f1(lerp(COIL.y,r.tg[1],k))}) rotate(${f1(r.r0+k*120)})`);});
+
+  /* new phages: parts appear, assemble, burst out */
+  const fin=sm(u5,.85,1);
+  slots.forEach((sl,i)=>{const cg=copyG[i];
+    if(P<=2.001){sl.p.root.setAttribute('display','none');cg.setAttribute('opacity',0);return;}
+    sl.p.root.removeAttribute('display');
+    const c=sm(u3,.25+i*.03,.45+i*.03),pop=backOut(clamp((u3-.4-i*.035)/.15,0,1));
+    const a=sm(u4,i*.04,.45+i*.04),d=sm(u4,i*.04,.3+i*.04),fb=sm(u4,.5+i*.04,.62+i*.04);
+    const hx=lerp(sl.h[0],0,a),hy=lerp(sl.h[1],0,a),hr=lerp(sl.h[2],0,a);
+    const f=sm(u5,.38+i*.01,.9+i*.01),att=(i===0||i===9);
+    const dr=att?0:fin;
+    const x=lerp(sl.x,sl.dx,f)+Math.sin(t*.9+sl.ph)*8*dr,y=lerp(sl.y,sl.dy,f)+Math.cos(t*1.1+sl.ph*2)*6*dr;
+    const jig=sm(u5,.05,.35)*(1-f)*Math.sin(t*18+i)*4;
+    setPhage(sl.p,{x,y,r:lerp(0,sl.dr,f)+Math.sin(t*.7+sl.ph)*6*dr+jig,s:SS,splay:fb,fib:fb,dna:d,
+      hx,hy,hr,hs:pop,tx:lerp(sl.t[0],0,a),ty:lerp(sl.t[1],0,a),tr:lerp(sl.t[2],0,a),ts:pop});
+    /* DNA copy travels out of the viral coil, then into its head */
+    const hc=[sl.x+SS*(hx+40*Math.sin(hr*D2R)),sl.y+SS*(-72+hy-40*Math.cos(hr*D2R))];
+    const px=lerp(lerp(COIL.x,sl.cp[0],c),hc[0],d),py=lerp(lerp(COIL.y,sl.cp[1],c),hc[1],d);
+    cg.setAttribute('opacity',f2(c>.001?clamp(c*4,0,1)*(1-sm(u4,.15+i*.04,.3+i*.04)):0));
+    cg.setAttribute('transform',`translate(${f1(px)} ${f1(py)}) rotate(${f1(c*200+i*30)}) scale(${f2(lerp(lerp(.5,1,c),.45,d))})`);
+  });
+
+  bn.setAttribute('opacity',1);
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+STG.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){bn.style.fill=STG[stage][1];bt.removeAttribute('textLength');bt.textContent=STG[stage][0];
+  try{if(bt.getComputedTextLength()>670){bt.setAttribute('textLength',670);bt.setAttribute('lengthAdjust','spacingAndGlyphs');}}catch(e){}
+  [...dotsEl.children].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+STG.length)%STG.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,4.6*(tgt-P));
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:400});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:400});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
