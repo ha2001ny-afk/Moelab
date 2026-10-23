@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moelab-v10';
+const CACHE_NAME = 'moelab-v12';
 
 const ASSETS_TO_CACHE = [
   './',
