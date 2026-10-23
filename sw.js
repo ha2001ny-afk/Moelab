@@ -1,13 +1,9 @@
-const CACHE_NAME = 'moelab-v12';
+// غيّر هذا الرقم عند كل تحديث مستقبلي لتنظيف الذاكرة القديمة فوراً
+const CACHE_NAME = 'moelab-v13';
 
+// قائمة الملفات الأساسية للحفظ أوفلاين
 const ASSETS_TO_CACHE = [
-  './',
   './portal.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js',
   './spermatogenesis.html',
   './oogenesis.html',
   './bacteriophage.html',
@@ -19,59 +15,66 @@ const ASSETS_TO_CACHE = [
   './insect_reproductive_system.html',
   './frog_lifecycle.html',
   './male_reproductive_system.html',
-  './ovarian_cycle.html',
-  './euglena.html',
-  // الفصل الأول
-  './plasma_membrane.html',
-  './mitosis.html',
-
-  // الفصل الثاني (14 تجربة)
-  './plant_tissues.html',
-  './phloem_tissue.html',
-  './squamous_epithelium.html',
-  './cuboidal_epithelium.html',
-  './columnar_epithelium.html',
-  './pseudostratified_epithelium.html',
-  './stratified_squamous.html',
-  './stratified_cuboidal.html',
-  './stratified_columnar.html',
-  './connective_loose.html',
-  './compact_bone.html',
-  './red_blood_cells.html',
-  './muscle_types.html',
-  './neurons.html'
+  './ovarian_cycle.html'
 ];
 
+// 1. التثبيت والتخطي الفوري للانتظار دون الحاجة لإغلاق المتصفح
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Moelab: Caching all offline assets...');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  self.skipWaiting();
 });
 
+// 2. التفعيل وحذف كل النسخ والكاش القديم لحظياً
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('Moelab: Removing old cache', key);
-            return caches.delete(key);
+            return caches.delete(key); // مسح الكاش القديم
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // فرض السيطرة على الصفحة المفتوحة فوراً
   );
-  self.clients.claim();
 });
 
+// 3. آلية الجلب الذكية (Network-First للبوابة و Cache-First للتجارب)
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // إذا كان الطلب لملف البوابة portal.html: اسحب الأحدث من النت أولاً
+  if (req.mode === 'navigate' || url.pathname.endsWith('portal.html')) {
+    event.respondWith(
+      fetch(req)
+        .then((networkResponse) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(req, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => {
+          // إذا لم يتوفر إنترنت: افتح النسخة المحفوظة أوفلاين
+          return caches.match(req);
+        })
+    );
+    return;
+  }
+
+  // بالنسبة للتجارب وباقي الملفات: افتح من الكاش لتكون سريعة وخفيفة
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+    caches.match(req).then((cachedResponse) => {
+      return cachedResponse || fetch(req).then((networkResponse) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(req, networkResponse.clone());
+          return networkResponse;
+        });
+      });
     })
   );
 });
