@@ -20,6 +20,7 @@ const ASSETS_TO_CACHE = [
   './frog_lifecycle.html',
   './male_reproductive_system.html',
   './ovarian_cycle.html',
+  './euglena.html',
   // الفصل الأول
   './plasma_membrane.html',
   './mitosis.html',
