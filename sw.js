@@ -1,5 +1,5 @@
 // غيّر هذا الرقم عند كل تحديث مستقبلي لتنظيف الذاكرة القديمة فوراً
-const CACHE_NAME = 'moelab-v13';
+const CACHE_NAME = 'moelab-v14';
 
 // قائمة الملفات الأساسية للحفظ أوفلاين
 const ASSETS_TO_CACHE = [
