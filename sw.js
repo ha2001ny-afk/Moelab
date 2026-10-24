@@ -1,5 +1,6 @@
-const CACHE_NAME = 'moelab-v16';
+const CACHE_NAME = 'moelab-v17';
 
+// قائمة الملفات الأساسية للأوفلاين
 const ASSETS_TO_CACHE = [
   './portal.html',
   './plasma_membrane.html',
@@ -18,7 +19,7 @@ const ASSETS_TO_CACHE = [
   './euglena.html'
 ];
 
-// 1. التثبيت والتخزين الذكي المستقل (تخزين كل ملف بشكل منفصل لمنع فشل الحزمة)
+// 1. التثبيت وتخزين الملفات بأمان
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -34,7 +35,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. تفعيل وحذف النسخ القديمة فوراً
+// 2. تفعيل وحذف النسخ القديمة
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -49,12 +50,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. آلية الجلب مع دعم تجاهل المفاتيح والرموز (?key=...)
+// 3. إدارة الجلب والاتصال
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // إذا كان الطلب للبوابة: جرب الشبكة أولاً، وإن تعذر فالذاكرة بدون شروط
+  // استثناء جوهري: أي اتصال خارجي بقاعدة بيانات جوجل شيت اتركه يمر للإنترنت مباشرة دون اعتراض
+  if (url.origin !== location.origin || req.method !== 'GET') {
+    return;
+  }
+
+  // إذا كان الطلب للبوابة: اسحب الأحدث من النت أولاً، أو افتح المحفوظ أوفلاين
   if (req.mode === 'navigate' || url.pathname.endsWith('portal.html')) {
     event.respondWith(
       fetch(req)
@@ -65,7 +71,6 @@ self.addEventListener('fetch', (event) => {
           });
         })
         .catch(async () => {
-          // جلب النسخة المحفوظة مع تجاهل المعاملات (?key=...)
           const cachedPortal = await caches.match('./portal.html', { ignoreSearch: true });
           return cachedPortal || caches.match(req, { ignoreSearch: true });
         })
@@ -73,7 +78,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // بالنسبة للتجارب: جلب من الذاكرة أولاً ثم الشبكة
+  // بالنسبة للتجارب وباقي الملفات: من الذاكرة أولاً ثم الشبكة
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((cachedResponse) => {
       return cachedResponse || fetch(req).then((networkResponse) => {
