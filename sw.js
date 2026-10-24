@@ -16,6 +16,8 @@ const ASSETS_TO_CACHE = [
   './frog_lifecycle.html',
   './male_reproductive_system.html',
   './ovarian_cycle.html'
+  './plasma_membrane.html',
+
 ];
 
 // 1. التثبيت والتخطي الفوري للانتظار دون الحاجة لإغلاق المتصفح
