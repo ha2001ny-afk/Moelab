@@ -1,9 +1,8 @@
-// غيّر هذا الرقم عند كل تحديث مستقبلي لتنظيف الذاكرة القديمة فوراً
-const CACHE_NAME = 'moelab-v14';
+const CACHE_NAME = 'moelab-v16';
 
-// قائمة الملفات الأساسية للحفظ أوفلاين
 const ASSETS_TO_CACHE = [
   './portal.html',
+  './plasma_membrane.html',
   './spermatogenesis.html',
   './oogenesis.html',
   './bacteriophage.html',
@@ -15,42 +14,47 @@ const ASSETS_TO_CACHE = [
   './insect_reproductive_system.html',
   './frog_lifecycle.html',
   './male_reproductive_system.html',
-  './ovarian_cycle.html'
-  './plasma_membrane.html',
-
+  './ovarian_cycle.html',
+  './euglena.html'
 ];
 
-// 1. التثبيت والتخطي الفوري للانتظار دون الحاجة لإغلاق المتصفح
+// 1. التثبيت والتخزين الذكي المستقل (تخزين كل ملف بشكل منفصل لمنع فشل الحزمة)
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of ASSETS_TO_CACHE) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn('تخطي ملف غير موجود حالياً:', asset);
+        }
+      }
     })
   );
 });
 
-// 2. التفعيل وحذف كل النسخ والكاش القديم لحظياً
+// 2. تفعيل وحذف النسخ القديمة فوراً
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            return caches.delete(key); // مسح الكاش القديم
+            return caches.delete(key);
           }
         })
       );
-    }).then(() => self.clients.claim()) // فرض السيطرة على الصفحة المفتوحة فوراً
+    }).then(() => self.clients.claim())
   );
 });
 
-// 3. آلية الجلب الذكية (Network-First للبوابة و Cache-First للتجارب)
+// 3. آلية الجلب مع دعم تجاهل المفاتيح والرموز (?key=...)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // إذا كان الطلب لملف البوابة portal.html: اسحب الأحدث من النت أولاً
+  // إذا كان الطلب للبوابة: جرب الشبكة أولاً، وإن تعذر فالذاكرة بدون شروط
   if (req.mode === 'navigate' || url.pathname.endsWith('portal.html')) {
     event.respondWith(
       fetch(req)
@@ -60,17 +64,18 @@ self.addEventListener('fetch', (event) => {
             return networkResponse;
           });
         })
-        .catch(() => {
-          // إذا لم يتوفر إنترنت: افتح النسخة المحفوظة أوفلاين
-          return caches.match(req);
+        .catch(async () => {
+          // جلب النسخة المحفوظة مع تجاهل المعاملات (?key=...)
+          const cachedPortal = await caches.match('./portal.html', { ignoreSearch: true });
+          return cachedPortal || caches.match(req, { ignoreSearch: true });
         })
     );
     return;
   }
 
-  // بالنسبة للتجارب وباقي الملفات: افتح من الكاش لتكون سريعة وخفيفة
+  // بالنسبة للتجارب: جلب من الذاكرة أولاً ثم الشبكة
   event.respondWith(
-    caches.match(req).then((cachedResponse) => {
+    caches.match(req, { ignoreSearch: true }).then((cachedResponse) => {
       return cachedResponse || fetch(req).then((networkResponse) => {
         return caches.open(CACHE_NAME).then((cache) => {
           cache.put(req, networkResponse.clone());
