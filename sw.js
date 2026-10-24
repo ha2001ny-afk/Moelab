@@ -1,6 +1,6 @@
-const CACHE_NAME = 'moelab-v18';
+const CACHE_NAME = 'moelab-v19';
 
-// قائمة جميع ملفات ومحاكيات المنصة بالكامل من مستودعك
+// قائمة جميع ملفات ومحاكيات المنصة بالكامل
 const ASSETS_TO_CACHE = [
   './portal.html',
 
@@ -47,7 +47,7 @@ const ASSETS_TO_CACHE = [
   './ovarian_cycle.html'
 ];
 
-// 1. التثبيت والتخزين الذكي (تخزين كل ملف مستقلاً لمنع فشل الحزمة)
+// 1. التثبيت والتخزين الذكي
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -63,7 +63,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. تفعيل وحذف النسخ السابقة بالكامل من أجهزة المشتركين
+// 2. تفعيل وحذف النسخ السابقة فوراً
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -83,13 +83,15 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // استثناء اتصالات قاعدة البيانات (Google Sheets) لتمر للإنترنت دون اعتراض
+  // استثناء اتصالات Google Sheets لتمر للإنترنت دون اعتراض
   if (url.origin !== location.origin || req.method !== 'GET') {
     return;
   }
 
-  // لصفحة البوابة الرئيسية: اسحب التحديث من النت، وإن تعذر افتح المحفوظ أوفلاين
-  if (req.mode === 'navigate' || url.pathname.endsWith('portal.html')) {
+  // إذا كان الطلب للبوابة الرئيسية فقط (portal.html)
+  const isPortal = url.pathname.endsWith('portal.html') || url.pathname.endsWith('/Moelab/') || url.pathname.endsWith('/Moelab');
+
+  if (isPortal) {
     event.respondWith(
       fetch(req)
         .then((networkResponse) => {
@@ -99,17 +101,20 @@ self.addEventListener('fetch', (event) => {
           });
         })
         .catch(async () => {
-          const cachedPortal = await caches.match('./portal.html', { ignoreSearch: true });
-          return cachedPortal || caches.match(req, { ignoreSearch: true });
+          const cached = await caches.match('./portal.html', { ignoreSearch: true });
+          return cached || caches.match(req, { ignoreSearch: true });
         })
     );
     return;
   }
 
-  // لجميع ملفات التجارب: تشغيل فوري من ذاكرة الأوفلاين
+  // لجميع ملفات التجارب والمحاكاة: فتح فوري من ذاكرة الأوفلاين (Cache-First)
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((cachedResponse) => {
-      return cachedResponse || fetch(req).then((networkResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(req).then((networkResponse) => {
         return caches.open(CACHE_NAME).then((cache) => {
           cache.put(req, networkResponse.clone());
           return networkResponse;
