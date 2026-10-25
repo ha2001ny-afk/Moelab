@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moelab-v19';
+const CACHE_NAME = 'moelab-v20';
 
 // قائمة جميع ملفات ومحاكيات المنصة بالكامل
 const ASSETS_TO_CACHE = [
@@ -14,6 +14,7 @@ const ASSETS_TO_CACHE = [
   './endocytosis.html',
   './mitosis.html',
   './meiosis.html',
+
 
   // --- الفصل الثاني: الأنسجة ---
   './squamous_epithelium.html',
@@ -45,6 +46,18 @@ const ASSETS_TO_CACHE = [
   './frog_lifecycle.html',
   './male_reproductive_system.html',
   './ovarian_cycle.html'
+  './rhizopus.html',
+  './gametophyte_reduction.html',
+  './polytrichum.html',
+  './polypodium.html',
+  './flower_structure.html',
+  './anther_structure.html',
+  './anther_pollen.html',
+  './dicot_embryo.html',
+  './seed_structure.html',
+  './fruit_structure.html',
+  './frog_reproductive_system.html',
+  './human_testis_structure.html',
 ];
 
 // 1. التثبيت والتخزين الذكي
