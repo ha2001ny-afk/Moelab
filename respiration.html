@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التنفس</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible,.choice:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+
+  /* home screen */
+  #home{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:linear-gradient(#f7f9fb,#e4eaf0);z-index:10;padding:16px;box-sizing:border-box}
+  .choice{width:min(340px,86vw);padding:22px 18px;border-radius:18px;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-family:inherit;font-size:clamp(20px,5vw,28px);font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .15s,background .15s}
+  .choice:hover{transform:translateY(-2px)}
+  .choice:active{background:#d9ebf7}
+  .choice span{display:block;width:44px;height:6px;border-radius:3px;background:#c4623a;margin:10px auto 0}
+  body.home #ctrl,body.home .zb{display:none}
+  body:not(.home) #home{display:none}
+
+  .fm{fill:#c0392b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:30px;dominant-baseline:central;direction:ltr}
+  .ar{fill:#1f3a52;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .en{fill:#1f3a52;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:22px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .hd{fill:#1f3a52;font-size:26px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .gm{fill:#2a1206;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:15px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+</style>
+</head>
+<body class="home">
+<div id="top"><div id="title">التــنـــفـــس</div></div>
+<div id="stage">
+  <div id="home">
+    <button class="choice" data-sc="an">التنفس اللاهوائي<span></span></button>
+    <button class="choice" data-sc="ae">التنفس الهوائي<span></span></button>
+  </div>
+  <div class="zb"><button id="homeBtn" aria-label="الرئيسية">⌂</button><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 30 1000 430" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGam" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#ffb184"/><stop offset=".55" stop-color="#ef6d31"/><stop offset="1" stop-color="#c9501c"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function place(o,x,y,s,a){o.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) scale(${f2(s)})`);op(o,a);}
+
+const world=G(view);
+
+/* ---------- builders (each scene has its own layers) ---------- */
+function layers(){const g=G(world,{style:'display:none'});
+  return{g,glow:G(g),line:G(g),obj:G(g),mv:G(g)};}
+function T(p,cls,x,y,s,extra){const t=el('text',Object.assign({class:cls,x,y},extra||{}),p);t.textContent=s;return t;}
+/* compound: formula centred on (x,y) + Arabic name below; built around (0,0) so it scales in place */
+function plain(L,x,y,f,name){const g=G(L.obj,{opacity:0});
+  T(g,'fm',0,0,f,{'text-anchor':'middle'});T(g,'ar',0,42,name);g.x=x;g.y=y;return g;}
+/* branched formula: left – CENTRE – right, with an atom drawn above the centre */
+function branched(L,x,y,left,mid,right,top,dbl,w,name){const g=G(L.obj,{opacity:0});
+  T(g,'fm',-w,0,left,{'text-anchor':'end'});
+  T(g,'fm',0,0,mid,{'text-anchor':'middle'});
+  T(g,'fm',w,0,right,{'text-anchor':'start'});
+  T(g,'fm',0,-48,top,{'text-anchor':'middle','font-size':26});
+  const bond=dx=>el('line',{x1:dx,y1:-34,x2:dx,y2:-17,stroke:'#c0392b','stroke-width':2.5},g);
+  if(dbl){bond(-3.5);bond(3.5);}else bond(0);
+  T(g,'ar',0,42,name);g.x=x;g.y=y;return g;}
+function arrow(L,d,hx,hy,ang){const p=el('path',{d,fill:'none',stroke:'#1f3a52','stroke-width':4,'stroke-linejoin':'round',pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},L.line);
+  const h=el('path',{d:'M-16,-10 L2,0 L-16,10Z',fill:'#1f3a52',opacity:0,transform:`translate(${hx} ${hy}) rotate(${ang})`},L.line);
+  return{p,h};}
+const drawA=(A,s)=>{A.p.setAttribute('stroke-dashoffset',f2(1-s));op(A.h,sm(s,.88,1));};
+const glow=(L,x,y,r)=>el('circle',{cx:x,cy:y,r:r||70,fill:'url(#gGlow)',opacity:0},L.glow);
+function bead(L,s){const g=G(L.mv,{opacity:0});
+  el('circle',{cx:1.5,cy:2.5,r:18,fill:'#1f3a52',opacity:.18,filter:'url(#blur)'},g);
+  el('circle',{cx:0,cy:0,r:18,fill:'url(#gGam)',stroke:'#b84e1e','stroke-width':2},g);
+  T(g,'gm',0,1,s);return g;}
+function along(A,s){const P=A.p,len=P.getTotalLength(),pt=P.getPointAtLength(len*s);return pt;}
+const pop=(g,a)=>place(g,g.x,g.y,.4+.6*a,a);
+const pulse=(c,a)=>op(c,Math.sin(PI*a));
+function ATP(L,x,y,plusX,withEnergy){
+  const plus=T(L.obj,'fm',plusX,y,'+',{'text-anchor':'middle',opacity:0});
+  const g=G(L.obj,{opacity:0});T(g,'fm',0,0,'2ATP',{'text-anchor':'middle'});
+  if(withEnergy)T(g,'ar',0,42,'طاقة');g.x=x;g.y=y;return{plus,g,gl:glow(L,x,y,75)};}
+/* reduction labels (the arrow's caption above and below its lower segment) */
+function redLbl(L,xa,xh,y1,xb,y2){const g=G(L.obj,{opacity:0});
+  T(g,'ar',xa,y1,'اختزال بالهيدروجين');T(g,'en',xh,y1,'2(2H)');T(g,'ar',xb,y2,'من التحلل السكري');return g;}
+
+const Y1=190,Y2=385;
+
+/* ================= scene 1: التنفس اللاهوائي ================= */
+const A=layers();
+const aHd=T(A.obj,'hd',500,70,'التنفس اللاهوائي',{opacity:0});
+const aGlu=plain(A,130,Y1,'C₆H₁₂O₆','سكر الكلوكوز'),aGluGl=glow(A,130,Y1);
+const aA1=arrow(A,'M215,190 L345,190',350,190,0),aL1=T(A.obj,'ar',280,165,'تحلل سكري',{opacity:0});
+const aPyr=branched(A,490,Y1,'2CH₃ –','C','– COOH','O',true,15,'حامض بايروفي'),aPyrGl=glow(A,490,Y1,90);
+const aA2=arrow(A,'M622,190 L752,190',757,190,0),aL2=T(A.obj,'ar',688,165,'أكسدة بنزع',{opacity:0});
+const aCO2=T(A.obj,'en',688,218,'2CO₂',{opacity:0});
+const aAld=branched(A,872,Y1,'2CH₃ –','C','– H','O',true,15,'اسيتالديهايد'),aAldGl=glow(A,872,Y1,80);
+const aA3=arrow(A,'M938,190 L975,190 L975,385 L645,385',640,385,180);
+const aL3=redLbl(A,850,745,360,810,410);
+const aH=bead(A,'2H');
+const aEth=plain(A,480,Y2,'2CH₃CH₂OH','كحول اثيلي'),aEthGl=glow(A,480,Y2,90);
+const aAtp=ATP(A,215,Y2,325,true);
+
+function renderA(u){
+  op(aHd,sm(u[0],0,.25));
+  pop(aGlu,sm(u[0],.15,.6));pulse(aGluGl,sm(u[0],.4,1));
+  /* glycolysis */
+  drawA(aA1,sm(u[1],.05,.5));op(aL1,sm(u[1],.1,.3));
+  pop(aPyr,sm(u[1],.5,.8));pulse(aPyrGl,sm(u[1],.5,1));
+  /* removal of CO2 */
+  drawA(aA2,sm(u[2],0,.45));op(aL2,sm(u[2],.05,.25));
+  const c=sm(u[2],.3,.65);aCO2.setAttribute('transform',`translate(0 ${f1(-26*(1-c))})`);op(aCO2,c);
+  pop(aAld,sm(u[2],.55,.8));pulse(aAldGl,sm(u[2],.55,1));
+  /* reduction with hydrogen from glycolysis */
+  drawA(aA3,sm(u[3],0,.4));op(aL3,sm(u[3],.1,.3));
+  const h=sm(u[3],.3,.72),on=u[3]>.3?1:0,pt=along(aA3,h);
+  place(aH,pt.x,pt.y,1,on*(1-sm(u[3],.7,.78)));
+  pop(aEth,sm(u[3],.72,.92));pulse(aEthGl,sm(u[3],.72,1));
+  /* energy */
+  op(aAtp.plus,sm(u[4],0,.25));pop(aAtp.g,sm(u[4],.15,.5));pulse(aAtp.gl,sm(u[4],.15,.9));
+}
+
+/* ================= scene 2: التنفس الهوائي ================= */
+const B=layers();
+const bHd=T(B.obj,'hd',500,70,'التنفس الهوائي',{opacity:0});
+const bGlu=plain(B,130,Y1,'C₆H₁₂O₆','سكر كلوكوز'),bGluGl=glow(B,130,Y1);
+const bA1=arrow(B,'M215,190 L345,190',350,190,0),bL1=T(B.obj,'ar',280,165,'تحلل سكري',{opacity:0});
+const bPyr=branched(B,490,Y1,'2CH₃ –','C','– COOH','O',true,15,'حامض بايروفي'),bPyrGl=glow(B,490,Y1,90);
+const bA2=arrow(B,'M622,190 L950,190 L950,385 L655,385',650,385,180);
+const bL2=redLbl(B,840,735,360,800,410);
+const bH=bead(B,'2H');
+const bLac=branched(B,480,Y2,'2CH₃ –','CH','– COOH','OH',false,24,'حامض لبني'),bLacGl=glow(B,480,Y2,95);
+const bAtp=ATP(B,215,Y2,328,false);
+
+function renderB(u){
+  op(bHd,sm(u[0],0,.25));
+  pop(bGlu,sm(u[0],.15,.6));pulse(bGluGl,sm(u[0],.4,1));
+  drawA(bA1,sm(u[1],.05,.5));op(bL1,sm(u[1],.1,.3));
+  pop(bPyr,sm(u[1],.5,.8));pulse(bPyrGl,sm(u[1],.5,1));
+  drawA(bA2,sm(u[2],0,.4));op(bL2,sm(u[2],.1,.3));
+  const h=sm(u[2],.3,.72),on=u[2]>.3?1:0,pt=along(bA2,h);
+  place(bH,pt.x,pt.y,1,on*(1-sm(u[2],.7,.78)));
+  pop(bLac,sm(u[2],.72,.92));pulse(bLacGl,sm(u[2],.72,1));
+  op(bAtp.plus,sm(u[3],0,.25));pop(bAtp.g,sm(u[3],.15,.5));pulse(bAtp.gl,sm(u[3],.15,.9));
+}
+
+const SCENES={
+  an:{L:A,DUR:[3,4,5,6,4],render:renderA},   /* glucose · glycolysis · CO₂ removal · reduction · ATP */
+  ae:{L:B,DUR:[3,4,6,4],render:renderB}      /* glucose · glycolysis · reduction · ATP */
+};
+let cur=null,DUR=[1];
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:1};
+let stage=0,Tm=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((Tm-t0)/S.dur,0,1));}
+function render(){if(!cur)return;cur.render(DUR.map((_,i)=>clamp(P-i,0,1)));}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;Tm+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+function buildDots(){dotsEl.innerHTML='';DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});}
+function setUI(){[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){if(!cur)return;i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=Tm;S.dur=Math.max(1.2,d);
+  setUI();}
+function open(key){
+  Object.values(SCENES).forEach(s=>s.L.g.style.display='none');
+  cur=SCENES[key];DUR=cur.DUR;cur.L.g.style.display='';
+  P=0;stage=0;S.entry=0;S.tgt=0;render();
+  paused=false;document.getElementById('pause').textContent='⏸';
+  document.body.classList.remove('home');reset();buildDots();go(0);}
+function home(){document.body.classList.add('home');cur=null;}
+document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>open(b.dataset.sc));
+document.getElementById('homeBtn').onclick=home;
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:245});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:245});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
