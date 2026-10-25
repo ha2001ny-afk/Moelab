@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>دورة كربس</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .mn{fill:#1f3a52;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:rtl}
+  .cb{fill:#2a1206;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:14px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .ot{fill:#1f3a52;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:18px;dominant-baseline:central;direction:ltr}
+  .kb{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .bt{fill:#1f3a52;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">دورة كربس</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 490 690" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGam" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#ffb184"/><stop offset=".55" stop-color="#ef6d31"/><stop offset="1" stop-color="#c9501c"/></radialGradient>
+        <linearGradient id="gGeno" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff38a"/><stop offset="1" stop-color="#ffe23a"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI,NAVY='#1f3a52',RED='#c8402a';
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+
+const TITLE='دورة كربس';
+const DUR=[4,7,7,6,9];   /* البايروفي · اسيتايل كو-A · حامض الليمون · الفا-كيتوكلوتاريك · العودة إلى الاوكزالوخليك */
+
+const world=G(view);
+const glowL=G(world),arrL=G(world),outL=G(world),objL=G(world),mvL=G(world);
+
+/* ---------- helpers ---------- */
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function place(o,x,y,s,a){o.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) scale(${f2(s)})`);o.setAttribute('opacity',f2(a));}
+const draw=(l,s)=>l.setAttribute('stroke-dashoffset',f2(1-s));
+const glow=(x,y,r)=>el('circle',{cx:x,cy:y,r:r||70,fill:'url(#gGlow)',opacity:0},glowL);
+const pulse=(g,s)=>op(g,Math.sin(PI*s));
+
+/* molecule: yellow pill + orange carbon badge */
+function mol(name,w,c){const g=G(objL,{opacity:0});
+  el('rect',{x:-w/2+2,y:-15,width:w,height:36,rx:18,fill:NAVY,opacity:.15,filter:'url(#blur)'},g);
+  el('rect',{x:-w/2,y:-18,width:w,height:36,rx:18,fill:'url(#gGeno)',stroke:'#d9b80f','stroke-width':1.5},g);
+  el('text',{class:'mn',x:c?9:0,y:1},g).textContent=name;
+  if(c){el('circle',{cx:-w/2,cy:0,r:17,fill:'url(#gGam)',stroke:'#b84e1e','stroke-width':2},g);
+        el('text',{class:'cb',x:-w/2,y:1},g).textContent=c;}
+  return g;}
+
+/* straight vertical arrow that grows downward */
+function varrow(x,y0,y1){const g=G(arrL,{opacity:0}),L=y1-y0;
+  el('rect',{x:-2.5,y:0,width:5,height:L-14,fill:NAVY},g);
+  el('path',{d:`M-10,${L-16} L0,${L} L10,${L-16}Z`,fill:NAVY},g);
+  return{g,x,y0,y1};}
+const grow=(A,s)=>{A.g.setAttribute('opacity',s>0?1:0);A.g.setAttribute('transform',`translate(${A.x} ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);};
+
+/* small product arrow + label (CO2, 2H, ATP ...) */
+function out(x0,y0,x1,y1,lab){const g=G(outL);
+  const l=el('path',{d:`M${x0},${y0} L${x1},${y1}`,fill:'none',stroke:NAVY,'stroke-width':2,'stroke-linecap':'round',pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},g);
+  const ang=Math.atan2(y1-y0,x1-x0);
+  const h=el('path',{d:'M-9,-5 L0,0 L-9,5Z',fill:NAVY,transform:`translate(${x1} ${y1}) rotate(${f1(ang*180/PI)})`,opacity:0},g);
+  const right=Math.cos(ang)>=0;
+  const t=el('text',{class:'ot',x:x1+(right?6:-6),y:y1,'text-anchor':right?'start':'end',opacity:0},g);
+  if(lab==='CO2'){const a=el('tspan',{},t);a.textContent='CO';const b=el('tspan',{'font-size':12,dy:5},t);b.textContent='2';}
+  else t.textContent=lab;
+  return{l,h,t};}
+function renderOut(O,s){draw(O.l,sm(s,0,.6));op(O.h,sm(s,.5,.65));op(O.t,sm(s,.45,1));}
+
+/* ---------- cycle geometry ---------- */
+const CX=215,CY=455,R=130;
+const pt=a=>{const t=a*PI/180;return[CX+R*Math.sin(t),CY-R*Math.cos(t)];};
+function arc(a0,a1){const[x0,y0]=pt(a0),[x1,y1]=pt(a1);
+  const l=el('path',{d:`M${f1(x0)},${f1(y0)} A${R},${R} 0 ${a1-a0>180?1:0} 1 ${f1(x1)},${f1(y1)}`,fill:'none',stroke:RED,'stroke-width':3.5,'stroke-linecap':'round',pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},arrL);
+  const h=el('path',{d:'M-15,-8 L0,0 L-15,8Z',fill:RED,transform:`translate(${f1(x1)} ${f1(y1)}) rotate(${a1})`,opacity:0},arrL);
+  const d=el('circle',{r:6,fill:'#ffd23a',stroke:RED,'stroke-width':2,opacity:0},mvL);
+  return{l,h,d,a0,a1};}
+function renderArc(A,s){draw(A.l,s);op(A.h,sm(s,.9,1));
+  const[x,y]=pt(lerp(A.a0,A.a1,s));A.d.setAttribute('cx',f1(x));A.d.setAttribute('cy',f1(y));op(A.d,s>0&&s<1?1:0);}
+const fr=(A,a)=>(a-A.a0)/(A.a1-A.a0);
+
+/* travelling dot on straight arrows */
+const tdot=()=>el('circle',{r:6,fill:'#ffd23a',stroke:RED,'stroke-width':2,opacity:0},mvL);
+
+/* ---------- bracket: داخل المايتوكوندريا ---------- */
+const brk=el('path',{d:'M428,30 H448 V662 H428',fill:'none',stroke:NAVY,'stroke-width':2.5,pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},arrL);
+const brkT=el('text',{class:'bt',x:468,y:345,transform:'rotate(90 468 345)',opacity:0},world);brkT.textContent='داخل المايتوكوندريا';
+
+/* ---------- molecules ---------- */
+const nPyr=mol('الحامض البايروفي',150,'3C'),
+      nAce=mol('اسيتايل كو - A',140,'2C'),
+      nOxa=mol('حامض اوكزالوخليك',145,''),
+      nCit=mol('حامض الليمون (الستريك)',195,'6C'),
+      nAlf=mol('حامض الفا - كيتوكلوتاريك',205,'5C');
+const POS={pyr:[215,55],ace:[215,220],oxa:[215,325],cit:pt(105),alf:pt(200)};
+const gPyr=glow(...POS.pyr),gAce=glow(...POS.ace),gOxa=glow(...POS.oxa),gCit=glow(...POS.cit),gAlf=glow(...POS.alf);
+
+/* ---------- البايروفي → اسيتايل كو-A ---------- */
+const A1=varrow(215,76,200),d1=tdot();
+const top3=[['CO2',105],['2H',130],['3ATP',155]].map(([s,y])=>out(220,y,247,y,s));
+
+/* ---------- اسيتايل كو-A → اوكزالوخليك ---------- */
+const A2=varrow(215,241,306),d2=tdot();
+
+/* ---------- arcs of the cycle ---------- */
+const C1=arc(38,92),     /* اوكزالوخليك → الليمون */
+      C2=arc(118,150),   /* الليمون → الفا-كيتوكلوتاريك */
+      C3=arc(232,322);   /* الفا-كيتوكلوتاريك → اوكزالوخليك */
+
+/* products after citric acid */
+const ANC=133,[ax,ay]=pt(ANC);
+const right3=[['CO2',528],['2H',553],['3ATP',578]].map(([s,y])=>out(ax+3,ay-2,336,y,s));
+
+/* products on the left side (bottom → top) */
+const LEFT=[['2H',242],['CO2',260],['ATP',278],['8ATP',296],['2(2H)',312]].map(([s,a])=>{const[x,y]=pt(a);return{a,o:out(x-6,y,x-30,y,s)};});
+
+const kb=el('text',{class:'kb',x:190,y:630,opacity:0},world);kb.textContent='دورة كربس';
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  let a,s;
+
+  /* 1 — الحامض البايروفي داخل المايتوكوندريا */
+  draw(brk,sm(u[0],0,.5));op(brkT,sm(u[0],.3,.6));
+  a=sm(u[0],.35,.75);place(nPyr,...POS.pyr,.4+.6*a,a);
+  pulse(gPyr,sm(u[0],.35,1));
+
+  /* 2 — تحوّله إلى اسيتايل كو-A مع تحرر CO2 و 2H و 3ATP */
+  grow(A1,sm(u[1],0,.6));
+  s=sm(u[1],.03,.62);d1.setAttribute('cx',215);d1.setAttribute('cy',f1(lerp(78,196,s)));op(d1,u[1]>.03&&u[1]<.64?1:0);
+  top3.forEach((o,k)=>renderOut(o,clamp((u[1]-.12-k*.13)/.25,0,1)));
+  a=sm(u[1],.62,.85);place(nAce,...POS.ace,.4+.6*a,a);
+  pulse(gAce,sm(u[1],.62,1));
+
+  /* 3 — اتحاده مع حامض اوكزالوخليك وتكوين حامض الليمون */
+  a=sm(u[2],0,.2);place(nOxa,...POS.oxa,.4+.6*a,a);
+  grow(A2,sm(u[2],.15,.38));
+  s=sm(u[2],.15,.4);d2.setAttribute('cx',215);d2.setAttribute('cy',f1(lerp(243,302,s)));op(d2,u[2]>.15&&u[2]<.42?1:0);
+  pulse(gOxa,sm(u[2],.36,.55));
+  renderArc(C1,sm(u[2],.45,.75));
+  a=sm(u[2],.72,.9);place(nCit,...POS.cit,.4+.6*a,a);
+  pulse(gCit,sm(u[2],.72,1));
+
+  /* 4 — حامض الليمون → حامض الفا-كيتوكلوتاريك */
+  s=sm(u[3],0,.6);renderArc(C2,s);
+  right3.forEach((o,k)=>renderOut(o,clamp((u[3]-.25-k*.12)/.25,0,1)));
+  a=sm(u[3],.6,.8);place(nAlf,...POS.alf,.4+.6*a,a);
+  pulse(gAlf,sm(u[3],.6,1));
+
+  /* 5 — العودة إلى حامض اوكزالوخليك */
+  s=sm(u[4],0,.75);renderArc(C3,s);
+  LEFT.forEach(L=>{const f=fr(C3,L.a);renderOut(L.o,clamp((s-f+.04)/.15,0,1));});
+  pulse(gOxa,Math.max(sm(u[2],.36,.55)*(u[4]>0?0:1),sm(u[4],.74,.95)));
+  op(kb,sm(u[4],.82,.96));
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:245,y:345});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:245,y:345});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
