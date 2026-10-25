@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تطبيق على قانون مندل الثاني</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:10px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .tx{fill:#1f3a52;font-size:14.5px;font-weight:bold;dominant-baseline:central;direction:rtl}
+  .lb{fill:#1f3a52;font-size:13px;font-weight:bold;dominant-baseline:central;direction:rtl}
+  .gt{fill:#1b1b1b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:22px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .gm{fill:#2a1206;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:19px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .ct{fill:#1b1b1b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:17px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .rl{fill:#1f3a52;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:28px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .ar{fill:#1f3a52;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .pc{fill:#1f3a52;font-size:13.5px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hd{fill:#fff;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .bd{fill:#fff;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .sx{fill:#1f3a52;font-size:26px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .sy{fill:#1f3a52;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .th{fill:#1f3a52;font-size:12.5px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .tn{fill:#c4623a;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:21px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .gn{fill:#1b1b1b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:16px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .cn{fill:#c4623a;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:17px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">تطبيق على قانون مندل الثاني</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 420 400" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGam" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#ffb184"/><stop offset=".55" stop-color="#ef6d31"/><stop offset="1" stop-color="#c9501c"/></radialGradient>
+        <linearGradient id="gGeno" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff38a"/><stop offset="1" stop-color="#ffe23a"/></linearGradient>
+        <linearGradient id="gBox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fb"/><stop offset="1" stop-color="#e4eaf0"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI,NAVY='#1f3a52',ORG='#c4623a';
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+
+const TITLE='تطبيق على قانون مندل الثاني';
+/* السؤال · الاستنتاج · P1 · G1+F1 · P2+G2 · F2 مربع بونيت · النسبة المظهرية · النسبة الوراثية */
+const DUR=[11,10,5,7,8,13,8,10];
+
+const world=G(view);
+const glowL=G(world),boxL=G(world),arrL=G(world),gridL=G(world),txtL=G(world),objL=G(world),mvL=G(world);
+
+/* ---------- builders ---------- */
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function place(o,x,y,s,a){o.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) scale(${f2(s)})`);o.setAttribute('opacity',f2(a));}
+const draw=(l,s)=>l.setAttribute('stroke-dashoffset',f2(1-s));
+const glow=(x,y,r)=>el('circle',{cx:x,cy:y,r:r||60,fill:'url(#gGlow)',opacity:0},glowL);
+const box=(x,y,w,h)=>el('rect',{x,y,width:w,height:h,rx:6,fill:'url(#gBox)',stroke:NAVY,'stroke-width':2,opacity:0},boxL);
+function geno(p,s,w){w=w||84;const g=G(p,{opacity:0});
+  el('rect',{x:-w/2,y:-18,width:w,height:36,rx:4,fill:'url(#gGeno)',stroke:'#d9b80f','stroke-width':1.5},g);
+  el('text',{class:'gt',x:0,y:1},g).textContent=s;return g;}
+function gam(p,s){const g=G(p,{opacity:0});
+  el('circle',{cx:1.5,cy:2.5,r:22,fill:NAVY,opacity:.18,filter:'url(#blur)'},g);
+  el('circle',{cx:0,cy:0,r:22,fill:'url(#gGam)',stroke:'#b84e1e','stroke-width':2},g);
+  el('text',{class:'gm',x:0,y:1},g).textContent=s;return g;}
+function rowLbl(x,y,n){const t=el('text',{class:'rl',x,y,opacity:0},txtL);
+  t.textContent=n[0];const s=el('tspan',{'font-size':17,dy:8},t);s.textContent=n[1];return t;}
+function varrow(x,y0,y1){const g=G(arrL,{opacity:0}),L=y1-y0;
+  el('rect',{x:-2.5,y:0,width:5,height:L-14,fill:NAVY},g);
+  el('path',{d:`M-10,${L-16} L0,${L} L10,${L-16}Z`,fill:NAVY},g);
+  return{g,x,y0};}
+const grow=(A,s)=>{A.g.setAttribute('opacity',s>0?1:0);A.g.setAttribute('transform',`translate(${A.x} ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);};
+function txt(s,x,y,c,p){const t=el('text',{class:c,x,y,opacity:0},p||txtL);t.textContent=s;return t;}
+function head(s,y,w,cx){const g=G(txtL,{opacity:0});
+  el('rect',{x:cx-w/2,y:y-15,width:w,height:30,rx:15,fill:ORG},g);
+  el('text',{class:'hd',x:cx,y:y+1},g).textContent=s;return g;}
+function badge(L,x,y){const g=G(txtL,{opacity:0});
+  el('circle',{cx:x,cy:y,r:12,fill:ORG},g);el('text',{class:'bd',x,y:y+1},g).textContent=L;return g;}
+function pct(s,n,x,y){const t=el('text',{class:'pc',x,y,opacity:0},txtL);
+  const a=el('tspan',{},t);a.textContent=s+' ';const b=el('tspan',{fill:ORG,'font-size':16},t);b.textContent=n+' %';return t;}
+
+/* paragraph with automatic line wrapping (right-aligned); symbols such as (L) and ratios are coloured */
+const HL=/^(\([LlEe]\)|[\d:]+)$/;
+function setLine(t,words){while(t.firstChild)t.removeChild(t.firstChild);
+  words.forEach((w,i)=>{if(i)t.appendChild(document.createTextNode(' '));
+    if(HL.test(w)){const s=document.createElementNS(NS,'tspan');s.setAttribute('fill',ORG);s.textContent=w;t.appendChild(s);}
+    else t.appendChild(document.createTextNode(w));});}
+function para(str,o){const words=str.split(/\s+/),lines=[];let cur=[],y=o.y;
+  const mk=()=>el('text',{class:o.cls||'tx',x:o.x,y,'text-anchor':o.anchor||'start',opacity:0},txtL);
+  let t=mk();
+  for(const w of words){const trial=cur.concat(w);setLine(t,trial);
+    if(t.getComputedTextLength()>o.w&&cur.length){setLine(t,cur);lines.push(t);y+=o.lh;t=mk();cur=[w];setLine(t,cur);}
+    else cur=trial;}
+  setLine(t,cur);lines.push(t);return{lines,y:y+o.lh};}
+/* reveal a list of groups one after the other, sliding in from the right */
+function rev(arr,u,a,b){const n=arr.length;
+  arr.forEach((g,i)=>{const s=sm(u,a+(b-a)*i/n,Math.min(b,a+(b-a)*(i+1.6)/n));
+    [].concat(g).forEach(e=>{op(e,s);e.setAttribute('transform',`translate(${f1(12*(1-s))} 0)`);});});}
+
+/* three columns, read right-to-left: السؤال والحل · P1/F1/P2 · مربع بونيت والنسب */
+const CR=840,CM=420,CL=0;
+
+/* =================== أ) السؤال =================== */
+let y=24;
+const hA=head('السؤال',y,150,CR+210);
+let r=para('ذبابة فاكهة ابنوسية اللون طويلة الجناح لُقحت بذكر رمادي اللون واثري (vestigial) الجناح فكان جميع افراد الجيل الاول (F₁) رمادية اللون وطويلة الجناح ، علماً بأن العاملين الوراثيين لهاتين الصفتين يقعان على كروموسومين مختلفين .',{x:CR+408,y:66,w:396,lh:28});
+const seqA=[[hA],...r.lines.map(l=>[l])];y=r.y+6;
+[['أ','ما الطرز الوراثية للابوين ولافراد الجيلين الاول والثاني ؟'],
+ ['ب','ما النسبة المظهرية لافراد F₂ ؟'],
+ ['ج','ما النسبة الوراثية لافراد F₂ ؟'],
+ ['د','بين نوعية وعدد الاتحادات الممكنة بين الامشاج ، وضح ذلك على مربع بونيت ؟']].forEach(([L,s])=>{
+  const b=badge(L,CR+404,y);const q=para(s,{x:CR+386,y,w:372,lh:28});seqA.push([b,...q.lines]);y=q.y;});
+const endA=y;
+
+/* =================== الاستنتاج والحل =================== */
+const yB=endA+30;
+const hB=head('الاستنتاج والحل',yB,190,CR+210);
+r=para('بما ان جميع افراد الجيل الاول كانت طويلة الجناح ورمادية اللون ، اذن الجناح الطويل (L) سائد على الجناح الاثري (l) ، واللون الرمادي (E) سائد على اللون الابنوسي (e) وكذلك فان الذبابة طويلة الجناح والذكر الرمادي اللون يجب ان يكون كل منهما نقياً للصفتين . وبناء على ذلك تكون الطرز الوراثية (بالرموز) للابوين ولافراد الجيلين الاول والثاني كما يأتي :',{x:CR+408,y:yB+44,w:396,lh:28});
+const seqB=[[hB],...r.lines.map(l=>[l])];const endB=r.y;
+
+/* =================== P1 · G1 · F1 =================== */
+const yC=14,BX=CM+58,BW=352,MX=CM+234,XL=CM+150,XR=CM+318;
+const C={};
+C.bP=box(BX,yC,BW,110);C.lP=rowLbl(CM+30,yC+55,'P1');
+C.lbR=para('♀ ذبابة فاكهة ابنوسية الجسم طويلة الجناح',{x:XR,y:yC+18,w:150,lh:19,cls:'lb',anchor:'middle'}).lines;
+C.lbL=para('♂ ذكر رمادي واثري الجناح',{x:XL,y:yC+18,w:150,lh:19,cls:'lb',anchor:'middle'}).lines;
+C.gL=geno(objL,'llEE');C.gR=geno(objL,'LLee');C.x=txt('×',MX,yC+80,'sx');
+C.A1=varrow(MX,yC+113,yC+150);C.mei=txt('انقسام اختزالي',MX+70,yC+131,'ar');
+C.bG=box(BX,yC+152,BW,60);C.lG=rowLbl(CM+30,yC+182,'G1');
+C.mL=gam(objL,'lE');C.mR=gam(objL,'Le');
+C.A2=varrow(MX,yC+215,yC+250);
+C.bF=box(BX,yC+252,BW,95);C.lF=rowLbl(CM+30,yC+299,'F1');
+C.mv=[gam(mvL,'lE'),gam(mvL,'Le')];C.F=geno(objL,'LlEe');C.gl=glow(MX,yC+284,70);
+C.pc=pct('رمادية اللون طويلة الجناح ( هجينة )','100',MX,yC+325);
+const endC=yC+347;
+
+/* =================== P2 · G2 · F2 =================== */
+const yD=endC+34;
+r=para('بعد ذلك يُجرى تلقيحاً لافراد F₁ وكالاتي :',{x:CM+408,y:yD,w:396,lh:28});
+const D={intro:r.lines};const yb=r.y+2;
+D.bP=box(BX,yb,BW,84);D.lP=rowLbl(CM+30,yb+42,'P2');
+D.lbL=txt('♂ ذكر رمادي طويل الجناح هجين',XL,yb+18,'lb');D.lbL.setAttribute('text-anchor','middle');
+D.lbR=txt('♀ رمادية طويلة هجينة',XR,yb+18,'lb');D.lbR.setAttribute('text-anchor','middle');
+D.gL=geno(objL,'LlEe');D.gR=geno(objL,'LlEe');D.x=txt('×',MX,yb+56,'sx');
+const endM=yb+84;
+const gt=14,X0=CL+108,CS=60;
+const cx=c=>X0+CS*(c+1)+CS/2,ry=k=>gt+CS*(k+1)+CS/2;
+const GAM=['LE','Le','lE','le'];
+/* grid */
+D.grid=G(gridL,{opacity:0});
+for(let i=0;i<5;i++)for(let j=0;j<5;j++)
+  el('rect',{x:X0+CS*j,y:gt+CS*i,width:CS,height:CS,fill:(i===0||j===0)?'#eef2f6':'#fff',stroke:NAVY,'stroke-width':1.6},D.grid);
+el('line',{x1:X0,y1:gt,x2:X0+CS,y2:gt+CS,stroke:NAVY,'stroke-width':1.6},D.grid);
+el('text',{class:'sy',x:X0+44,y:gt+17},D.grid).textContent='♂';
+el('text',{class:'sy',x:X0+16,y:gt+43},D.grid).textContent='♀';
+D.lG=rowLbl(CL+30,gt+CS/2,'G2');D.lF=rowLbl(CL+30,gt+CS*3,'F2');
+D.MG=GAM.map(s=>gam(objL,s));D.FG=GAM.map(s=>gam(objL,s));
+/* phenotype colours: رمادية طويلة · ابنوسية طويلة · رمادية اثرية · ابنوسية اثرية */
+const PCOL=['#cfe6f7','#fde0cc','#d8f0d4','#eadcf3'];
+const pheno=g=>{const L=g.includes('L'),E=g.includes('E');return L&&E?0:L?1:E?2:3;};
+const combo=(a,b)=>[a[0],b[0]].sort().join('')+[a[1],b[1]].sort().join('');
+D.cells=[];
+for(let k=0;k<4;k++)for(let c=0;c<4;c++){
+  const s=combo(GAM[k],GAM[c]),x=cx(c),yy=ry(k);
+  const ov=el('rect',{x:x-CS/2+1,y:yy-CS/2+1,width:CS-2,height:CS-2,fill:PCOL[pheno(s)],opacity:0},gridL);
+  const t=G(objL,{opacity:0});el('text',{class:'ct',x:0,y:1},t).textContent=s;
+  D.cells.push({k,c,x,y:yy,s,ov,t,gl:glow(x,yy,38),m:[gam(mvL,GAM[c]),gam(mvL,GAM[k])],p:pheno(s)});}
+const endD=gt+CS*5;
+
+/* =================== النسبة المظهرية والوراثية =================== */
+const yE=endD+30;
+r=para('وعند جمع الطرز الوراثية الواردة في مربع بونيت والتي تشترك بطراز مظهري معين فاننا سنحصل على النسبة المظهرية المتوقعة الآتية :',{x:408,y:yE,w:396,lh:28});
+const E={intro:r.lines};const yT=r.y+4,RH1=72,RH2=124;
+const COLS=[[320,392],[245,320],[170,245],[95,170],[20,95]];  /* من اليمين: عمود العناوين ثم الأعمدة الأربعة */
+const mid=i=>(COLS[i][0]+COLS[i][1])/2;
+E.frame=G(boxL,{opacity:0});
+COLS.forEach(([a,b],i)=>{el('rect',{x:a,y:yT,width:b-a,height:RH1,fill:i?'#fff':'#eef2f6',stroke:NAVY,'stroke-width':1.6},E.frame);});
+E.hc=[1,2,3,4].map(i=>el('rect',{x:COLS[i][0]+1,y:yT+1,width:COLS[i][1]-COLS[i][0]-2,height:RH1-2,fill:PCOL[i-1],opacity:0},boxL));
+E.lab1=[txt('النسبة',mid(0),yT+26,'th'),txt('المظهرية',mid(0),yT+46,'th')];
+const PH=[['9','رمادية','طويلة'],['3','ابنوسية','طويلة'],['3','رمادية','اثرية'],['1','ابنوسية','اثرية']];
+E.ph=PH.map(([n,a,b],i)=>[txt(n,mid(i+1),yT+17,'tn'),txt(a,mid(i+1),yT+40,'th'),txt(b,mid(i+1),yT+57,'th')]);
+E.colon=[1,2,3].map(i=>{const g=G(txtL,{opacity:0});el('rect',{x:COLS[i][0]-4,y:yT+8,width:8,height:18,fill:'#fff'},g);
+  el('text',{class:'tn',x:COLS[i][0],y:yT+16},g).textContent=':';return g;});
+E.bB=badge('ب',407,yT+RH1/2);
+const y2=yT+RH1;
+E.frame2=G(boxL,{opacity:0});
+COLS.forEach(([a,b],i)=>{el('rect',{x:a,y:y2,width:b-a,height:RH2,fill:i?'#fff':'#eef2f6',stroke:NAVY,'stroke-width':1.6},E.frame2);});
+E.lab2=[txt('النسبة',mid(0),y2+RH2/2-10,'th'),txt('الوراثية',mid(0),y2+RH2/2+10,'th')];
+const GEN=[[['1','LLEE'],['2','LlEE'],['2','LLEe'],['4','LlEe']],[['1','LLee'],['2','Llee']],[['1','llEE'],['2','llEe']],[['1','llee']]];
+E.gen=[];GEN.forEach((list,i)=>list.forEach(([n,g],j)=>{const yy=y2+20+j*27;
+  E.gen.push([txt(n,COLS[i+1][1]-13,yy,'cn'),txt(g,mid(i+1)-7,yy,'gn')]);}));
+E.bJ=badge('ج',407,y2+RH2/2);
+let y3=y2+RH2+30;
+E.bD=badge('د',404,y3);r=para('النسبة الوراثية 1:2:1:2:4:2:1:2:1 .',{x:386,y:y3,w:372,lh:28});E.lD=r.lines;y3=r.y+4;
+E.bH=badge('هـ',404,y3);r=para('عدد الاتحادات الممكنة بين الامشاج = 16 .',{x:386,y:y3,w:372,lh:28});E.lH=r.lines;
+E.g16=glow(60,y3,45);
+const endE=r.y;
+
+/* ---------- whole page in one view ---------- */
+const H=Math.max(endB,endM,endE)+14;
+const SEP=[CM,CR].map(x=>el('line',{x1:x+4,y1:12,x2:x+4,y2:H-12,stroke:'#b9c8d6','stroke-width':1.5,'stroke-dasharray':'6 6',opacity:0},boxL));
+const VB=[-52,0,1316,H];svg.setAttribute('viewBox',VB.join(' '));
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  let a,s,mv,fd,on;
+
+  /* 1 — السؤال */
+  SEP.forEach(l=>op(l,sm(u[0],0,.15)));
+  rev(seqA,u[0],0,.9);
+
+  /* 2 — الاستنتاج والحل */
+  rev(seqB,u[1],0,.9);
+
+  /* 3 — P1 */
+  a=sm(u[2],0,.25);op(C.bP,a);op(C.lP,a);
+  C.lbR.forEach(l=>op(l,sm(u[2],.2,.45)));C.lbL.forEach(l=>op(l,sm(u[2],.35,.6)));
+  a=sm(u[2],.3,.6);place(C.gR,XR,yC+80,.4+.6*a,a);
+  a=sm(u[2],.45,.75);place(C.gL,XL,yC+80,.4+.6*a,a);
+  op(C.x,sm(u[2],.75,.92));
+
+  /* 4 — G1 ثم F1 */
+  grow(C.A1,sm(u[3],0,.15));op(C.mei,sm(u[3],.08,.2));
+  a=sm(u[3],.1,.22);op(C.bG,a);op(C.lG,a);
+  a=sm(u[3],.18,.4);place(C.mR,XR,lerp(yC+80,yC+182,a),.5+.5*a,sm(u[3],.18,.24));
+  a=sm(u[3],.28,.5);place(C.mL,XL,lerp(yC+80,yC+182,a),.5+.5*a,sm(u[3],.28,.34));
+  grow(C.A2,sm(u[3],.48,.6));a=sm(u[3],.52,.62);op(C.bF,a);op(C.lF,a);
+  mv=sm(u[3],.6,.78);fd=sm(u[3],.74,.82);on=u[3]>.6?1:0;
+  place(C.mv[0],lerp(XL,MX-22,mv),lerp(yC+182,yC+284,mv),1-.2*mv,on*(1-fd));
+  place(C.mv[1],lerp(XR,MX+22,mv),lerp(yC+182,yC+284,mv),1-.2*mv,on*(1-fd));
+  a=sm(u[3],.76,.88);place(C.F,MX,yC+284,.4+.6*a,a);
+  op(C.gl,Math.sin(PI*sm(u[3],.76,1)));op(C.pc,sm(u[3],.86,.97));
+
+  /* 5 — P2 وامشاج G2 */
+  D.intro.forEach(l=>op(l,sm(u[4],0,.12)));
+  a=sm(u[4],.08,.2);op(D.bP,a);op(D.lP,a);op(D.lbL,sm(u[4],.12,.24));op(D.lbR,sm(u[4],.12,.24));
+  a=sm(u[4],.14,.28);place(D.gL,XL,yb+56,.4+.6*a,a);place(D.gR,XR,yb+56,.4+.6*a,a);op(D.x,sm(u[4],.22,.3));
+op(D.grid,sm(u[4],.3,.42));a=sm(u[4],.36,.46);op(D.lG,a);op(D.lF,a);
+  D.MG.forEach((g,c)=>{const s0=.4+c*.06;a=sm(u[4],s0,s0+.16);place(g,lerp(XL,cx(c),a),lerp(yb+56,gt+CS/2,a),.5+.4*a,sm(u[4],s0,s0+.04));});
+  D.FG.forEach((g,k)=>{const s0=.62+k*.06;a=sm(u[4],s0,s0+.16);place(g,lerp(XR,X0+CS/2,a),lerp(yb+56,ry(k),a),.5+.4*a,sm(u[4],s0,s0+.04));});
+
+  /* 6 — مربع بونيت F2 : اتحاد الامشاج */
+  D.cells.forEach((q,i)=>{const s0=.03+i*.056;
+    mv=sm(u[5],s0,s0+.08);fd=sm(u[5],s0+.07,s0+.11);on=u[5]>s0?1:0;
+    place(q.m[0],lerp(cx(q.c),q.x+11,mv),lerp(gt+CS/2,q.y,mv),.9-.45*mv,on*(1-fd));
+    place(q.m[1],lerp(X0+CS/2,q.x-11,mv),lerp(q.y,q.y,mv),.9-.45*mv,on*(1-fd));
+    a=sm(u[5],s0+.08,s0+.13);place(q.t,q.x,q.y,.4+.6*a,a);
+    op(q.gl,Math.sin(PI*sm(u[5],s0+.08,s0+.18)));});
+
+  /* 7 — ب) النسبة المظهرية */
+  E.intro.forEach((l,i)=>op(l,sm(u[6],.0+i*.06,.12+i*.06)));
+  a=sm(u[6],.15,.28);op(E.frame,a);E.lab1.forEach(t=>op(t,a));op(E.bB,a);
+  [0,1,2,3].forEach(g=>{const s0=.3+g*.15;a=sm(u[6],s0,s0+.12);
+    D.cells.forEach(q=>{if(q.p===g)op(q.ov,a);});op(E.hc[g],a);E.ph[g].forEach(t=>op(t,a));
+    if(g)op(E.colon[g-1],a);});
+
+  /* 8 — ج) النسبة الوراثية · د · هـ */
+  a=sm(u[7],0,.1);op(E.frame2,a);E.lab2.forEach(t=>op(t,a));op(E.bJ,a);
+  E.gen.forEach((p,i)=>{a=sm(u[7],.08+i*.05,.16+i*.05);p.forEach(t=>op(t,a));});
+  a=sm(u[7],.6,.7);op(E.bD,a);E.lD.forEach(l=>op(l,a));
+  a=sm(u[7],.76,.86);op(E.bH,a);E.lH.forEach(l=>op(l,a));
+  op(E.g16,Math.sin(PI*sm(u[7],.82,1)));
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+function apply(){view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);}
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const camC=()=>({x:VB[0]+VB[2]/2,y:VB[3]/2});
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,camC());
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,camC());
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);step();render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
