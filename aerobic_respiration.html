@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التنفس الهوائي</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center;transition:opacity .3s}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .vt{fill:#c2185b;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:Arial,sans-serif}
+  .dt{fill:#222;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التنفس الهوائي</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="gV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d7eedc"/><stop offset=".5" stop-color="#c3e5cb"/><stop offset="1" stop-color="#d7eedc"/></linearGradient>
+        <linearGradient id="gD" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f3faf4"/><stop offset=".5" stop-color="#e3f3e7"/><stop offset="1" stop-color="#f3faf4"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="الصفحة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="الصفحة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById('svg'),view=document.getElementById('view'),titleEl=document.getElementById('title');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+
+/* pages: [top title] */
+const PAGES=[['التنفس الهوائي'],['التنفس الهوائي'],['التنفس الهوائي'],['التنفس الهوائي'],['التنفس الهوائي']];
+const DUR=[4,4,4,4,4];
+
+const world=G(view);
+
+/* bands exactly as in the picture: [type, text, page] — v = ATP value, d = description */
+const BANDS=[
+  ['v','2ATP',0],
+  ['d','ربح الطاقة من التحلل السكري .',0],
+  ['v','( 2 × 3 ATP )  6ATP',1],
+  ['d','من تحول جزيئتي الحامض البايروفي الى استيل كو – A .',1],
+  ['v','( 2 × 3 ATP )  6ATP',2],
+  ['d','من 2(2H) الناتج من التحلل السكري بعد مرورها بسلسلة نقل الالكترونات .',2],
+  ['v','( 2 × 12 ATP )  24ATP',3],
+  ['d','من دورتي كريبس',3],
+  ['d','ويصبح المجموع',4],
+  ['v','( 38 ATP )',4]];
+const Y0=58,DY=66,BH=48;
+const B=BANDS.map(([ty,txt,pg],i)=>{const y=Y0+DY*i,w=ty==='v'?360:760,x=450-w/2;
+  const g=G(world,{opacity:0});
+  const glow=el('rect',{x:x-10,y:y-BH/2-10,width:w+20,height:BH+20,rx:16,fill:'url(#gGlow)',opacity:0},g);
+  el('rect',{x:x+3,y:y-BH/2+5,width:w,height:BH,rx:8,fill:'#1f3a52',opacity:.12,filter:'url(#blur)'},g);
+  const bx=el('rect',{x,y:y-BH/2,width:w,height:BH,rx:8,fill:ty==='v'?'url(#gV)':'url(#gD)',stroke:'#2e8b57','stroke-width':2},g);
+  const t=el('text',Object.assign({class:ty==='v'?'vt':'dt',x:450,y:y+1},ty==='v'?{direction:'ltr'}:{}),g);t.textContent=txt;
+  try{if(t.getComputedTextLength()>w-30){t.setAttribute('textLength',w-30);t.setAttribute('lengthAdjust','spacingAndGlyphs');}}catch(e){}
+  const k=BANDS.filter((b,j)=>j<i&&b[2]===pg).length;      /* order inside its page */
+  return{g,glow,bx,t,pg,st:.08+k*.42};});
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,last=performance.now(),paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(t){
+  B.forEach(b=>{const u=P-b.pg,a=sm(u,b.st,b.st+.3);
+    b.g.setAttribute('opacity',f2(a));
+    b.g.setAttribute('transform',`translate(${f1(60*(1-a))} 0)`);
+    const act=(stage===b.pg&&u>=b.st)?1:0;
+    b.glow.setAttribute('opacity',f2(act*(.45+.35*Math.sin(t*6))));
+    b.bx.setAttribute('stroke',act?'#c4623a':'#2e8b57');b.bx.setAttribute('stroke-width',act?3:2);});
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+PAGES.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','الصفحة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){titleEl.textContent=PAGES[stage][0];document.title=PAGES[stage][0];
+  [...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+PAGES.length)%PAGES.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that page */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:360});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:360});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
