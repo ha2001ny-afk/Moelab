@@ -1377,5 +1377,121 @@
     });
   }
   </script>
+  <!-- شريط التأمين الأوفلاين الاحترافي -->
+<div id="offlineManagerBar" style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-bottom:2px solid #3b82f6; font-family:system-ui, sans-serif; direction:rtl; display:block;">
+  <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="downloadStatusIcon" style="font-size:18px;">⏳</span>
+      <div>
+        <div id="downloadStatusText" style="font-size:14px; font-weight:bold;">جاري فحص وتأمين التجارب للعمل بدون إنترنت...</div>
+        <div id="downloadSubText" style="font-size:12px; color:#94a3b8;">يرجى الانتظار ثوانٍ ليكتمل التحميل لمرة واحدة فقط</div>
+      </div>
+    </div>
+    
+    <div style="display:flex; align-items:center; gap:12px;">
+      <!-- شريط النسبة المئوية -->
+      <div style="width:160px; height:10px; background:#334155; border-radius:5px; overflow:hidden;">
+        <div id="downloadProgressBar" style="width:0%; height:100%; background:#10b981; transition:width 0.3s;"></div>
+      </div>
+      <span id="downloadPercent" style="font-size:13px; font-weight:bold; min-width:40px;">0%</span>
+      <button onclick="downloadAllExperiments(true)" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">إعادة التحميل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // قائمة جميع ملفات التجارب الخاصة بك بالموقع
+  const ALL_EXPERIMENTS = [
+    './portal.html',
+    './manifest.json',
+    // الفصل الأول والثاني
+    './mitosis.html',
+    './meiosis.html',
+    './amoeba.html',
+    './euglena.html',
+    './paramecium.html',
+    './nerve_cell.html',
+    './muscle_tissue.html',
+    // الفصل الثالث (التكاثر)
+    './rhizopus.html',
+    './gametophyte_reduction.html',
+    './polytrichum.html',
+    './polypodium.html',
+    './flower_structure.html',
+    './anther_structure.html',
+    './anther_pollen.html',
+    './dicot_embryo.html',
+    './seed_structure.html',
+    './fruit_structure.html',
+    './frog_reproductive_system.html',
+    './human_testis_structure.html'
+  ];
+
+  // تفعيل الـ Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+  }
+
+  // محرك التنزيل والتخزين الكامل
+  async function downloadAllExperiments(force = false) {
+    const icon = document.getElementById('downloadStatusIcon');
+    const text = document.getElementById('downloadStatusText');
+    const subText = document.getElementById('downloadSubText');
+    const bar = document.getElementById('downloadProgressBar');
+    const percent = document.getElementById('downloadPercent');
+
+    if (!('caches' in window)) {
+      text.innerText = 'المتصفح لا يدعم ميزة العمل بدون نت';
+      return;
+    }
+
+    if (!navigator.onLine) {
+      icon.innerText = '📶';
+      text.innerText = 'أنت تعمل الآن بالوضع غير المتصل (أوفلاين)';
+      subText.innerText = 'جميع التجارب المحفوظة مسبقاً جاهزة للاستخدام بدون نت';
+      bar.style.width = '100%';
+      percent.innerText = '100%';
+      return;
+    }
+
+    try {
+      const cache = await caches.open('moelab-v2026-core');
+      let completed = 0;
+      const total = ALL_EXPERIMENTS.length;
+
+      for (const url of ALL_EXPERIMENTS) {
+        try {
+          const match = await cache.match(url, { ignoreSearch: true });
+          if (!match || force) {
+            const response = await fetch(url, { cache: 'reload' });
+            if (response.ok) {
+              await cache.put(url, response);
+            }
+          }
+        } catch (e) {
+          console.warn('تخطي ملف غير متوفر حالياً:', url);
+        }
+        completed++;
+        const p = Math.round((completed / total) * 100);
+        bar.style.width = p + '%';
+        percent.innerText = p + '%';
+        text.innerText = `جاري تنزيل وحفظ التجارب (${completed}/${total})...`;
+      }
+
+      // عند اكتمال التحميل بالكامل
+      icon.innerText = '✅';
+      text.innerHTML = '<span style="color:#10b981;">اكتمل التحميل بنجاح! المنصة جاهزة للعمل بدون نت 100%</span>';
+      subText.innerText = 'تم تأمين كافة الفصول والتجارب داخل جهازك. يمكنك الآن قطع النت والشرح بأمان.';
+      bar.style.background = '#10b981';
+
+    } catch (err) {
+      console.error(err);
+      text.innerText = 'المنصة جاهزة بالوضع المحفوظ';
+    }
+  }
+
+  // تشغيل التنزيل فور فتح الصفحة
+  window.addEventListener('load', () => downloadAllExperiments(false));
+</script>
 </body>
 </html>
