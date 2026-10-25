@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الجهاز التكاثري في الضفدع</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 56px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.2vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #gl:active{cursor:grabbing}
+  #ov{position:absolute;inset:0;pointer-events:none}
+  #ov svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .lab{position:absolute;top:0;left:0;color:var(--ink);font-weight:bold;font-size:clamp(10px,1.55vw,19px);line-height:1.3;white-space:pre-line;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 5px #fff;will-change:transform}
+  .lab.L{text-align:right}.lab.R{text-align:left}
+  #cap{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#fff;border:2.2px solid var(--navy);border-radius:4px;padding:5px 16px;color:var(--navy);font-weight:bold;font-size:clamp(13px,1.8vw,19px);white-space:nowrap;z-index:4;display:flex;gap:10px;align-items:center}
+  #cap small{color:var(--sub);font-size:.8em}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 max(10px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(10px,env(safe-area-inset-left,0px))}
+  #go,#prev,#lbl{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #lbl{background:#eef5fb}
+  #lbl[aria-pressed="true"]{background:var(--navy);color:#fff}
+  #go:disabled,#prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  @media (max-width:560px){#go,#prev,#lbl{min-width:0;padding:0 12px;font-size:15px;height:48px}#ctrl{gap:8px}}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button[aria-pressed="true"]{background:var(--navy);color:#fff}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible,#lbl:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  #err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--ink);font-weight:bold}
+</style>
+</head>
+<body>
+
+<div id="top"><div id="title">الجهاز التكاثري الذكري والانثوي في الضفدع</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="spin" aria-label="تدوير تلقائي" aria-pressed="false">⟳</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <canvas id="gl"></canvas>
+    <div id="ov"><svg id="lines"></svg></div>
+    <div id="cap"><span id="capT">الجهاز التكاثري الذكري</span><small id="capN">1 / 2</small></div>
+    <div id="err">المتصفح لا يدعم العرض ثلاثي الأبعاد (WebGL).</div>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="lbl" aria-pressed="false">إخفاء التأشيرات</button><button id="go">التالي ◀</button></div>
+</div>
+
+<script>
+(function(){
+const PI=Math.PI;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u;
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const pop=v=>v*(1+.22*Math.sin(PI*v));
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const hex=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
+
+/* ---------------- matrices (column-major) ---------------- */
+const M4={
+  id:()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),
+  mul(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s;}return o;},
+  tr(x,y,z){const m=M4.id();m[12]=x;m[13]=y;m[14]=z;return m;},
+  sc(s){const m=M4.id();m[0]=m[5]=m[10]=s;return m;},
+  rot(ax,a){let[x,y,z]=ax;const l=Math.hypot(x,y,z);x/=l;y/=l;z/=l;const c=Math.cos(a),s=Math.sin(a),t=1-c;
+    return new Float32Array([t*x*x+c,t*x*y+s*z,t*x*z-s*y,0, t*x*y-s*z,t*y*y+c,t*y*z+s*x,0, t*x*z+s*y,t*y*z-s*x,t*z*z+c,0, 0,0,0,1]);},
+  persp(f,asp,n,fa){const t=1/Math.tan(f/2);return new Float32Array([t/asp,0,0,0,0,t,0,0,0,0,(fa+n)/(n-fa),-1,0,0,2*fa*n/(n-fa),0]);},
+  xf(m,p){const[x,y,z]=p;return[m[0]*x+m[4]*y+m[8]*z+m[12],m[1]*x+m[5]*y+m[9]*z+m[13],m[2]*x+m[6]*y+m[10]*z+m[14],m[3]*x+m[7]*y+m[11]*z+m[15]];},
+  ortho(m){const a=[m[0],m[1],m[2]],b=[m[4],m[5],m[6]];const n=v=>{const l=Math.hypot(...v);return v.map(q=>q/l);};
+    const A=n(a);const d=A[0]*b[0]+A[1]*b[1]+A[2]*b[2];const B=n([b[0]-d*A[0],b[1]-d*A[1],b[2]-d*A[2]]);
+    const C=[A[1]*B[2]-A[2]*B[1],A[2]*B[0]-A[0]*B[2],A[0]*B[1]-A[1]*B[0]];
+    return new Float32Array([...A,0,...B,0,...C,0,0,0,0,1]);}
+};
+
+/* ---------------- geometry ---------------- */
+const geo=()=>({p:[],i:[]});
+function add(o,g){const b=o.p.length/3;for(const v of g.p)o.p.push(v);for(const k of g.i)o.i.push(k+b);return o;}
+function grid(o,rows,cols){/* rows x (cols+1) vertices already pushed */const b=o.p.length/3-rows*(cols+1);
+  for(let j=0;j<rows-1;j++)for(let i=0;i<cols;i++){const a=b+j*(cols+1)+i,c=a+cols+1;o.i.push(a,c,a+1,c,c+1,a+1);}}
+/* ellipsoid with optional surface displacement */
+function ellip(c,s,disp,rotZ,seg,rings){const o=geo();seg=seg||40;rings=rings||28;const cz=Math.cos(rotZ||0),sz=Math.sin(rotZ||0);
+  for(let j=0;j<=rings;j++){const ph=PI*j/rings;for(let i=0;i<=seg;i++){const th=2*PI*i/seg,u=[Math.sin(ph)*Math.cos(th),Math.cos(ph),Math.sin(ph)*Math.sin(th)];
+    const f=disp?disp(u):1,x=u[0]*s[0]*f,y=u[1]*s[1]*f,z=u[2]*s[2]*f;o.p.push(c[0]+x*cz-y*sz,c[1]+x*sz+y*cz,c[2]+z);}}
+  grid(o,rings+1,seg);return o;}
+function lumps(a,f,ph){return u=>1+a*Math.sin(u[0]*f+ph)*Math.sin(u[1]*f*1.1+ph*1.7)*Math.sin(u[2]*f*.9+ph*.6);}
+/* Catmull-Rom samples */
+function crs(P,m){const E=[P[0].map((v,k)=>2*v-P[1][k]),...P,P[P.length-1].map((v,k)=>2*v-P[P.length-2][k])],out=[];
+  for(let s=1;s<E.length-2;s++){const[a,b,c,d]=[E[s-1],E[s],E[s+1],E[s+2]];for(let q=0;q<m;q++){const t=q/m,t2=t*t,t3=t2*t;
+    out.push([0,1,2].map(k=>.5*(2*b[k]+(-a[k]+c[k])*t+(2*a[k]-5*b[k]+4*c[k]-d[k])*t2+(-a[k]+3*b[k]-3*c[k]+d[k])*t3)));}}
+  out.push(P[P.length-1].slice());return out;}
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  nrm=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l);},dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+/* tube along a smooth curve; rf(t,angle) gives the radius; round caps unless open */
+function tube(P,rf,opt){opt=opt||{};const S=crs(P,opt.m||14),n=S.length,seg=opt.seg||16,o=geo();
+  if(typeof rf==='number'){const r=rf;rf=()=>r;}
+  let N=null;const fr=[];
+  for(let k=0;k<n;k++){const T=nrm(sub(S[Math.min(n-1,k+1)],S[Math.max(0,k-1)]));
+    if(!N){N=nrm(cross(T,Math.abs(T[1])<.9?[0,1,0]:[1,0,0]));}else{const d=dot(N,T);N=nrm([N[0]-d*T[0],N[1]-d*T[1],N[2]-d*T[2]]);}
+    const B=cross(T,N);fr.push([T,N,B]);const t=k/(n-1);
+    for(let i=0;i<=seg;i++){const a=2*PI*i/seg,r=rf(t,a),ca=Math.cos(a)*r,sa=Math.sin(a)*r;o.p.push(S[k][0]+ca*N[0]+sa*B[0],S[k][1]+ca*N[1]+sa*B[1],S[k][2]+ca*N[2]+sa*B[2]);}}
+  grid(o,n,seg);
+  const ends=[[0,-1],[n-1,1]];
+  ends.forEach(([k,sg])=>{const r=rf(k?1:0,0);if(opt.open&&((k===0&&opt.open!=='end')||(k&&opt.open!=='start')))return;add(o,ellip(S[k],[r,r,r],null,0,16,10));});
+  o.ends={S0:S[0],S1:S[n-1],F0:fr[0],F1:fr[n-1]};return o;}
+/* dark disc showing the open lumen at a cut end */
+function lumen(o,end,r){const[ , N,B]=end==='start'?o.ends.F0:o.ends.F1,T=(end==='start'?o.ends.F0:o.ends.F1)[0],C=end==='start'?o.ends.S0:o.ends.S1,g=geo(),seg=20,sg=end==='start'?1:-1;
+  const c=[C[0]+T[0]*.01*sg,C[1]+T[1]*.01*sg,C[2]+T[2]*.01*sg];g.p.push(...c);
+  for(let i=0;i<=seg;i++){const a=2*PI*i/seg;g.p.push(c[0]+r*(Math.cos(a)*N[0]+Math.sin(a)*B[0]),c[1]+r*(Math.cos(a)*N[1]+Math.sin(a)*B[1]),c[2]+r*(Math.cos(a)*N[2]+Math.sin(a)*B[2]));g.i.push(0,i+1,i+2);}
+  g.i.length-=3;return g;}
+/* curved sheet between two curves */
+function sheet(A,B,m){const a=crs(A,m),b=crs(B,m),n=Math.min(a.length,b.length),o=geo(),cols=6;
+  for(let k=0;k<n;k++)for(let i=0;i<=cols;i++){const t=i/cols;o.p.push(...[0,1,2].map(q=>lerp(a[k][q],b[k][q],t)));}grid(o,n,cols);return o;}
+/* smooth normals: face normals, then weld identical positions */
+function normals(g){const p=g.p,n=new Float32Array(p.length);
+  for(let k=0;k<g.i.length;k+=3){const[a,b,c]=[g.i[k]*3,g.i[k+1]*3,g.i[k+2]*3];
+    const u=[p[b]-p[a],p[b+1]-p[a+1],p[b+2]-p[a+2]],v=[p[c]-p[a],p[c+1]-p[a+1],p[c+2]-p[a+2]],f=cross(u,v);
+    for(const q of[a,b,c]){n[q]+=f[0];n[q+1]+=f[1];n[q+2]+=f[2];}}
+  const map=new Map();for(let q=0;q<p.length;q+=3){const key=p[q].toFixed(4)+','+p[q+1].toFixed(4)+','+p[q+2].toFixed(4);
+    let e=map.get(key);if(!e){e=[0,0,0,[]];map.set(key,e);}e[0]+=n[q];e[1]+=n[q+1];e[2]+=n[q+2];e[3].push(q);}
+  for(const e of map.values()){const l=Math.hypot(e[0],e[1],e[2])||1;for(const q of e[3]){n[q]=e[0]/l;n[q+1]=e[1]/l;n[q+2]=e[2]/l;}}
+  return n;}
+
+/* ---------------- WebGL ---------------- */
+const cvs=document.getElementById('gl');
+const gl=cvs.getContext('webgl',{antialias:true,alpha:false})||cvs.getContext('experimental-webgl');
+if(!gl){document.getElementById('err').style.display='flex';return;}
+const U32=gl.getExtension('OES_element_index_uint');
+const VS=`attribute vec3 aP,aN;uniform mat4 uM,uV,uP;varying vec3 vN,vE,vO;
+void main(){vec4 e=uV*uM*vec4(aP,1.);vE=e.xyz;vO=aP;vN=mat3(uV*uM)*aN;gl_Position=uP*e;}`;
+const FS=`precision highp float;varying vec3 vN,vE,vO;uniform vec3 uC;uniform float uA,uDots,uMot;
+float h(vec3 c,float k){return fract(sin(dot(c,vec3(127.1,311.7,74.7))+k)*43758.5453);}
+void main(){vec3 N=normalize(vN);if(!gl_FrontFacing)N=-N;vec3 V=normalize(-vE);vec3 b=uC;
+ if(uMot>0.){float m=sin(vO.x*31.)*sin(vO.y*27.)*sin(vO.z*29.);b*=1.+uMot*m;}
+ if(uDots>0.){vec3 q=vO*uDots;vec3 c=floor(q);vec3 o=vec3(h(c,0.),h(c,1.),h(c,2.));float d=length(fract(q)-(.25+.5*o));
+  float s=smoothstep(.24,.13,d)*step(.25,h(c,3.));b=mix(b,vec3(.13,.11,.1),s*.92);}
+ vec3 L1=normalize(vec3(.45,.75,.65)),L2=normalize(vec3(-.6,-.25,.55));
+ float hemi=.5+.5*N.y;vec3 amb=mix(vec3(.62,.56,.56),vec3(1.),hemi)*.4;
+ float df=max(dot(N,L1),0.)*.72+max(dot(N,L2),0.)*.24;
+ float sp=pow(max(dot(N,normalize(L1+V)),0.),36.)*.32;float rim=pow(1.-max(dot(N,V),0.),3.)*.22;
+ gl_FragColor=vec4(b*(amb+df)+vec3(sp)+b*rim,uA);}`;
+function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(x);return x;}
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);gl.useProgram(prog);
+const A={P:gl.getAttribLocation(prog,'aP'),N:gl.getAttribLocation(prog,'aN')},Un={};
+['uM','uV','uP','uC','uA','uDots','uMot'].forEach(k=>Un[k]=gl.getUniformLocation(prog,k));
+gl.enableVertexAttribArray(A.P);gl.enableVertexAttribArray(A.N);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);
+gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(1,1,1,1);
+function mesh(g,col,o){o=o||{};const nb=normals(g),vb=new Float32Array(g.p),big=vb.length/3>65535;
+  const m={col:hex(col),a:o.a||1,dots:o.dots||0,mot:o.mot||0,part:o.part||0,
+    vb:gl.createBuffer(),nb:gl.createBuffer(),ib:gl.createBuffer(),cnt:g.i.length,type:big?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT};
+  gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.bufferData(gl.ARRAY_BUFFER,vb,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.bufferData(gl.ARRAY_BUFFER,nb,gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,m.ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,big?new Uint32Array(g.i):new Uint16Array(g.i),gl.STATIC_DRAW);
+  if(big&&!U32)m.cnt=0;return m;}
+
+/* ---------------- shared anatomy ---------------- */
+const C={cava:'#2f5fd0',aorta:'#d43a2a',kid:'#8c3a24',test:'#eedc9c',fat:'#f2cd3c',duct:'#eadbb2',mem:'#efd6d0',clo:'#e6c3ba',dark:'#6e3a36',gut:'#e9cdc5'};
+function backSheet(page,part){const o=geo(),R=40,Q=14;
+  for(let j=0;j<R;j++){const y=lerp(3.3,-2.4,j/(R-1)),w=y>2.6?lerp(.95,.7,(y-2.6)/.7):y<-1.6?lerp(1.05,.45,(-1.6-y)/.8):1.05;
+    for(let i=0;i<=Q;i++){const u=i/Q*2-1;o.p.push(u*w,y,-.5+.18*(1-u*u));}}
+  grid(o,R,Q);page.meshes.push(mesh(o,C.mem,{a:.5,part}));}
+function vessels(page,part,femaleOnly){
+  const cv=tube([[-.08,3.62,.16],[-.08,2,.2],[-.08,.4,.22],[-.08,-.55,.22]],.085,{open:'start'});
+  const cvM=add(geo(),cv);
+  [2.6,1.95,1.35,.75,.2].forEach((y,q)=>[-1,1].forEach(s=>{
+    const top=q===0?.32:.12;
+    add(cvM,tube([[-.08,y,.19],[s*.28-.04,y+.04,.16],[s*.58,y+top,.04]],(t)=>.048*(1-.45*t),{m:10,seg:12}));
+    add(cvM,tube([[s*.3-.04,y+.03,.16],[s*.42,y-.18,.1],[s*.5,y-.32,.02]],(t)=>.03*(1-.4*t),{m:8,seg:10}));}));
+  page.meshes.push(mesh(cvM,C.cava,{part}));page.meshes.push(mesh(lumen(cv,'start',.06),'#1a2a6a',{part}));
+  const ao=tube([[.12,3.62,.05],[.12,1.2,.06],[.12,-1.2,.1],[.12,-1.88,.12]],.072,{open:'start'}),aoM=add(geo(),ao);
+  add(aoM,tube([[.12,-1.86,.12],[-.15,-2.2,.15],[-.55,-2.6,.12],[-.98,-2.92,.04]],.058));
+  add(aoM,tube([[.12,-1.86,.12],[.4,-2.2,.15],[.75,-2.6,.12],[1.08,-2.92,.04]],.058));
+  [2.25,1.55,.95,.4].forEach(y=>[-1,1].forEach(s=>add(aoM,tube([[.12,y,.07],[s*.3+.06,y-.14,.06],[s*.5,y-.36,-.02]],t=>.032*(1-.4*t),{m:8,seg:10}))));
+  page.meshes.push(mesh(aoM,C.aorta,{part}));page.meshes.push(mesh(lumen(ao,'start',.05),'#5a1410',{part}));}
+function cloaca(page,part){const g=geo();
+  [-1,1].forEach(s=>add(g,ellip([s*.17,-2.82,.3],[.2,.44,.22],lumps(.03,9,s),0)));
+  page.meshes.push(mesh(g,C.clo,{part}));
+  page.meshes.push(mesh(ellip([0,-2.86,.44],[.035,.32,.05]),C.dark,{part}));
+  const f=geo();[-1,1].forEach(s=>add(f,tube([[s*.1,-3.15,.25],[s*.45,-3.35,.2],[s*.85,-3.3,.12]],t=>.07*(1-.3*t),{m:10})));
+  page.meshes.push(mesh(f,C.clo,{part}));}
+
+/* ---------------- page 1: male ---------------- */
+function male(){const pg={meshes:[],parts:[]};seed=11;
+  const P=(c,d)=>pg.parts.push({c,d})-1;
+  const p0=P([0,.4,-.5],0),p1=P([0,.6,.15],.3),p2=P([0,1,-.15],.85),p3=P([0,1.9,.15],1.35),p4=P([0,2.7,0],1.85),p5=P([0,-.6,.25],2.35),p6=P([-.6,-.9,.6],2.8),p7=P([0,-2.85,.3],3.25);
+  backSheet(pg,p0);vessels(pg,p1);
+  const k=geo();[-1,1].forEach(s=>add(k,ellip([s*.68,1,-.15],[.34,1,.22],lumps(.05,17,s*2),0,48,36)));
+  pg.meshes.push(mesh(k,C.kid,{part:p2,mot:.12}));
+  const t=geo();[-1,1].forEach(s=>add(t,ellip([s*.8,1.95,.2],[.25,.34,.23],lumps(.015,6,s),s*.15)));
+  pg.meshes.push(mesh(t,C.test,{part:p3}));
+  const fr=geo(),sh2=geo();[-1,1].forEach(s=>{const pts=[];for(let q=0;q<=14;q++){const y=lerp(1.75,-1.5,q/14);pts.push([s*(1.1-.2*q/14+.07*Math.sin(q*2.1)),y,.05+.05*Math.cos(q*1.7)]);}
+    add(fr,tube(pts,t2=>.05*(1+.35*Math.sin(t2*60)),{m:8,seg:12}));
+    add(sh2,sheet([[s*.82,1.62,.16],[s*.86,.9,.1],[s*.84,0,.05],[s*.72,-1.2,.05]],[[s*1.08,1.7,.05],[s*1.04,.9,.04],[s*.98,0,.04],[s*.9,-1.2,.04]],10));});
+  pg.meshes.push(mesh(fr,C.mem,{part:p3}));pg.meshes.push(mesh(sh2,C.mem,{part:p3,a:.6}));
+  const fb=geo();[-1,1].forEach(s=>{const b=[s*.74,2.5,.06];add(fb,ellip(b,[.3,.26,.24],lumps(.1,8,s),0));
+    [-.15,.35,.85,1.45,2.15].forEach((a,q)=>{const L=[1.05,1.2,1.15,1.05,.95][q],d=[s*Math.sin(a),Math.cos(a),.12*Math.sin(q*1.3)],pp=[-d[1],d[0],0],pts=[];
+      for(let z=0;z<=5;z++){const u=z/5,w=.09*Math.sin(u*5+q);pts.push([b[0]+d[0]*L*u+pp[0]*w,b[1]+d[1]*L*u+pp[1]*w,b[2]+d[2]*L*u]);}
+      add(fb,tube(pts,(u,an)=>lerp(.2,.075,u)*(1+.16*Math.sin(u*41+q)*Math.sin(an*4+q)+.1*Math.sin(u*23+an)*Math.cos(an*5)),{m:10,seg:18}));});});
+  pg.meshes.push(mesh(fb,C.fat,{part:p4,mot:.1}));
+  const du=geo();[-1,1].forEach(s=>add(du,tube([[s*.86,1.7,.22],[s*.96,.6,.26],[s*.82,-.8,.3],[s*.46,-1.85,.3],[s*.16,-2.4,.26]],.045)));
+  pg.meshes.push(mesh(du,C.duct,{part:p5}));
+  const gut=tube([[-1.15,.65,.78],[-.85,-.3,.72],[-.45,-1.25,.64],[-.12,-2.25,.46]],.17,{open:'start',seg:24});
+  pg.meshes.push(mesh(gut,C.gut,{part:p6,mot:.06}));pg.meshes.push(mesh(lumen(gut,'start',.12),C.dark,{part:p6}));
+  const bl=geo();add(bl,ellip([-.74,-1.55,.62],[.34,.29,.27],lumps(.02,5,1),.3));add(bl,ellip([-.42,-1.74,.66],[.3,.26,.25],lumps(.02,5,2),-.2));
+  pg.meshes.push(mesh(bl,'#ecdacb',{part:p6}));
+  cloaca(pg,p7);
+  pg.labels=[
+    ['وريد اجوف خلفي',[[-.08,3.3,.25]],p1,'R'],['جسم دهني',[[1.6,3.05,.1]],p4,'R'],['خصية',[[.9,1.95,.42]],p3,'R'],
+    ['المسراق الخصوي',[[1.08,1.05,.08]],p3,'R'],['قناة الكلية\n(بولية تناسلية)',[[.82,-.8,.34]],p5,'R'],
+    ['كلية',[[-.75,.95,.07]],p2,'L'],['شريان ابهر',[[.12,.2,.14]],p1,'L'],['مثانة بولية',[[-.78,-1.5,.9]],p6,'L'],['مجمع',[[0,-2.85,.48]],p7,'L']];
+  return pg;}
+
+/* ---------------- page 2: female ---------------- */
+function female(){const pg={meshes:[],parts:[]};seed=29;
+  const P=(c,d)=>pg.parts.push({c,d})-1;
+  const p0=P([0,.4,-.5],0),p1=P([0,.6,.15],.3),p2=P([0,1.1,-.1],.85),p3=P([.9,1,.35],1.35),p4=P([.8,0,.3],1.85),p5=P([1.2,-2.2,.35],2.35),p6=P([-.5,-1,.25],2.8),p7=P([0,-2.85,.3],3.25);
+  backSheet(pg,p0);vessels(pg,p1);
+  const k=geo();[-1,1].forEach(s=>add(k,ellip([s*.68,1.1,-.08],[.36,1.05,.24],lumps(.05,17,s*3),0,48,36)));
+  pg.meshes.push(mesh(k,C.kid,{part:p2,mot:.12}));
+  const ad=geo();[-1,1].forEach(s=>add(ad,tube([[s*.66,1.95,.16],[s*.6,1.4,.2],[s*.68,.8,.2],[s*.63,.3,.14]],(t)=>.05*(1+.45*Math.sin(t*44)),{m:12,seg:12})));
+  pg.meshes.push(mesh(ad,'#f0a52a',{part:p2,mot:.15}));
+  const ov=geo();for(let q=0;q<13;q++){const c=[.88+(rnd()-.5)*.55,1+(rnd()-.5)*1.75,.36+(rnd()-.5)*.25],r=.3+rnd()*.12;add(ov,ellip(c,[r,r*1.05,r*.85],lumps(.06,7,q),0,30,22));}
+  pg.meshes.push(mesh(ov,'#cfc5b8',{part:p3,dots:13}));
+  const bead=geo();crs([[.72,2.3,.26],[1.22,1.95,.32],[1.42,1,.32],[1.3,.1,.32],[.95,-.3,.3]],6).forEach(c=>add(bead,ellip(c,[.07,.07,.07],null,0,12,8)));
+  pg.meshes.push(mesh(bead,'#ead3cc',{part:p3}));
+  const od=geo();add(od,tube([[.48,3.12,-.04],[.44,2.2,.06],[.4,.8,.18],[.36,-.3,.36],[.58,-.38,.42],[.72,-.72,.42],[.5,-.92,.42],[.66,-1.12,.42],[1.2,-.88,.4],[1.5,-1.02,.38],[1.34,-1.42,.4],[.98,-1.46,.42],[.84,-1.72,.4],[.98,-1.96,.38]],.075,{m:12}));
+  add(od,ellip([.48,3.16,-.06],[.13,.07,.13],null,0));
+  add(od,tube([[.82,-2.36,.36],[.5,-2.55,.35],[.2,-2.66,.32]],.065));
+  pg.meshes.push(mesh(od,'#efe5c8',{part:p4}));
+  pg.meshes.push(mesh(ellip([1.22,-2.22,.36],[.48,.38,.36],lumps(.02,4,1),-.2),'#f3ead4',{part:p5,a:.72}));
+  const lu=geo();add(lu,tube([[-.52,.14,.12],[-.46,-.8,.26],[-.3,-1.8,.3],[-.13,-2.45,.3]],.036));
+  pg.meshes.push(mesh(lu,C.duct,{part:p6}));
+  const ms=geo();add(ms,tube([[-.66,.42,.16],[-.66,-.6,.26],[-.52,-1.7,.3]],.024));
+  add(ms,sheet([[-.66,.42,.16],[-.66,-.6,.26],[-.52,-1.7,.3]],[[-.53,.3,.14],[-.48,-.8,.27],[-.32,-1.78,.3]],8));
+  pg.meshes.push(mesh(ms,'#e9c9bf',{part:p6,a:.85}));
+  cloaca(pg,p7);
+  pg.labels=[
+    ['وريد اجوف خلفي',[[-.08,3.3,.25]],p1,'R'],['مبيض',[[.98,1.5,.68]],p3,'R'],['مسراق المبيض',[[1.42,.9,.36]],p3,'R'],
+    ['قناة البيض',[[.4,.7,.25],[1.5,-1,.45]],p4,'R'],['كيس البيض',[[1.3,-2.2,.7]],p5,'R'],
+    ['غدة ادرينالية',[[-.62,1.5,.25]],p2,'L'],['كلية',[[-.9,.95,.1]],p2,'L'],['مسراق قناة البيض',[[-.64,0,.22]],p6,'L'],
+    ['شريان ابهر',[[.12,-.6,.16]],p1,'L'],['قناة الكلية (الحالب)',[[-.4,-1.25,.32]],p6,'L'],['مجمع',[[0,-2.85,.48]],p7,'L']];
+  return pg;}
+
+const PAGES=[male(),female()],TITLES=['الجهاز التكاثري الذكري','الجهاز التكاثري الأنثوي'];
+
+/* ---------------- labels overlay ---------------- */
+const ov=document.getElementById('ov'),svgL=document.getElementById('lines'),SN='http://www.w3.org/2000/svg';
+PAGES.forEach(pg=>{pg.L=pg.labels.map(([t,an,part,side])=>{const d=document.createElement('div');d.className='lab '+side;d.textContent=t;ov.appendChild(d);
+  const g=document.createElementNS(SN,'g');svgL.appendChild(g);
+  const ln=an.map(()=>{const l=document.createElementNS(SN,'line');l.setAttribute('stroke','#1f3a52');l.setAttribute('stroke-width','1.6');g.appendChild(l);
+    const c=document.createElementNS(SN,'circle');c.setAttribute('r','3.5');c.setAttribute('fill','#1f3a52');c.setAttribute('stroke','#fff');c.setAttribute('stroke-width','1.2');g.appendChild(c);return[l,c];});
+  return{d,g,ln,an,part,side,y:null,w:0,h:0};});});
+
+/* ---------------- view state ---------------- */
+const FOV=32*PI/180,CEN=[0,.25,0];
+let page=0,tPage=0,R=M4.id(),pan=[0,0],zoom=1,spin=false,touched=false,showLab=true,W=1,H=1,fit=12,colL=null,colR=null;
+const restR=()=>M4.mul(M4.rot([1,0,0],.16),M4.rot([0,1,0],.32));
+function resize(){const r=cvs.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);const dpr=Math.min(2,window.devicePixelRatio||1);
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);gl.viewport(0,0,cvs.width,cvs.height);
+  const pg=PAGES[page];let lw=0;pg.L.forEach(l=>{l.w=l.d.offsetWidth;l.h=l.d.offsetHeight;lw=Math.max(lw,l.w);});
+  const tH=Math.tan(FOV/2),asp=W/H,avail=Math.max(W*(W<600?.46:.3),W-2*(lw+46));
+  fit=Math.max(3.75/(tH*.84),2/(tH*asp*(avail/W)));colL=colR=null;}
+function startPage(i){page=i;tPage=0;touched=false;pan=[0,0];zoom=1;colL=colR=null;
+  PAGES.forEach((pg,k)=>pg.L.forEach(l=>{l.d.style.display=k===i?'':'none';l.g.style.display=k===i?'':'none';l.y=null;l.side=l.side;}));
+  document.getElementById('capT').textContent=TITLES[i];document.getElementById('capN').textContent=(i+1)+' / '+PAGES.length;
+  document.getElementById('prev').disabled=i===0;document.getElementById('go').disabled=i===PAGES.length-1;resize();}
+
+/* ---------------- render ---------------- */
+function partM(pg,k){const p=pg.parts[k],s=Math.max(.001,pop(sm(tPage,p.d,p.d+.65)));
+  return{M:M4.mul(R,M4.mul(M4.tr(-CEN[0],-CEN[1],-CEN[2]),M4.mul(M4.tr(...p.c),M4.mul(M4.sc(s),M4.tr(-p.c[0],-p.c[1],-p.c[2]))))),s};}
+let last=performance.now();
+function frame(ms){const dt=Math.min(.05,(ms-last)/1000);last=ms;tPage+=dt;
+  if(!touched&&tPage<2.8){const u=ease(clamp(tPage/2.8,0,1));R=M4.mul(M4.rot([1,0,0],.16),M4.rot([0,1,0],lerp(-1.25,.32,u)));}
+  else if(spin){R=M4.ortho(M4.mul(M4.rot([0,1,0],dt*.45),R));}
+  const pg=PAGES[page],dist=fit/zoom,V=M4.tr(pan[0],pan[1],-dist),Pm=M4.persp(FOV,W/H,.1,100),PV=M4.mul(Pm,V);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.uniformMatrix4fv(Un.uV,false,V);gl.uniformMatrix4fv(Un.uP,false,Pm);
+  const PM=pg.parts.map((_,k)=>partM(pg,k));
+  const draw=m=>{if(!m.cnt||PM[m.part].s<.01)return;gl.uniformMatrix4fv(Un.uM,false,PM[m.part].M);gl.uniform3fv(Un.uC,m.col);gl.uniform1f(Un.uA,m.a);
+    gl.uniform1f(Un.uDots,m.dots);gl.uniform1f(Un.uMot,m.mot);
+    gl.bindBuffer(gl.ARRAY_BUFFER,m.vb);gl.vertexAttribPointer(A.P,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.vertexAttribPointer(A.N,3,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,m.ib);gl.drawElements(gl.TRIANGLES,m.cnt,m.type,0);};
+  gl.disable(gl.BLEND);gl.depthMask(true);pg.meshes.filter(m=>m.a>=1).forEach(draw);
+  gl.enable(gl.BLEND);gl.depthMask(false);
+  pg.meshes.filter(m=>m.a<1).map(m=>[m,M4.xf(M4.mul(V,PM[m.part].M),pg.parts[m.part].c)[2]]).sort((a,b)=>a[1]-b[1]).forEach(e=>draw(e[0]));
+  gl.depthMask(true);
+  if(showLab)layout(pg,PV,PM);
+  requestAnimationFrame(frame);}
+
+function scr(PV,M,p){const c=M4.xf(M4.mul(PV,M),p);return[(c[0]/c[3]+1)/2*W,(1-c[1]/c[3])/2*H];}
+function layout(pg,PV,PM){
+  /* model extent on screen */
+  let mn=1e9,mx=-1e9;const M0=M4.mul(R,M4.tr(-CEN[0],-CEN[1],-CEN[2]));
+  for(const x of[-1.9,1.9])for(const y of[-3.4,3.7])for(const z of[-.5,.9]){const s=scr(PV,M0,[x,y,z]);mn=Math.min(mn,s[0]);mx=Math.max(mx,s[0]);}
+  const cx=(mn+mx)/2;let lwL=0,lwR=0;pg.L.forEach(l=>{l.w=l.d.offsetWidth;l.h=l.d.offsetHeight;});
+  const items=pg.L.map(l=>{const k=l.part,op=sm(tPage,pg.parts[k].d+.45,pg.parts[k].d+.85);
+    const pts=l.an.map(a=>scr(PV,PM[k].M,a)),ax=pts.reduce((s,p)=>s+p[0],0)/pts.length,ay=pts.reduce((s,p)=>s+p[1],0)/pts.length;
+    if(l.side==='L'&&ax>cx+.06*W)l.side='R';else if(l.side==='R'&&ax<cx-.06*W)l.side='L';
+    if(l.side==='L')lwL=Math.max(lwL,l.w);else lwR=Math.max(lwR,l.w);
+    return{l,op,pts,ay};});
+  const tL=clamp(mn-22,lwL+10,W/2-10),tR=clamp(mx+22,W/2+10,W-lwR-10);
+  colL=colL===null?tL:lerp(colL,tL,.2);colR=colR===null?tR:lerp(colR,tR,.2);
+  ['L','R'].forEach(sd=>{const g=items.filter(it=>it.l.side===sd&&it.op>.01).sort((a,b)=>a.ay-b.ay);
+    const ys=[];g.forEach((it,i)=>{const h=it.l.h+8;let y=it.ay;if(i)y=Math.max(y,ys[i-1]+(g[i-1].l.h+it.l.h)/2+8);ys.push(Math.max(y,it.l.h/2+4));});
+    for(let i=g.length-1;i>=0;i--){const lim=(i===g.length-1?H-4:ys[i+1]-(g[i+1].l.h+g[i].l.h)/2-8)-g[i].l.h/2*(i===g.length-1?1:0);if(ys[i]>lim)ys[i]=lim;}
+    g.forEach((it,i)=>{it.ty=ys[i];});});
+  items.forEach(it=>{const l=it.l;l.d.className='lab '+l.side;
+    if(it.op<=.01||it.ty===undefined){l.d.style.opacity=0;l.g.style.display='none';return;}
+    l.g.style.display='';l.y=l.y===null?it.ty:lerp(l.y,it.ty,.22);
+    const x=l.side==='L'?colL-l.w:colR,ex=l.side==='L'?colL+5:colR-5;
+    l.d.style.opacity=it.op;l.g.setAttribute('opacity',it.op);
+    l.d.style.transform=`translate(${x.toFixed(1)}px,${(l.y-l.h/2).toFixed(1)}px)`;
+    it.pts.forEach((p,j)=>{const[ln,c]=l.ln[j];ln.setAttribute('x1',ex.toFixed(1));ln.setAttribute('y1',l.y.toFixed(1));ln.setAttribute('x2',p[0].toFixed(1));ln.setAttribute('y2',p[1].toFixed(1));
+      c.setAttribute('cx',p[0].toFixed(1));c.setAttribute('cy',p[1].toFixed(1));});});}
+
+/* ---------------- interaction: rotate freely, pinch/wheel zoom, two-finger pan ---------------- */
+const ptrs=new Map();
+cvs.addEventListener('pointerdown',e=>{cvs.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);touched=true;});
+cvs.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs);ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+  if(ptrs.size===1){const o=prv.get(e.pointerId),dx=e.clientX-o[0],dy=e.clientY-o[1];
+    R=M4.ortho(M4.mul(M4.rot([0,1,0],dx*.009),M4.mul(M4.rot([1,0,0],dy*.009),R)));}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0[0]-b0[0],a0[1]-b0[1])||1,d1=Math.hypot(a1[0]-b1[0],a1[1]-b1[1]);
+    const wpp=2*(fit/zoom)*Math.tan(FOV/2)/H;pan[0]+=((a1[0]+b1[0])-(a0[0]+b0[0]))/2*wpp;pan[1]-=((a1[1]+b1[1])-(a0[1]+b0[1]))/2*wpp;
+    zoom=clamp(zoom*d1/d0,.5,6);}});
+const up=e=>ptrs.delete(e.pointerId);cvs.addEventListener('pointerup',up);cvs.addEventListener('pointercancel',up);
+cvs.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom*(e.deltaY<0?1.12:1/1.12),.5,6);},{passive:false});
+function resetView(){R=restR();pan=[0,0];zoom=1;touched=true;}
+cvs.addEventListener('dblclick',resetView);
+document.getElementById('zin').onclick=()=>zoom=clamp(zoom*1.25,.5,6);
+document.getElementById('zout').onclick=()=>zoom=clamp(zoom/1.25,.5,6);
+document.getElementById('zreset').onclick=resetView;
+document.getElementById('spin').onclick=function(){spin=!spin;touched=true;this.setAttribute('aria-pressed',spin);};
+const lb=document.getElementById('lbl');
+lb.onclick=()=>{showLab=!showLab;ov.style.display=showLab?'':'none';lb.textContent=showLab?'إخفاء التأشيرات':'إظهار التأشيرات';lb.setAttribute('aria-pressed',!showLab);};
+document.getElementById('go').onclick=()=>{if(page<PAGES.length-1)startPage(page+1);};
+document.getElementById('prev').onclick=()=>{if(page>0)startPage(page-1);};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');setTimeout(resize,60);}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')document.getElementById('go').click();else if(e.key==='ArrowRight')document.getElementById('prev').click();});
+addEventListener('resize',resize);if(window.ResizeObserver)new ResizeObserver(resize).observe(cvs);
+startPage(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تركيب الثمرة</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go,#prev{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  .lb{fill:var(--ink);font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .ls{fill:var(--sub);font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style>
+</head>
+<body>
+
+<div id="top"><div id="title">تركيب الثمرة</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1000 820" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gSeed" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#7fdc5a"/><stop offset=".6" stop-color="#2ea32e"/><stop offset="1" stop-color="#16701c"/></radialGradient>
+        <radialGradient id="gSkin" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#f6d26a"/><stop offset="1" stop-color="#d9892a"/></radialGradient>
+        <radialGradient id="gFlesh" cx=".45" cy=".45" r=".7"><stop offset="0" stop-color="#fff8e2"/><stop offset="1" stop-color="#f6e4b4"/></radialGradient>
+        <pattern id="pS" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#e6d9bb"/><circle cx="2" cy="2" r="1" fill="#b3a27a"/><circle cx="5.5" cy="5" r=".8" fill="#c4b48e"/></pattern>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+
+const DUR=[4,4.5,4.5,5];
+const world=G(view);
+const Lglow=G(world),Lobj=G(world);
+
+/* ---------------- building blocks ---------------- */
+function Txt(x,y,s,par,cls){const t=el('text',{class:cls||'lb',x,y},par||Lobj);t.textContent=s;return t;}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round'},a),p);
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function growAt(g,cx,cy,v,s0){if(!show(g,sm(v,0,.35)))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(lerp(s0,1,v))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());if(!show(p,v>.005?1:0))return;p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
+const Glow=(cx,cy,rx,ry)=>el('ellipse',{cx,cy,rx,ry,fill:'url(#gGlow)'},Lglow);
+/* label: main name, other name underneath, lead line up to the part */
+function Lab(x,y,name,alt,d){const g=G(Lobj);lead(d,g);Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');return g;}
+
+const C=[520,360];
+const SKIN='M190,360 A330,230 0 1,1 850,360 A330,230 0 1,1 190,360';
+
+/* ================= 4) exocarp (skin) + stalk ================= */
+const EXO=G(Lobj);el('ellipse',{cx:520,cy:360,rx:330,ry:230,fill:'url(#gSkin)'},EXO);
+const exoLine=path(SKIN,{stroke:'#8a4a0c','stroke-width':3.5},Lobj);
+const STK=G(Lobj);
+el('rect',{x:138,y:342,width:56,height:36,rx:4,fill:'#a88a4a',stroke:'#6a5a2a','stroke-width':2},STK);
+[150,162,174,186].forEach(x=>path(`M${x},346 L${x},374`,{stroke:'#6a5a2a','stroke-width':1.2},STK));
+
+/* ================= 3) mesocarp (flesh) ================= */
+const MESO=G(Lobj);
+el('ellipse',{cx:520,cy:360,rx:318,ry:218,fill:'url(#gFlesh)',stroke:'#c9a45a','stroke-width':1.5},MESO);
+el('ellipse',{cx:520,cy:360,rx:302,ry:204,fill:'none',stroke:'#d2b26a','stroke-width':2,'stroke-dasharray':'2 7'},MESO);
+const strands=G(MESO);
+for(let k=0;k<28;k++){const a=k/28*2*PI;if(Math.abs(Math.cos(a)+1)<.12)continue;
+  const c=Math.cos(a),s=Math.sin(a);
+  path(`M${f1(520+262*c)},${f1(360+178*s)} L${f1(520+292*c)},${f1(360+198*s)}`,{stroke:'#d8bd80','stroke-width':1.6,'stroke-dasharray':'4 4'},strands);}
+el('path',{d:'M194,350 L252,357 L252,363 L194,370Z',fill:'#efe3c2',stroke:'#a8946a','stroke-width':1.2},MESO);
+
+/* ================= 2) endocarp (stone) ================= */
+const ENDO=G(Lobj);
+el('path',{d:'M245,360 C330,248 560,240 690,292 C756,322 756,398 690,428 C560,480 330,472 245,360Z',fill:'url(#pS)',stroke:'#7a6a4a','stroke-width':2.5},ENDO);
+el('path',{d:'M318,360 C392,290 522,282 610,312 C656,334 656,386 610,408 C522,438 392,430 318,360Z',fill:'#e9e0f0',stroke:'#9a8ab0','stroke-width':1.5},ENDO);
+const hatch=G(ENDO);
+for(let i=0;i<11;i++){const x=392+i*21,u=(x-470)/170,y=360-74*Math.sqrt(Math.max(0,1-u*u));
+  path(`M${f1(x)},${f1(y)} Q${f1(x+3)},${f1(y-12)} ${f1(x+11)},${f1(y-20)}`,{stroke:'#6a5a4a','stroke-width':1.4},hatch);}
+
+/* ================= 1) seed ================= */
+const glS=Glow(480,360,190,110);
+const SEED=G(Lobj);
+el('path',{d:'M330,360 C400,300 520,292 600,320 C640,338 640,382 600,400 C520,428 400,420 330,360Z',fill:'url(#gSeed)',stroke:'#0f5a14','stroke-width':2.5},SEED);
+el('ellipse',{cx:470,cy:334,rx:60,ry:10,fill:'#fff',opacity:.28},SEED);
+
+/* labels along the bottom, each pointing up to its layer */
+const lS=Lab(300,650,'البذرة','','M300,636 L418,378');
+const lE=Lab(430,730,'الطبقة الداخلية','(النواة)','M430,716 L500,446');
+const lM=Lab(625,680,'الطبقة الوسطى','(الجزء الطري)','M625,666 L640,520');
+const lX=Lab(810,640,'الطبقة الخارجية','(الجلد)','M790,626 L760,516');
+const glAll=Glow(520,360,360,250);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const N=DUR.length,s=[0];for(let i=1;i<=N;i++)s.push(clamp(P-(i-1),0,1));
+  /* 1 seed */
+  popAt(SEED,480,360,sm(s[1],0,.5));show(glS,.9*Math.sin(PI*sm(s[1],.3,1)));show(lS,sm(s[1],.55,.85));
+  /* 2 endocarp grows around the seed */
+  growAt(ENDO,492,360,sm(s[2],0,.6),.55);show(hatch,sm(s[2],.55,.8));show(lE,sm(s[2],.6,.9));
+  /* 3 mesocarp grows around the endocarp */
+  growAt(MESO,520,360,sm(s[3],0,.6),.6);show(strands,sm(s[3],.5,.8));show(lM,sm(s[3],.6,.9));
+  /* 4 exocarp wraps the fruit, stalk attaches */
+  Dash(exoLine,sm(s[4],0,.45));show(EXO,sm(s[4],.3,.55));
+  if(show(STK,s[4]>.45?1:0))STK.setAttribute('transform',`translate(194 360) scale(${f2(sm(s[4],.45,.7))} 1) translate(-194 -360)`);
+  show(lX,sm(s[4],.6,.9));show(glAll,.6*Math.sin(PI*sm(s[4],.7,1)));
+}
+
+/* ---------------- next / previous buttons ---------------- */
+const btn=document.getElementById('go'),pbtn=document.getElementById('prev');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+function back(){if(stage<0)return;const tgt=stage;stage--;S.entry=P;S.tgt=tgt;t0=T;S.dur=.9;}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+pbtn.onclick=back;
+let lbl='',paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  pbtn.disabled=stage<0;
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:410});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:410});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();else if(e.key==='ArrowRight')back();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

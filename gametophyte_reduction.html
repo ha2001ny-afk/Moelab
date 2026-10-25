@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>اختزال الطور المشيجي</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go{min-width:170px;height:56px;padding:0 26px;border-radius:28px;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .zb{position:absolute;bottom:94px;right:max(10px,env(safe-area-inset-right,0px));display:flex;flex-direction:row;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active{background:#d9ebf7}
+  #go:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  .tt{fill:#111;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ph{fill:#1f2a44;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lb{fill:#1f2a44;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lr{fill:#b5321f;font-size:22px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">اختزال الطور المشيجي</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1150 600" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gCap" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffe0a0"/><stop offset=".6" stop-color="#f08a2a"/><stop offset="1" stop-color="#b8450f"/></radialGradient>
+        <radialGradient id="gHeart" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#b9e86a"/><stop offset=".7" stop-color="#6fbf3a"/><stop offset="1" stop-color="#3f8a22"/></radialGradient>
+        <radialGradient id="gFruit" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#ff9a8a"/><stop offset=".55" stop-color="#e3201b"/><stop offset="1" stop-color="#9a0d0a"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+
+const DUR=[6,6,6,6,6];
+const world=G(view);
+
+/* ---------------- background: phases + diagonal ---------------- */
+const LY=x=>150+0.363*(x-108);
+el('rect',{x:0,y:0,width:1150,height:600,fill:'#4a8fc9'},world);
+el('rect',{x:0,y:0,width:1150,height:34,fill:'#a9cdea'},world);
+el('polygon',{points:`0,${f1(LY(0))} 1150,${f1(LY(1150))} 1150,600 0,600`,fill:'#f5c3b8'},world);
+const Lpan=G(world),Lline=G(world),Lglow=G(world),Lobj=G(world),Llab=G(world);
+el('line',{x1:0,y1:f1(LY(0)),x2:1150,y2:f1(LY(1150)),stroke:'#1f2a44','stroke-width':2.5,'stroke-dasharray':'9 6'},Lline);
+function Txt(x,y,s,cls,par){const t=el('text',{class:cls||'lb',x,y},par||Llab);t.textContent=s;return t;}
+/* phase labels (left side, fixed) */
+Txt(48,62,'الطور','ph',world);Txt(48,88,'البوغي','ph',world);Txt(34,114,'2س','ph',world);
+Txt(52,212,'الطور','ph',world);Txt(52,238,'المشيجي','ph',world);Txt(46,272,'س','ph',world);
+
+/* ---------------- building blocks ---------------- */
+const PX=[108,362,612,860],PW=183,TITLES=['حزازيات','سرخسيات','عارية البذور','مغطاة البذور'];
+const panels=PX.map((x,i)=>{const g=G(Lpan);
+  el('rect',{x,y:36,width:PW,height:476,fill:'#fff',opacity:.5},g);
+  el('rect',{x,y:36,width:PW,height:476,fill:'none',stroke:'#fff','stroke-width':3},g);
+  Txt(x+PW/2,17,TITLES[i],'tt',g);return g;});
+function grow(g,bx,by,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${bx} ${by}) scale(${f2(lerp(.45,1,v))} ${f2(Math.max(.01,v))}) translate(${-bx} ${-by})`);}
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+function Glow(cx,cy,r){return el('circle',{cx,cy,r,fill:'url(#gGlow)',opacity:0},Lglow);}
+function Tick(d,par){return el('path',{d,fill:'none',stroke:'#1f2a44','stroke-width':2.2},par);}
+function Lab(items){const g=G(Llab);items.forEach(([x,y,s])=>Txt(x,y,s,'lb',g));return g;}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round'},a),p);
+
+/* ================= 1) MOSS ================= */
+const mG=G(Lobj);
+for(let y=200;y<=394;y+=6){const t=(y-196)/200,L=8+40*Math.sin(PI*Math.pow(t,.8)),sx=168+(y-195)*.025;
+  [-1,1].forEach((sd,k)=>{const a=(28+12*rnd())*PI/180;
+    path(`M${f1(sx)},${y} L${f1(sx+sd*L*Math.cos(a))},${f1(y-L*Math.sin(a)*.7)}`,{stroke:(k+(y/6|0))%3?'#3f9a4a':'#2a7a3c','stroke-width':3.6},mG);});}
+path('M168,195 Q160,300 172,380 T178,442',{stroke:'#b5321f','stroke-width':4.5},mG);
+for(let i=0;i<8;i++){const ex=146+i*9+rnd()*6,ey=486+rnd()*14;path(`M178,442 Q${f1(lerp(178,ex,.5)+(rnd()-.5)*18)},${f1(lerp(442,ey,.55))} ${f1(ex)},${f1(ey)}`,{stroke:'#c0392b','stroke-width':1.6},mG);}
+const mS=G(Lobj);
+const mStalk=path('M170,198 C168,140 205,95 256,63',{stroke:'#d9472b','stroke-width':4.5},mS);
+const mCap=G(mS);
+el('ellipse',{cx:266,cy:57,rx:16,ry:7.5,fill:'url(#gCap)',stroke:'#9a3a0c','stroke-width':1.2,transform:'rotate(-32 266 57)'},mCap);
+el('ellipse',{cx:279,cy:49,rx:4,ry:3,fill:'#c8551a',transform:'rotate(-32 279 49)'},mCap);
+const mSp=G(mS);[[289,40],[294,47],[286,33],[297,38],[291,28],[300,45]].forEach(([x,y])=>el('circle',{cx:x,cy:y,r:2.4,fill:'#7a4a1a'},mSp));
+const mLab=Lab([[148,66,'ابواغ'],[248,404,'اشباه'],[248,428,'الجذور']]);
+Tick('M262,442 V474 H250',mLab);
+const mGl=Glow(170,330,125);
+
+/* ================= 2) FERN ================= */
+const fS=G(Lobj);
+path('M366,229 Q452,221 542,231',{stroke:'#8b5a2b','stroke-width':5},fS);
+for(let i=0;i<12;i++){const x=372+i*14.5,y=228-(i>5?0:1);path(`M${f1(x)},${y} Q${f1(x+(rnd()-.5)*14)},${f1(y+14)} ${f1(x+(rnd()-.5)*22)},${f1(250+rnd()*16)}`,{stroke:'#a9714a','stroke-width':1.5},fS);}
+function frond(b,c,t){const g=G(fS);
+  const P=u=>[(1-u)*(1-u)*b[0]+2*(1-u)*u*c[0]+u*u*t[0],(1-u)*(1-u)*b[1]+2*(1-u)*u*c[1]+u*u*t[1]];
+  const D=u=>[2*(1-u)*(c[0]-b[0])+2*u*(t[0]-c[0]),2*(1-u)*(c[1]-b[1])+2*u*(t[1]-c[1])];
+  for(let u=.12;u<.97;u+=.038){const p=P(u),d=D(u),m=Math.hypot(d[0],d[1]),tx=d[0]/m,ty=d[1]/m,nx=-ty,ny=tx;
+    const l=3+28*Math.sin(PI*Math.min(1,(u-.08)/.92))*(1-.3*u);
+    [-1,1].forEach(s=>path(`M${f1(p[0])},${f1(p[1])} L${f1(p[0]+nx*s*l+tx*l*.32)},${f1(p[1]+ny*s*l+ty*l*.32)}`,{stroke:'#62b844','stroke-width':4.4},g));}
+  let dd='M'+b.join(',');for(let u=.05;u<=1.001;u+=.05){const p=P(u);dd+=` L${f1(p[0])},${f1(p[1])}`;}
+  path(dd,{stroke:'#2f7a2a','stroke-width':3},g);return{g,b};}
+const fronds=[frond([392,228],[352,150],[386,92]),frond([452,226],[440,118],[472,48]),frond([512,229],[546,150],[527,72])];
+const fG=G(Lobj);
+for(let i=0;i<8;i++){const sx=425+i*6,ex=398+i*11+rnd()*6;path(`M${sx},428 Q${f1(lerp(sx,ex,.5)+(rnd()-.5)*10)},445 ${f1(ex)},${f1(458+rnd()*12)}`,{stroke:'#b07a4a','stroke-width':1.6},fG);}
+el('path',{d:'M447,322 C428,296 380,304 384,352 C388,392 424,414 450,436 C470,414 504,392 508,352 C512,304 466,296 447,322Z',fill:'url(#gHeart)',stroke:'#3d7d22','stroke-width':2},fG);
+[[438,388],[452,392],[466,384],[444,404],[460,404],[430,372],[474,370],[452,376]].forEach(([x,y])=>el('circle',{cx:x,cy:y,r:4,fill:'#1d9a8a'},fG));
+const fLab=Lab([[474,66,'ابواغ'],[508,272,'جذور'],[412,494,'اشباه الجذور']]);
+Tick('M404,466 H432',fLab);
+const fGl=Glow(446,380,82);
+
+/* ================= 3) GYMNOSPERM ================= */
+const gS=G(Lobj);
+for(let i=0;i<9;i++){const ex=650+i*10+rnd()*6;path(`M690,382 Q${f1(lerp(690,ex,.6))},${f1(388+rnd()*4)} ${f1(ex)},${f1(392+rnd()*8)}`,{stroke:'#6b3a24','stroke-width':1.8},gS);}
+el('polygon',{points:'684,385 697,385 692,58 689,58',fill:'#6b3a24'},gS);
+for(let i=0;i<12;i++){const y=58+i*24.5,hw=12+i*7,cx=690+(rnd()-.5)*6,n=Math.max(4,Math.round(hw/6));
+  let d=`M${f1(cx-hw)},${f1(y+16)}`;for(let k=1;k<n;k++)d+=` L${f1(cx-hw+2*hw*k/n)},${f1(y+(k%2?7:16))}`;
+  d+=` L${f1(cx+hw)},${f1(y+16)} L${f1(cx+hw*.35)},${f1(y+2)} L${f1(cx)},${f1(y-8)} L${f1(cx-hw*.35)},${f1(y+2)}Z`;
+  el('path',{d,fill:i%2?'#2b4d2c':'#36603a',stroke:'#1a321d','stroke-width':1},gS);
+  for(let k=0;k<Math.round(hw/5);k++)el('circle',{cx:f1(cx+(rnd()*2-1)*hw*.8),cy:f1(y+2+rnd()*12),r:f1(1.5+rnd()*1.5),fill:'#5f8f4c'},gS);}
+const gG=G(Lobj);
+path('M649,432 L651,478',{stroke:'#e8622a','stroke-width':9},gG);
+el('ellipse',{cx:648,cy:426,rx:18,ry:13,fill:'#f07b3a',stroke:'#c24e18','stroke-width':1.5},gG);
+el('circle',{cx:650,cy:422,r:4,fill:'#4a1408'},gG);
+el('ellipse',{cx:725,cy:446,rx:22,ry:33,fill:'#9ccf5a',stroke:'#4f8a2a','stroke-width':3},gG);
+el('ellipse',{cx:725,cy:448,rx:14,ry:24,fill:'#d6edf9',stroke:'#7fb1d6','stroke-width':1.5},gG);
+el('ellipse',{cx:725,cy:440,rx:6,ry:8,fill:'#6aa0d8',opacity:.75},gG);el('ellipse',{cx:725,cy:458,rx:9,ry:6,fill:'#8fbde6',opacity:.6},gG);
+const gLab=Lab([[770,66,'بذرة'],[787,400,'جذور']]);
+Tick('M760,380 V404',gLab);
+const gGl=Glow(688,448,58);
+
+/* ================= 4) ANGIOSPERM ================= */
+const aS=G(Lobj);
+const rootP=['M950,360 Q930,395 905,410 Q895,420 885,440','M950,360 Q958,400 945,450','M950,360 Q975,392 1000,402 Q1010,415 1022,430','M932,385 Q915,388 902,385','M968,388 Q985,398 990,418','M946,410 Q930,425 925,440'];
+rootP.forEach((d,i)=>path(d,{stroke:'#7a3b4a','stroke-width':i<3?3.2:2},aS));
+path('M948,362 Q953,300 950,250',{stroke:'#7a3b4a','stroke-width':10},aS);
+['M950,252 Q930,215 905,195','M950,252 Q975,215 1002,198','M950,252 L955,160','M948,290 Q920,270 890,262'].forEach(d=>path(d,{stroke:'#7a3b4a','stroke-width':5},aS));
+const CG=['#8fc63f','#a7d44c','#6aa632','#c2e070','#7bb83a'];
+for(let i=0;i<85;i++){const a=rnd()*2*PI,r=Math.sqrt(rnd());el('circle',{cx:f1(955+100*r*Math.cos(a)),cy:f1(182+98*r*Math.sin(a)),r:f1(13+rnd()*10),fill:CG[i%5]},aS);}
+for(let i=0;i<26;i++){const a=rnd()*2*PI,r=.15+.8*Math.sqrt(rnd()),x=955+95*r*Math.cos(a),y=182+92*r*Math.sin(a);
+  el('circle',{cx:f1(x),cy:f1(y),r:7,fill:'url(#gFruit)'},aS);}
+const aG=G(Lobj);
+path('M883,476 L884,496',{stroke:'#e8622a','stroke-width':4},aG);
+el('circle',{cx:883,cy:473,r:5.5,fill:'#f07b3a',stroke:'#c24e18','stroke-width':1},aG);
+el('ellipse',{cx:918,cy:492,rx:9,ry:12,fill:'#9ccf5a',stroke:'#4f8a2a','stroke-width':2},aG);
+el('ellipse',{cx:918,cy:493,rx:5,ry:8,fill:'#d6edf9'},aG);
+const aLab=Lab([[1016,66,'بذرة'],[1012,466,'جذور']]);
+Tick('M890,398 V416',aLab);
+const aGl=Glow(902,486,34);
+
+/* ================= 5) summary arrow ================= */
+const Sum=G(Llab);
+const sumP=path('M130,546 L1030,546',{stroke:'#b5321f','stroke-width':4.5},Sum);
+const sumH=el('polygon',{points:'1046,546 1026,536 1026,556',fill:'#b5321f'},Sum);
+const sumT=Txt(580,578,'اختزال الطور المشيجي (يقل حجمه تدريجياً)','lr',Sum);
+const GLOWS=[mGl,fGl,gGl,aGl];
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const u=i=>clamp(P-(i-1),0,1),s1=u(1),s2=u(2),s3=u(3),s4=u(4),s5=u(5);
+  const br=k=>1+.025*Math.sin(t*1.6+k);
+  [s1,s2,s3,s4].forEach((s,i)=>show(panels[i],sm(s,0,.12)));
+  /* 1 moss: gametophyte first, sporophyte grows on top of it */
+  grow(mG,175,442,sm(s1,.1,.45));
+  if(show(mS,s1>.45?1:0)){Dash(mStalk,sm(s1,.45,.68));popAt(mCap,266,57,sm(s1,.64,.78));
+    const sp=sm(s1,.76,.9);if(show(mSp,sp)){mSp.setAttribute('transform',`translate(${f1(8*sp)} ${f1(-6*sp)})`);}}
+  show(mLab,sm(s1,.72,.88));
+  /* 2 fern: sporophyte dominant, small free gametophyte */
+  fronds.forEach((f,i)=>grow(f.g,f.b[0],f.b[1],sm(s2,.1+.08*i,.42+.08*i)));
+  show(fS,s2>.08?1:0);
+  popAt(fG,446,436,sm(s2,.55,.72));
+  show(fLab,sm(s2,.72,.88));
+  /* 3 gymnosperm */
+  grow(gS,690,390,sm(s3,.1,.5));
+  popAt(gG,688,478,sm(s3,.55,.72));
+  show(gLab,sm(s3,.72,.88));
+  /* 4 angiosperm */
+  grow(aS,950,450,sm(s4,.1,.5));
+  popAt(aG,900,500,sm(s4,.55,.72));
+  show(aLab,sm(s4,.72,.88));
+  /* glow on each gametophyte as it appears, then in sequence in stage 5 */
+  [s1,s2,s3,s4].forEach((s,i)=>{const g1=Math.sin(PI*sm(s,.8,1)),g5=Math.sin(PI*sm(s5,.12+.17*i,.36+.17*i));
+    GLOWS[i].setAttribute('opacity',f2(Math.max(g1,g5)*br(i)));});
+  /* 5 summary */
+  if(show(Sum,s5>.01?1:0)){Dash(sumP,sm(s5,.1,.8));sumH.setAttribute('opacity',f2(sm(s5,.75,.85)));show(sumT,sm(s5,.75,.95));}
+}
+
+/* ---------------- one button ---------------- */
+const btn=document.getElementById('go');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+let lbl='',paused=false,last=performance.now();
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:575,y:300});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:575,y:300});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

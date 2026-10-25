@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>المتك وتكوين حبوب اللقاح</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go,#prev{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  #go:focus-visible,#prev:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  .bx{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lb{fill:#1f3a52;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lr{fill:#b5321f;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">المتك وتكوين حبوب اللقاح</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1000 820" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gB" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#a9b6ff"/><stop offset=".55" stop-color="#3b47c4"/><stop offset="1" stop-color="#141a6b"/></radialGradient>
+        <radialGradient id="gO" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff2b8"/><stop offset=".55" stop-color="#f2b13a"/><stop offset="1" stop-color="#b8650f"/></radialGradient>
+        <radialGradient id="gP" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#f1c6ff"/><stop offset=".55" stop-color="#9b3fc4"/><stop offset="1" stop-color="#4a1470"/></radialGradient>
+        <radialGradient id="gX" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#eee"/><stop offset="1" stop-color="#8a8a8a"/></radialGradient>
+        <radialGradient id="gFr" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd27a"/><stop offset=".6" stop-color="#f08a2a"/><stop offset="1" stop-color="#c0391b"/></radialGradient>
+        <radialGradient id="gAnt" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd9a0"/><stop offset="1" stop-color="#e2832a"/></radialGradient>
+        <radialGradient id="gPol" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fff8dc"/><stop offset="1" stop-color="#f6d98a"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const lp2=(p,q,u)=>[lerp(p[0],q[0],u),lerp(p[1],q[1],u)];
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+let seed=9;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+
+const DUR=[4.5,7,8,8.5,9,6.5,6];
+const DARK='#1f2a44',BRN='#a0522d';
+const world=G(view);
+/* background: sporophyte (2س) above the line, gametophyte (س) below */
+el('rect',{x:0,y:450,width:1000,height:370,fill:'#f4e8cc'},world);
+el('line',{x1:10,y1:450,x2:990,y2:450,stroke:'#a0522d','stroke-width':2.5,'stroke-dasharray':'10 7'},world);
+{const a=el('text',{class:'lr',x:972,y:428},world);a.textContent='2س';const b=el('text',{class:'lr',x:972,y:474},world);b.textContent='س';}
+const Larr=G(world),Lglow=G(world),Lobj=G(world),Ltok=G(world);
+
+/* ---------------- building blocks ---------------- */
+function Ball(parent,grad,r){const g=G(parent);
+  el('circle',{r,fill:`url(#${grad})`,stroke:{gB:'#10165a',gP:'#3a0a5a',gX:'#666'}[grad]||'#9a520c','stroke-width':1},g);
+  el('ellipse',{cx:-r*.35,cy:-r*.4,rx:r*.3,ry:r*.2,fill:'#fff',opacity:.55},g);return{g,r};}
+function setBall(b,p,s,op){if(!show(b.g,op*(s>.02?1:0)))return;b.g.setAttribute('transform',`translate(${f1(p[0])} ${f1(p[1])}) scale(${f2(s)})`);}
+function Box(x,y,w,h,lines){const g=G(Lobj);
+  el('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:4,fill:'#fff',stroke:'#1f3a52','stroke-width':2.2},g);
+  lines.forEach((s,i)=>{const t=el('text',{class:'bx',x:0,y:(i-(lines.length-1)/2)*26},g);t.textContent=s;});
+  return{g,x,y};}
+function setBox(b,v){if(show(b.g,v))b.g.setAttribute('transform',`translate(${b.x} ${b.y}) scale(${f2(.85+.15*v)})`);}
+function Txt(x,y,s,par,cls){const t=el('text',{class:cls||'lb',x,y},par||Lobj);t.textContent=s;return t;}
+function Arr(d,col){const g=G(Larr),p=el('path',{d,fill:'none',stroke:col,'stroke-width':3.2,'stroke-linecap':'round'},g),L=p.getTotalLength();
+  const e=p.getPointAtLength(L),q=p.getPointAtLength(L-10),a=Math.atan2(e.y-q.y,e.x-q.x),c=Math.cos(a),s=Math.sin(a);
+  const h=el('polygon',{points:[[e.x,e.y],[e.x-15*c+7*s,e.y-15*s-7*c],[e.x-15*c-7*s,e.y-15*s+7*c]].map(v=>v.map(f1).join(',')).join(' '),fill:col},g);
+  return{g,p,h,L,at:u=>{const v=p.getPointAtLength(u*L);return[v.x,v.y];}};}
+function drawArr(A,v){if(!show(A.g,v>.005?1:0))return;A.p.setAttribute('stroke-dasharray',`${f1(v*(A.L-8))} ${f1(A.L+20)}`);A.h.setAttribute('opacity',f2(sm(v,.9,1)));}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round'},a),p);
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function grow(g,bx,by,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${bx} ${by}) scale(${f2(lerp(.4,1,v))} ${f2(Math.max(.01,v))}) translate(${-bx} ${-by})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
+const Glow=(cx,cy,r)=>el('circle',{cx,cy,r,fill:'url(#gGlow)',opacity:0},Lglow);
+function Lab(items){const g=G(Lobj);items.forEach(it=>{if(it[0]==='L')lead(it[1],g);else Txt(it[0],it[1],it[2],g,it[3]);});return g;}
+function Ovule(par,cx,cy,rx,ry){/* integument with micropyle at the bottom */
+  el('ellipse',{cx,cy,rx,ry,fill:'#cfe8a8',stroke:'#5a8a2a','stroke-width':3},par);
+  el('rect',{x:cx-5,y:cy+ry-8,width:10,height:12,fill:'#f4e8cc'},par);}
+
+/* ================= 1) sporophyte tree ================= */
+const TR=G(Lobj);
+path('M300,252 Q296,200 300,140 M300,196 Q280,170 262,150 M300,180 Q322,160 340,145',{stroke:'#6b3a24','stroke-width':8},TR);
+path('M300,250 Q285,258 272,262 M300,250 Q316,258 330,262',{stroke:'#6b3a24','stroke-width':3},TR);
+const CG=['#4f9a2f','#6ab03a','#3e8a28','#7cc04a','#5aa232'];
+for(let i=0;i<70;i++){const a=rnd()*2*PI,r=Math.sqrt(rnd());el('circle',{cx:f1(300+68*r*Math.cos(a)),cy:f1(112+56*r*Math.sin(a)),r:f1(11+rnd()*9),fill:CG[i%5]},TR);}
+const lTr=Lab([[300,284,'طور بوغي 2س']]);
+const glT=Glow(300,140,120);
+
+/* ================= 2) flower (half section) ================= */
+const Atf=Arr('M380,150 Q405,130 430,138',DARK);
+const FL=G(Lobj);
+path('M510,212 L510,272',{stroke:'#4a8a2a','stroke-width':6},FL);
+el('ellipse',{cx:510,cy:122,rx:30,ry:58,fill:'#fbd6e3',stroke:'#e08aa8','stroke-width':1.5},FL);
+el('path',{d:'M505,205 C470,192 428,140 446,84 C472,100 496,150 505,205Z',fill:'#f6a9c4',stroke:'#c8507a','stroke-width':1.5},FL);
+el('path',{d:'M515,205 C550,192 592,140 574,84 C548,100 524,150 515,205Z',fill:'#f6a9c4',stroke:'#c8507a','stroke-width':1.5},FL);
+path('M498,200 Q480,160 470,118',{stroke:'#e2c45a','stroke-width':2.5},FL);path('M522,200 Q540,160 550,118',{stroke:'#e2c45a','stroke-width':2.5},FL);
+[[470,113],[550,113]].forEach(([x,y])=>el('ellipse',{cx:x,cy:y,rx:9,ry:6,fill:'#f2c12e',stroke:'#a07a10','stroke-width':1.2},FL));
+el('path',{d:'M488,203 Q510,228 532,203Z',fill:'#5fa83a'},FL);
+path('M510,174 L510,102',{stroke:'#9ccc65','stroke-width':5},FL);
+el('ellipse',{cx:510,cy:96,rx:10,ry:5.5,fill:'#7cb342'},FL);
+el('ellipse',{cx:510,cy:190,rx:15,ry:18,fill:'#8bc34a',stroke:'#4a7a2a','stroke-width':1.5},FL);
+[[505,186],[515,194]].forEach(([x,y])=>el('circle',{cx:x,cy:y,r:3.5,fill:'#fff',stroke:'#4a7a2a','stroke-width':1},FL));
+const lFlL=Lab([[408,108,'متك'],[408,160,'خيط'],['L','M424,109 L460,113'],['L','M424,160 L482,162']]);
+const lFlR=Lab([[626,92,'ميسم'],[626,130,'قلم'],[626,168,'مبيض'],[626,206,'بويض'],['L','M602,93 L521,96'],['L','M608,130 L513,132'],['L','M600,168 L526,184'],['L','M600,206 L518,195']]);
+
+/* ================= 3) anther ================= */
+const Afa=Arr('M560,236 Q620,282 660,304',DARK);
+const AN=G(Lobj);
+el('rect',{x:688,y:308,width:24,height:44,fill:'#f5c27a'},AN);
+[[680,310],[720,310],[680,350],[720,350]].forEach(([x,y])=>{el('circle',{cx:x,cy:y,r:21,fill:'url(#gAnt)',stroke:'#b8650f','stroke-width':2},AN);
+  el('circle',{cx:x,cy:y,r:11,fill:'#fff2c8',stroke:'#d49a3a','stroke-width':1},AN);
+  [[-4,-3],[4,-2],[0,4]].forEach(([dx,dy])=>el('circle',{cx:x+dx,cy:y+dy,r:2.6,fill:'#3b47c4'},AN));});
+const lAn=Lab([[700,270,'كيس اللقاح'],[628,350,'متك'],['L','M700,282 L716,298']]);
+const glA=Glow(720,350,40);
+
+/* ================= 4) meiosis -> microspores ================= */
+const Ami=Arr('M700,378 L700,490',DARK),lMi=Lab([[612,436,'انقسام اختزالي']]);
+const tkMi=Ball(Ltok,'gB',11);
+const TC=[707,526],T1=[[-12,0],[12,0]],T2=[[-12,-12],[-12,12],[12,-12],[12,12]],MS=[[684,512],[718,504],[732,534],[698,544]];
+const miB=T2.map(()=>Ball(Ltok,'gB',11)),miO=T2.map(()=>Ball(Ltok,'gO',11));
+const lMs=Lab([[738,578,'أبواغ صغيرة س']]);
+
+/* ================= 5) mitosis -> pollen grain ================= */
+const Apo=Arr('M668,532 Q612,568 552,542',BRN),lApo=Lab([[602,592,'انقسام خيطي']]);
+const PG=[500,530],POL=G(Lobj);
+const spk=G(POL);for(let k=0;k<24;k++){const a=k/24*2*PI,c=Math.cos(a),s=Math.sin(a);
+  el('polygon',{points:[[500+33*c-3*s,530+33*s+3*c],[500+33*c+3*s,530+33*s-3*c],[500+41*c,530+41*s]].map(v=>v.map(f1).join(',')).join(' '),fill:'#d9921f'},spk);}
+el('circle',{cx:500,cy:530,r:34,fill:'#f2c35a',stroke:'#b8650f','stroke-width':2.5},POL);
+el('circle',{cx:500,cy:530,r:27,fill:'url(#gPol)'},POL);
+const pn0=Ball(POL,'gO',10);
+const pTube=G(POL);el('ellipse',{cx:510,cy:522,rx:12,ry:9,fill:'#f2b13a',stroke:'#9a520c','stroke-width':1.2},pTube);
+const pGen=G(POL);el('ellipse',{cx:490,cy:542,rx:14,ry:7,fill:'#e2f2c4',stroke:'#5a8a2a','stroke-width':1.5,transform:'rotate(28 490 542)'},pGen);el('circle',{cx:490,cy:542,r:3.5,fill:'#4a7a2a'},pGen);
+const lPo=Lab([[500,476,'حبة لقاح'],[598,496,'خلية أنبوبية'],[500,594,'خلية مولدة'],['L','M550,500 L520,518'],['L','M496,582 L490,552']]);
+const tkPo=Ball(Ltok,'gO',11);
+
+/* ================= 6) pistil with ovule ================= */
+const Afp=Arr('M560,66 Q740,36 872,176',DARK);
+const PI1=G(Lobj);
+el('ellipse',{cx:881,cy:190,rx:11,ry:6,fill:'#7cb342',transform:'rotate(-30 881 190)'},PI1);el('ellipse',{cx:899,cy:190,rx:11,ry:6,fill:'#7cb342',transform:'rotate(30 899 190)'},PI1);
+el('rect',{x:883,y:194,width:14,height:72,fill:'#b5d98a',stroke:'#6a9a3a','stroke-width':1.5},PI1);
+el('ellipse',{cx:890,cy:310,rx:40,ry:48,fill:'#9ccc65',stroke:'#5a8a2a','stroke-width':2.5},PI1);
+Ovule(PI1,890,314,18,26);
+const MMC=[890,312],mmc=Ball(Lobj,'gB',9);
+const lPi=Lab([[812,228,'قلم'],[805,300,'بويض'],[808,352,'مبيض'],['L','M834,228 L882,228'],['L','M832,300 L872,308'],['L','M836,350 L854,336']]);
+
+/* ================= 7) meiosis -> megaspores ================= */
+const Ame=Arr('M890,368 L890,526',DARK),lMe=Lab([[810,438,'انقسام اختزالي']]);
+const tkMe=Ball(Ltok,'gB',11);
+const MO=G(Lobj);Ovule(MO,890,598,46,66);el('ellipse',{cx:890,cy:596,rx:30,ry:50,fill:'#f7f0d8',stroke:'#c4b070','stroke-width':1.5},MO);
+const M1=[[890,572],[890,620]],M4=[[890,560],[890,584],[890,608],[890,632]];
+const meB=M4.map(()=>Ball(Ltok,'gB',11)),meO=M4.map(()=>Ball(Ltok,'gO',11)),meX=M4.slice(0,3).map(()=>Ball(Ltok,'gX',11));
+const lMo=Lab([[812,512,'أبواغ كبيرة س'],[950,508,'جدار البويض'],[890,694,'اضمحلال ثلاثة أبواغ'],['L','M950,520 L926,548']]);
+
+/* ================= 8) mitosis -> embryo sac ================= */
+const Aes=Arr('M846,632 Q730,592 614,630',BRN),lAes=Lab([[740,640,'انقسام خيطي']]);
+const tkEs=Ball(Ltok,'gO',11);
+const ES=G(Lobj);Ovule(ES,570,700,50,72);el('ellipse',{cx:570,cy:698,rx:30,ry:52,fill:'#fffbe6',stroke:'#b8a050','stroke-width':1.5},ES);
+const EC=[570,700],E1=[[570,672],[570,728]],E2=[[562,664],[578,676],[562,722],[578,734]];
+const EF=[[556,660],[584,660],[570,648],[562,700],[578,700],[570,732],[555,744],[585,744]],EP=[0,0,1,1,2,2,3,3];
+const esN=EF.map((p,i)=>Ball(Ltok,'gO',i===5?10:7));
+const walls=G(Lobj);[[556,660,10],[584,660,10],[570,648,9],[570,732,13],[555,744,9],[585,744,9]].forEach(([x,y,r])=>el('circle',{cx:x,cy:y,r,fill:'none',stroke:'#b8a050','stroke-width':1.2},walls));
+const lEs=Lab([[452,652,'خلايا سمتية'],[446,700,'نواتان قطبيتان'],[654,728,'بيضة'],[690,764,'خليتان مساعدتان'],
+  ['L','M500,654 L546,658'],['L','M508,700 L552,700'],['L','M630,728 L584,732'],['L','M624,758 L596,746']]);
+const BXe=Box(570,800,124,32,['كيس جنيني']);
+
+/* ================= 9) pollination ================= */
+const Apl=Arr('M462,518 Q400,470 336,490',BRN),BXp=Box(398,478,78,34,['تلقيح']);
+const Aep=Arr('M522,752 Q432,786 354,722',BRN);
+const PS=G(Lobj);
+el('ellipse',{cx:300,cy:500,rx:11,ry:6,fill:'#7cb342',transform:'rotate(-30 300 500)'},PS);el('ellipse',{cx:320,cy:500,rx:11,ry:6,fill:'#7cb342',transform:'rotate(30 320 500)'},PS);
+el('rect',{x:303,y:504,width:14,height:144,fill:'#b5d98a',stroke:'#6a9a3a','stroke-width':1.5},PS);
+el('ellipse',{cx:310,cy:690,rx:42,ry:50,fill:'#9ccc65',stroke:'#5a8a2a','stroke-width':2.5},PS);
+Ovule(PS,310,698,18,26);el('ellipse',{cx:310,cy:696,rx:9,ry:16,fill:'#fffbe6',stroke:'#b8a050','stroke-width':1},PS);
+const PGs=[322,492],pgS=Ball(Lobj,'gO',9),tkPl=Ball(Ltok,'gO',11);
+const lPl=Lab([[268,476,'(س)'],[372,600,'(2س)']]);
+
+/* ================= 10) pollen tube in the style ================= */
+const tube=path('M318,500 L313,560 L313,650 Q313,690 310,722',{stroke:'#e8a03a','stroke-width':4},Lobj);
+const sp1=Ball(Ltok,'gO',4.5),sp2=Ball(Ltok,'gO',4.5);
+const lTu=Lab([[232,600,'أنبوب لقاح'],['L','M276,600 L309,600']]);
+
+/* ================= 11) double fertilisation in the ovule ================= */
+const Aov=Arr('M298,744 Q232,804 170,778',BRN);
+const FO=G(Lobj);Ovule(FO,115,640,42,72);el('ellipse',{cx:115,cy:638,rx:25,ry:50,fill:'#fffbe6',stroke:'#b8a050','stroke-width':1.5},FO);
+[[103,600],[127,600],[115,590],[102,684],[128,684]].forEach(([x,y])=>{const b=Ball(FO,'gO',6);b.g.setAttribute('transform',`translate(${x} ${y})`);});
+const ftube=path('M170,778 Q132,760 116,712 L114,690',{stroke:'#e8a03a','stroke-width':4},Lobj);
+const EGG=[115,674],POLc=[115,640];
+const fEggO=Ball(Lobj,'gO',9),fEggB=Ball(Lobj,'gB',10),fPo1=Ball(Lobj,'gO',6.5),fPo2=Ball(Lobj,'gO',6.5),fEnd=Ball(Lobj,'gP',10);
+const fs1=Ball(Ltok,'gO',4.5),fs2=Ball(Ltok,'gO',4.5);
+const glF=Glow(115,656,60);
+const lFo=Lab([[210,632,'سويداء 3س'],[208,690,'زيجة 2س'],[62,792,'أنبوب لقاح'],['L','M168,632 L128,640'],['L','M172,690 L127,676']]);
+
+/* ================= 12) seed ================= */
+const Afe=Arr('M115,562 L115,380',DARK),lAfe=Lab([[168,470,'إخصاب']]);
+const tkZ=Ball(Ltok,'gB',11);
+const SD=G(Lobj);
+el('ellipse',{cx:115,cy:320,rx:36,ry:46,fill:'#a0612a',stroke:'#6a3a10','stroke-width':2},SD);
+el('ellipse',{cx:115,cy:320,rx:29,ry:39,fill:'#fff1c8'},SD);
+el('path',{d:'M108,348 Q93,316 112,290 Q127,300 119,320 Q114,340 123,352Z',fill:'#7cc04a',stroke:'#3e7a20','stroke-width':1.5},SD);
+const lSd=Lab([[196,296,'جنين'],[196,348,'سويداء'],['L','M176,296 L120,304'],['L','M168,346 L136,334']]);
+
+/* ================= 13) fruit -> new sporophyte ================= */
+const Asf=Arr('M115,268 L115,206',DARK),Aft=Arr('M168,140 Q196,118 224,130',DARK);
+const FR=G(Lobj);
+path('M115,104 Q118,92 126,86',{stroke:'#6b3a24','stroke-width':3},FR);
+el('circle',{cx:115,cy:150,r:48,fill:'url(#gFr)',stroke:'#9a2a10','stroke-width':1.5},FR);
+el('circle',{cx:115,cy:152,r:36,fill:'#ffd98a'},FR);
+el('ellipse',{cx:115,cy:154,rx:13,ry:19,fill:'#a0612a',stroke:'#6a3a10','stroke-width':1.5},FR);
+const lFr=Lab([[60,92,'ثمرة'],[196,180,'بذرة'],['L','M178,178 L128,160']]);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const q=[0];for(let i=1;i<=7;i++)q.push(clamp(P-(i-1),0,1));
+  const c=x=>clamp(x,0,1),s=[];
+  /* each click advances two parallel arrows, as in the textbook figure */
+  s[4]=s[7]=q[2];s[5]=s[8]=q[3];s[9]=c(q[4]/.55);s[10]=c((q[4]-.5)/.5);s[11]=c(q[5]/.62);s[12]=c((q[5]-.58)/.42);
+  s[13]=c(q[6]/.75);s[1]=c((q[6]-.55)/.45);s[2]=c(q[7]/.6);
+  const br=k=>1+.03*Math.sin(t*1.6+k);
+  /* 1 tree */
+  grow(TR,300,262,sm(s[1],0,.6));show(lTr,sm(s[1],.6,.9));
+  glT.setAttribute('opacity',f2(.8*Math.sin(PI*sm(q[6],.8,1))));
+  /* 2 flower */
+  drawArr(Atf,sm(s[2],0,.3));popAt(FL,510,272,sm(s[2],.25,.6));show(lFlL,sm(s[2],.6,.8));show(lFlR,sm(s[2],.7,.95));
+  /* 3 anther */
+  popAt(AN,700,330,sm(q[1],0,.4));show(lAn,sm(q[1],.35,.6));drawArr(Afa,sm(q[7],.55,.8));
+  glA.setAttribute('opacity',f2(Math.sin(PI*sm(s[4],0,.3))));
+  /* 4 meiosis -> four microspores */
+  drawArr(Ami,sm(s[4],.05,.35));show(lMi,sm(s[4],.15,.35));
+  setBall(tkMi,Ami.at(sm(s[4],.1,.4)),1,(s[4]>.1&&s[4]<.45)?1-sm(s[4],.38,.45):0);
+  {const ta=sm(s[4],.4,.48),d1=sm(s[4],.48,.62),d2=sm(s[4],.64,.78),col=sm(s[4],.64,.78),d3=sm(s[4],.8,.95);
+   T2.forEach((q,j)=>{let p=[TC[0]+lerp(lerp(0,T1[j>>1][0],d1),q[0],d2),TC[1]+lerp(lerp(0,T1[j>>1][1],d1),q[1],d2)];p=lp2(p,MS[j],d3);
+     const sc=pop(ta)*(1-.15*d1)*br(j),o=j===0?1-sm(s[5],.1,.2):1;
+     setBall(miB[j],p,sc,o*(1-col)*(ta>0?1:0));setBall(miO[j],p,sc,o*col);});}
+  show(lMs,sm(s[4],.85,1));
+  /* 5 pollen grain */
+  drawArr(Apo,sm(s[5],0,.35));show(lApo,sm(s[5],.15,.35));
+  setBall(tkPo,Apo.at(sm(s[5],.1,.45)),1,(s[5]>.1&&s[5]<.5)?1-sm(s[5],.42,.5):0);
+  popAt(POL,500,530,sm(s[5],.4,.6));
+  const dv=sm(s[5],.6,.78);setBall(pn0,PG,1-dv,1);popAt(pTube,510,522,sm(s[5],.65,.8));popAt(pGen,490,542,sm(s[5],.7,.85));
+  show(lPo,sm(s[5],.8,.98));
+  /* 6 pistil */
+  popAt(PI1,890,310,sm(q[1],.2,.6));
+  setBall(mmc,MMC,pop(sm(q[1],.5,.7))*br(2),1);show(lPi,sm(q[1],.6,.85));drawArr(Afp,sm(q[7],.65,.92));
+  /* 7 megaspores */
+  drawArr(Ame,sm(s[7],0,.3));show(lMe,sm(s[7],.1,.3));
+  setBall(tkMe,Ame.at(sm(s[7],.05,.35)),1,(s[7]>.05&&s[7]<.42)?1-sm(s[7],.34,.42):0);
+  popAt(MO,890,598,sm(s[7],.25,.45));
+  {const ta=sm(s[7],.38,.45),d1=sm(s[7],.45,.58),d2=sm(s[7],.6,.72),col=sm(s[7],.6,.72),dg=sm(s[7],.76,.92);
+   M4.forEach((q,j)=>{const p=lp2(lp2([890,596],M1[j>>1],d1),q,d2),sc=pop(ta)*br(j)*(j<3?lerp(1,.75,dg):1);
+     const o=j===3?1-sm(s[8],.1,.2):1;
+     setBall(meB[j],p,sc,(1-col)*(ta>0?1:0));setBall(meO[j],p,sc,o*col*(j<3?1-dg:1));if(j<3)setBall(meX[j],p,sc,col*dg);});}
+  show(lMo,sm(s[7],.8,.98));
+  /* 8 embryo sac: 1 -> 2 -> 4 -> 8 nuclei */
+  drawArr(Aes,sm(s[8],0,.3));show(lAes,sm(s[8],.12,.3));
+  setBall(tkEs,Aes.at(sm(s[8],.08,.38)),1,(s[8]>.08&&s[8]<.44)?1-sm(s[8],.36,.44):0);
+  popAt(ES,570,700,sm(s[8],.28,.45));
+  {const ta=sm(s[8],.4,.45),d1=sm(s[8],.45,.55),d2=sm(s[8],.57,.67),d3=sm(s[8],.69,.82);
+   EF.forEach((f,i)=>{const b=EP[i],p=lp2(lp2(lp2(EC,E1[b>>1],d1),E2[b],d2),f,d3);setBall(esN[i],p,pop(ta)*br(i)*lerp(1.2,1,d3),1);});}
+  show(walls,sm(s[8],.8,.92));show(lEs,sm(s[8],.85,1));setBox(BXe,sm(s[8],.88,1));
+  /* 9 pollination */
+  drawArr(Apl,sm(s[9],0,.4));setBox(BXp,sm(s[9],.1,.3));popAt(PS,310,620,sm(s[9],.2,.5));
+  setBall(tkPl,Apl.at(sm(s[9],.3,.62)),lerp(1,.8,sm(s[9],.3,.62)),(s[9]>.3&&s[9]<.7)?1-sm(s[9],.64,.7):0);
+  setBall(pgS,PGs,pop(sm(s[9],.62,.75))*br(3),1);
+  drawArr(Aep,sm(s[9],.55,.85));show(lPl,sm(s[9],.8,.98));
+  /* 10 pollen tube grows, two sperm nuclei travel down */
+  if(show(tube,s[10]>.02?1:0))Dash(tube,sm(s[10],.05,.6));
+  [sp1,sp2].forEach((b,i)=>{const v=sm(s[10],.3+.08*i,.85+.06*i)*.98,q=tube.getPointAtLength(v*(tube.__L||tube.getTotalLength()));
+    setBall(b,[q.x+(i?4:-4),q.y],1,(s[10]>.3+.08*i&&s[11]<.2)?1-sm(s[11],.1,.2):0);});
+  show(lTu,sm(s[10],.5,.8));
+  /* 11 double fertilisation */
+  drawArr(Aov,sm(s[11],0,.3));popAt(FO,115,640,sm(s[11],.15,.4));
+  if(show(ftube,s[11]>.3?1:0))Dash(ftube,sm(s[11],.3,.55));
+  const f1v=sm(s[11],.45,.72),f2v=sm(s[11],.5,.78),TL=ftube.__L||ftube.getTotalLength();
+  const tipA=ftube.getPointAtLength(TL),tA=[tipA.x,tipA.y];
+  const mv=(v,dst)=>{if(v<.4){const q=ftube.getPointAtLength(v/.4*TL);return[q.x,q.y];}return lp2(tA,dst,(v-.4)/.6);};
+  setBall(fs1,mv(f1v,EGG),1,(s[11]>.45&&s[11]<.78)?1:0);setBall(fs2,mv(f2v,POLc),1,(s[11]>.5&&s[11]<.82)?1:0);
+  const fe=sm(s[11],.72,.85),fp=sm(s[11],.78,.92),eg=sm(s[11],.15,.4),gz=false;
+  setBall(fEggO,EGG,pop(eg),1-fe);setBall(fEggB,EGG,pop(Math.max(eg,fe)),gz?0:fe);
+  setBall(fPo1,lp2([107,640],POLc,fp),pop(eg),1-fp);setBall(fPo2,lp2([123,640],POLc,fp),pop(eg),1-fp);setBall(fEnd,POLc,pop(fp)*br(4),1);
+  glF.setAttribute('opacity',f2(Math.sin(PI*sm(s[11],.7,1))));
+  show(lFo,sm(s[11],.85,1));
+  /* 12 seed */
+  drawArr(Afe,sm(s[12],0,.4));show(lAfe,sm(s[12],.2,.4));
+  setBall(tkZ,Afe.at(sm(s[12],.08,.5)),1,(s[12]>.08&&s[12]<.56)?1-sm(s[12],.5,.56):0);
+  popAt(SD,115,320,sm(s[12],.5,.75));show(lSd,sm(s[12],.75,.95));
+  /* 13 fruit -> tree */
+  drawArr(Asf,sm(s[13],0,.25));popAt(FR,115,150,sm(s[13],.2,.45));show(lFr,sm(s[13],.4,.6));drawArr(Aft,sm(s[13],.5,.75));
+}
+
+/* ---------------- next / previous buttons ---------------- */
+const btn=document.getElementById('go'),pbtn=document.getElementById('prev');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+function back(){if(stage<0)return;const tgt=stage;stage--;S.entry=P;S.tgt=tgt;t0=T;S.dur=.9;}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+pbtn.onclick=back;
+let lbl='',paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  pbtn.disabled=stage<0;
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:410});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:410});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();else if(e.key==='ArrowRight')back();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

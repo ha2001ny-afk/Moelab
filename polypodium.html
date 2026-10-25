@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التكاثر في السرخسيات - البوليبوديوم</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go{min-width:170px;height:56px;padding:0 26px;border-radius:28px;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active{background:#d9ebf7}
+  #go:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  .bx{fill:#1f3a52;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lb{fill:#1f3a52;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lr{fill:#b5321f;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التكاثر في السرخسيات - البوليبوديوم</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gB" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#a9b6ff"/><stop offset=".55" stop-color="#3b47c4"/><stop offset="1" stop-color="#141a6b"/></radialGradient>
+        <radialGradient id="gO" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff2b8"/><stop offset=".55" stop-color="#f2b13a"/><stop offset="1" stop-color="#b8650f"/></radialGradient>
+        <radialGradient id="gSori" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#ffcf8a"/><stop offset=".6" stop-color="#d9741f"/><stop offset="1" stop-color="#8a3a0a"/></radialGradient>
+        <radialGradient id="gHeart" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#b9e86a"/><stop offset=".7" stop-color="#6fbf3a"/><stop offset="1" stop-color="#3f8a22"/></radialGradient>
+        <radialGradient id="gSpg" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#ffe7c2"/><stop offset="1" stop-color="#e9a65a"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const lp2=(p,q,u)=>[lerp(p[0],q[0],u),lerp(p[1],q[1],u)];
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+
+const DUR=[5,4,4,6,4,5.5,5,6,4.5,6];
+const DARK='#1f2a44',BRN='#a0522d',GRN='#2f7a2a';
+const world=G(view);
+/* background: sporophyte (2س) above, gametophyte (س) below */
+el('rect',{x:0,y:420,width:900,height:300,fill:'#f4e8cc'},world);
+el('line',{x1:20,y1:420,x2:880,y2:420,stroke:'#a0522d','stroke-width':2.5,'stroke-dasharray':'10 7'},world);
+const Lbk=G(world),Larr=G(world),Lglow=G(world),Lobj=G(world),Ltok=G(world);
+{const a=el('text',{class:'lr',x:42,y:398},world);a.textContent='2س';const b=el('text',{class:'lr',x:42,y:444},world);b.textContent='س';}
+
+/* ---------------- building blocks ---------------- */
+function Ball(parent,grad,r){const g=G(parent);
+  el('circle',{r,fill:`url(#${grad})`,stroke:grad==='gB'?'#10165a':'#9a520c','stroke-width':1},g);
+  el('ellipse',{cx:-r*.35,cy:-r*.4,rx:r*.3,ry:r*.2,fill:'#fff',opacity:.55},g);return{g,r};}
+function setBall(b,p,s,op){if(!show(b.g,op*(s>.02?1:0)))return;b.g.setAttribute('transform',`translate(${f1(p[0])} ${f1(p[1])}) scale(${f2(s)})`);}
+function Box(x,y,w,h,lines){const g=G(Lobj);
+  el('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:4,fill:'#fff',stroke:'#1f3a52','stroke-width':2.2},g);
+  lines.forEach((s,i)=>{const t=el('text',{class:'bx',x:0,y:(i-(lines.length-1)/2)*27},g);t.textContent=s;});
+  return{g,x,y};}
+function setBox(b,v){if(show(b.g,v))b.g.setAttribute('transform',`translate(${b.x} ${b.y}) scale(${f2(.85+.15*v)})`);}
+function Txt(x,y,s,cls,rot){const t=el('text',{class:cls||'lb',x,y},Lobj);t.textContent=s;if(rot)t.setAttribute('transform',`rotate(${rot} ${x} ${y})`);return t;}
+function Arr(d,col){const g=G(Larr),p=el('path',{d,fill:'none',stroke:col,'stroke-width':3.2,'stroke-linecap':'round'},g),L=p.getTotalLength();
+  const e=p.getPointAtLength(L),q=p.getPointAtLength(L-10),a=Math.atan2(e.y-q.y,e.x-q.x),c=Math.cos(a),s=Math.sin(a);
+  const h=el('polygon',{points:[[e.x,e.y],[e.x-15*c+7*s,e.y-15*s-7*c],[e.x-15*c-7*s,e.y-15*s+7*c]].map(v=>v.map(f1).join(',')).join(' '),fill:col},g);
+  return{g,p,h,L,at:u=>{const v=p.getPointAtLength(u*L);return[v.x,v.y];}};}
+function drawArr(A,v){if(!show(A.g,v>.005?1:0))return;A.p.setAttribute('stroke-dasharray',`${f1(v*(A.L-8))} ${f1(A.L+20)}`);A.h.setAttribute('opacity',f2(sm(v,.9,1)));}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round'},a),p);
+function grow(g,bx,by,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${bx} ${by}) scale(${f2(lerp(.45,1,v))} ${f2(Math.max(.01,v))}) translate(${-bx} ${-by})`);}
+function popAt(g,cx,cy,v,k){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v)*(k||1))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+function frond(par,b,c,t,w){const g=G(par);
+  const P=u=>[(1-u)*(1-u)*b[0]+2*(1-u)*u*c[0]+u*u*t[0],(1-u)*(1-u)*b[1]+2*(1-u)*u*c[1]+u*u*t[1]];
+  const D=u=>[2*(1-u)*(c[0]-b[0])+2*u*(t[0]-c[0]),2*(1-u)*(c[1]-b[1])+2*u*(t[1]-c[1])];
+  const st=w>15?.036:.08;
+  for(let u=.12;u<.97;u+=st){const p=P(u),d=D(u),m=Math.hypot(d[0],d[1]),tx=d[0]/m,ty=d[1]/m,nx=-ty,ny=tx;
+    const l=2+w*Math.sin(PI*Math.min(1,(u-.08)/.92))*(1-.3*u);
+    [-1,1].forEach(s=>path(`M${f1(p[0])},${f1(p[1])} L${f1(p[0]+nx*s*l+tx*l*.32)},${f1(p[1]+ny*s*l+ty*l*.32)}`,{stroke:'#62b844','stroke-width':w>15?4.4:3},g));}
+  let dd='M'+b.join(',');for(let u=.05;u<=1.001;u+=.05){const p=P(u);dd+=` L${f1(p[0])},${f1(p[1])}`;}
+  path(dd,{stroke:GRN,'stroke-width':w>15?3:2},g);return{g,b};}
+const HEART='M447,322 C428,296 380,304 384,352 C388,392 424,414 450,436 C470,414 504,392 508,352 C512,304 466,296 447,322Z';
+function Heart(par,cx,cy,s){const g=G(par,{transform:`translate(${cx} ${cy}) scale(${s}) translate(-447 -378)`});
+  el('path',{d:HEART,fill:'url(#gHeart)',stroke:'#3d7d22','stroke-width':2/s},g);return g;}
+function Sperm(){const g=G(Ltok);path('M0,0 q-5,-4 -10,0 t-10,0',{stroke:'#b8650f','stroke-width':1.6},g);el('circle',{r:3.8,fill:'url(#gO)',stroke:'#9a520c','stroke-width':.8},g);return g;}
+
+/* ================= 1) sporophyte ================= */
+const BXs=Box(450,46,230,48,['الطور البوغي 2س']);
+const glS=el('circle',{cx:450,cy:200,r:150,fill:'url(#gGlow)',opacity:0},Lglow);
+const spoBase=G(Lobj);
+for(let i=0;i<13;i++){const x=372+i*13,y=301;path(`M${x},${y} Q${f1(x+(rnd()-.5)*14)},${y+14} ${f1(x+(rnd()-.5)*22)},${f1(322+rnd()*14)}`,{stroke:'#a9714a','stroke-width':1.5},spoBase);}
+path('M366,301 Q452,293 538,303',{stroke:'#8b5a2b','stroke-width':6},spoBase);
+const spoF=[[[400,300],[360,240],[345,150]],[[428,298],[400,190],[398,104]],[[455,297],[450,180],[458,88]],[[482,298],[505,190],[515,106]],[[508,300],[545,235],[560,150]]].map(a=>frond(Lobj,a[0],a[1],a[2],24));
+/* ================= 2) leaflet with sori (underside) ================= */
+const A2=Arr('M574,205 Q602,188 628,196',DARK);
+const lf=G(Lobj),lfIn=G(lf,{transform:'translate(712 170) rotate(-20)'});
+el('path',{d:'M-75,0 Q-40,-34 10,-32 Q60,-28 80,0 Q60,28 10,32 Q-40,34 -75,0Z',fill:'#4a9e3c',stroke:'#2a6a2a','stroke-width':2},lfIn);
+path('M-72,0 L78,0',{stroke:'#2a6a2a','stroke-width':2.5},lfIn);
+const sori=G(lfIn);
+for(let x=-48;x<=62;x+=18)[-14,14].forEach(y=>{el('circle',{cx:x,cy:y*(1-Math.abs(x-7)/150),r:6.5,fill:'url(#gSori)',stroke:'#6a2a05','stroke-width':.8},sori);});
+const lLf=Txt(712,96,'وريقة (السطح السفلي)'),lSo=Txt(838,212,'حوافظ أبواغ');
+/* ================= 3) sporangium ================= */
+const A3=Arr('M742,206 Q770,258 762,320',DARK);
+const SPG=[760,358],spg=G(Lobj);
+path('M752,376 Q745,395 735,408',{stroke:'#8a4a1a','stroke-width':4},spg);
+el('ellipse',{cx:760,cy:358,rx:28,ry:20,fill:'url(#gSpg)',stroke:'#8a4a1a','stroke-width':2},spg);
+const spgIn=G(spg);[[-10,-4],[0,-7],[10,-3],[-5,6],[6,6],[15,3]].forEach(([x,y])=>{const b=Ball(spgIn,'gO',4);b.g.setAttribute('transform',`translate(${760+x} ${358+y})`);});
+const ann=G(spg);
+for(let k=0;k<=13;k++){const a=lerp(-195,15,k/13)*PI/180,c=Math.cos(a),s=Math.sin(a);
+  path(`M${f1(760+28*c)},${f1(358+20*s)} L${f1(760+36*c)},${f1(358+28*s)}`,{stroke:'#7a3a10','stroke-width':4.5},ann);}
+const lSpg=Txt(640,358,'حافظة أبواغ 2س');
+/* ================= 4) meiosis -> spores ================= */
+const BXm=Box(816,446,158,40,['انقسام اختزالي']);
+const A4=Arr('M750,388 Q750,440 730,478',BRN);
+const SPC=[[712,492],[730,488],[748,495],[718,508],[736,506],[752,512],[726,522],[744,524]];
+const spores=SPC.map(()=>Ball(Lobj,'gO',6));
+const lSp=Txt(812,512,'أبواغ س');
+/* ================= 5) germination ================= */
+const A5=Arr('M722,532 Q712,556 700,568',BRN);
+const germ=G(Lobj),gFil=path('M688,588 q-9,5 -18,3 t-18,4',{stroke:'#4caf50','stroke-width':7},germ);
+path('M688,594 q2,8 -2,14',{stroke:'#b07a4a','stroke-width':1.5},germ);
+const gSp=Ball(germ,'gO',8);gSp.g.setAttribute('transform','translate(692 588)');
+const lGe=Txt(782,590,'إنبات البوغ');
+/* ================= 6) prothallus ================= */
+const A6=Arr('M640,600 Q600,628 548,612',BRN),lA6=Txt(600,646,'انقسام خيطي','lb',-8);
+const PR=G(Lobj);
+for(let i=0;i<9;i++){const sx=428+i*6,ex=400+i*12+rnd()*6;path(`M${sx},655 Q${f1(lerp(sx,ex,.5)+(rnd()-.5)*10)},675 ${f1(ex)},${f1(692+rnd()*12)}`,{stroke:'#b07a4a','stroke-width':1.6},PR);}
+Heart(PR,450,585,1.4);
+const lRh=Txt(560,694,'أشباه الجذور');
+const BXg=Box(275,690,190,40,['الطور المشيجي س']);
+/* ================= 7) sex organs ================= */
+const org=G(Lobj);
+[[436,530],[450,526],[464,531]].forEach(([x,y])=>{el('ellipse',{cx:x,cy:y,rx:5,ry:7,fill:'#1f6a2a'},org);});
+[[440,632],[456,642],[472,628],[430,644]].forEach(([x,y])=>el('circle',{cx:x,cy:y,r:5,fill:'#8bd06a',stroke:'#1f6a2a','stroke-width':1.5},org));
+const cn=[path('M272,540 L430,529',{stroke:'#1f3a52','stroke-width':1.8,'stroke-dasharray':'5 4'},Lobj),path('M270,626 L426,636',{stroke:'#1f3a52','stroke-width':1.8,'stroke-dasharray':'5 4'},Lobj)];
+const water=el('ellipse',{cx:250,cy:582,rx:72,ry:90,fill:'#bfe0f7',opacity:0,stroke:'#7fb1d6','stroke-width':1.5,'stroke-dasharray':'4 4'},Lbk);
+const arG=G(Lobj);
+el('rect',{x:244,y:494,width:12,height:32,rx:5,fill:'#4caf50',stroke:'#1b5e20','stroke-width':2},arG);
+el('ellipse',{cx:250,cy:546,rx:21,ry:23,fill:'#4caf50',stroke:'#1b5e20','stroke-width':2.5},arG);
+const EGG=[250,548],eggO=Ball(Lobj,'gO',10),eggB=Ball(Lobj,'gB',10);
+const anG=G(Lobj);
+el('circle',{cx:250,cy:626,r:19,fill:'#8bd06a',stroke:'#1b5e20','stroke-width':2.5},anG);
+[[-7,-5],[5,-7],[8,4],[-6,7],[0,0],[-1,-11]].forEach(([x,y])=>el('circle',{cx:250+x,cy:626+y,r:2.6,fill:'#e08a1a'},anG));
+const lAr=Txt(132,540,'أركيكونيوم'),lAn=Txt(132,628,'أنثريديوم');
+/* ================= 8) fertilisation ================= */
+const BXf=Box(305,468,100,40,['إخصاب']);
+const sperms=[0,1,2,3,4].map(()=>Sperm()),lNt=Txt(306,590,'نطف');
+const glE=el('circle',{cx:250,cy:548,r:55,fill:'url(#gGlow)',opacity:0},Ltok);
+const spP=(i,u)=>[250+(16*Math.sin(u*PI*4+i*1.3)+(i-2)*11)*(1-u),lerp(608,552,u)];
+/* ================= 9) zygote ================= */
+const A9=Arr('M230,526 Q178,470 210,394',DARK);
+const ZP=[215,372],zyg=Ball(Ltok,'gB',16),lZy=Txt(118,372,'زيجة 2س');
+/* ================= 10) young sporophyte ================= */
+const A10=Arr('M215,350 Q205,305 218,282',DARK),lA10=Txt(130,312,'انقسام خيطي');
+const ys=G(Lobj);
+path('M222,262 Q218,276 212,290 M224,262 Q232,276 236,288',{stroke:'#8b5a2b','stroke-width':1.8},ys);
+Heart(ys,220,252,.45);
+frond(ys,[223,246],[204,205],[232,165],11);frond(ys,[226,247],[250,220],[257,192],8);
+const lYs=Txt(222,140,'طور بوغي فتي');
+const A11=Arr('M266,212 Q320,236 368,240',DARK);
+/* travelling token */
+const tkO=Ball(Ltok,'gO',9);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const u=i=>clamp(P-(i-1),0,1),s1=u(1),s2=u(2),s3=u(3),s4=u(4),s5=u(5),s6=u(6),s7=u(7),s8=u(8),s9=u(9),s10=u(10);
+  const br=k=>1+.03*Math.sin(t*1.6+k);
+  /* 1 sporophyte */
+  setBox(BXs,sm(s1,0,.25));show(spoBase,sm(s1,.05,.3));
+  spoF.forEach((f,i)=>grow(f.g,f.b[0],f.b[1],sm(s1,.15+.08*i,.6+.08*i)));
+  glS.setAttribute('opacity',f2(.8*Math.sin(PI*sm(s10,.75,1))));
+  /* 2 leaflet + sori */
+  drawArr(A2,sm(s2,0,.45));popAt(lf,712,170,sm(s2,.35,.7),br(1));
+  show(sori,sm(s2,.6,.85));show(lLf,sm(s2,.55,.8));show(lSo,sm(s2,.7,.95));
+  /* 3 sporangium */
+  drawArr(A3,sm(s3,0,.45));popAt(spg,760,358,sm(s3,.35,.7),br(2));show(lSpg,sm(s3,.6,.9));
+  /* 4 meiosis: sporangium opens, spores (س) released */
+  setBox(BXm,sm(s4,0,.2));drawArr(A4,sm(s4,.1,.45));
+  ann.setAttribute('transform',`rotate(${f1(-50*sm(s4,.3,.45))} 734 362)`);
+  show(spgIn,1-sm(s4,.35,.5));
+  const e0=A4.at(1);
+  spores.forEach((b,j)=>{const v=sm(s4,.35+.035*j,.75+.03*j),a=A4.at(v),p=[a[0]+(SPC[j][0]-e0[0])*v,a[1]+(SPC[j][1]-e0[1])*v];
+    setBall(b,p,lerp(.6,1,v)*br(j),s4>.35+.035*j?(j===0?1-sm(s5,.1,.3):1):0);});
+  show(lSp,sm(s4,.8,.95));
+  /* 5 germination */
+  drawArr(A5,sm(s5,0,.4));
+  const g5=sm(s5,.3,.5);if(show(germ,g5>.01?1:0)){Dash(gFil,sm(s5,.5,.85));}
+  if(s5<.3&&s5>.1)setBall(tkO,A5.at(sm(s5,.1,.3)),.7,1);
+  show(lGe,sm(s5,.6,.85));
+  /* 6 prothallus */
+  drawArr(A6,sm(s6,0,.4));show(lA6,sm(s6,.25,.5));
+  if(s6>.05&&s6<.45)setBall(tkO,A6.at(sm(s6,.05,.4)),1,1-sm(s6,.38,.45));else if(!(s5<.3&&s5>.1))show(tkO.g,0);
+  popAt(PR,450,640,sm(s6,.4,.8),br(4));show(lRh,sm(s6,.7,.9));setBox(BXg,sm(s6,.75,.95));
+  /* 7 sex organs */
+  show(org,sm(s7,0,.3));cn.forEach((c,i)=>{if(show(c,s7>.2?1:0))Dash(c,sm(s7,.2+.1*i,.45+.1*i));});
+  popAt(arG,250,546,sm(s7,.35,.6));popAt(anG,250,626,sm(s7,.45,.7));
+  show(lAr,sm(s7,.55,.8));show(lAn,sm(s7,.65,.9));
+  /* 8 fertilisation */
+  water.setAttribute('opacity',f2(.7*sm(s8,0,.2)*(1-sm(s10,0,.3))));
+  setBox(BXf,sm(s8,0,.2));show(lNt,sm(s8,.2,.4));
+  const col=sm(s8,.62,.78),gone=s9>.05;
+  const eA=sm(s7,.45,.6);
+  setBall(eggO,EGG,pop(eA)*br(6),gone?0:1-col);setBall(eggB,EGG,pop(eA)*br(6),gone?0:col);
+  sperms.forEach((g,i)=>{const v=sm(s8,.12+.07*i,.6+.04*i),p=spP(i,v),q=spP(i,Math.min(1,v+.02)),a=Math.atan2(q[1]-p[1],q[0]-p[0])*180/PI;
+    const op=s8>.12+.07*i&&s8<1?(i===0?1-sm(s8,.6,.66):1-sm(v,.8,1)):0;
+    if(show(g,op))g.setAttribute('transform',`translate(${f1(p[0])} ${f1(p[1])}) rotate(${f1(a)})`);});
+  glE.setAttribute('opacity',f2(Math.sin(PI*sm(s8,.58,.95))));
+  /* 9 zygote */
+  drawArr(A9,sm(s9,0,.5));
+  const m9=sm(s9,.05,.5),e9=sm(s9,.5,.62);
+  setBall(zyg,e9>0?lp2(A9.at(1),ZP,e9):A9.at(m9),lerp(.62,1,Math.max(m9*.5,e9))*br(7),s9>.05?1:0);
+  show(lZy,sm(s9,.6,.85));
+  /* 10 young sporophyte -> mature sporophyte */
+  drawArr(A10,sm(s10,0,.3));show(lA10,sm(s10,.15,.35));
+  grow(ys,220,265,sm(s10,.25,.55));show(lYs,sm(s10,.45,.65));
+  drawArr(A11,sm(s10,.55,.8));
+}
+
+/* ---------------- one button ---------------- */
+const btn=document.getElementById('go');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+let lbl='';
+let paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:400});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:400});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
