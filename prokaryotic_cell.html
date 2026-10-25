@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>خلية بدائية النواة - البكتريا</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center;transition:opacity .3s}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);padding:0}
+  .zb button.off{background:#c4623a;border-color:#c4623a;color:#fff}
+  #lbl{font-size:19px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .bt{fill:#fff;font-weight:bold;font-size:23px;text-anchor:middle;dominant-baseline:central}
+  .cl{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lp rect{fill:#fff;stroke:#1f3a52;stroke-width:2}
+  .lp.act rect{fill:#c4623a;stroke:#c4623a}
+  .lp.act text{fill:#fff}
+  .lead{stroke:#1f3a52;stroke-width:1.8;stroke-linecap:round}
+  #bn{transition:fill .5s}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">خلية بدائية النواة - البكتريا</div></div>
+<div id="stage">
+  <div class="zb">
+    <button id="zin" aria-label="تكبير">+</button>
+    <button id="zout" aria-label="تصغير">−</button>
+    <button id="zreset" aria-label="إعادة الضبط">⟲</button>
+    <button id="pause" aria-label="إيقاف مؤقت">⏸</button>
+    <button id="lbl" aria-label="إخفاء التأشيرات" title="إخفاء التأشيرات">🏷</button>
+    <button id="replay" aria-label="إعادة التشغيل" title="إعادة التشغيل">⏮</button>
+    <button id="fs" aria-label="ملء الشاشة">⛶</button>
+  </div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="gCap" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22160f"/><stop offset=".22" stop-color="#5a3f2e"/><stop offset=".48" stop-color="#8a6550"/><stop offset=".72" stop-color="#5c4030"/><stop offset="1" stop-color="#1f140e"/></linearGradient>
+        <linearGradient id="gWall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#40101f"/><stop offset=".5" stop-color="#8e3552"/><stop offset="1" stop-color="#3c0f1d"/></linearGradient>
+        <linearGradient id="gMem" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d97a1"/><stop offset=".5" stop-color="#e4eef1"/><stop offset="1" stop-color="#7a929b"/></linearGradient>
+        <radialGradient id="gCyt" cx=".42" cy=".3" r=".85"><stop offset="0" stop-color="#d3f3f6"/><stop offset=".45" stop-color="#6fbccd"/><stop offset="1" stop-color="#1d556d"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI,D2R=PI/180;
+const svg=document.getElementById('svg'),view=document.getElementById('view'),titleEl=document.getElementById('title'),defs=svg.querySelector('defs');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const att=(e,a)=>{for(const k in a)e.setAttribute(k,typeof a[k]==='number'?f1(a[k]):a[k]);};
+let seed=23;const rnd=()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const rr=(a,b)=>a+(b-a)*rnd();
+const ptsD=pts=>pts.map((p,i)=>(i?'L':'M')+f1(p[0])+','+f1(p[1])).join('');
+
+/* page: [top title, banner colour, banner text] */
+const PAGES=[
+  ['خلية بدائية النواة - البكتريا','#2e8b57','البكتريا خلية بدائية النواة: مادتها الوراثية في منطقة نووية غير محاطة بغشاء']];
+const DUR=[26];
+
+const world=G(view,{transform:'translate(0 44)'});
+
+/* tube = dark outline + light core (+ optional highlight) */
+function tube(p,d,c,wo,wi,hl){const g=G(p);
+  el('path',{d,fill:'none',stroke:c[0],'stroke-width':wo,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  el('path',{d,fill:'none',stroke:c[1],'stroke-width':wi,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  if(hl)el('path',{d,fill:'none',stroke:hl,'stroke-width':1.2,opacity:.7,'stroke-linecap':'round',transform:'translate(-1 -.7)'},g);
+  return g;}
+
+/* labels: pill + leader line + target dot */
+function Label(p,txt,pc,tg){const g=G(p,{class:'lp',opacity:0});
+  const ln=el('line',{class:'lead'},g),glow=el('circle',{r:17,fill:'url(#gGlow)',opacity:0},g),
+        dot=el('circle',{r:4.5,fill:'#c4623a',stroke:'#fff','stroke-width':1.5},g);
+  const pg=G(g),rc=el('rect',{rx:15,y:-16,height:32},pg),tx=el('text',{class:'cl',x:0,y:1},pg);tx.textContent=txt;
+  let w=0;try{w=tx.getComputedTextLength();}catch(e){}if(!w)w=txt.length*11;w+=30;
+  att(rc,{x:-w/2,width:w});
+  return{g,ln,glow,dot,pg,pc,tg,hw:w/2,hh:16};}
+function setLabel(L,a,act,t,tg){tg=tg||L.tg;
+  if(a<=0){L.g.setAttribute('opacity',0);return;}L.g.setAttribute('opacity',1);
+  const dx=tg[0]-L.pc[0],dy=tg[1]-L.pc[1];
+  const k=Math.min(1,Math.abs(dx)>.01?L.hw/Math.abs(dx):1e9,Math.abs(dy)>.01?L.hh/Math.abs(dy):1e9);
+  const sx=L.pc[0]+dx*k,sy=L.pc[1]+dy*k,dr=sm(a,0,.55);
+  att(L.ln,{x1:sx,y1:sy,x2:lerp(sx,tg[0],dr),y2:lerp(sy,tg[1],dr)});
+  att(L.dot,{cx:tg[0],cy:tg[1]});L.dot.setAttribute('opacity',f2(sm(a,.45,.6)));
+  att(L.glow,{cx:tg[0],cy:tg[1]});L.glow.setAttribute('opacity',f2(act*(.55+.45*Math.sin(t*6))));
+  const pa=sm(a,.35,1);L.pg.setAttribute('opacity',f2(pa));
+  L.pg.setAttribute('transform',`translate(${f1(L.pc[0])} ${f1(L.pc[1])}) scale(${f2(.6+.4*pa)})`);
+  L.g.classList.toggle('act',act>.5);}
+const drawable=g=>[...g.children].forEach(p=>{p.setAttribute('pathLength',1);p.setAttribute('stroke-dasharray','1 1');p.setAttribute('stroke-dashoffset',1);});
+const drawTo=(g,v)=>{g.setAttribute('opacity',v>.005?1:0);[...g.children].forEach(p=>p.setAttribute('stroke-dashoffset',f2(1-v)));};
+
+/* ================= bacterium ================= */
+/* rod (stadium) geometry, inset i gives the inner layers */
+const X0=375,Y0=70,W=150,H=450,CX=450;
+const rod=i=>{const x=X0+i,y=Y0+i,w=W-2*i,h=H-2*i,r=w/2;
+  return`M${x},${y+r} A${r},${r} 0 0 1 ${x+w},${y+r} L${x+w},${y+h-r} A${r},${r} 0 0 1 ${x},${y+h-r} Z`;};
+const clip=(id,d)=>{const c=el('clipPath',{id},defs);return el('path',{d},c);};
+clip('cCap',rod(0));clip('cWall',rod(10));clip('cMem',rod(18));clip('cCyt',rod(23));
+const rW=clip('rWall',''),rM=clip('rMem',''),rC=clip('rCyt','');
+/* cut line: higher on the right, slightly bowed */
+const cutY=(o,s)=>[372+o+s,262+o+s];
+const regD=(o,s)=>{const[yl,yr]=cutY(o,s);return`M290,-400 L610,-400 L610,${f1(yr)} Q450,${f1((yl+yr)/2+10)} 290,${f1(yl)} Z`;};
+const edgeD=(o,s)=>{const[yl,yr]=cutY(o,s);return`M290,${f1(yl)} Q450,${f1((yl+yr)/2+10)} 610,${f1(yr)}`;};
+
+const A=G(world),body=G(A);
+el('path',{d:rod(0),fill:'#1f3a52',opacity:.16,filter:'url(#blur)',transform:'translate(7 10)'},body);
+
+/* pili (hairs) around the cell */
+const rodP=el('path',{d:rod(0)},defs),RLn=rodP.getTotalLength(),HAIRS=[],hairG=G(body);
+function hairD(H,t){const[px,py]=H.p,[nx,ny]=H.n,[qx,qy]=H.t,c=H.c+Math.sin(t*1.8+H.ph)*4,L=H.len;
+  return`M${f1(px-nx*2)},${f1(py-ny*2)} Q${f1(px+nx*L*.5+qx*c)},${f1(py+ny*L*.5+qy*c)} ${f1(px+nx*L+qx*c*.4)},${f1(py+ny*L+qy*c*.4)}`;}
+for(let i=0;i<180;i++){const s=((i+rr(-.35,.35))/180*RLn+RLn)%RLn,p=rodP.getPointAtLength(s),
+    q=rodP.getPointAtLength((s+1)%RLn),r0=rodP.getPointAtLength((s-1+RLn)%RLn);
+  let dx=q.x-r0.x,dy=q.y-r0.y,l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;let nx=-dy,ny=dx;
+  const ay=clamp(p.y,Y0+75,Y0+H-75);if(nx*(p.x-CX)+ny*(p.y-ay)<0){nx=-nx;ny=-ny;}
+  if(p.y>Y0+H-20&&Math.abs(p.x-CX)<16)continue;          /* leave room for the flagellum base */
+  const Hh={p:[p.x,p.y],n:[nx,ny],t:[dx,dy],len:rr(14,34),c:rr(-10,10),ph:rr(0,6)};
+  Hh.e=el('path',{fill:'none',stroke:'#2f2624','stroke-width':f1(rr(.9,1.5)),'stroke-linecap':'round',opacity:f2(rr(.6,.95)),d:hairD(Hh,0)},hairG);
+  HAIRS.push(Hh);}
+/* long hair on the right */
+tube(body,'M523,150 C560,138 588,116 622,118',['#3a302c','#8f8580'],3.4,1.6);
+
+/* sex pilus (left) */
+const SPD='M377,215 C340,205 320,170 290,160';
+const sexG=tube(body,SPD,['#3a302c','#9b908b'],5,2.6,'#e0d8d4');drawable(sexG);
+const sexK=el('circle',{cx:290,cy:160,r:3.6,fill:'#9b908b',stroke:'#3a302c','stroke-width':1.5,opacity:0},body);
+
+/* flagellum: travelling wave along a base curve */
+const flP=el('path',{d:'M450,519 C452,560 440,600 400,618 C340,645 240,640 120,625'},defs),FLn=flP.getTotalLength(),FB=[];
+for(let i=0;i<=150;i++){const s=i/150*FLn,a=flP.getPointAtLength(s),b=flP.getPointAtLength(Math.min(FLn,s+1)),c=flP.getPointAtLength(Math.max(0,s-1));
+  const dx=b.x-c.x,dy=b.y-c.y,l=Math.hypot(dx,dy)||1;FB.push([a.x,a.y,-dy/l,dx/l,s]);}
+const flG=G(body),flO=el('path',{fill:'none',stroke:'#3b3230','stroke-width':6.5,'stroke-linecap':'round','stroke-linejoin':'round'},flG),
+      flI=el('path',{fill:'none',stroke:'#a39893','stroke-width':3.4,'stroke-linecap':'round','stroke-linejoin':'round'},flG),
+      flH=el('path',{fill:'none',stroke:'#ece6e3','stroke-width':1,opacity:.6,'stroke-linecap':'round',transform:'translate(-1 -.8)'},flG);
+let FP=[];
+function flD(t){FP=FB.map(([x,y,nx,ny,s])=>{const f=s/FLn,env=clamp(f/.12,0,1)*(.65+.35*f),o=21*env*Math.sin(2*PI*s/150-t*5);return[x+nx*o,y+ny*o];});return ptsD(FP);}
+
+/* capsule (outer layer) with surface texture */
+el('path',{d:rod(0),fill:'url(#gCap)',stroke:'#1a110c','stroke-width':1.6},body);
+{const tx=G(body,{'clip-path':'url(#cCap)'});
+  for(let i=0;i<90;i++){const x=rr(388,512),y=rr(140,505),h=rr(25,60),b=rr(-9,9);
+    el('path',{d:`M${f1(x)},${f1(y)} q${f1(b)},${f1(h/2)} ${f1(rr(-4,4))},${f1(h)}`,fill:'none',stroke:rnd()<.6?'#24170f':'#a4826a','stroke-width':f1(rr(.8,1.6)),opacity:f2(rr(.2,.45)),'stroke-linecap':'round'},tx);}
+  for(let i=0;i<320;i++)el('circle',{cx:f1(rr(378,522)),cy:f1(rr(72,518)),r:f1(rr(.5,1.5)),fill:rnd()<.5?'#c09a80':'#1c120c',opacity:f2(rr(.2,.5))},tx);
+  el('path',{d:'M400,180 L400,470',stroke:'#fff',opacity:.09,'stroke-width':12,'stroke-linecap':'round'},tx);}
+/* basal body of the flagellum */
+el('rect',{x:443,y:508,width:14,height:10,rx:3,fill:'#2a1d17',stroke:'#7e6a60','stroke-width':1},body);
+
+/* cut-away layers: cell wall, plasma membrane, cytoplasm */
+function layer(reg,shape,fill,edge,ew){const g=G(G(body,{'clip-path':`url(#${reg})`}),{'clip-path':`url(#${shape})`});
+  el('path',{d:rod(shape==='cWall'?10:shape==='cMem'?18:23),fill},g);
+  const e=el('path',{fill:'none',stroke:edge,'stroke-width':ew},g);return{g,e};}
+const LW=layer('rWall','cWall','url(#gWall)','#d18a9e',4),LM=layer('rMem','cMem','url(#gMem)','#ffffff',3),LC=layer('rCyt','cCyt','url(#gCyt)','#e9fbff',3);
+el('path',{d:rod(10),fill:'none',stroke:'#2a0d17','stroke-width':1,opacity:.6},LW.g);
+
+/* cytoplasm content: ribosomes, granule, nucleoid */
+const NUC=[440,220,36,64];
+for(let i=0;i<180;i++){const x=rr(400,500),y=rr(85,345);
+  if(Math.hypot(x-CX,Math.max(0,Y0+75-y))>49)continue;
+  if(((x-NUC[0])/NUC[2])**2+((y-NUC[1])/NUC[3])**2<.8)continue;
+  el('circle',{cx:f1(x),cy:f1(y),r:f1(rr(1.1,2.2)),fill:'#14303f',opacity:f2(rr(.5,.9))},LC.g);}
+el('ellipse',{cx:414,cy:126,rx:14,ry:12,fill:'#132a2b',opacity:.9},LC.g);
+el('ellipse',{cx:410,cy:122,rx:4,ry:3,fill:'#fff',opacity:.15},LC.g);
+const nucG=G(LC.g);
+el('ellipse',{cx:NUC[0],cy:NUC[1],rx:NUC[2]+6,ry:NUC[3]+6,fill:'#9fd3e0',opacity:.35},nucG);
+function loopD(pts){const n=pts.length;let d=`M${f1(pts[0][0])},${f1(pts[0][1])}`;
+  for(let i=0;i<n;i++){const p0=pts[(i-1+n)%n],p1=pts[i],p2=pts[(i+1)%n],p3=pts[(i+2)%n];
+    d+=`C${f1(p1[0]+(p2[0]-p0[0])/6)},${f1(p1[1]+(p2[1]-p0[1])/6)} ${f1(p2[0]-(p3[0]-p1[0])/6)},${f1(p2[1]-(p3[1]-p1[1])/6)} ${f1(p2[0])},${f1(p2[1])}`;}
+  return d+'Z';}
+for(let k=0;k<4;k++){const pts=[];for(let i=0;i<15;i++){const a=rr(0,2*PI),r=Math.sqrt(rr(.05,1));pts.push([NUC[0]+NUC[2]*r*Math.cos(a),NUC[1]+NUC[3]*r*Math.sin(a)]);}
+  const d=loopD(pts);
+  el('path',{d,fill:'none',stroke:'#121a45','stroke-width':2.6,'stroke-linejoin':'round'},nucG);
+  el('path',{d,fill:'none',stroke:'#4a5fb5','stroke-width':.9,opacity:.8},nucG);}
+
+/* ---------------- labels ---------------- */
+const L1=[
+  ['محفظة',[735,470],[478,440]],
+  ['جدار الخلية',[735,392],[470,362]],
+  ['غشاء بلازمي',[735,315],[483,326]],
+  ['سيتوبلازم',[735,150],[488,150]],
+  ['منطقة نووية',[735,232],[452,215]],
+  ['شعيرات أو أهداب',[170,330],[355,340]],
+  ['هلب جنسي',[170,140],[331,187]],
+  ['سوط',[205,560],[300,630]]].map(([t,p,q])=>Label(A,t,p,q));
+const ST1=[.22,.30,.38,.46,.54,.63,.71,.79];
+
+/* banner */
+const bn=el('rect',{id:'bn',x:40,y:14,width:820,height:58,rx:20,fill:'#2e8b57'}),bt=el('text',{class:'bt',x:450,y:43});
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let T=0,t0=0,last=performance.now(),paused=false,P=0,showL=true;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(t){
+  const u=clamp(P,0,1);
+  const intro=sm(u,0,.07);
+  body.setAttribute('opacity',f2(.15+.85*intro));
+  body.setAttribute('transform',`translate(450 330) scale(${f2(.94+.06*intro)}) translate(-450 -330)`);
+
+  /* living motion: pili sway, flagellum beats, nucleoid drifts */
+  HAIRS.forEach(Hh=>Hh.e.setAttribute('d',hairD(Hh,t)));
+  const fd=flD(t);flO.setAttribute('d',fd);flI.setAttribute('d',fd);flH.setAttribute('d',fd);
+  nucG.setAttribute('transform',`rotate(${f2(Math.sin(t*.5)*4)} ${NUC[0]} ${NUC[1]})`);
+
+  /* cut-away opens from the top: wall, then membrane, then cytoplasm */
+  [[rW,LW,64,.08,.17],[rM,LM,32,.10,.19],[rC,LC,0,.12,.21]].forEach(([r,Ly,o,a,b])=>{const s=lerp(-460,0,sm(u,a,b));
+    r.setAttribute('d',regD(o,s));Ly.e.setAttribute('d',edgeD(o,s));});
+
+  drawTo(sexG,sm(u,.05,.14));sexK.setAttribute('opacity',f2(sm(u,.13,.15)));
+
+  L1.forEach((L,i)=>{const st=ST1[i],tg=i===7?FP[32]:null;
+    setLabel(L,showL?clamp((u-st)/.05,0,1):0,(u>=st&&u<st+.08&&u<.995)?1:0,t,tg);});
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);requestAnimationFrame(frame);}
+
+function setUI(){titleEl.textContent=PAGES[0][0];document.title=PAGES[0][0];
+  bn.style.fill=PAGES[0][1];bt.removeAttribute('textLength');bt.textContent=PAGES[0][2];
+  try{if(bt.getComputedTextLength()>790){bt.setAttribute('textLength',790);bt.setAttribute('lengthAdjust','spacingAndGlyphs');}}catch(e){}}
+function play(){S.entry=0;S.tgt=1;S.dur=DUR[0];P=0;t0=T;}
+document.getElementById('replay').onclick=play;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const lblBtn=document.getElementById('lbl');
+lblBtn.onclick=()=>{showL=!showL;lblBtn.classList.toggle('off',!showL);
+  const s=showL?'إخفاء التأشيرات':'إظهار التأشيرات';lblBtn.setAttribute('aria-label',s);lblBtn.title=s;};
+addEventListener('keydown',e=>{if(e.key==='l'||e.key==='L')lblBtn.click();if(e.key===' ')document.getElementById('pause').click();});
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:380});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:380});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+setUI();play();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
