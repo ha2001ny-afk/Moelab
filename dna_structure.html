@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تركيب الـ DNA</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .lbl{fill:#1b1b1b;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .end{fill:#c0392b;font-size:32px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .bl{fill:#fff;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .pl{fill:#5a4205;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">تركيب الـ DNA</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="-230 15 1030 1330" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gP" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#fff6c4"/><stop offset=".55" stop-color="#f5d33a"/><stop offset="1" stop-color="#d9a91c"/></radialGradient>
+        <linearGradient id="gS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4cc06e"/><stop offset="1" stop-color="#25824a"/></linearGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+const s01=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+
+const TITLE='تركيب الـ DNA';
+/* 1 الهيكل (سكر + فوسفات) · 2 القواعد النيتروجينية · 3 الأواصر الهيدروجينية · 4 الاتجاه المتعاكس · 5 التفاف الحلزون */
+const DUR=[5,5,5,5,6];
+
+const BASEC={A:'#e2452b',T:'#f39c12',G:'#8e44ad',C:'#16a6b6'};
+const COMP={A:'T',T:'A',G:'C',C:'G'};
+const PURINE={A:1,G:1};
+const STR=[ /* top strand (5′ on the right) · bottom strand */
+  {front:'#4a86e8',back:'#2c56a8',ol:'#1d3a78'},
+  {front:'#9b7fd6',back:'#6b4fa8',ol:'#4a3480'}];
+
+const CY=300,AMP=125,X0=700,XL=110,K=2.5*2*PI/(X0-XL);
+const XS=[1100,1010,920,830,740];               /* unwound (ladder) base pairs */
+const SEQ=['G','A','C','T','G'];
+const HX=[],HSEQ='ATGCGTACCGATTGCAGTCA';         /* base pairs inside the helix */
+for(let j=0;j<19;j++)HX.push(684-j*31.5);
+
+const world=G(view);
+/* the molecule is built lying down and turned upright: (x,y) → (y, 1300−x), so the unwound part sits on top */
+const rot=G(world,{transform:'matrix(0 -1 1 0 0 1300)'});
+const bandL=G(rot),hBack=G(rot),rungL=G(rot),hFront=G(rot),bbL=G(rot),unitL=G(rot),baseL=G(rot),bondL=G(rot),ltrL=G(rot),txtL=G(world);
+const UP=(x,y)=>`rotate(90 ${f1(x)} ${f1(y)})`;   /* keeps letters upright inside the turned group */
+
+/* ---------- helix ribbons ---------- */
+let phase=0;
+/* the flat (unwound) strands blend into the helix over the first 110 px */
+const theta=x=>K*(X0-x)+phase;
+const bend=x=>lerp(1,Math.cos(theta(x)),s01((X0-x)/110));
+const strandY=(sg,x)=>CY+sg*AMP*bend(x);
+STR.forEach((S,i)=>{S.sg=i?1:-1;
+  S.bOl=el('path',{fill:'none',stroke:S.ol,'stroke-width':25,'stroke-linecap':'round','stroke-linejoin':'round'},hBack);
+  S.bMain=el('path',{fill:'none',stroke:S.back,'stroke-width':20,'stroke-linecap':'round','stroke-linejoin':'round'},hBack);
+  S.fOl=el('path',{fill:'none',stroke:S.ol,'stroke-width':25,'stroke-linecap':'round','stroke-linejoin':'round'},hFront);
+  S.fMain=el('path',{fill:'none',stroke:S.front,'stroke-width':20,'stroke-linecap':'round','stroke-linejoin':'round'},hFront);
+  S.fHl=el('path',{fill:'none',stroke:'#fff','stroke-opacity':.3,'stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round'},hFront);
+  /* translucent ribbon running behind the unwound part */
+  el('rect',{x:690,y:(i?425:175)-16,width:470,height:32,rx:16,fill:S.front,opacity:.25},bandL);});
+function strandPaths(sg,xEnd){
+  let f='',b='',lf=false,lb=false,px=X0,pth=theta(px),py=strandY(sg,px);
+  if(xEnd>X0-1)return{f,b};
+  for(let x=X0-4;;x-=4){if(x<xEnd)x=xEnd;
+    const th=theta(x),y=strandY(sg,x),z=-sg*Math.sin((th+pth)/2),p0=f1(px)+','+f1(py),nx='L'+f1(x)+','+f1(y);
+    if(z>=0){if(!lf)f+='M'+p0;f+=nx;lf=true;lb=false;}else{if(!lb)b+='M'+p0;b+=nx;lb=true;lf=false;}
+    px=x;py=y;pth=th;if(x<=xEnd)break;}
+  return{f,b};}
+const rungs=HX.map((x,j)=>{const t=HSEQ[j];
+  return{x,t:el('line',{x1:x,x2:x,stroke:BASEC[t],'stroke-width':9},rungL),b:el('line',{x1:x,x2:x,stroke:BASEC[COMP[t]],'stroke-width':9},rungL)};});
+
+/* ---------- unwound part: sugar–phosphate backbones ---------- */
+function bbPath(yP,yS,yH){let d='';
+  XS.forEach((x,i)=>{d+=(i?'L':'M')+(x+45)+','+yP+'L'+x+','+yS;});
+  return d+'L695,'+yP+'L700,'+yH;}
+const bb=[bbPath(155,195,175),bbPath(445,405,425)].map(d=>el('path',{d,fill:'none',stroke:'#3b3b3b','stroke-width':3.5,'stroke-linejoin':'round',pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},bbL));
+function phos(x,y){const g=G(unitL,{opacity:0});
+  el('circle',{cx:x,cy:y,r:14,fill:'url(#gP)',stroke:'#b8921a','stroke-width':1.5},g);
+  el('text',{class:'pl',x,y,transform:UP(x,y)},g).textContent='P';return g;}
+function sugar(x,y,down){const g=G(unitL,{opacity:0});let d='';
+  for(let k=0;k<5;k++){const a=(down?90:-90)+72*k;d+=(k?'L':'M')+f1(x+17*Math.cos(a*PI/180))+','+f1(y+17*Math.sin(a*PI/180));}
+  el('path',{d:d+'Z',fill:'url(#gS)',stroke:'#1d6b36','stroke-width':1.6,'stroke-linejoin':'round'},g);return g;}
+/* the units in the order they appear: P S P S … P, from the 5′ end on the right */
+const units=[];
+[[155,195,false],[445,405,true]].forEach(([yP,yS,dn],s)=>{const list=[];
+  XS.forEach(x=>{list.push(phos(x+45,yP));list.push(sugar(x,yS,dn));});
+  list.push(phos(695,yP));units[s]=list;});
+
+/* ---------- nitrogenous bases ----------
+   local frame: the tip facing the partner base is at y=0, the base reaches up toward its sugar */
+function hexD(cx,cy,r){let d='';for(let k=0;k<6;k++){const a=60*k*PI/180;d+=(k?'L':'M')+f1(cx+r*Math.cos(a))+','+f1(cy+r*Math.sin(a));}return d+'Z';}
+function base(x,y0,flip,t){
+  const outer=G(baseL,{transform:`translate(${x} ${y0})`+(flip?' scale(1 -1)':'')});
+  const g=G(outer),pur=PURINE[t],far=pur?-58.9:-31.2,col=BASEC[t];
+  el('line',{x1:0,y1:far,x2:0,y2:-75,stroke:'#333','stroke-width':2.5},g);
+  if(pur)el('path',{d:'M-9,-31.2L9,-31.2L14.56,-48.32L0,-58.9L-14.56,-48.32Z',fill:col,stroke:'rgba(0,0,0,.45)','stroke-width':1.5,'stroke-linejoin':'round'},g);
+  el('path',{d:hexD(0,-15.6,18),fill:col,stroke:'rgba(0,0,0,.45)','stroke-width':1.5,'stroke-linejoin':'round'},g);
+  const ly=flip?y0+15.6:y0-15.6,lt=el('text',{class:'bl',x,y:ly,opacity:0,transform:UP(x,ly)},ltrL);lt.textContent=t;
+  return{g,lt};}
+const pairs=XS.map((x,i)=>{const t=SEQ[i],c=COMP[t];
+  const top=base(x,286,false,t),bot=base(x,314,true,c);
+  const bg=G(bondL,{opacity:0}),n=(t==='G'||t==='C')?3:2;
+  for(let k=0;k<n;k++){const dx=n===3?(k-1)*9:(k?6:-6);
+    el('line',{x1:x+dx,y1:288,x2:x+dx,y2:312,stroke:'#444','stroke-width':2.2,'stroke-dasharray':'4 3'},bg);}
+  return{top,bot,bg};});
+
+/* ---------- labels ---------- */
+function arrowD(x1,y1,x2,y2){const L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L,bx=x2-12*ux,by=y2-12*uy;
+  return{line:`M${f1(x1)},${f1(y1)}L${f1(bx)},${f1(by)}`,head:`M${f1(x2)},${f1(y2)}L${f1(bx-6*uy)},${f1(by+6*ux)}L${f1(bx+6*uy)},${f1(by-6*ux)}Z`};}
+function note(lines,x,y,a){const g=G(txtL,{opacity:0});
+  lines.forEach((t,k)=>{el('text',{class:'lbl',x,y:y+k*31},g).textContent=t;});
+  if(a){const d=arrowD(...a);el('path',{d:d.line,stroke:'#1b1b1b','stroke-width':2.3,fill:'none','stroke-linecap':'round'},g);el('path',{d:d.head,fill:'#1b1b1b'},g);}
+  return g;}
+const nP=note(['مجموعة الفوسفات'],-60,245,[35,245,137,245]);
+const nS=note(['سكر رايبوز','منقوص الأوكسجين'],-60,455,[45,471,176,471]);
+const nB=note(['قاعدة','نيتروجينية'],690,222,[605,238,347,282]);
+const nH=note(['أواصر','هيدروجينية'],690,316,[605,332,318,378]);
+const nX=note(['الحلزون المزدوج'],660,900);
+const nD=note(['سلسلتان متعاكستا الاتجاه'],300,45);
+/* base-pairing rule */
+const leg=G(txtL,{opacity:0});
+[['أصرتان هيدروجينيتان بين ','A',' و ','T'],['ثلاث أواصر هيدروجينية بين ','G',' و ','C']].forEach((r,k)=>{
+  const t=el('text',{class:'lbl',x:300,y:1275+k*38},leg);
+  r.forEach((s,i)=>{const sp=el('tspan',i%2?{fill:BASEC[s]}:{},t);sp.textContent=s;});});
+/* direction arrows */
+function vArrow(x,y1,y2){const g=G(txtL,{opacity:0}),d=arrowD(x,y1,x,y2);
+  el('path',{d:d.line,stroke:'#1b1b1b','stroke-width':3,fill:'none'},g);el('path',{d:d.head,fill:'#1b1b1b'},g);return g;}
+const dTop=vArrow(-190,430,1150),dBot=vArrow(760,1150,430);
+const ends=[];
+const endTxt=(t,x,y)=>{const e=el('text',{class:'end',x,y,opacity:0},txtL);e.textContent=t;ends.push(e);return e;};
+endTxt("5′",-190,395);endTxt("3′",-190,1185);endTxt("3′",760,395);endTxt("5′",760,1185);
+endTxt("5′",175,108);endTxt("3′",425,108);
+const eL=[endTxt("3′",0,0),endTxt("5′",0,0)];   /* follow the strand ends inside the helix */
+ends.length=6;
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1)),[u0,u1,u2,u3,u4]=u;
+  /* 1 — backbones: phosphate + sugar, then the ribbons twist into the helix */
+  const bbg=sm(u0,.03,.55);
+  bb.forEach(p=>p.setAttribute('stroke-dashoffset',f2(1-bbg)));
+  units.forEach(list=>list.forEach((g,n)=>op(g,sm(u0,.03+n*.04,.15+n*.04))));
+  op(bandL,sm(u0,0,.4));
+  const xEnd=lerp(X0,XL,sm(u0,.45,.95));
+  STR.forEach(S=>{const p=strandPaths(S.sg,xEnd);
+    S.bOl.setAttribute('d',p.b);S.bMain.setAttribute('d',p.b);
+    S.fOl.setAttribute('d',p.f);S.fMain.setAttribute('d',p.f);S.fHl.setAttribute('d',p.f);});
+  op(nP,sm(u0,.55,.8));op(nS,sm(u0,.65,.9));
+  /* 2 — nitrogenous bases */
+  pairs.forEach((p,i)=>{const s=sm(u1,.05+i*.1,.4+i*.1);
+    [p.top,p.bot].forEach(b=>{b.g.setAttribute('transform',`translate(0 -37) scale(${f2(Math.max(s,.001))}) translate(0 37)`);op(b.g,s>0?1:0);op(b.lt,s);});});
+  const rg=sm(u1,.3,.95);
+  rungs.forEach(r=>{const vis=rg>0&&r.x>xEnd+2,c=bend(r.x),yT=CY-AMP*c,yB=CY+AMP*c,gap=c>=0?1.5:-1.5;
+    op(r.t,vis?1:0);op(r.b,vis?1:0);if(!vis)return;
+    r.t.setAttribute('y1',f1(yT));r.t.setAttribute('y2',f1(lerp(yT,CY-gap,rg)));
+    r.b.setAttribute('y1',f1(yB));r.b.setAttribute('y2',f1(lerp(yB,CY+gap,rg)));});
+  op(nB,sm(u1,.6,.9));
+  /* 3 — hydrogen bonds */
+  pairs.forEach((p,i)=>op(p.bg,sm(u2,.05+i*.08,.3+i*.08)));
+  op(nH,sm(u2,.5,.8));op(leg,sm(u2,.6,.95));
+  /* 4 — antiparallel strands */
+  op(dTop,sm(u3,.1,.5));op(dBot,sm(u3,.1,.5));op(nD,sm(u3,.4,.8));
+  ends.forEach(e=>op(e,sm(u3,.2,.6)));
+  eL.forEach((e,k)=>{e.setAttribute('x',f1(strandY(k?1:-1,xEnd)));e.setAttribute('y',f1(1300-xEnd+38));op(e,sm(u3,.2,.6));});
+  /* 5 — the double helix turns */
+  op(nX,sm(u4,.2,.5));
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();
+  const spin=sm(clamp(P-4,0,1),0,.4);
+  if(spin>.01)phase+=dt*1.3*spin;
+  else{const tgt=Math.round(phase/(2*PI))*2*PI;phase-=(phase-tgt)*Math.min(1,dt*3);}
+  render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:300,y:630});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:300,y:630});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
