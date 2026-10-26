@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>وراثة بعض الصفات الشائعة في الإنسان</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .hdr{fill:#a0281c;font-size:30px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .tl{font-size:20px;font-weight:bold;dominant-baseline:central;direction:ltr}
+  .cap{fill:#1f3a52;font-size:22px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">وراثة بعض الصفات الشائعة في الإنسان</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="-50 0 1060 745" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gSkin" cx=".45" cy=".4" r=".65"><stop offset="0" stop-color="#f9d7bb"/><stop offset=".6" stop-color="#f1bb95"/><stop offset="1" stop-color="#dc9a74"/></radialGradient>
+        <linearGradient id="gTorso" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4c5a2"/><stop offset="1" stop-color="#e2a37e"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view'),defs=document.getElementById('defs');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),x=p(a),y=p(b);
+  return '#'+x.map((v,i)=>Math.round(lerp(v,y[i],t)).toString(16).padStart(2,'0')).join('');}
+
+const TITLE='وراثة بعض الصفات الشائعة في الإنسان';
+/* خط الشعر · النمش · النونة · الذقن · شعر الذراع · طي اللسان · حني الإبهام */
+const DUR=[6,5,5,5,5,6,6];
+
+const CX=[330,630],HY=125,TY=425,HDY=600;          /* column x · bust head y · tongue card y · hand card y */
+const SK='#f2c19c',SKD='#d08c66',SKO='#c07a58';
+const HAIR=['#6b3f22','#e6c463'],IRIS=['#6b4423','#4a8fd0'];
+const SIDE_NAME=['الصفات السائدة','الصفات المتنحية'];
+
+const world=G(view);
+const figL=G(world),txtL=G(world);
+
+/* ---------- face ---------- */
+const hairD=d=>`M-54,-2 C-60,-52 -30,-80 0,-80 C30,-80 60,-52 54,-2 C51,-16 47,-28 40,-32 Q20,-30 10,${f1(-31+d*.35)} Q4,${f1(-31+d*.8)} 0,${f1(-31+d)} Q-4,${f1(-31+d*.8)} -10,${f1(-31+d*.35)} Q-20,-30 -40,-32 C-47,-28 -51,-16 -54,-2Z`;
+function face(p,side,d){
+  [-1,1].forEach(s=>el('ellipse',{cx:s*50,cy:2,rx:9,ry:15,fill:SK,stroke:SKO,'stroke-width':1.3},p));
+  el('ellipse',{cx:0,cy:0,rx:50,ry:62,fill:'url(#gSkin)',stroke:SKO,'stroke-width':1.5},p);
+  const hair=el('path',{d:hairD(d),fill:HAIR[side],stroke:mix(HAIR[side],'#000000',.3),'stroke-width':1.2},p);
+  const bc=mix(HAIR[side],'#000000',side?.35:.1);
+  [-1,1].forEach(s=>{
+    el('ellipse',{cx:s*18,cy:-4,rx:8,ry:4.6,fill:'#fff',stroke:'#9a6a50','stroke-width':.8},p);
+    el('circle',{cx:s*18,cy:-4,r:3.4,fill:IRIS[side]},p);
+    el('circle',{cx:s*18,cy:-4,r:1.5,fill:'#222'},p);
+    el('path',{d:`M${s*10},-15 Q${s*18},-19 ${s*27},-15`,fill:'none',stroke:bc,'stroke-width':3,'stroke-linecap':'round'},p);});
+  el('path',{d:'M-3,0 Q-7,15 -1,17 Q5,17 7,14',fill:'none',stroke:SKO,'stroke-width':2,'stroke-linecap':'round'},p);
+  return hair;}
+
+/* ---------- one column (dominant / recessive) ---------- */
+function buildCol(side){const cx=CX[side],C={side};
+  /* bust */
+  const b=C.bust=G(figL,{transform:`translate(${cx} ${HY})`,opacity:0});
+  el('path',{d:'M-26,50 C-26,70 -36,78 -100,90 C-124,96 -130,120 -130,205 L130,205 C130,120 124,96 100,90 C36,78 26,70 26,50Z',fill:'url(#gTorso)',stroke:SKO,'stroke-width':1.5},b);
+  el('path',{d:'M-80,140 Q-42,160 -6,140 M80,140 Q42,160 6,140',fill:'none',stroke:SKD,'stroke-width':2,opacity:.5},b);
+  el('rect',{x:-26,y:28,width:52,height:40,fill:'url(#gTorso)'},b);
+  el('path',{d:'M-24,58 Q0,70 24,58',fill:'none',stroke:SKD,'stroke-width':1.6,opacity:.6},b);
+  el('rect',{x:-120,y:165,width:225,height:33,rx:16,fill:'url(#gTorso)',stroke:SKO,'stroke-width':1.5},b);
+  el('ellipse',{cx:108,cy:181,rx:20,ry:15,fill:'url(#gTorso)',stroke:SKO,'stroke-width':1.5},b);
+  C.arm=[];
+  if(!side)for(let j=0;j<26;j++){const x=-110+j*8.6+((j*37)%7-3),y=170+((j*53)%23);
+    C.arm.push(el('path',{d:`M${f1(x)},${y} l6,3`,stroke:'#5a3418','stroke-width':1.5,'stroke-linecap':'round',opacity:0},b));}
+  C.hair=face(b,side,0);
+  el('path',{d:'M-15,31 Q0,39 15,31',fill:'none',stroke:'#b45a4c','stroke-width':3,'stroke-linecap':'round'},b);
+  C.fr=[];
+  if(!side)[[-34,10],[-28,14],[-22,9],[-30,19],[-38,16],[-25,20],[-8,8],[-4,13],[4,13],[8,8],[22,9],[28,14],[34,10],[30,19],[38,16],[25,20],[0,4]]
+    .forEach(q=>C.fr.push(el('circle',{cx:q[0],cy:q[1],r:1.8,fill:'#b0623a',opacity:0},b)));
+  C.dimp=el('path',{d:'M-24,27 Q-28,33 -23,38 M24,27 Q28,33 23,38',fill:'none',stroke:SKD,'stroke-width':2.6,'stroke-linecap':'round',opacity:0},b);
+  C.cleft=el('path',{d:'M0,51 Q-2.5,56 0,61',fill:'none',stroke:SKD,'stroke-width':2.6,'stroke-linecap':'round',opacity:0},b);
+  C.gB=el('ellipse',{fill:'url(#gGlow)',opacity:0},b);
+
+  /* tongue card */
+  const t=C.tg=G(figL,{transform:`translate(${cx} ${TY})`,opacity:0});
+  el('rect',{x:-95,y:-73,width:190,height:146,rx:14,fill:'#eef4f9',stroke:'#c9d6e2','stroke-width':2},t);
+  const tf=G(t,{transform:'translate(0 -14) scale(.78)'});
+  el('path',{d:'M-26,50 C-26,64 -40,70 -80,78 L-95,110 L95,110 L80,78 C40,70 26,64 26,50Z',fill:'url(#gTorso)',stroke:SKO,'stroke-width':1.5},tf);
+  el('rect',{x:-26,y:28,width:52,height:34,fill:'url(#gTorso)'},tf);
+  face(tf,side,side?0:20);
+  C.mouth=el('ellipse',{cx:0,cy:31,rx:14,ry:2,fill:'#5e1f24'},tf);
+  C.tongue=el('path',{fill:'#e46a72',stroke:'#b5404a','stroke-width':1.4,opacity:0},tf);
+  C.groove=el('path',{fill:'none',stroke:'#b5404a','stroke-width':1.6,'stroke-linecap':'round',opacity:0},tf);
+  C.roll=G(tf,{opacity:0});
+  C.rIn=el('ellipse',{cx:0,cy:34,ry:3.6,fill:'#7a2430'},C.roll);
+  C.rSide=el('path',{fill:'none',stroke:'#b5404a','stroke-width':1.5,'stroke-linecap':'round'},C.roll);
+  el('path',{d:'M-15,30 Q0,26 15,30',fill:'none',stroke:'#b45a4c','stroke-width':3,'stroke-linecap':'round'},tf);
+  C.gT=el('ellipse',{fill:'url(#gGlow)',opacity:0},t);
+
+  /* hand card */
+  const h=C.hg=G(figL,{transform:`translate(${cx} ${HDY})`,opacity:0});
+  el('rect',{x:-135,y:-82,width:270,height:162,rx:14,fill:'#eef4f9',stroke:'#c9d6e2','stroke-width':2},h);
+  C.thO=el('path',{fill:'none',stroke:SKO,'stroke-width':17,'stroke-linecap':'round','stroke-linejoin':'round'},h);
+  C.thI=el('path',{fill:'none',stroke:SK,'stroke-width':14,'stroke-linecap':'round','stroke-linejoin':'round'},h);
+  C.nail=el('ellipse',{rx:4,ry:3,fill:'#f9dccb',stroke:SKO,'stroke-width':.8},h);
+  el('path',{d:'M-125,-8 C-90,-12 -60,-16 -30,-18 C0,-20 25,-16 42,-12 L44,16 C20,22 -30,24 -125,22Z',fill:'url(#gTorso)',stroke:SKO,'stroke-width':1.5},h);
+  [[13,50],[6,59],[-1,62],[-8,58]].forEach(f=>{
+    el('path',{d:`M36,${f[0]} H${36+f[1]}`,stroke:SKO,'stroke-width':10,'stroke-linecap':'round'},h);
+    el('path',{d:`M36,${f[0]} H${36+f[1]}`,stroke:SK,'stroke-width':7.6,'stroke-linecap':'round'},h);});
+  C.arc=G(h,{opacity:0});
+  C.ref=el('path',{fill:'none',stroke:'#1f3a52','stroke-width':2,'stroke-dasharray':'5 4'},C.arc);
+  C.arcP=el('path',{fill:'none',stroke:'#1f3a52','stroke-width':2.4},C.arc);
+  C.gH=el('ellipse',{fill:'url(#gGlow)',opacity:0},h);
+  return C;}
+
+const COL=[buildCol(0),buildCol(1)];
+const HDR=SIDE_NAME.map((s,i)=>{const t=el('text',{class:'hdr',x:CX[i],y:24,opacity:0},txtL);t.textContent=s;return t;});
+
+/* ---------- animated parts ---------- */
+function setTongue(C,open,roll){
+  const L=4+28*open,ty=31+L,w=lerp(12,8.5,roll),k=Math.min(w,L);
+  C.mouth.setAttribute('ry',f1(2+7*open));
+  C.tongue.setAttribute('d',`M${f1(-w)},31 L${f1(-w)},${f1(ty-k)} Q${f1(-w)},${f1(ty)} 0,${f1(ty)} Q${f1(w)},${f1(ty)} ${f1(w)},${f1(ty-k)} L${f1(w)},31Z`);
+  op(C.tongue,open>.02?1:0);
+  C.groove.setAttribute('d',`M0,36 L0,${f1(Math.max(36,ty-6))}`);op(C.groove,open*(1-roll));
+  C.rIn.setAttribute('rx',f1(Math.max(1,w-3)));
+  C.rSide.setAttribute('d',`M${f1(-w+1.5)},35 Q${f1(-w+3)},${f1(ty-6)} -2,${f1(ty-2)} M${f1(w-1.5)},35 Q${f1(w-3)},${f1(ty-6)} 2,${f1(ty-2)}`);
+  op(C.roll,roll*open);}
+const A0=-78,BX=-14,BY=-14,P1=26,P2=22,rad=a=>a*PI/180;
+function setThumb(C,a1,arcO){
+  const jx=BX+P1*Math.cos(rad(A0)),jy=BY+P1*Math.sin(rad(A0)),tx=jx+P2*Math.cos(rad(a1)),ty=jy+P2*Math.sin(rad(a1));
+  const d=`M${f1(BX)},${f1(BY)} L${f1(jx)},${f1(jy)} L${f1(tx)},${f1(ty)}`;
+  C.thO.setAttribute('d',d);C.thI.setAttribute('d',d);
+  C.nail.setAttribute('transform',`translate(${f1(jx+(P2-5)*Math.cos(rad(a1)))} ${f1(jy+(P2-5)*Math.sin(rad(a1)))}) rotate(${f1(a1)})`);
+  const R=34,px=jx+R*Math.cos(rad(A0)),py=jy+R*Math.sin(rad(A0)),qx=jx+R*Math.cos(rad(a1)),qy=jy+R*Math.sin(rad(a1));
+  C.ref.setAttribute('d',`M${f1(jx)},${f1(jy)} L${f1(px)},${f1(py)}`);
+  C.arcP.setAttribute('d',`M${f1(px)},${f1(py)} A${R},${R} 0 0 0 ${f1(qx)},${f1(qy)}`);
+  op(C.arc,arcO);}
+
+/* ---------- the seven traits ----------
+   pt: where the label's line points (dominant, recessive) · gl: glow [group, cx, cy, rx, ry] */
+const TR=[
+ {lab:['خط شعر ناتئ','خط شعر مستقيم'],ly:70,pt:[[322,110],[638,110]],gl:['B',0,-26,50,24],
+  cap:'خط الشعر: الناتئ صفة سائدة على المستقيم',
+  run(C,v){C.hair.setAttribute('d',hairD(C.side?0:20*sm(v,.15,.55)));}},
+ {lab:['وجود النمش','عدم وجود النمش'],ly:114,pt:[[304,135],[656,135]],gl:['B',0,12,52,22],
+  cap:'النمش: وجود النمش صفة سائدة على عدم وجوده',
+  run(C,v){const m=sm(v,.15,.6),n=C.fr.length;C.fr.forEach((f,j)=>op(f,sm(m,j/n*.6,j/n*.6+.4)));}},
+ {lab:['وجود النونة','عدم وجود النونة'],ly:158,pt:[[309,158],[651,158]],gl:['B',0,33,42,15],
+  cap:'النونة (غمازة الخد): وجودها صفة سائدة على عدم وجودها',
+  run(C,v){op(C.dimp,C.side?0:sm(v,.15,.55));}},
+ {lab:['ذقن مشقوق','عدم وجود الشق'],ly:202,pt:[[330,182],[630,182]],gl:['B',0,56,24,14],
+  cap:'الذقن: الذقن المشقوق صفة سائدة على غير المشقوق',
+  run(C,v){op(C.cleft,C.side?0:sm(v,.15,.55));}},
+ {lab:['وجود الشعر','عدم وجود الشعر'],ly:300,pt:[[260,300],[700,300]],gl:['B',-5,181,125,30],
+  cap:'شعر الذراع: وجود الشعر صفة سائدة على عدم وجوده',
+  run(C,v){const m=sm(v,.15,.6),n=C.arm.length;C.arm.forEach((a,j)=>op(a,sm(m,j/n*.6,j/n*.6+.4)));}},
+ {lab:['القابلية على|طي اللسان','عدم طي|اللسان'],ly:430,pt:[[320,456],[640,456]],gl:['T',0,26,34,24],
+  cap:'اللسان: القابلية على طيّه صفة سائدة على عدم القابلية',
+  run(C,v){setTongue(C,sm(v,.2,.45),C.side?0:sm(v,.45,.75));}},
+ {lab:['حني الإبهام|إلى الخلف','حني الإبهام|إلى الأمام'],ly:600,pt:[[296,556],[624,548]],gl:['H',-22,-38,42,34],
+  cap:'الإبهام: حنيه إلى الخلف صفة سائدة على حنيه إلى الأمام',
+  run(C,v){const k=sm(v,.25,.65);setThumb(C,C.side?A0+14*k:A0-65*k,C.side?0:sm(v,.6,.8));}}];
+
+/* labels with leader lines */
+TR.forEach(t=>{t.L=[0,1].map(s=>{const g=G(txtL,{opacity:0}),x=s?788:172,lx=s?782:178,[px,py]=t.pt[s];
+  const len=Math.hypot(px-lx,py-t.ly);
+  const line=el('path',{d:`M${lx},${t.ly} L${px},${py}`,stroke:'#1b1b1b','stroke-width':2,fill:'none','stroke-dasharray':f1(len)},g);
+  const dot=el('circle',{cx:px,cy:py,r:3.5,fill:'#1b1b1b',opacity:0},g);
+  const tx=el('text',{class:'tl',x,y:t.ly,'text-anchor':s?'start':'end',opacity:0},g),ls=t.lab[s].split('|');
+  ls.forEach((w,i)=>{el('tspan',{x,dy:i?'1.2em':(-(ls.length-1)*.6)+'em'},tx).textContent=w;});
+  return{g,line,dot,tx,len};});
+  t.C=el('text',{class:'cap',x:480,y:718,opacity:0},txtL);t.C.textContent=t.cap;});
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  const A=sm(u[0],0,.3),v=u.slice();v[0]=clamp((u[0]-.3)/.7,0,1);
+  const cur=clamp(Math.ceil(P-1e-6)-1,0,TR.length-1);
+  HDR.forEach(h=>op(h,A));
+  COL.forEach(C=>{op(C.bust,A);op(C.tg,sm(v[5],0,.2));op(C.hg,sm(v[6],0,.2));
+    TR.forEach((t,i)=>t.run(C,v[i]));
+    [C.gB,C.gT,C.gH].forEach(g=>op(g,0));});
+  /* glow on the current trait */
+  const t=TR[cur],gl=t.gl,gi=Math.sin(PI*sm(v[cur],.05,.95))*.75;
+  COL.forEach(C=>{const g=C['g'+gl[0]];['cx','cy','rx','ry'].forEach((k,j)=>g.setAttribute(k,gl[j+1]));op(g,gi);});
+  /* labels */
+  TR.forEach((t,i)=>{const w=v[i],ld=sm(w,.3,.55),col=i===cur?'#c4623a':'#1b1b1b';
+    t.L.forEach(L=>{op(L.g,w>0?1:0);L.line.setAttribute('stroke-dashoffset',f1(L.len*(1-ld)));
+      op(L.dot,sm(w,.5,.6));op(L.tx,sm(w,.45,.7));L.tx.setAttribute('fill',col);});
+    op(t.C,i===cur?sm(w,0,.2):0);});
+}
+let last=performance.now();
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:480,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:480,y:370});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
