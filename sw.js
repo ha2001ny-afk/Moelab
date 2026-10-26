@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moelab-v2028-final';
+const CACHE_NAME = 'moelab-v2029-final';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
