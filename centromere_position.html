@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>موقع السنترومير يميز الكروموسومات إلى مجاميع</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .lbl{fill:#1b1b1b;font-size:26px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ptr{fill:#1b1b1b;font-size:26px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">موقع السنترومير يميز الكروموسومات إلى مجاميع</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="-190 0 1490 600" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <linearGradient id="gArm" gradientUnits="userSpaceOnUse" x1="-17" y1="0" x2="17" y2="0">
+          <stop offset="0" stop-color="#174a9e"/><stop offset=".35" stop-color="#3d8ae0"/><stop offset=".62" stop-color="#2f74d2"/><stop offset="1" stop-color="#1a4f9c"/>
+        </linearGradient>
+        <radialGradient id="gCen" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#b5b5b5"/><stop offset=".6" stop-color="#7a7a7a"/><stop offset="1" stop-color="#555"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+
+const TITLE='موقع السنترومير يميز الكروموسومات إلى مجاميع';
+const CY=250;
+/* p = طول الذراع القصيرة (فوق السنترومير) · q = الذراع الطويلة · ap/aq = ميل الذراعين */
+const CH=[
+ {x:1120,p:210,q:210,ap:10,aq:6,l1:'الكروموسوم وسطي',l2:'السنترومير'},
+ {x:760, p:120,q:210,ap:9, aq:6,l1:'كروموسوم ذو سنترومير',l2:'قريب من الوسط'},
+ {x:400, p:42, q:210,ap:8, aq:5,l1:'كروموسوم ذو سنترومير',l2:'قريب من الطرف'},
+ {x:40,  p:0,  q:210,ap:0, aq:4,l1:'كروموسوم طرفي',l2:'السنترومير'}];
+const DUR=CH.map(()=>4);
+
+const world=G(view);
+
+/* ---------- chromatid arm ----------
+   drawn in a local frame running along +y from the centromere, with a rounded tip */
+const s01=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+function wR(s,sd){return 11.5+5*s01(s/40)+1.3*Math.sin(s*.17+sd)+.7*Math.sin(s*.43+2*sd);}
+function armPath(L,sd){
+  if(L<.5)return '';
+  const wt=Math.min(15,L*.7),Ls=Math.max(0,L-wt),N=Math.max(4,Math.ceil(Ls/5));
+  let r='',l='';
+  for(let i=0;i<=N;i++){const s=Ls*i/N;
+    r+=(i?'L':'M')+f1(wR(s,sd))+','+f1(s);
+    l='L'+f1(-wR(s,sd+3))+','+f1(s)+l;}
+  const a=wR(Ls,sd),b=wR(Ls,sd+3);
+  return r+`A${f1((a+b)/2)},${f1(wt)} 0 0 1 ${f1(-b)},${f1(Ls)}`+l+'Z';}
+function wave(c,s0,s1,sd){if(s1-s0<4)return '';let d='';const N=Math.ceil((s1-s0)/4);
+  for(let i=0;i<=N;i++){const s=lerp(s0,s1,i/N);d+=(i?'L':'M')+f1(c+1.6*Math.sin(s*.3+sd+c))+','+f1(s);}return d;}
+
+let seedN=1;
+function arm(parent,side,up,len,ang){
+  const g=G(parent,{transform:`translate(${side*15} 0) rotate(${up?180+side*ang:-side*ang})`}),sd=seedN++*1.9;
+  const main=el('path',{fill:'url(#gArm)',stroke:'#1a4f9c','stroke-width':1.4,'stroke-linejoin':'round'},g);
+  const tex=[-5,5].map(()=>el('path',{fill:'none',stroke:'rgba(12,45,115,.45)','stroke-width':1.4,'stroke-linecap':'round'},g));
+  const hl=el('path',{fill:'none',stroke:'#fff','stroke-opacity':.28,'stroke-width':3,'stroke-linecap':'round'},g);
+  return{len,sd,up,main,tex,hl,L:-1};}
+function setArm(A,L){
+  if(Math.abs(L-A.L)<.05)return;A.L=L;
+  A.main.setAttribute('d',armPath(L,A.sd));
+  const Ls=L-Math.min(15,L*.7);
+  A.tex.forEach((t,i)=>t.setAttribute('d',wave(i?5:-5,8,Ls,A.sd)));
+  A.hl.setAttribute('d',wave(A.up?8:-8,10,Ls-4,A.sd+1));}
+
+/* ---------- build the four chromosomes ---------- */
+CH.forEach(C=>{
+  C.g=G(world,{transform:`translate(${C.x} ${CY})`,opacity:0});
+  C.sh=el('ellipse',{cx:0,cy:C.q+22,rx:70,ry:10,fill:'#000',opacity:0,filter:'url(#blur)'},C.g);
+  C.gl=el('circle',{cx:0,cy:0,r:75,fill:'url(#gGlow)',opacity:0},C.g);
+  C.arms=[];
+  [-1,1].forEach(sd=>{
+    if(C.p>0)C.arms.push(arm(C.g,sd,true,C.p,C.ap));
+    C.arms.push(arm(C.g,sd,false,C.q,C.aq));});
+  C.cen=G(C.g);
+  [-1,1].forEach(sd=>el('ellipse',{cx:sd*15,cy:0,rx:15,ry:21,fill:'url(#gCen)',stroke:'#3a3a3a','stroke-width':1.4},C.cen));
+  C.t1=el('text',{class:'lbl',x:0,y:275,opacity:0},C.g);C.t1.textContent=C.l1;
+  C.t2=el('text',{class:'lbl',x:0,y:312,opacity:0},C.g);C.t2.textContent=C.l2;});
+
+/* pointer "السنترومير" — moves to the chromosome being shown */
+const ptr=G(world,{opacity:0});
+el('text',{class:'ptr',x:-130,y:-125},ptr).textContent='السنترومير';
+el('path',{d:'M-118,-104 L-41.4,-21.3',stroke:'#1b1b1b','stroke-width':2.5,'stroke-linecap':'round',fill:'none'},ptr);
+el('path',{d:'M-32,-11 L-46.6,-16.6 L-36.2,-26Z',fill:'#1b1b1b'},ptr);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0;
+let last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  CH.forEach((C,i)=>{const v=u[i];
+    op(C.g,v>0?1:0);
+    /* 1 — centromere appears and glows */
+    C.cen.setAttribute('transform',`scale(${f2(Math.max(.001,sm(v,0,.25)))})`);
+    op(C.gl,Math.sin(PI*sm(v,.05,.95))*.8);
+    /* 2 — the arms grow out of the centromere */
+    const g=sm(v,.2,.75);
+    C.arms.forEach(A=>setArm(A,A.len*g));
+    op(C.sh,.12*g);
+    /* 3 — the name */
+    op(C.t1,sm(v,.6,.9));op(C.t2,sm(v,.65,.95));});
+  let x=CH[0].x;
+  for(let i=1;i<CH.length;i++)x=lerp(x,CH[i].x,sm(u[i],0,.35));
+  ptr.setAttribute('transform',`translate(${f1(x)} ${CY})`);op(ptr,sm(u[0],.3,.6));
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:555,y:300});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:555,y:300});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
