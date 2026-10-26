@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الطفرات الجينية</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .dot.gap{margin-left:8px}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .lbl{fill:#1b1b1b;font-size:38px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .sub{fill:#c4623a;font-size:25px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cap{fill:#1f3a52;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .bt{fill:#fff;font:bold 21px Arial,sans-serif;text-anchor:middle;dominant-baseline:central}
+  .hd{fill:#1f3a52;font:bold 26px Georgia,"Times New Roman",serif;text-anchor:middle;dominant-baseline:central}
+  .hda{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .aat{fill:#fff;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central;stroke:rgba(0,0,0,.55);stroke-width:3px;paint-order:stroke;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">الطفرات الجينية</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="-50 0 1060 745" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <linearGradient id="gDNA" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a9d0f5"/><stop offset="1" stop-color="#2766b8"/></linearGradient>
+        <linearGradient id="gRNA" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f9a37f"/><stop offset="1" stop-color="#c92f25"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view'),defs=document.getElementById('defs');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+
+const TITLE='الطفرات الجينية';
+/* طفرة الإزاحة (3 مراحل) · طفرة الاستبدال (3) */
+const DUR=[6,5,6, 6,5,5];
+
+const BC={A:'#2d56b0',C:'#1d8a4e',G:'#b5398f',T:'#e0392b',U:'#f29a2e'};
+const ARW='#2b7fd0',BS=34;
+const SY=i=>95+i*44+Math.floor(i/3)*18;   /* y of base slot i (codons separated by a gap) */
+let uid=0;
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),x=p(a),y=p(b);
+  return '#'+x.map((v,i)=>Math.round(lerp(v,y[i],t)).toString(16).padStart(2,'0')).join('');}
+
+const world=G(view);
+el('line',{x1:497,y1:20,x2:497,y2:640,stroke:'#c9d6e2','stroke-width':2,'stroke-dasharray':'8 8'},world);
+
+/* ---------- building blocks ---------- */
+function baseEl(p,ch,box){const g=G(p,{opacity:0});
+  el('rect',{x:-BS/2+2,y:-BS/2+3,width:BS,height:BS,rx:5,fill:'rgba(0,0,0,.18)'},g);
+  el('rect',{x:-BS/2,y:-BS/2,width:BS,height:BS,rx:5,fill:BC[ch],stroke:'rgba(0,0,0,.25)','stroke-width':1},g);
+  el('rect',{x:-BS/2+3,y:-BS/2+3,width:BS-6,height:9,rx:4,fill:'#fff',opacity:.3},g);
+  el('text',{class:'bt',x:0,y:1},g).textContent=ch;
+  if(box)g.box=el('rect',{x:-24,y:-24,width:48,height:48,rx:4,fill:'none',stroke:'#3a2418','stroke-width':2.6,'stroke-dasharray':'6 4'},g);
+  return g;}
+function place(g,x,y,o,s,r){g.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) rotate(${f1(r||0)}) scale(${f2(s==null?1:s)})`);op(g,o);}
+function sphereGrad(c){const id='sg'+(uid++),g=el('radialGradient',{id,cx:.36,cy:.32,r:.72,fx:.32,fy:.26},defs);
+  [[0,mix(c,'#ffffff',.75)],[.3,mix(c,'#ffffff',.25)],[.75,c],[1,mix(c,'#000000',.45)]].forEach(s=>el('stop',{offset:s[0],'stop-color':s[1]},g));
+  return id;}
+function aaEl(p,name,col){const g=G(p,{opacity:0});
+  el('ellipse',{cx:3,cy:46,rx:34,ry:7,fill:'rgba(0,0,0,.22)',filter:'url(#blur)'},g);
+  el('circle',{r:44,fill:`url(#${sphereGrad(col)})`},g);
+  const t=el('text',{class:'aat',x:0,y:0},g),ls=name.split('|');
+  ls.forEach((s,i)=>{el('tspan',{x:0,dy:i?'1.2em':(-(ls.length-1)*.6)+'em'},t).textContent=s;});
+  return g;}
+function harrow(p,x0,x1,y){const g=G(p,{opacity:0}),L=x0-x1;
+  el('rect',{x:-(L-12),y:-2.5,width:L-12,height:5,fill:ARW},g);
+  el('path',{d:`M${-(L-14)},-8 L${-L},0 L${-(L-14)},8Z`,fill:ARW},g);
+  return{g,x0,y};}
+const grow=(A,s,o)=>{A.g.setAttribute('opacity',s>.001?f2(o==null?1:o):0);A.g.setAttribute('transform',`translate(${A.x0} ${A.y}) scale(${f2(Math.max(s,.001))} 1)`);};
+
+/* ---------- a panel: DNA → mRNA → amino acids ----------
+   u0 normal expression · u1 the mutation on DNA · u2 expression of the mutated gene */
+function makePanel(c){
+  const Q={},g=G(world),XD=c.ox+400,XR=c.ox+240,XA=c.ox+100;
+  const bb=G(g),mk=G(g),ar=G(g),bs=G(g),tx=G(g);
+  const S=c.slots,s0=S[0],sN=S[S.length-1],nR=c.rnaN.length,nC=nR/3;
+  Q.bbD=el('rect',{x:XD+20,y:SY(s0)-28,width:12,height:SY(sN)-SY(s0)+56,rx:6,fill:'url(#gDNA)',opacity:0},bb);
+  Q.bbR=el('rect',{x:XR+20,y:SY(s0)-28,width:12,height:SY(S[nR-1])-SY(s0)+56,rx:6,fill:'url(#gRNA)',opacity:0},bb);
+  Q.glow=el('circle',{cx:XD,cy:SY(c.mslot),r:48,fill:'url(#gGlow)',opacity:0},mk);
+  Q.ag=[];Q.br=[];Q.dr=[];Q.ar=[];
+  for(let k=0;k<nC;k++){const ya=SY(S[3*k]),ym=SY(S[3*k+1]),yb=SY(S[3*k+2]),bx=XR-24;
+    Q.ag.push(el('circle',{cx:XA,cy:ym,r:74,fill:'url(#gGlow)',opacity:0},mk));
+    Q.br.push(el('path',{d:`M${bx+8},${ya-19} H${bx} V${yb+19} H${bx+8}`,fill:'none',stroke:'#333','stroke-width':2.4,'stroke-linejoin':'round',opacity:0},ar));
+    Q.dr.push(harrow(ar,XD-23,XR+38,ym));
+    Q.ar.push(harrow(ar,XR-32,XA+52,ym));}
+  Q.dna=[...c.dna].map((ch,i)=>baseEl(bs,ch,i===c.mi));
+  Q.nb=c.newBase?baseEl(bs,c.newBase,true):null;
+  Q.rN=[...c.rnaN].map(ch=>baseEl(bs,ch));
+  Q.rM=[...c.rnaM].map((ch,j)=>baseEl(bs,ch,j===c.rbox));
+  Q.aN=c.aaN.map(a=>aaEl(bs,a[0],a[1]));
+  Q.aM=c.aaM.map(a=>aaEl(bs,a[0],a[1]));
+  Q.hd=[['DNA',XD+8,'hd'],['←',(XD+XR)/2+8,'hd'],['mRNA',XR+8,'hd'],['←',(XR+XA)/2,'hd'],['حامض أميني',XA,'hda']]
+    .map(h=>{const t=el('text',{class:h[2],x:h[1],y:40,opacity:0},tx);t.textContent=h[0];return t;});
+  Q.cap=c.caps.map(s=>{const t=el('text',{class:'cap',x:c.ox+250,y:618,opacity:0},tx);t.textContent=s;return t;});
+  Q.lab=el('text',{class:'lbl',x:c.ox+250,y:672,opacity:0},tx);Q.lab.textContent=c.label;
+  Q.sub=el('text',{class:'sub',x:c.ox+250,y:716,opacity:0},tx);Q.sub.textContent=c.sub;
+
+  Q.render=(u0,u1,u2)=>{
+    const A=sm(u0,0,.2);
+    Q.hd.forEach(t=>op(t,A));op(Q.lab,A);op(Q.sub,A);op(Q.bbD,A);
+    const tN=sm(u0,.3,.7),xN=sm(u0,.7,1),fo=1-sm(u1,0,.22),tM=sm(u2,.06,.56),xM=sm(u2,.56,.96),mut=u2>0;
+    op(Q.bbR,mut?sm(tM,0,.1):sm(tN,0,.1)*fo);
+    /* DNA strand + the mutation event */
+    Q.dna.forEach((b,i)=>{const ap=sm(u0,.04+i*.015,.16+i*.015),q=c.pose(i,u1,ap);place(b,XD+(q.dx||0),q.y,q.o,1,q.r);});
+    op(Q.dna[c.mi].box,sm(u1,0,.12));
+    if(Q.nb){const k=sm(u1,.55,.9);place(Q.nb,XD+75*(1-k),SY(S[c.mi])+65*(1-k),sm(u1,.52,.66),1,-25*(1-k));}
+    op(Q.glow,Math.sin(PI*sm(u1,0,.95))*.9);
+    /* transcription */
+    const tr=(arr,t,o)=>arr.forEach((b,j)=>{const n=arr.length,a=sm(t,j/n*.8,j/n*.8+.2);place(b,XR+36*(1-a),SY(S[j]),a*o,1);});
+    tr(Q.rN,tN,fo);tr(Q.rM,tM,1);
+    /* codons + translation */
+    for(let k=0;k<nC;k++){const w=k/nC*.8,v=k/nC*.7;
+      grow(Q.dr[k],mut?sm(tM,w,w+.25):sm(tN,w,w+.25),mut?1:fo);
+      op(Q.br[k],sm(tN,w+.12,w+.28));
+      grow(Q.ar[k],mut?sm(xM,v,v+.12):sm(xN,v,v+.12),mut?1:fo);
+      const aN=sm(xN,v+.1,v+.3),aM=sm(xM,v+.1,v+.3),y=SY(S[3*k+1]);
+      place(Q.aN[k],XA,y,aN*fo,.4+.6*aN);
+      place(Q.aM[k],XA,y,aM,.4+.6*aM);
+      op(Q.ag[k],Math.sin(PI*sm(xM,v+.1,Math.min(1,v+.5)))*.85);}
+    /* captions */
+    op(Q.cap[0],A*(1-sm(u1,0,.15)));
+    op(Q.cap[1],sm(u1,0,.15)*(1-sm(u2,0,.12)));
+    op(Q.cap[2],sm(u2,.15,.35));
+  };
+  return Q;}
+
+/* ---------- the two mutations ---------- */
+const PANELS=[
+ makePanel({ /* طفرة الإزاحة : the base G is deleted, every following base moves up one place */
+   ox:520,slots:[0,1,2,3,4,5,6,7,8,9],dna:'ACGCTCGTCT',mi:2,mslot:2,
+   rnaN:'UGCGAGCAG',rnaM:'UGGAGCAGA',
+   aaN:[['سيستين','#8b3fae'],['حامض|غلوتاميك','#1f9e8e'],['غلوتامين','#3b8fd8']],
+   aaM:[['تريبتوفان','#cf5a26'],['سيرين','#66808c'],['أرجنين','#d93427']],
+   label:'طفرة الإزاحة',sub:'( حذف القاعدة G )',
+   caps:['الحالة الطبيعية: وجود القاعدة G','حذف القاعدة G ← انزياح إطار القراءة','تغيّرت كل الأحماض الأمينية بعد موقع الحذف'],
+   pose(i,u1,ap){
+     if(i<2)return{y:SY(i),o:ap};
+     if(i===2){const k=sm(u1,.3,.62);return{dx:70*k,y:SY(2)-70*Math.sin(PI/2*k),r:30*k,o:ap*(1-.6*sm(u1,.55,.7))};}
+     const sh=sm(u1,.62,.95);return{y:lerp(SY(i),SY(i-1),sh),o:ap*(i===9?lerp(.3,1,sh):1)};}
+ }),
+ makePanel({ /* طفرة الاستبدال : T is replaced by A */
+   ox:0,slots:[3,4,5],dna:'CTT',mi:1,mslot:4,newBase:'A',
+   rnaN:'GAA',rnaM:'GUA',rbox:1,
+   aaN:[['حامض|غلوتاميك','#1f9e8e']],aaM:[['فالين','#4a9be0']],
+   label:'طفرة الاستبدال',sub:'( استبدال T بالقاعدة A )',
+   caps:['الحالة الطبيعية: وجود القاعدة T','استبدال القاعدة T بالقاعدة A','تغيّر حامض أميني واحد: غلوتاميك ← فالين'],
+   pose(i,u1,ap){const y=SY(this.slots[i]);if(i!==1)return{y,o:ap};
+     const k=sm(u1,.28,.58);return{dx:70*k,y:y-65*Math.sin(PI/2*k),r:25*k,o:ap*(1-sm(u1,.48,.64))};}
+ })];
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){const u=DUR.map((_,i)=>clamp(P-i,0,1));PANELS.forEach((p,k)=>p.render(u[3*k],u[3*k+1],u[3*k+2]));}
+let last=performance.now();
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i%3===2&&i<DUR.length-1?' gap':'');b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:480,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:480,y:370});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
