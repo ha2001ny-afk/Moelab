@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تجربة هيرشي وتشيس على الـ DNA</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .tl{fill:#1b1b1b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ph{fill:#1b1b1b;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .mid{font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .con{fill:#1f3a52;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .rad{fill:#e0352b;font-size:24px;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">تجربة هيرشي وتشيس على الـ DNA</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="-50 0 1060 745" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <linearGradient id="gBac" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9c983"/><stop offset="1" stop-color="#e98f3a"/></linearGradient>
+        <radialGradient id="gRad"><stop offset="0" stop-color="#ff3b30" stop-opacity=".75"/><stop offset="1" stop-color="#ff3b30" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="hot" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view'),defs=document.getElementById('defs');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),x=p(a),y=p(b);
+  return '#'+x.map((v,i)=>Math.round(lerp(v,y[i],t)).toString(16).padStart(2,'0')).join('');}
+function mtext(p,x,y,lines,cls,lh){const t=el('text',{class:cls,x,y},p);
+  lines.forEach((s,i)=>{el('tspan',{x,dy:i?lh+'em':(-(lines.length-1)*lh/2)+'em'},t).textContent=s;});return t;}
+
+const TITLE='تجربة هيرشي وتشيس على الـ DNA';
+/* تعليم الرواشح · إصابة البكتيريا · المزج والطرد المركزي · النتيجة */
+const DUR=[6,8,8,7];
+
+const HOT='#ff3b30',MIXC='#ec9a5c',PALE='#f6dc8a',TAN='#e7a24e',RADC='#e0352b',DARK='#3d3d3d';
+const MIDX=537;
+let uid=0;
+
+const world=G(view);
+const glowL=G(world),tubeL=G(world),arL=G(world),zL=G(world),phL=G(world),txtL=G(world);
+
+/* ---------- T2 phage : head (icosahedron) · tail · fibres ----------
+   type 'S' → protein coat labelled · 'P' → DNA labelled (the hot part glows red) */
+const LEGS='M5,22 L16,30 L19,45 M-5,22 L-16,30 L-19,45 M4,23 L9,33 L8,46 M-4,23 L-9,33 L-8,46 M6,21 L22,26 L28,38 M-6,21 L-22,26 L-28,38';
+const HEX=(()=>{const v=[];for(let k=0;k<6;k++){const a=(-90+60*k)*PI/180;v.push(f1(18*Math.cos(a))+','+f1(-28+18*Math.sin(a)));}return 'M'+v.join(' L')+'Z';})();
+const DNAD='M-9,-36 C-2,-42 6,-38 2,-32 C-4,-26 8,-24 9,-18 C4,-14 -8,-18 -10,-24 C-12,-30 -2,-30 0,-27';
+function phage(p,type){const g=G(p);
+  el('path',{d:LEGS,fill:'none',stroke:'#4a4f6a','stroke-width':1.8,'stroke-linejoin':'round','stroke-linecap':'round'},g);
+  el('rect',{x:-5,y:-8,width:10,height:28,fill:'#5b6178',stroke:'#2e3244','stroke-width':1},g);
+  for(let y=-4;y<=16;y+=4)el('path',{d:`M-5,${y} H5`,stroke:'#2e3244','stroke-width':.8},g);
+  el('rect',{x:-9,y:19,width:18,height:4,rx:1.5,fill:'#3e4357'},g);
+  el('rect',{x:-6,y:-11,width:12,height:4,fill:'#3e4357'},g);
+  el('path',{d:HEX,fill:'#3d4458',stroke:'#23283a','stroke-width':1.4,'stroke-linejoin':'round'},g);
+  el('path',{d:'M0,-46 L0,-28 L15.6,-19 M0,-28 L-15.6,-19 M-15.6,-37 L0,-28 L15.6,-37',fill:'none',stroke:'rgba(255,255,255,.16)','stroke-width':1},g);
+  const dna=G(g);
+  el('path',{d:DNAD,fill:'none',stroke:'#c7cdd6','stroke-width':2.2,'stroke-linecap':'round'},dna);
+  const hot=G(type==='P'?dna:g,{filter:'url(#hot)',opacity:0});
+  if(type==='P')el('path',{d:DNAD,fill:'none',stroke:HOT,'stroke-width':2.6,'stroke-linecap':'round'},hot);
+  else{el('path',{d:HEX,fill:'none',stroke:HOT,'stroke-width':2.6,'stroke-linejoin':'round'},hot);
+    el('rect',{x:-5,y:-8,width:10,height:28,fill:'none',stroke:HOT,'stroke-width':1.6},hot);
+    el('rect',{x:-9,y:19,width:18,height:4,rx:1.5,fill:'none',stroke:HOT,'stroke-width':1.4},hot);
+    el('path',{d:LEGS,fill:'none',stroke:HOT,'stroke-width':1.5,'stroke-linejoin':'round','stroke-linecap':'round'},hot);}
+  return{g,dna,hot};}
+
+/* ---------- bacterium (with the DNA the phage injected) ---------- */
+function bact(p,x,y,a,type){const g=G(p,{transform:`translate(${x} ${y}) rotate(${a})`});
+  el('rect',{x:-25,y:-10,width:50,height:20,rx:10,fill:'url(#gBac)',stroke:'#c9772a','stroke-width':1.4},g);
+  el('rect',{x:-19,y:-7,width:38,height:4,rx:2,fill:'#fff',opacity:.4},g);
+  const dna=G(g,{opacity:0}),d='M-15,2 C-10,-5 -5,7 0,1 C5,-5 10,7 15,0';
+  if(type==='P')el('path',{d,fill:'none',stroke:HOT,'stroke-width':2.4,'stroke-linecap':'round',filter:'url(#hot)'},dna);
+  else el('path',{d,fill:'none',stroke:'#7a4a2c','stroke-width':2,'stroke-linecap':'round'},dna);
+  return{g,dna,x,y,a};}
+
+/* ---------- zoom circle ---------- */
+function zoom(x,y,r){const g=G(zL,{opacity:0}),id='zc'+(uid++);
+  el('circle',{r:r-2},el('clipPath',{id},defs));
+  el('ellipse',{cx:4,cy:r+4,rx:r*.8,ry:6,fill:'rgba(0,0,0,.12)'},g);
+  el('circle',{r,fill:'#fff'},g);
+  const c=G(g,{'clip-path':`url(#${id})`});
+  el('circle',{r,fill:'none',stroke:'#1b1b1b','stroke-width':4},g);
+  return{g,c,x,y};}
+function showZ(Z,a){Z.g.setAttribute('transform',`translate(${Z.x} ${Z.y}) scale(${f2(.4+.6*a)})`);op(Z.g,a);}
+
+/* ---------- test tube ---------- */
+function tube(x,yT,h){const g=G(tubeL,{opacity:0}),id='tc'+(uid++),w=17;
+  const d=`M${-w},0 L${-w},${h-w} A${w},${w} 0 0 0 ${w},${h-w} L${w},0`;
+  el('path',{d:d+'Z'},el('clipPath',{id},defs));
+  const inner=G(g,{'clip-path':`url(#${id})`});
+  el('path',{d:d+'Z',fill:'#f3f7fa'},inner);
+  const sup=el('rect',{x:-w,width:2*w,fill:MIXC},inner),pel=el('rect',{x:-w,width:2*w,fill:TAN},inner);
+  el('rect',{x:-w+5,y:6,width:4,height:h-24,rx:2,fill:'#fff',opacity:.55},inner);
+  el('path',{d,fill:'none',stroke:'#7d8a96','stroke-width':2.5},g);
+  el('rect',{x:-w-4,y:-4,width:2*w+8,height:7,rx:3,fill:'#e9eef2',stroke:'#7d8a96','stroke-width':2},g);
+  return{g,sup,pel,x,yT,h};}
+function setTube(Tb,o,top,pH,cs,cp,rot){Tb.g.setAttribute('transform',`translate(${Tb.x} ${Tb.yT}) rotate(${f1(rot||0)} 0 ${Tb.h/2})`);op(Tb.g,o);
+  const y=top-Tb.yT;Tb.sup.setAttribute('y',f1(y));Tb.sup.setAttribute('height',f1(Tb.h-y-pH+.5));Tb.sup.setAttribute('fill',cs);
+  Tb.pel.setAttribute('y',f1(Tb.h-pH));Tb.pel.setAttribute('height',f1(pH));Tb.pel.setAttribute('fill',cp);}
+
+/* ---------- arrows ---------- */
+function carrow(x0,y0,x1,y1,bend){const g=G(arL,{opacity:0}),mx=(x0+x1)/2,my=(y0+y1)/2-bend;
+  el('path',{d:`M${x0},${y0} Q${mx},${my} ${x1},${y1}`,fill:'none',stroke:DARK,'stroke-width':6,'stroke-linecap':'round'},g);
+  const L=Math.hypot(x1-mx,y1-my),ux=(x1-mx)/L,uy=(y1-my)/L;
+  el('path',{d:`M${f1(x1+ux*11)},${f1(y1+uy*11)} L${f1(x1-uy*10-ux*5)},${f1(y1+ux*10-uy*5)} L${f1(x1+uy*10-ux*5)},${f1(y1-ux*10-uy*5)}Z`,fill:DARK},g);
+  return g;}
+function varrow(x,y0,y1){const g=G(arL,{opacity:0}),L=y1-y0;
+  el('rect',{x:-7,y:0,width:14,height:L-16,fill:DARK},g);
+  el('path',{d:`M-17,${L-18} L0,${L} L17,${L-18}Z`,fill:DARK},g);
+  return{g,x,y0};}
+const grow=(A,s)=>{A.g.setAttribute('opacity',s>.001?1:0);A.g.setAttribute('transform',`translate(${A.x} ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);};
+
+/* ---------- the two columns ---------- */
+const CFG=[
+ {type:'S',tx:215,cx:365,phLab:['الغلاف البروتيني للراشح','معلّم بالكبريت المشع ³⁵S'],phX:110,
+  sup:RADC,pel:TAN,rad:[262,500],glow:[0,500,46,72],
+  labs:[{t:['أغلفة بروتين الرواشح','( مشعة )'],x:85,y:470,f:[180,470],to:[196,480],hot:1},
+        {t:['البكتيريا التي تحتوي','على DNA الراشح','( غير مشعة )'],x:85,y:578,f:[180,578],to:[200,566],hot:0}]},
+ {type:'P',tx:650,cx:800,phLab:['المادة الوراثية (DNA) للراشح','معلّمة بالفسفور المشع ³²P'],phX:887,
+  sup:PALE,pel:RADC,rad:[608,563],glow:[0,563,40,30],
+  labs:[{t:['أغلفة بروتين','الرواشح','( غير مشعة )'],x:948,y:455,f:[884,455],to:[870,455],hot:0},
+        {t:['البكتيريا التي','تحتوي على','DNA الراشح','( مشعة )'],x:948,y:640,f:[884,640],to:[862,640],hot:1}]}];
+
+const T1=[185,160,230],T2=[410,165,448];   /* tube top · height · liquid level */
+const COLS=CFG.map(c=>{const C={c},tx=c.tx,cx=c.cx,px=(tx+cx)/2;
+  /* row 1 — the labelled phage */
+  C.big=G(phL,{opacity:0});C.bp=phage(C.big,c.type);C.px=px;
+  C.phT=mtext(txtL,c.phX,92,c.phLab,'ph',1.5);op(C.phT,0);
+  /* row 2 — infection */
+  C.t1=tube(tx,T1[0],T1[1]);
+  C.a1=carrow(tx+12,T1[0]+14,cx-84,240,48);
+  C.z1=zoom(cx,262,78);
+  C.b1=[[-38,-30,25],[24,-42,-12],[-2,4,8],[-36,40,-30],[36,30,30]].map(q=>bact(C.z1.c,q[0],q[1],q[2],c.type));
+  C.ph1=[];
+  C.b1.forEach((B,i)=>{[-11,11].forEach((off,j)=>{
+    const side=(i+j)%2?1:-1,ar=B.a*PI/180,ux=Math.cos(ar),uy=Math.sin(ar),nx=-uy*side,ny=ux*side;
+    const sx=B.x+ux*off+nx*10,sy=B.y+uy*off+ny*10,th=Math.atan2(nx,-ny)*180/PI;
+    C.ph1.push({P:phage(C.z1.c,c.type),sx,sy,nx,ny,th});});});
+  C.b1.forEach(B=>B.g.parentNode.appendChild(B.g));          /* bacteria above the phage tails */
+  C.ph1.forEach(q=>q.P.g.parentNode.appendChild(q.P.g));
+  /* row 3 — blending + centrifuge */
+  C.dn=varrow(tx,T1[0]+T1[1]+8,T2[0]-8);
+  C.glow=el('ellipse',{cx:tx,cy:c.glow[1],rx:c.glow[2],ry:c.glow[3],fill:'url(#gRad)',opacity:0},glowL);
+  C.t2=tube(tx,T2[0],T2[1]);
+  C.ring=el('ellipse',{cx:tx,cy:T2[0]+92,rx:34,ry:9,fill:'none',stroke:'#2b7fd0','stroke-width':3,'stroke-dasharray':'34 14',opacity:0},arL);
+  C.a2=carrow(tx+12,T2[0]+30,cx-74,440,30);
+  C.a3=carrow(tx+16,T2[0]+T2[1]-12,cx-64,628,-10);
+  C.z2=zoom(cx,455,70);
+  C.gh=[[-34,-26,20],[10,-40,-35],[40,-6,60],[-8,8,-15],[-40,26,40],[18,34,-60],[44,30,110]].map(q=>{
+    const P=phage(C.z2.c,c.type);op(P.dna,0);return{P,x:q[0],y:q[1],a:q[2]};});
+  C.z3=zoom(cx,645,60);
+  C.b3=[[-22,-22,20],[22,-24,-25],[-20,22,-15],[24,22,30]].map(q=>{const B=bact(C.z3.c,q[0],q[1],q[2],c.type);op(B.dna,1);return B;});
+  C.rad=el('text',{class:'rad',x:c.rad[0],y:c.rad[1],opacity:0},txtL);C.rad.textContent='☢';
+  /* row 4 — result labels */
+  C.L=c.labs.map(l=>{const g=G(txtL,{opacity:0}),len=Math.hypot(l.to[0]-l.f[0],l.to[1]-l.f[1]);
+    const line=el('path',{d:`M${l.f[0]},${l.f[1]} L${l.to[0]},${l.to[1]}`,stroke:'#1b1b1b','stroke-width':2,fill:'none','stroke-dasharray':f1(len)},g);
+    const dot=el('circle',{cx:l.to[0],cy:l.to[1],r:3.5,fill:'#1b1b1b'},g);
+    const t=mtext(g,l.x,l.y,l.t,'tl',1.3);if(l.hot)t.setAttribute('fill','#c4321f');
+    return{g,line,dot,t,len};});
+  return C;});
+
+/* middle step labels + conclusion */
+const MID=[[92,['تعليم الرواشح','بالنظائر المشعة']],[262,['إصابة الرواشح','للبكتيريا']],[470,['تُمزج ثم تُطرد','مركزياً لفصل','الخلايا من','الرواشح']]]
+  .map(m=>{const t=mtext(txtL,MIDX,m[0],m[1],'mid',1.35);op(t,0);return t;});
+const CON=G(txtL,{opacity:0});
+el('rect',{x:-96,y:-62,width:192,height:124,rx:14,fill:'#fff4e5',stroke:'#c4623a','stroke-width':2.5},CON);
+const conT=mtext(CON,0,0,['النتيجة:','DNA هو المادة','الوراثية','وليس البروتين'],'con',1.4);
+conT.firstChild.setAttribute('fill','#c4623a');
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1)),[u0,u1,u2,u3]=u;
+  const pulse=.78+.22*Math.sin(T*5),cur=clamp(Math.ceil(P-1e-6)-1,0,3);
+  COLS.forEach(C=>{const c=C.c;
+    /* 1 — labelled phage */
+    const a=sm(u0,0,.35);
+    C.big.setAttribute('transform',`translate(${C.px} 92) scale(${f2(1.4*(.6+.4*a))})`);op(C.big,a);
+    op(C.bp.hot,sm(u0,.35,.7)*pulse);op(C.phT,sm(u0,.3,.6));
+    /* 2 — infection: phages attach, inject their DNA, coats stay outside */
+    setTube(C.t1,sm(u1,0,.2),T1[2],0,MIXC,MIXC);
+    op(C.a1,sm(u1,.15,.3));showZ(C.z1,sm(u1,.2,.38));
+    const att=sm(u1,.4,.65),inj=sm(u1,.65,.92);
+    C.ph1.forEach(q=>{const d=40*(1-att);
+      q.P.g.setAttribute('transform',`translate(${f1(q.sx+q.nx*d)} ${f1(q.sy+q.ny*d)}) rotate(${f1(q.th)}) scale(.34) translate(0 -45)`);
+      op(q.P.g,sm(u1,.36,.48));op(q.P.dna,1-inj);op(q.P.hot,pulse);});
+    C.b1.forEach(B=>op(B.dna,inj));
+    /* 3 — blender + centrifuge */
+    grow(C.dn,sm(u2,0,.12));
+    const shk=Math.sin(PI*sm(u2,.2,.42)),sep=sm(u2,.45,.72);
+    setTube(C.t2,sm(u2,.08,.2),T2[2],24*sep,mix(MIXC,c.sup,sep),mix(MIXC,c.pel,sep),7*shk*Math.sin(T*38));
+    op(C.ring,Math.sin(PI*sm(u2,.42,.74)));C.ring.setAttribute('stroke-dashoffset',f1(-T*140));
+    op(C.a2,sm(u2,.68,.8));op(C.a3,sm(u2,.78,.9));
+    showZ(C.z2,sm(u2,.7,.85));showZ(C.z3,sm(u2,.8,.95));
+    C.gh.forEach((q,i)=>{q.P.g.setAttribute('transform',`translate(${f1(q.x+3*Math.sin(T*.9+i))} ${f1(q.y+3*Math.cos(T*.7+2*i))}) rotate(${f1(q.a+6*Math.sin(T*.6+i))}) scale(.42)`);op(q.P.hot,pulse);});
+    /* 4 — where is the radioactivity? */
+    op(C.glow,(sm(u2,.6,.85)*.45+sm(u3,0,.3)*.55)*pulse);
+    op(C.rad,sm(u3,.2,.4)*pulse);
+    C.L.forEach((L,k)=>{const w=sm(u3,.08+k*.12,.35+k*.12);op(L.g,w>0?1:0);
+      L.line.setAttribute('stroke-dashoffset',f1(L.len*(1-w)));op(L.dot,w);op(L.t,sm(u3,.2+k*.12,.45+k*.12));});
+  });
+  MID.forEach((t,i)=>{op(t,sm(u[i],0,.25));t.setAttribute('fill',i===cur?'#c4623a':'#1b1b1b');});
+  const cn=sm(u3,.5,.8);CON.setAttribute('transform',`translate(${MIDX} 648) scale(${f2(.6+.4*cn)})`);op(CON,cn);
+}
+let last=performance.now();
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:480,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:480,y:370});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
