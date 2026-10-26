@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الأليلات المتعددة ونقل الدم</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:10px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .tx{fill:#1f3a52;font-size:14.5px;font-weight:bold;dominant-baseline:central;direction:rtl}
+  .lb{fill:#1f3a52;font-size:13px;font-weight:bold;dominant-baseline:central;direction:rtl}
+  .cap{fill:#c4623a;font-size:13.5px;font-weight:bold;dominant-baseline:central;direction:rtl}
+  .gn{fill:#1b1b1b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:18px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .bgx{font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:24px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .pc{fill:#1f3a52;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:rtl}
+  .sm{fill:#4a5d6e;font-size:12px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:rtl}
+  .th{fill:#1f3a52;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .dd{fill:#d32f2f;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ok{fill:#2e7d32;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hd{fill:#fff;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">الأليلات المتعددة ونقل الدم</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 420 400" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gGlowR"><stop offset="0" stop-color="#ff5a5a" stop-opacity=".55"/><stop offset="1" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
+        <linearGradient id="gBox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fb"/><stop offset="1" stop-color="#e4eaf0"/></linearGradient>
+        <radialGradient id="gRbc" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#e2545a"/><stop offset="1" stop-color="#a8222b"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI,NAVY='#1f3a52',ORG='#c4623a',RED='#d32f2f';
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+
+const TITLE='الأليلات المتعددة ونقل الدم';
+/* التعريف · نظام ABO · جدول (5-2) · نقل الدم · جدول (5-3) · التوافق والتجلط · جداول التوافق */
+const DUR=[9,13,10,14,10,12,10];
+
+/* الوان مجاميع الدم : فاتح للخلفية · غامق للحرف */
+const GL={A:'#d8f0d4',B:'#d6e4fa',AB:'#eadcf3',O:'#fde0cc'},GD={A:'#2e9d5b',B:'#2f6fd1',AB:'#8e44ad',O:'#c4623a'};
+
+const world=G(view);
+const glowL=G(world),boxL=G(world),txtL=G(world),objL=G(world);
+
+/* ---------- builders ---------- */
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function place(o,x,y,s,a,rot){o.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) rotate(${f1(rot||0)}) scale(${f2(s)})`);o.setAttribute('opacity',f2(a));}
+const glow=(x,y,r,f)=>el('circle',{cx:x,cy:y,r:r||60,fill:f||'url(#gGlow)',opacity:0},glowL);
+const box=(x,y,w,h)=>el('rect',{x,y,width:w,height:h,rx:6,fill:'url(#gBox)',stroke:NAVY,'stroke-width':2,opacity:0},boxL);
+function txt(s,x,y,c,p){const t=el('text',{class:c,x,y,opacity:0},p||txtL);t.textContent=s;return t;}
+const mlines=(arr,x,yc,c,lh)=>arr.map((s,i)=>txt(s,x,yc+(i-(arr.length-1)/2)*(lh||18),c));
+function head(s,y,w,cx){const g=G(txtL,{opacity:0});
+  el('rect',{x:cx-w/2,y:y-15,width:w,height:30,rx:15,fill:ORG},g);
+  el('text',{class:'hd',x:cx,y:y+1},g).textContent=s;return g;}
+function letter(s,x,y,size){const t=txt(s,x,y,'bgx');t.setAttribute('style',`fill:${GD[s]};${size?'font-size:'+size+'px':''}`);return t;}
+
+/* مستضد A مثلث اخضر · مستضد B مربع ازرق */
+function agMark(p,k){return k==='A'?el('path',{d:'M0,-4 L3.6,2.6 L-3.6,2.6Z',fill:GD.A},p):el('rect',{x:-3,y:-3,width:6,height:6,fill:GD.B},p);}
+/* خلية دم حمراء تحمل مستضدات مجموعتها على سطحها */
+function cellAg(p,type,r){r=r||15;const g=G(p,{opacity:0});
+  el('circle',{r,fill:'url(#gRbc)',stroke:'#8e1a20','stroke-width':1.4},g);
+  el('ellipse',{rx:r*.45,ry:r*.4,fill:'#ec8a8a',opacity:.8},g);
+  if(type!=='O')for(let k=0;k<6;k++){const a=k*60-90,q=a*PI/180;
+    agMark(G(g,{transform:`translate(${f1(Math.cos(q)*(r+2.5))} ${f1(Math.sin(q)*(r+2.5))}) rotate(${a+90})`}),type==='AB'?(k%2?'B':'A'):type);}
+  return g;}
+/* جسم مضاد على شكل Y : a ضد المستضد A · b ضد المستضد B */
+function ab(p,k){const g=G(p,{opacity:0});
+  el('path',{d:'M0,9 L0,1 M0,1 L-6,-7 M0,1 L6,-7',stroke:k==='a'?GD.A:GD.B,'stroke-width':2.8,'stroke-linecap':'round',fill:'none'},g);return g;}
+
+/* جدول : الاعمدة تُعد من اليمين */
+function table(xR,ws,y,hs){const g=G(boxL,{opacity:0}),xs=[],ys=[];let x=xR,yy=y;
+  ws.forEach(w=>{xs.push([x-w,x]);x-=w;});hs.forEach(h=>{ys.push([yy,yy+h]);yy+=h;});
+  ys.forEach(([y0,y1],r)=>xs.forEach(([x0,x1])=>el('rect',{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:r?'#fff':'#eef2f6',stroke:NAVY,'stroke-width':1.6},g)));
+  return{g,cx:c=>(xs[c][0]+xs[c][1])/2,cy:r=>(ys[r][0]+ys[r][1])/2,x0:c=>xs[c][0],w:c=>xs[c][1]-xs[c][0],y0:r=>ys[r][0],h:r=>ys[r][1]-ys[r][0],end:yy};}
+const cellFill=(T,c,r,col)=>el('rect',{x:T.x0(c)+1,y:T.y0(r)+1,width:T.w(c)-2,height:T.h(r)-2,fill:col,opacity:0},boxL);
+
+/* paragraph with automatic line wrapping (right-aligned); symbols are coloured */
+const HL=/^(\(?(I[ᴬᴮ]?|i|ii|ABO|Rh|A|B|AB|O|a|b)\)?|[\d:/\-()]+)$/;
+function setLine(t,words){while(t.firstChild)t.removeChild(t.firstChild);
+  words.forEach((w,i)=>{if(i)t.appendChild(document.createTextNode(' '));
+    if(HL.test(w)){const s=document.createElementNS(NS,'tspan');s.setAttribute('fill',ORG);s.textContent=w;t.appendChild(s);}
+    else t.appendChild(document.createTextNode(w));});}
+function para(str,o){const words=str.split(/\s+/),lines=[];let cur=[],y=o.y;
+  const mk=()=>el('text',{class:o.cls||'tx',x:o.x,y,'text-anchor':o.anchor||'start',opacity:0},txtL);
+  let t=mk();
+  for(const w of words){const trial=cur.concat(w);setLine(t,trial);
+    if(t.getComputedTextLength()>o.w&&cur.length){setLine(t,cur);lines.push(t);y+=o.lh;t=mk();cur=[w];setLine(t,cur);}
+    else cur=trial;}
+  setLine(t,cur);lines.push(t);return{lines,y:y+o.lh};}
+function rev(arr,u,a,b){const n=arr.length;
+  arr.forEach((g,i)=>{const s=sm(u,a+(b-a)*i/n,Math.min(b,a+(b-a)*(i+1.6)/n));
+    [].concat(g).forEach(e=>{op(e,s);e.setAttribute('transform',`translate(${f1(12*(1-s))} 0)`);});});}
+const block=(h,lines)=>[[h],...lines.map(l=>[l])];
+const opAll=(arr,a)=>arr.forEach(e=>op(e,a));
+
+/* three columns, read right-to-left: الاليلات المتعددة ونظام ABO · نقل الدم · التوافق والتجلط */
+const CR=840,CM=420,CL=0;
+let r;
+
+/* =================== التعريف =================== */
+const hA=head('الأليلات المتعددة (Multiple alleles)',24,300,CR+210);
+r=para('هي وجود بدائل او حلائل او أليلات مختلفة لنفس المورثة تحدث نتيجة لعملية الطفرة الحاصلة في جزيء المادة الوراثية DNA والتي تؤدي الى حصول تغاير في المظهر ، علماً بأنها تحتل نفس الموقع الوراثي على الكروموسوم المعين . ومن الامثلة على الصفات متعددة الأليلات مايأتي :',{x:CR+408,y:66,w:396,lh:28});
+const seqA=block(hA,r.lines);const endA=r.y;
+
+/* =================== مثال 1 : نظام ABO =================== */
+const hB=head('مثال (1) : نظام ABO في الانسان',endA+20,260,CR+210);
+r=para('تتحكم بهذا النظام ثلاثة أليلات على الاقل وهي Iᴬ ، Iᴮ ، i فكما نعلم بأن الأليلين Iᴬ ، Iᴮ ذات سيادة مواكبة فيما بينهما ولكن كل منهما سائد على الأليل المتنحي i . يتحكم الأليلان Iᴬ ، Iᴮ في تكوين شكلين مختلفين من انزيم معين يتسببان في ظهور جزيئين مختلفين من المستضد (انتجين Antigen) على سطح خلايا الدم الحمر . اما الأليل i فانه لا يؤدي الى تنشيط اي من شكلي الانزيم ولهذا لن يظهر اي من المستضدين كما في الجدول (5-2) . لاحظ ان الفرد الذي يرث أليلين من i تكون فصيلة دمه O .',{x:CR+408,y:endA+62,w:396,lh:28});
+const seqB=block(hB,r.lines);
+
+/* =================== جدول (5-2) =================== */
+const cap2=para('الجدول (5-2) : الأليلات الثلاثة تتفاعل لانتاج اربع طرز من مجاميع الدم',{x:CR+206,y:r.y,w:396,lh:22,cls:'cap',anchor:'middle'});
+const T2=table(CR+406,[150,130,120],cap2.y-2,[64,50,50,50,50]);
+const T2h=[...mlines(['الطراز الوراثي','Genotype'],T2.cx(0),T2.cy(0),'th'),...mlines(['المستضد على سطح','الكرية الحمراء','Antigen'],T2.cx(1),T2.cy(0),'th'),...mlines(['الطراز المظهري','(مجموعة الدم)','Blood Group'],T2.cx(2),T2.cy(0),'th')];
+const R2=[[['IᴬIᴬ','Iᴬi'],'A'],[['IᴮIᴮ','Iᴮi'],'B'],[['IᴬIᴮ'],'AB'],[['ii'],'O']].map(([gs,b],i)=>{
+  const rw=i+1,y=T2.cy(rw),e=[cellFill(T2,2,rw,GL[b])];
+  if(gs.length>1)e.push(txt(gs[0],T2.cx(0)+40,y,'gn'),txt('او',T2.cx(0),y,'pc'),txt(gs[1],T2.cx(0)-40,y,'gn'));
+  else e.push(txt(gs[0],T2.cx(0),y,'gn'));
+  const c=cellAg(objL,b,12);e.push(txt(b==='AB'?'A ، B':b==='O'?'—':b,T2.cx(1)+24,y,'gn'));
+  e.push(letter(b,T2.cx(2),y));
+  return{e,c,x:T2.cx(1)-32,y,gl:glow(T2.cx(2),y,36)};});
+const endR=T2.end;
+
+/* =================== نقل الدم =================== */
+const hC=head('نقل الدم (Blood Transfusion)',24,260,CM+210);
+r=para('بداية يجب تعيين فصيلة الدم ABO والعامل الرايسي Rh لكل من الواهب Donor والمستلم Recipient وذلك لان خلايا الدم الحمر لبعض الاشخاص قد تتكتل بصورة واضحة وذلك عند خلطها بمصل دم اشخاص آخرين . هذا ما لاحظه لاندشتاينر Landsteiner عام 1900م . وان اساس هذا التجمع هو التفاعل الناتج بين ما تحمله خلايا الدم الحمراء على سطحها من مستضدات Antigens وما يحويه مصل الدم Serum من اجسام مضادة Antibodies ، علماً بأن العلاقة بينهما موضحة في الجدول (5-3) . لقد تم الاشارة الى المستضدات في هذا الجدول بالحرفين الكبيرين A و B فيما اشير الى الاجسام المضادة بالحرفين الصغيرين (a و b) .',{x:CM+408,y:66,w:396,lh:28});
+const seqC=block(hC,r.lines);
+
+/* =================== جدول (5-3) =================== */
+const cap3=para('جدول (5-3) : مجاميع الدم والمستضدات والاجسام المضادة',{x:CM+206,y:r.y,w:396,lh:22,cls:'cap',anchor:'middle'});
+const T3=table(CM+406,[90,140,170],cap3.y-2,[54,52,52,52,66]);
+const T3h=[...mlines(['مجموعة','الدم'],T3.cx(0),T3.cy(0),'th'),...mlines(['المستضدات على سطح','خلايا الدم الحمر'],T3.cx(1),T3.cy(0),'th'),...mlines(['الجسم المضاد','في المصل'],T3.cx(2),T3.cy(0),'th')];
+const R3=[['A',[['b','B']]],['B',[['a','A']]],['AB',[]],['O',[['a','A'],['b','B']]]].map(([b,abs],i)=>{
+  const rw=i+1,y=T3.cy(rw),e=[cellFill(T3,0,rw,GL[b]),letter(b,T3.cx(0),y)];
+  const c=cellAg(objL,b,13);e.push(txt(b==='AB'?'A و B':b==='O'?'—':b,T3.cx(1)+24,y,'gn'));
+  const ic=[];
+  if(!abs.length)e.push(txt('—',T3.cx(2),y,'gn'));
+  abs.forEach(([k,K],j)=>{const yy=y+(j-(abs.length-1)/2)*24;
+    e.push(txt('جسم مضاد '+k+' للمستضد '+K,T3.cx(2)+10,yy,'pc'));ic.push({g:ab(objL,k),x:T3.x0(2)+14,y:yy});});
+  return{e,c,x:T3.cx(1)-34,y,ic};});
+/* دليل الرموز */
+const yL=T3.end+14,LG={bx:box(CM+6,yL,400,44),it:[]};
+[['A','مستضد A'],['B','مستضد B'],['a','جسم مضاد a'],['b','جسم مضاد b']].forEach(([k,s],i)=>{
+  const cx=CM+356-i*100,g=G(objL,{opacity:0,transform:`translate(${cx+36} ${yL+22}) scale(1.6)`});
+  if(k==='A'||k==='B')agMark(g,k);else{const y=ab(g,k);y.setAttribute('opacity',1);}
+  const t=txt(s,cx-6,yL+22,'pc');LG.it.push(g,t);});
+const endM=yL+44;
+
+/* =================== التوافق وعدم التوافق =================== */
+const hD=head('التوافق وعدم التوافق في نقل الدم',24,280,CL+210);
+r=para('وعلى ضوء المعلومات الواردة في الجدول (5-3) يمكن تبيان التوافق او عدم التكتل (التجلط) بين الواهب والمستلم في نقل مجاميع الدم ABO وكذلك عدم التوافق (حدوث التجلط) بينهما في الشكل (5-14) .',{x:CL+408,y:66,w:396,lh:28});
+const seqD=block(hD,r.lines);
+const pY=r.y+2,PW=194,PH=190;
+/* لوحة : خلايا دم الواهب A في مصل دم المستلم */
+const S0=[[-52,-28],[48,-32],[-46,30],[50,28]],SC=[[-13,-11],[13,-13],[-12,13],[14,12]];
+const A0=[[-72,2],[0,-44],[74,-4],[2,44],[-22,0],[24,4]],AC=[[0,-14],[-14,1],[14,-1],[1,14],[0,0],[-27,24]];
+function panel(x0,title,cls,c1,c2,k,clump){
+  const p={x0,cx:x0+PW/2,cy:pY+89,clump};
+  p.bx=box(x0,pY,PW,PH);
+  p.pl=el('rect',{x:x0+8,y:pY+30,width:PW-16,height:118,rx:8,fill:'#fff2ec',stroke:'#f0c9b8','stroke-width':1.2,opacity:0},boxL);
+  p.t=txt(title,p.cx,pY+16,cls);
+  p.cells=S0.map(()=>cellAg(objL,'A',14));p.abs=A0.map(()=>ab(objL,k));
+  p.gl=glow(p.cx,p.cy,56,'url(#gGlowR)');
+  p.c1=txt(c1,p.cx,pY+160,'pc');p.c2=txt(c2,p.cx,pY+178,'sm');
+  return p;}
+const PI_=panel(CL+212,'عدم توافق (تجلط)','dd','الواهب A ← المستلم B','مصل B يحوي جسم مضاد a','a',true);
+const PC=panel(CL+6,'توافق (عدم التجلط)','ok','الواهب A ← المستلم A','مصل A يحوي جسم مضاد b','b',false);
+/* جداول الشكل (5-14) */
+const tY=pY+PH+12;
+function ctab(xR,rows,cls,ttl){const T=table(xR,[60,134],tY,[30,...rows.map(()=>32)]);
+  const h=[txt('الواهب',T.cx(0),T.cy(0),'th'),txt('المستلم',T.cx(1),T.cy(0),'th')];
+  const rs=rows.map(([d,rc],i)=>[cellFill(T,0,i+1,GL[d]),letter(d,T.cx(0),T.cy(i+1),19),txt(rc,T.cx(1),T.cy(i+1),'gn')]);
+  return{T,h,rs};}
+const TI=ctab(CL+406,[['A','B , O'],['B','A , O'],['AB','A , B , O']]);
+const TCm=ctab(CL+200,[['O','O , A , B , AB'],['A','A , AB'],['B','B , AB'],['AB','AB']]);
+r=para('الشكل (5-14) : التوافق وعدم التوافق في نقل مجاميع الدم ABO',{x:CL+206,y:Math.max(TI.T.end,TCm.T.end)+24,w:396,lh:22,cls:'cap',anchor:'middle'});
+const capF=r.lines;
+r=para('لاحظ ان المجموعة O تهب لجميع المجاميع (واهب عام) ، وان المجموعة AB تستلم من جميع المجاميع (مستلم عام) .',{x:CL+408,y:r.y+8,w:396,lh:28});
+const note=r.lines;const endL=r.y;
+
+/* ---------- whole page in one view ---------- */
+const H=Math.max(endR,endM,endL)+14;
+const SEP=[CM,CR].map(x=>el('line',{x1:x+4,y1:12,x2:x+4,y2:H-12,stroke:'#b9c8d6','stroke-width':1.5,'stroke-dasharray':'6 6',opacity:0},boxL));
+const VB=[-52,0,1316,H];svg.setAttribute('viewBox',VB.join(' '));
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* حركة الخلايا والاجسام المضادة داخل اللوحة ؛ عند التجلط تتجمع الخلايا وترتبط بها الاجسام المضادة */
+function drawPanel(p,u){
+  let a=sm(u,.22,.32);op(p.bx,a);op(p.pl,a);op(p.t,a);
+  const k=p.clump?sm(u,.52,.82):0;
+  p.cells.forEach((c,i)=>{a=sm(u,.3+i*.03,.4+i*.03);const d=1-k;
+    place(c,p.cx+lerp(S0[i][0]+5*Math.sin(T*.8+i*1.7),SC[i][0],k),p.cy+lerp(S0[i][1]+5*Math.cos(T*.7+i*1.3),SC[i][1],k),.5+.5*a,a,(T*12+i*40)*d);});
+  p.abs.forEach((g,i)=>{a=sm(u,.4+i*.02,.5+i*.02);
+    place(g,p.cx+lerp(A0[i][0]+6*Math.sin(T*1.1+i*2.1),AC[i][0],k),p.cy+lerp(A0[i][1]+6*Math.cos(T*.9+i*1.1),AC[i][1],k),.5+.5*a,a,(i*60+25*Math.sin(T+i))*(1-k));});
+  if(p.clump)op(p.gl,.9*sm(u,.76,.88));
+  a=sm(u,.84,.96);op(p.c1,a);op(p.c2,a);}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  let a;
+
+  /* 1 — الاليلات المتعددة */
+  SEP.forEach(l=>op(l,sm(u[0],0,.15)));
+  rev(seqA,u[0],0,.9);
+
+  /* 2 — نظام ABO */
+  rev(seqB,u[1],0,.9);
+
+  /* 3 — جدول (5-2) */
+  a=sm(u[2],0,.15);cap2.lines.forEach(l=>op(l,a));op(T2.g,sm(u[2],.08,.2));opAll(T2h,sm(u[2],.12,.24));
+  R2.forEach((q,i)=>{const s0=.24+i*.18;a=sm(u[2],s0,s0+.14);opAll(q.e,a);
+    place(q.c,q.x,q.y,.4+.6*a,a,T*15);op(q.gl,Math.sin(PI*sm(u[2],s0+.06,s0+.24)));});
+
+  /* 4 — نقل الدم */
+  rev(seqC,u[3],0,.9);
+
+  /* 5 — جدول (5-3) ودليل الرموز */
+  a=sm(u[4],0,.12);cap3.lines.forEach(l=>op(l,a));op(T3.g,sm(u[4],.06,.16));opAll(T3h,sm(u[4],.1,.2));
+  R3.forEach((q,i)=>{const s0=.2+i*.15;a=sm(u[4],s0,s0+.13);opAll(q.e,a);
+    place(q.c,q.x,q.y,.4+.6*a,a,T*15);q.ic.forEach(o=>place(o.g,o.x,o.y,.6*a+.2,a));});
+  a=sm(u[4],.82,.95);op(LG.bx,a);opAll(LG.it,a);
+
+  /* 6 — التوافق والتجلط */
+  rev(seqD,u[5],0,.25);
+  drawPanel(PI_,u[5]);drawPanel(PC,u[5]);
+
+  /* 7 — جداول التوافق وعدم التوافق */
+  a=sm(u[6],0,.1);op(TI.T.g,a);opAll(TI.h,a);op(TCm.T.g,a);opAll(TCm.h,a);
+  TI.rs.forEach((e,i)=>opAll(e,sm(u[6],.1+i*.08,.2+i*.08)));
+  TCm.rs.forEach((e,i)=>opAll(e,sm(u[6],.36+i*.08,.46+i*.08)));
+  capF.forEach(l=>op(l,sm(u[6],.7,.8)));
+  rev(note.map(l=>[l]),u[6],.8,.98);
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+function apply(){view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);}
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const camC=()=>({x:VB[0]+VB[2]/2,y:VB[3]/2});
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,camC());
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,camC());
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);step();render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
