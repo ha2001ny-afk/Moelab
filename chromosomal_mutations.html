@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الطفرات الكروموسومية</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .dot.gap{margin-left:8px}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .lbl{fill:#1b1b1b;font-size:44px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">الطفرات الكروموسومية</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="-50 0 1060 745" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gTop" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset=".78" stop-color="#ffe1dc"/><stop offset=".92" stop-color="#f8907f"/><stop offset="1" stop-color="#ee5446"/></radialGradient>
+        <linearGradient id="gSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4705e"/><stop offset="1" stop-color="#cf3a2e"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view'),defs=document.getElementById('defs');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+
+const TITLE='الطفرات الكروموسومية';
+/* الانتقال (3 مراحل) · الانقلاب (3) · الحذف (3) */
+const DUR=[3,6,6, 3,6,6, 3,6,6];
+
+const BLUE='#3d8ae0',ORANGE='#f28a2e',O2='#e8792a',O3='#f7a54a',RED='#e2452b',GREEN='#1f9e7a';
+const H=15,TH=11,ANG=40;           /* chromatid thickness · half-angle of the X · tilt of the chromosome */
+const RX=135,RY=74,SIDE=16;
+const COLX=[165,500,835],ROWY=[112,345,578];
+
+const world=G(view);
+const arrL=G(world),discL=G(world),txtL=G(world);
+
+/* ---------- cell (disc) ---------- */
+function blobPath(seed){let d='';const N=96;
+  for(let i=0;i<=N;i++){const t=2*PI*i/N,w=1+.022*Math.sin(3*t+seed)+.013*Math.sin(5*t+2*seed)+.007*Math.sin(9*t+3*seed);
+    d+=(i?'L':'M')+f1(RX*w*Math.cos(t))+','+f1(RY*w*Math.sin(t));}
+  return d+'Z';}
+let seedN=1;
+function disc(x,y){const g=G(discL,{opacity:0}),d=blobPath(seedN++*1.7);
+  for(let k=SIDE;k>0;k-=2)el('path',{d,fill:'url(#gSide)',transform:`translate(0 ${k})`},g);
+  el('path',{d,fill:'none',stroke:'#c3332a','stroke-width':1.2,transform:`translate(0 ${SIDE})`},g);
+  el('path',{d,fill:'url(#gTop)',stroke:'#e9584a','stroke-width':1.6},g);
+  const gl=el('circle',{cx:0,cy:8,r:85,fill:'url(#gGlow)',opacity:0},g);
+  const c=G(g,{transform:'scale(1.4)'});
+  return{g,c,gl,x,y};}
+function showDisc(D,a){D.g.setAttribute('transform',`translate(${D.x} ${D.y}) scale(${f2(.6+.4*a)})`);op(D.g,a);}
+
+/* ---------- chromosome pieces ----------
+   a chromosome is an X of two sister chromatids crossing at the centromere;
+   a piece is a stretch [s0,s1] of both chromatids, made of coloured bands */
+let uid=0;
+function piece(parent,bands,cen){const g=G(parent);
+  const ch=[1,-1].map(sg=>{const cg=G(g),id='cp'+(uid++);
+    const cp=el('clipPath',{id},defs),cr=el('rect',{y:-H/2,height:H,rx:H/2},cp);
+    const inner=G(cg,{'clip-path':`url(#${id})`});
+    const rects=bands.map(b=>el('rect',{y:-H/2,height:H,fill:b[2]},inner));
+    const hl=el('rect',{y:-H/2+2.5,height:3.2,rx:1.6,fill:'#fff',opacity:.4},inner);
+    const ol=el('rect',{y:-H/2,height:H,rx:H/2,fill:'none',stroke:'rgba(20,40,80,.35)','stroke-width':1},cg);
+    return{sg,cg,cr,rects,hl,ol};});
+  const c=cen?el('circle',{r:H*.42,fill:'#1d5fa8',stroke:'#fff','stroke-width':1.2},g):null;
+  return{g,bands,ch,c};}
+function pose(P,o){const sh=o.shift||0,dx=o.dx||0,dy=o.dy||0,phi=o.phi||0,sc=o.scale==null?1:o.scale;
+  const a0=P.bands[0][0]+sh,a1=P.bands[P.bands.length-1][1]+sh,m=(a0+a1)/2;
+  P.ch.forEach(c=>{
+    c.cg.setAttribute('transform',`translate(${f1(o.cx+dx)} ${f1(o.cy+dy)}) rotate(${f1(ANG+c.sg*TH)}) translate(${f1(m)} 0) rotate(${f1(phi)}) scale(${f2(sc)}) translate(${f1(-m)} 0)`);
+    [c.cr,c.ol].forEach(r=>{r.setAttribute('x',f1(a0));r.setAttribute('width',f1(a1-a0));});
+    c.hl.setAttribute('x',f1(a0+4));c.hl.setAttribute('width',f1(Math.max(0,a1-a0-8)));
+    P.bands.forEach((b,i)=>{c.rects[i].setAttribute('x',f1(b[0]+sh));c.rects[i].setAttribute('width',f1(b[1]-b[0]+.4));});});
+  if(P.c){P.c.setAttribute('cx',f1(o.cx));P.c.setAttribute('cy',f1(o.cy));}
+  op(P.g,o.op==null?1:o.op);}
+/* unit vector across the chromosome axis */
+const NX=Math.cos((ANG+90)*PI/180),NY=Math.sin((ANG+90)*PI/180);
+
+/* ---------- the three mutations ----------
+   state(t): t=0 normal chromosome · t=1 broken · t=2 result */
+const COLS=[
+ { /* الانتقال : a piece of the orange chromosome breaks off and joins the blue one */
+   label:'الانْتِقال',
+   build(g){return{b:piece(g,[[-50,50,BLUE]],1),
+     o:piece(g,[[-30,-17,ORANGE],[-17,-8,O2],[-8,3,O3],[3,14,O2]],1),
+     p:piece(g,[[14,22,ORANGE],[22,31,RED]],0)};},
+   state(P,t){pose(P.b,{cx:-32,cy:2});pose(P.o,{cx:50,cy:-14});
+     if(t<=1)pose(P.p,{cx:50-4*t,cy:-14+14*t,shift:8*t,phi:-25*t});
+     else{const k=t-1;pose(P.p,{cx:lerp(46,-32,k),cy:lerp(0,2,k)-34*Math.sin(PI*k),shift:lerp(8,33,k),phi:-25*(1-k)});}}
+ },
+ { /* الانقلاب : a segment breaks out, turns 180° and rejoins in the same place */
+   label:'الانْقِلاب',
+   build(g){return{a:piece(g,[[-52,6,BLUE]],1),s:piece(g,[[6,20,ORANGE],[20,34,RED]],0),e:piece(g,[[34,52,BLUE]],0)};},
+   state(P,t){pose(P.a,{cx:0,cy:0});
+     const lift=t<=1?t:2-t,phi=t<=1?80*t:80+100*(t-1);
+     pose(P.s,{cx:0,cy:0,dx:20*NX*lift,dy:20*NY*lift,phi});
+     pose(P.e,{cx:0,cy:0,shift:8*lift});}
+ },
+ { /* الحذف : the end of the chromosome breaks off and is lost */
+   label:'الحَذْف',
+   build(g){return{a:piece(g,[[-52,32,BLUE]],1),p:piece(g,[[32,52,ORANGE]],0)};},
+   state(P,t){pose(P.a,{cx:0,cy:0});
+     if(t<=1)pose(P.p,{cx:0,cy:0,shift:6*t,dx:-14*t,dy:22*t,phi:50*t});
+     else{const k=t-1;pose(P.p,{cx:0,cy:0,shift:6,dx:-14-10*k,dy:22+8*k,phi:50+30*k,scale:1-.6*k,op:1-k});}}
+ }];
+
+/* green arrow between the cells */
+function varrow(x,y0,y1){const g=G(arrL,{opacity:0}),L=y1-y0;
+  el('rect',{x:-2.5,y:0,width:5,height:L-14,fill:GREEN},g);
+  el('path',{d:`M-10,${L-16} L0,${L} L10,${L-16}Z`,fill:GREEN},g);
+  return{g,x,y0};}
+const grow=(A,s)=>{A.g.setAttribute('opacity',s>0?1:0);A.g.setAttribute('transform',`translate(${A.x} ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);};
+
+COLS.forEach((C,k)=>{const x=COLX[k];
+  C.D=ROWY.map(y=>{const D=disc(x,y);D.P=C.build(D.c);return D;});
+  C.A=[0,1].map(r=>varrow(x,ROWY[r]+RY+SIDE+8,ROWY[r+1]-RY-6));
+  C.L=el('text',{class:'lbl',x,y:705,opacity:0},txtL);C.L.textContent=C.label;});
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  COLS.forEach((C,k)=>{const u0=u[3*k],u1=u[3*k+1],u2=u[3*k+2];
+    /* 1 — normal chromosome */
+    op(C.L,sm(u0,0,.5));
+    showDisc(C.D[0],sm(u0,.1,.6));C.state(C.D[0].P,0);
+    /* 2 — breakage */
+    grow(C.A[0],sm(u1,0,.18));showDisc(C.D[1],sm(u1,.1,.3));
+    C.state(C.D[1].P,sm(u1,.35,.9));op(C.D[1].gl,Math.sin(PI*sm(u1,.3,.95))*.8);
+    /* 3 — result */
+    grow(C.A[1],sm(u2,0,.18));showDisc(C.D[2],sm(u2,.1,.3));
+    C.state(C.D[2].P,1+sm(u2,.35,.9));op(C.D[2].gl,Math.sin(PI*sm(u2,.3,1))*.8);});
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i%3===2&&i<DUR.length-1?' gap':'');b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:370});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
