@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>التضريب الاختباري</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .gt{fill:#1b1b1b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:24px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .gm{fill:#2a1206;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:22px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .rl{fill:#1f3a52;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:30px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .ar{fill:#1f3a52;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lb{fill:#1f3a52;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .pc{fill:#1f3a52;font-size:13.5px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hd{fill:#fff;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .sx{fill:#1f3a52;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">التضريب الاختباري</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="235 0 390 685" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGam" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#ffb184"/><stop offset=".55" stop-color="#ef6d31"/><stop offset="1" stop-color="#c9501c"/></radialGradient>
+        <linearGradient id="gGeno" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff38a"/><stop offset="1" stop-color="#ffe23a"/></linearGradient>
+        <linearGradient id="gBox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fb"/><stop offset="1" stop-color="#e4eaf0"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+
+const TITLE='التضريب الاختباري';
+const DUR=[5,5,5,5,5,9];          /* P1(نقي) · G1 · F1 · P1(هجين) · G1 · F1 */
+
+const world=G(view);
+const glowL=G(world),boxL=G(world),arrL=G(world),gridL=G(world),objL=G(world),mvL=G(world);
+
+/* ---------- builders ---------- */
+const box=(y,h)=>el('rect',{x:300,y,width:300,height:h,rx:6,fill:'url(#gBox)',stroke:'#1f3a52','stroke-width':2,opacity:0},boxL);
+function geno(p,s){const g=G(p,{opacity:0});
+  el('rect',{x:-33,y:-18,width:66,height:36,rx:4,fill:'url(#gGeno)',stroke:'#d9b80f','stroke-width':1.5},g);
+  el('text',{class:'gt',x:0,y:1},g).textContent=s;return g;}
+function gam(p,s){const g=G(p,{opacity:0});
+  el('circle',{cx:1.5,cy:2.5,r:21,fill:'#1f3a52',opacity:.18,filter:'url(#blur)'},g);
+  el('circle',{cx:0,cy:0,r:21,fill:'url(#gGam)',stroke:'#b84e1e','stroke-width':2},g);
+  el('text',{class:'gm',x:0,y:1},g).textContent=s;return g;}
+function rowLbl(y,n){const t=el('text',{class:'rl',x:268,y,opacity:0},world);
+  t.textContent=n[0];const s=el('tspan',{'font-size':18,dy:9},t);s.textContent=n[1];return t;}
+function varrow(y0,y1){const g=G(arrL,{opacity:0}),L=y1-y0;
+  el('rect',{x:-2.5,y:0,width:5,height:L-14,fill:'#1f3a52'},g);
+  el('path',{d:`M-10,${L-16} L0,${L} L10,${L-16}Z`,fill:'#1f3a52'},g);
+  return{g,y0};}
+const line=(d,p,w)=>el('path',{d,fill:'none',stroke:'#1f3a52','stroke-width':w||2.5,'stroke-linecap':'round',pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},p||gridL);
+const cross=y=>{const t=el('text',{class:'sx',x:450,y,opacity:0},objL);t.textContent='×';return t;};
+const glow=(x,y,r)=>el('circle',{cx:x,cy:y,r:r||60,fill:'url(#gGlow)',opacity:0},glowL);
+function txt(s,x,y,c){const t=el('text',{class:c,x,y,opacity:0},world);t.textContent=s;return t;}
+/* text + coloured percentage (number goes at the end so it lands on the left, as in the book) */
+function pct(s,n,x,y){const t=el('text',{class:'pc',x,y,opacity:0},world);
+  const a=el('tspan',{},t);a.textContent=s+' ';const b=el('tspan',{fill:'#c4623a','font-size':16},t);b.textContent=n+' %';return t;}
+function head(s,y){const g=G(world,{opacity:0});
+  el('rect',{x:310,y:y-13,width:280,height:26,rx:13,fill:'#c4623a'},g);
+  el('text',{class:'hd',x:450,y:y+1},g).textContent=s;return g;}
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function place(o,x,y,s,op){o.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) scale(${f2(s)})`);o.setAttribute('opacity',f2(op));}
+const grow=(A,s)=>{A.g.setAttribute('opacity',s>0?1:0);A.g.setAttribute('transform',`translate(450 ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);};
+const draw=(l,s)=>l.setAttribute('stroke-dashoffset',f2(1-s));
+
+/* one cross-diagram block, offset vertically by o */
+const XL=380,XR=520;
+function block(o,hd,lblL,lblR,gL,gR){
+  const B={o};
+  B.hd=head(hd,o+19);
+  B.bP=box(o+36,66);B.lP=rowLbl(o+80,'P1');
+  B.lbL=txt(lblL,XL,o+52,'lb');B.lbR=txt(lblR,XR,o+52,'lb');
+  B.gL=geno(objL,gL);B.gR=geno(objL,gR);B.x=cross(o+80);
+  B.A1=varrow(o+104,o+138);B.mei=txt('انقسام اختزالي',528,o+121,'ar');
+  B.bG=box(o+140,60);B.lG=rowLbl(o+170,'G1');
+  B.A2=varrow(o+202,o+236);
+  B.bF=box(o+238,80);B.lF=rowLbl(o+278,'F1');
+  return B;}
+function renderP(B,u){
+  op(B.hd,sm(u,0,.2));
+  let a=sm(u,.1,.35);op(B.bP,a);op(B.lP,a);
+  op(B.lbL,sm(u,.25,.45));a=sm(u,.3,.6);place(B.gL,XL,B.o+80,.4+.6*a,a);
+  op(B.lbR,sm(u,.4,.6));a=sm(u,.45,.75);place(B.gR,XR,B.o+80,.4+.6*a,a);
+  op(B.x,sm(u,.7,.9));}
+function renderGbase(B,u){grow(B.A1,sm(u,0,.2));op(B.mei,sm(u,.1,.25));const a=sm(u,.15,.3);op(B.bG,a);op(B.lG,a);}
+function renderFbase(B,u){grow(B.A2,sm(u,0,.2));const a=sm(u,.1,.3);op(B.bF,a);op(B.lF,a);}
+
+/* ========== الاحتمال الأول: TT × tt ========== */
+const O1=0,B1=block(O1,'الاحتمال الأول : الفرد نقي في الصفة السائدة','♀ نبات قصير الساق','♂ نبات طويل الساق نقي','tt','TT');
+const g1L=gam(objL,'t'),g1R=gam(objL,'T');
+const m1=[gam(mvL,'t'),gam(mvL,'T')],F1a=geno(objL,'Tt'),gl1=glow(450,O1+264,70);
+const t1=pct('نباتات طويلة الساق هجينة','100',450,O1+300);
+
+/* separator */
+const sep=line('M300,327 L600,327',gridL,1.5);sep.setAttribute('stroke','#9fb3c4');
+
+/* ========== الاحتمال الثاني: Tt × tt ========== */
+const O2=334,B2=block(O2,'الاحتمال الثاني : الفرد هجين في الصفة السائدة','♀ نبات قصير الساق','♂ نبات طويل الساق هجين','tt','Tt');
+const g2L=gam(objL,'t'),g2R1=gam(objL,'T'),g2R2=gam(objL,'t');
+const RX1=495,RX2=545,GY2=O2+170,FY2=O2+264;
+const plus=txt('+',450,FY2,'sx');
+const CELLS=[[385,'Tt',g2R1,RX1,['طويل الساق هجين','50']],[515,'tt',g2R2,RX2,['قصير الساق','50']]].map(([x,s,src,sx,p])=>({
+  x,g:geno(objL,s),gl:glow(x,FY2,55),m:[gam(mvL,'t'),gam(mvL,src.lastChild.textContent)],sx,t:pct(p[0],p[1],x,O2+300)}));
+const note=txt('يُعتبر التضريب الاختباري جزءاً من التضريب الرجعي',450,672,'lb');
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  let a,mv,fd,on;
+
+  /* -------- الاحتمال الأول -------- */
+  renderP(B1,u[0]);
+
+  renderGbase(B1,u[1]);
+  a=sm(u[1],.25,.6);place(g1L,XL,lerp(O1+80,O1+170,a),.5+.5*a,sm(u[1],.25,.32));
+  a=sm(u[1],.4,.75);place(g1R,XR,lerp(O1+80,O1+170,a),.5+.5*a,sm(u[1],.4,.47));
+
+  renderFbase(B1,u[2]);
+  mv=sm(u[2],.25,.6);fd=sm(u[2],.55,.7);on=u[2]>.25?1:0;
+  place(m1[0],lerp(XL,428,mv),lerp(O1+170,O1+264,mv),1-.2*mv,on*(1-fd));
+  place(m1[1],lerp(XR,472,mv),lerp(O1+170,O1+264,mv),1-.2*mv,on*(1-fd));
+  a=sm(u[2],.58,.78);place(F1a,450,O1+264,.4+.6*a,a);
+  op(t1,sm(u[2],.78,.92));
+  op(gl1,Math.sin(PI*sm(u[2],.58,.98)));
+
+  /* -------- الاحتمال الثاني -------- */
+  draw(sep,sm(u[3],0,.25));
+  renderP(B2,u[3]);
+
+  renderGbase(B2,u[4]);
+  a=sm(u[4],.25,.55);place(g2L,XL,lerp(O2+80,GY2,a),.5+.5*a,sm(u[4],.25,.32));
+  a=sm(u[4],.4,.7);place(g2R1,lerp(XR,RX1,a),lerp(O2+80,GY2,a),.5+.5*a,sm(u[4],.4,.47));
+  a=sm(u[4],.55,.85);place(g2R2,lerp(XR,RX2,a),lerp(O2+80,GY2,a),.5+.5*a,sm(u[4],.55,.62));
+
+  /* F1: the ♀ gamete t meets each ♂ gamete in turn */
+  renderFbase(B2,u[5]);
+  CELLS.forEach((c,k)=>{const s0=.15+k*.35;
+    mv=sm(u[5],s0,s0+.18);fd=sm(u[5],s0+.15,s0+.24);on=u[5]>s0?1:0;
+    place(c.m[0],lerp(XL,c.x-14,mv),lerp(GY2,FY2,mv),1-.25*mv,on*(1-fd));
+    place(c.m[1],lerp(c.sx,c.x+14,mv),lerp(GY2,FY2,mv),1-.25*mv,on*(1-fd));
+    a=sm(u[5],s0+.18,s0+.3);place(c.g,c.x,FY2,.4+.6*a,a);
+    op(c.gl,Math.sin(PI*sm(u[5],s0+.18,s0+.4)));
+    op(c.t,sm(u[5],s0+.28,s0+.4));});
+  op(plus,sm(u[5],.5,.6));
+  op(note,sm(u[5],.88,.98));
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:430,y:340});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:430,y:340});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

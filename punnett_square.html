@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>مربع بونيت</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:18px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:12px;align-items:center}
+  .dot{width:16px;height:16px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .gt{fill:#1b1b1b;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:24px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .gm{fill:#2a1206;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:22px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .rl{fill:#1f3a52;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:30px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .ar{fill:#1f3a52;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .en{fill:#1f3a52;font-family:"Times New Roman",Georgia,serif;font-weight:bold;font-size:21px;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .sx{fill:#1f3a52;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">مربع بونيت</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="130 0 640 730" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGam" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#ffb184"/><stop offset=".55" stop-color="#ef6d31"/><stop offset="1" stop-color="#c9501c"/></radialGradient>
+        <linearGradient id="gGeno" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff38a"/><stop offset="1" stop-color="#ffe23a"/></linearGradient>
+        <linearGradient id="gBox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fb"/><stop offset="1" stop-color="#e4eaf0"/></linearGradient>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+
+const TITLE='مربع بونيت';
+const DUR=[4,5,5,5,7,9];          /* P1 · G1 · F1 · P2 · F2 grid · F2 fill */
+
+const world=G(view);
+const glowL=G(world),boxL=G(world),arrL=G(world),gridL=G(world),objL=G(world),mvL=G(world);
+
+/* ---------- builders ---------- */
+const box=(y,h)=>el('rect',{x:330,y,width:240,height:h,rx:6,fill:'url(#gBox)',stroke:'#1f3a52','stroke-width':2,opacity:0},boxL);
+function geno(p,s){const g=G(p,{opacity:0});
+  el('rect',{x:-33,y:-18,width:66,height:36,rx:4,fill:'url(#gGeno)',stroke:'#d9b80f','stroke-width':1.5},g);
+  el('text',{class:'gt',x:0,y:1},g).textContent=s;return g;}
+function gam(p,s){const g=G(p,{opacity:0});
+  el('circle',{cx:1.5,cy:2.5,r:21,fill:'#1f3a52',opacity:.18,filter:'url(#blur)'},g);
+  el('circle',{cx:0,cy:0,r:21,fill:'url(#gGam)',stroke:'#b84e1e','stroke-width':2},g);
+  el('text',{class:'gm',x:0,y:1},g).textContent=s;return g;}
+function rowLbl(y,n){const t=el('text',{class:'rl',x:288,y,opacity:0},world);
+  t.textContent=n[0];const s=el('tspan',{'font-size':18,dy:9},t);s.textContent=n[1];return t;}
+function varrow(y0,y1){const g=G(arrL,{opacity:0}),L=y1-y0;
+  el('rect',{x:-2.5,y:0,width:5,height:L-14,fill:'#1f3a52'},g);
+  el('path',{d:`M-10,${L-16} L0,${L} L10,${L-16}Z`,fill:'#1f3a52'},g);
+  return{g,y0};}
+const line=(d,p,w)=>el('path',{d,fill:'none',stroke:'#1f3a52','stroke-width':w||2.5,'stroke-linecap':'round',pathLength:1,'stroke-dasharray':'1 1','stroke-dashoffset':1},p||gridL);
+const cross=y=>{const t=el('text',{class:'sx',x:450,y,opacity:0},objL);t.textContent='×';return t;};
+const glow=(x,y,r)=>el('circle',{cx:x,cy:y,r:r||60,fill:'url(#gGlow)',opacity:0},glowL);
+function txt(s,x,y,c){const t=el('text',{class:c,x,y,opacity:0},world);t.textContent=s;return t;}
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function place(o,x,y,s,op){o.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) scale(${f2(s)})`);o.setAttribute('opacity',f2(op));}
+const grow=(A,s)=>{A.g.setAttribute('opacity',s>0?1:0);A.g.setAttribute('transform',`translate(450 ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);};
+const draw=(l,s)=>l.setAttribute('stroke-dashoffset',f2(1-s));
+
+/* ---------- P1 ---------- */
+const bP1=box(28,54),lP1=rowLbl(55,'P1');
+const P1TT=geno(objL,'TT'),P1tt=geno(objL,'tt'),x1=cross(55);
+const A1=varrow(84,122);
+const tMei=txt('انقسام اختزالي',512,103,'ar');
+
+/* ---------- G1 ---------- */
+const bG1=box(124,76),lG1=rowLbl(160,'G1');
+const brk=line('M380,176 L380,190 L520,190 L520,176',boxL,2);
+const G1T=gam(objL,'T'),G1t=gam(objL,'t');
+const tGam=[txt('أمشاج الآباء',450,142,'ar'),txt('Gamete',450,166,'en')];
+const A2=varrow(202,238);
+const tGen=[txt('F',605,212,'en'),txt('الجيل الأول',605,234,'ar')];
+tGen[0].textContent='';[['F',{}],['1',{'font-size':14,dy:6}],[' Generation',{dy:-6}]].forEach(([w,a])=>{const sp=el('tspan',a,tGen[0]);sp.textContent=w;});
+
+/* ---------- F1 ---------- */
+const bF1=box(240,86),lF1=rowLbl(283,'F1');
+const gF1=glow(450,262,70),mF1=[gam(mvL,'T'),gam(mvL,'t')],F1g=geno(objL,'Tt');
+const tTall=[txt('All tall',450,292,'en'),txt('طويلة هجينة',450,314,'ar')];
+const A3=varrow(328,364);
+
+/* ---------- P2 ---------- */
+const bP2=box(366,54),lP2=rowLbl(393,'P2');
+const P2L=geno(objL,'Tt'),P2R=geno(objL,'Tt'),x2=cross(393);
+const A4=varrow(422,458);
+
+/* ---------- F2: Punnett square ---------- */
+const lF2=rowLbl(492,'F2');
+const tPun=txt('مربع بونيت',290,640,'ar');tPun.setAttribute('transform','rotate(-90 290 640)');tPun.style.fontSize='22px';
+const X0=324,Y0=462,C=84,cx=c=>X0+C*c+C/2,cy=r=>Y0+C*r+C/2;
+const GL=[];
+for(let i=0;i<4;i++)GL.push(line(`M${X0},${Y0+C*i} L${X0+3*C},${Y0+C*i}`));
+for(let i=0;i<4;i++)GL.push(line(`M${X0+C*i},${Y0} L${X0+C*i},${Y0+3*C}`));
+const diag=line(`M${X0},${Y0} L${X0+C},${Y0+C}`,gridL,2);
+const sym=[['♂',X0+57,Y0+24],['♀',X0+26,Y0+59]].map(([s,x,y])=>{const t=el('text',{class:'sx',x,y,opacity:0,style:'font-size:32px'},gridL);t.textContent=s;return t;});
+/* gametes: ♂ along the top row (from right parent), ♀ down the left column (from left parent) */
+const HD=[['T',[515,393],[cx(1),cy(0)]],['t',[515,393],[cx(2),cy(0)]],['T',[385,393],[cx(0),cy(1)]],['t',[385,393],[cx(0),cy(2)]]]
+  .map(([s,f,t])=>({g:gam(objL,s),f,t}));
+/* offspring cells: [row, col, genotype, ♀ header, ♂ header] */
+const CELLS=[[1,1,'TT',2,0],[1,2,'Tt',2,1],[2,1,'Tt',3,0],[2,2,'tt',3,1]].map(([r,c,s,hf,hm])=>({
+  x:cx(c),y:cy(r),gl:glow(cx(c),cy(r),55),g:geno(objL,s),
+  m:[gam(mvL,HD[hf].g.lastChild.textContent),gam(mvL,HD[hm].g.lastChild.textContent)],hf:HD[hf],hm:HD[hm]}));
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(t){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+
+  /* P1 */
+  let a=sm(u[0],0,.3);bP1.setAttribute('opacity',f2(a));lP1.setAttribute('opacity',f2(a));
+  a=sm(u[0],.25,.55);place(P1TT,385,55,.4+.6*a,a);
+  a=sm(u[0],.4,.7);place(P1tt,515,55,.4+.6*a,a);
+  x1.setAttribute('opacity',f2(sm(u[0],.6,.8)));
+
+  /* G1: one allele from each parent leaves as a gamete */
+  grow(A1,sm(u[1],0,.2));
+  a=sm(u[1],.1,.3);bG1.setAttribute('opacity',f2(a));lG1.setAttribute('opacity',f2(a));
+  a=sm(u[1],.25,.65);place(G1T,lerp(385,380,a),lerp(55,154,a),.5+.5*a,sm(u[1],.25,.32));
+  a=sm(u[1],.38,.78);place(G1t,lerp(515,520,a),lerp(55,154,a),.5+.5*a,sm(u[1],.38,.45));
+  draw(brk,sm(u[1],.78,.95));
+  op(tMei,sm(u[1],.1,.25));
+  tGam.forEach((e,i)=>op(e,sm(u[1],.8+i*.05,.93+i*.05)));
+
+  /* F1: the two gametes unite */
+  grow(A2,sm(u[2],0,.2));
+  tGen.forEach((e,i)=>op(e,sm(u[2],.05+i*.05,.2+i*.05)));
+  a=sm(u[2],.1,.3);bF1.setAttribute('opacity',f2(a));lF1.setAttribute('opacity',f2(a));
+  const mv=sm(u[2],.25,.6),fd=sm(u[2],.55,.7),on=u[2]>.25?1:0;
+  place(mF1[0],lerp(380,428,mv),lerp(154,262,mv),1-.2*mv,on*(1-fd));
+  place(mF1[1],lerp(520,472,mv),lerp(154,262,mv),1-.2*mv,on*(1-fd));
+  a=sm(u[2],.58,.78);place(F1g,450,262,.4+.6*a,a);
+  tTall.forEach((e,i)=>op(e,sm(u[2],.75+i*.08,.88+i*.08)));
+  gF1.setAttribute('opacity',f2(Math.sin(PI*sm(u[2],.58,.98))));
+
+  /* P2: F1 × F1 */
+  grow(A3,sm(u[3],0,.2));
+  a=sm(u[3],.1,.3);bP2.setAttribute('opacity',f2(a));lP2.setAttribute('opacity',f2(a));
+  a=sm(u[3],.25,.62);place(P2L,lerp(450,385,a),lerp(262,393,a),1,sm(u[3],.25,.3));
+  a=sm(u[3],.38,.75);place(P2R,lerp(450,515,a),lerp(262,393,a),1,sm(u[3],.38,.43));
+  x2.setAttribute('opacity',f2(sm(u[3],.75,.9)));
+
+  /* F2 grid + gametes on its edges */
+  grow(A4,sm(u[4],0,.15));
+  lF2.setAttribute('opacity',f2(sm(u[4],.08,.25)));
+  op(tPun,sm(u[4],.2,.35));
+  GL.forEach((l,i)=>draw(l,sm(u[4],.08+i*.025,.25+i*.025)));
+  draw(diag,sm(u[4],.35,.48));
+  sym.forEach(s=>s.setAttribute('opacity',f2(sm(u[4],.45,.55))));
+  HD.forEach((h,j)=>{const a=sm(u[4],.5+j*.06,.72+j*.06);
+    place(h.g,lerp(h.f[0],h.t[0],a),lerp(h.f[1],h.t[1],a),.5+.5*a,sm(u[4],.5+j*.06,.55+j*.06));});
+
+  /* F2 fill: each ♀ gamete meets each ♂ gamete */
+  CELLS.forEach((c,k)=>{const s0=k*.22,mv=sm(u[5],s0,s0+.12),fd=sm(u[5],s0+.1,s0+.16),on=u[5]>s0?1:0;
+    place(c.m[0],lerp(c.hf.t[0],c.x-14,mv),lerp(c.hf.t[1],c.y,mv),1-.25*mv,on*(1-fd));
+    place(c.m[1],lerp(c.hm.t[0],c.x+14,mv),lerp(c.hm.t[1],c.y,mv),1-.25*mv,on*(1-fd));
+    const a=sm(u[5],s0+.12,s0+.2);place(c.g,c.x,c.y,.4+.6*a,a);
+    c.gl.setAttribute('opacity',f2(Math.sin(PI*sm(u[5],s0+.12,s0+.3))));});
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;          /* going back or replaying: restart that stage */
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:360});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:360});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
