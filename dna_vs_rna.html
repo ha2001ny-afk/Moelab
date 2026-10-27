@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>الفرق بين DNA و RNA</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl;color:#1b1b1b}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .tl{fill:#1b1b1b;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hd{fill:#1f3a52;font-size:34px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Tahoma,Arial,sans-serif;letter-spacing:2px}
+  .sub{fill:#4a5a66;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cap{fill:#1f3a52;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .mid{font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .con{fill:#1f3a52;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .zl{font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Arial,sans-serif}
+  .zt{fill:#1b1b1b;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Arial,sans-serif}
+  .zn{fill:#7d8a96;font-size:10px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Arial,sans-serif}
+  .ch{fill:#fff;font-size:22px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Arial,sans-serif}
+  @media (prefers-reduced-motion:reduce){.dot{transition:none}}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">الفرق بين DNA و RNA</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gRad"><stop offset="0" stop-color="#ff3b30" stop-opacity=".7"/><stop offset="1" stop-color="#ff3b30" stop-opacity="0"/></radialGradient>
+        <filter id="hot" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view'),defs=document.getElementById('defs');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function mtext(p,x,y,lines,cls,lh){const t=el('text',{class:cls,x,y},p);
+  lines.forEach((s,i)=>{el('tspan',{x,dy:i?lh+'em':(-(lines.length-1)*lh/2)+'em'},t).textContent=s;});return t;}
+
+const TITLE='الفرق بين DNA و RNA';
+/* عدد الأشرطة · نوع السكر · القواعد النيتروجينية · المقارنة والخلاصة */
+const DUR=[8,7,7,7];
+
+const HOT='#ff3b30',ACC='#c4623a',DARK='#1b1b1b';
+const BC={A:'#f7c600',T:'#d81e1e',G:'#14a01e',C:'#1f6fe5',U:'#f06a00'};
+const COMP={A:'T',T:'A',G:'C',C:'G'};
+const MIDX=600,HY0=125,HY1=705,R=40,K=2*PI/200;
+let uid=0;
+
+const world=G(view);
+const arL=G(world),hxL=G(world),zL=G(world),txtL=G(world);
+
+/* ---------- rotating helix : single (RNA) or double (DNA) ---------- */
+const NP=150,YS=[...Array(NP+1)].map((_,i)=>HY0+(HY1-HY0)*i/NP);
+function helix(hx,dbl,seq,frontC,backC){const H={hx,dbl},g=G(hxL);
+  const P=(c,w)=>el('path',{fill:'none',stroke:c,'stroke-width':w,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  H.bO=P('#1e2a28',12);H.bI=P(backC,8);
+  const rg=G(g);
+  H.r=seq.split('').map((b,i)=>{const y=HY0+14+i*26.5,L=c=>el('line',{y1:y,y2:y,stroke:BC[c],'stroke-width':7,'stroke-linecap':'round'},rg);
+    return{y,b,cb:dbl?COMP[b]:null,a:L(b),c:dbl?L(COMP[b]):null};});
+  H.fO=P('#1e2a28',12);H.fI=P(frontC,8);
+  return H;}
+function segs(xs,ds,front,ymax){let d='',open=false;
+  for(let i=1;i<=NP;i++){if(YS[i-1]>ymax)break;const m=(ds[i-1]+ds[i])/2,on=front?m>=0:m<0;
+    if(on){if(!open){d+=`M${f1(xs[i-1])},${f1(YS[i-1])}`;open=true;}d+=`L${f1(xs[i])},${f1(Math.min(YS[i],ymax))}`;}else open=false;}
+  return d;}
+function setHelix(H,ymax,glow,pulse){const rot=T*1.1;let bk='',fr='';
+  (H.dbl?[0,1]:[0]).forEach(s=>{const xs=[],ds=[];
+    YS.forEach(y=>{const ph=(y-HY0)*K+rot+s*PI;xs.push(H.hx+R*Math.sin(ph));ds.push(Math.cos(ph));});
+    bk+=segs(xs,ds,false,ymax);fr+=segs(xs,ds,true,ymax);});
+  [H.bO,H.bI].forEach(p=>p.setAttribute('d',bk||'M0,0'));[H.fO,H.fI].forEach(p=>p.setAttribute('d',fr||'M0,0'));
+  H.r.forEach(q=>{const ph=(q.y-HY0)*K+rot,xa=H.hx+R*Math.sin(ph),xb=H.hx-R*Math.sin(ph),o=clamp((ymax-q.y)/20,0,1);
+    const hl=c=>(c==='T'||c==='U')?glow*pulse:0;
+    const set=(ln,x1,x2,c)=>{ln.setAttribute('x1',f1(x1));ln.setAttribute('x2',f1(x2));op(ln,o);const h=hl(c);
+      ln.setAttribute('stroke-width',f1(7+4*h));if(h>.02)ln.setAttribute('filter','url(#hot)');else ln.removeAttribute('filter');};
+    if(H.dbl){set(q.a,xa,H.hx,q.b);set(q.c,H.hx,xb,q.cb);}else set(q.a,xa,lerp(xa,xb,.8),q.b);});}
+
+/* ---------- zoom circle + magnifier cone ---------- */
+function zoom(x,y,r){const g=G(zL,{opacity:0}),id='zc'+(uid++);
+  el('circle',{r:r-2},el('clipPath',{id},defs));
+  el('ellipse',{cx:4,cy:r+4,rx:r*.8,ry:6,fill:'rgba(0,0,0,.12)'},g);
+  el('circle',{r,fill:'#fff'},g);
+  const c=G(g,{'clip-path':`url(#${id})`});
+  el('circle',{r,fill:'none',stroke:DARK,'stroke-width':4},g);
+  return{g,c,x,y,r};}
+function showZ(Z,a){Z.g.setAttribute('transform',`translate(${Z.x} ${Z.y}) scale(${f2(.4+.6*a)})`);op(Z.g,a);}
+function cone(hx,cx,y,r){const g=G(arL,{opacity:0}),s=cx>hx?1:-1;
+  el('circle',{cx:hx,cy:y,r:24,fill:'rgba(31,58,82,.06)',stroke:'#1f3a52','stroke-width':2,'stroke-dasharray':'5 4'},g);
+  el('path',{d:`M${hx+s*10},${y-22} L${cx-s*r*.35},${y-r*.94} M${hx+s*10},${y+22} L${cx-s*r*.35},${y+r*.94}`,fill:'none',stroke:'#8a99a6','stroke-width':2,'stroke-dasharray':'6 5'},g);
+  return g;}
+
+/* ---------- zoom 1 : strands close-up ---------- */
+function strands(p,dbl,fc){const sideC=dbl?'#4a5a57':'#7fa39a',B=[];
+  el('rect',{x:-52,y:-80,width:12,height:160,rx:6,fill:sideC,stroke:'#1e2a28','stroke-width':1.5},p);
+  if(dbl)el('rect',{x:40,y:-80,width:12,height:160,rx:6,fill:sideC,stroke:'#1e2a28','stroke-width':1.5},p);
+  const prs=dbl?[['A','T'],['G','C'],['T','A'],['C','G']]:[['A'],['U'],['G'],['C']];
+  [-39,-13,13,39].forEach((y,k)=>{const g=G(p,{opacity:0}),pr=prs[k];
+    const half=(x,w,c,lx)=>{el('rect',{x,y:y-7,width:w,height:14,rx:4,fill:BC[c],stroke:'rgba(0,0,0,.35)','stroke-width':1},g);
+      el('text',{class:'zl',x:lx,y,fill:c==='A'?DARK:'#fff'},g).textContent=c;};
+    if(dbl){half(-40,34,pr[0],-23);half(6,34,pr[1],23);
+      el('path',{d:`M-6,${y} H6`,stroke:DARK,'stroke-width':2,'stroke-dasharray':'2 2'},g);}
+    else half(-40,46,pr[0],-17);
+    B.push(g);});
+  return B;}
+
+/* ---------- zoom 2 : the pentose sugar ---------- */
+function sugar(p,dbl){const g=G(p),c=[0,-6],v=[-90,-18,54,126,198].map(a=>[c[0]+28*Math.cos(a*PI/180),c[1]+28*Math.sin(a*PI/180)]);
+  const ring=el('path',{d:'M'+v.map(q=>f1(q[0])+','+f1(q[1])).join(' L')+'Z',fill:'#fdf1d2',stroke:DARK,'stroke-width':2.5,'stroke-linejoin':'round',pathLength:100,'stroke-dasharray':100},g);
+  const subs=G(g);
+  const bond=(a,b)=>el('path',{d:`M${f1(a[0])},${f1(a[1])} L${b[0]},${b[1]}`,stroke:DARK,'stroke-width':2.2},subs);
+  bond(v[1],[42,-22]);el('text',{class:'zt',x:47,y:-33,'font-size':12},subs).textContent='قاعدة';
+  bond(v[4],[-34,-34]);el('text',{class:'zt',x:-34,y:-45,'font-size':12},subs).textContent='CH₂OH';
+  bond(v[3],[-18,36]);el('text',{class:'zt',x:-18,y:47},subs).textContent='OH';
+  bond(v[2],[18,36]);
+  el('circle',{cx:v[0][0],cy:v[0][1],r:8,fill:'#fff'},g);
+  el('text',{class:'zt',x:v[0][0],y:v[0][1],fill:'#d81e1e'},g).textContent='O';
+  ['1′','2′','3′','4′'].forEach((n,i)=>{const q=v[i+1];el('text',{class:'zn',x:f1(c[0]+(q[0]-c[0])*.6),y:f1(c[1]+(q[1]-c[1])*.6)},subs).textContent=n;});
+  const hot=G(g);
+  el('circle',{cx:18,cy:48,r:16,fill:'url(#gRad)'},hot);
+  el('text',{class:'zt',x:18,y:48,fill:'#c4321f','font-size':15,filter:'url(#hot)'},hot).textContent=dbl?'H':'OH';
+  return{ring,subs,hot};}
+
+/* ---------- zoom 3 : the four bases ---------- */
+function bases(p,dbl){const out=[],L=dbl?['A','G','C','T']:['A','G','C','U'];
+  [[-27,-20],[27,-20],[-27,22],[27,22]].forEach((q,k)=>{const g=G(p,{opacity:0}),c=L[k];
+    if(k===3)out.ring=el('rect',{x:q[0]-29,y:q[1]-21,width:58,height:42,rx:12,fill:'none',stroke:HOT,'stroke-width':3,filter:'url(#hot)',opacity:0},g);
+    el('rect',{x:q[0]-23,y:q[1]-16,width:46,height:32,rx:8,fill:BC[c],stroke:'rgba(0,0,0,.35)','stroke-width':1.2},g);
+    el('text',{class:'ch',x:q[0],y:q[1],fill:c==='A'?DARK:'#fff'},g).textContent=c;
+    if(k===3)el('text',{class:'zt','font-size':11,x:q[0]-2,y:q[1]+26},g).textContent=dbl?'+ CH₃':'بدون CH₃';
+    out.push(g);});
+  return out;}
+
+/* ---------- the two columns (RNA on the left, DNA on the right, as in the textbook figure) ---------- */
+const ZY=[205,405,590],ZR=[74,74,66];
+const CFG=[
+ {dbl:0,hx:255,cx:430,seq:'AUGCGUACCGAUUGCAGUCAUG',fc:'#7fa39a',bc:'#557169',head:'RNA',sub:['حمض نووي ريبوزي'],
+  caps:['شريط مفرد','سكر رايبوز','يوراسيل (U)'],lx:92,lf:178,lt:208,
+  labs:[['الموقع','النواة والسايتوبلازم'],['الوظيفة','نقل الشفرة','وبناء البروتين'],['الطول','قصير نسبياً'],['الثباتية','أقل ثباتاً']]},
+ {dbl:1,hx:945,cx:770,seq:'ATGCGTACCGATTGCAGTCATG',fc:'#4a5a57',bc:'#2c3533',head:'DNA',sub:['حمض نووي ريبوزي','منقوص الأكسجين'],
+  caps:['شريطان (لولب مزدوج)','سكر رايبوز منقوص الأكسجين','ثايمين (T)'],lx:1108,lf:1024,lt:992,
+  labs:[['الموقع','النواة غالباً'],['الوظيفة','خزن المعلومات','الوراثية'],['الطول','طويل جداً'],['الثباتية','أكثر ثباتاً']]}];
+const LY=[200,350,500,640];
+
+const COLS=CFG.map(c=>{const C={c};
+  C.hd=el('text',{class:'hd',x:c.hx,y:44,opacity:0},txtL);C.hd.textContent=c.head;
+  C.sub=mtext(txtL,c.hx,c.sub.length>1?92:84,c.sub,'sub',1.25);op(C.sub,0);
+  C.H=helix(c.hx,c.dbl,c.seq,c.fc,c.bc);
+  C.cn=ZY.map((y,i)=>cone(c.hx,c.cx,y,ZR[i]));
+  C.Z=ZY.map((y,i)=>zoom(c.cx,y,ZR[i]));
+  C.st=strands(C.Z[0].c,c.dbl);
+  C.su=sugar(C.Z[1].c,c.dbl);
+  C.ba=bases(C.Z[2].c,c.dbl);
+  C.cap=c.caps.map((s,i)=>{const t=mtext(txtL,c.cx,ZY[i]+ZR[i]+19,[s],'cap',1);op(t,0);if(i)t.setAttribute('fill','#c4321f');return t;});
+  C.L=c.labs.map((l,k)=>{const g=G(txtL,{opacity:0}),y=LY[k],len=Math.abs(c.lt-c.lf);
+    const line=el('path',{d:`M${c.lf},${y} L${c.lt},${y}`,stroke:DARK,'stroke-width':2,fill:'none','stroke-dasharray':len},g);
+    const dot=el('circle',{cx:c.lt,cy:y,r:3.5,fill:DARK},g);
+    const t=mtext(g,c.lx,y,l,'tl',1.3);t.firstChild.setAttribute('fill',ACC);
+    return{g,line,dot,t,len};});
+  return C;});
+
+/* middle step labels + conclusion */
+const MID=[[ZY[0],['عدد','الأشرطة']],[ZY[1],['نوع السكر','الخماسي']],[ZY[2],['القواعد','النيتروجينية']]]
+  .map(m=>{const t=mtext(txtL,MIDX,m[0],m[1],'mid',1.35);op(t,0);return t;});
+const VS=el('text',{class:'hd',x:MIDX,y:60,'font-size':22,fill:ACC,opacity:0},txtL);VS.textContent='RNA ⇄ DNA';
+const CON=G(txtL,{opacity:0});
+el('rect',{x:-92,y:-60,width:184,height:120,rx:14,fill:'#fff4e5',stroke:ACC,'stroke-width':2.5},CON);
+const conT=mtext(CON,0,0,['الفرق في ثلاثة:','عدد الأشرطة','نوع السكر','T أو U'],'con',1.4);
+conT.firstChild.setAttribute('fill',ACC);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1)),[u0,u1,u2,u3]=u;
+  const pulse=.78+.22*Math.sin(T*5),cur=clamp(Math.ceil(P-1e-6)-1,0,3);
+  COLS.forEach(C=>{
+    /* 1 — the helix builds, then zoom on the strands */
+    op(C.hd,sm(u0,0,.2));op(C.sub,sm(u0,.08,.28));
+    const ymax=lerp(HY0,HY1+4,sm(u0,.05,.55));
+    setHelix(C.H,ymax,sm(u2,.55,.8),pulse);
+    op(C.cn[0],sm(u0,.5,.62));showZ(C.Z[0],sm(u0,.55,.7));
+    C.st.forEach((g,k)=>op(g,sm(u0,.68+k*.06,.78+k*.06)));
+    op(C.cap[0],sm(u0,.85,.98));
+    /* 2 — the sugar: the ring draws, then carbon 2′ lights up */
+    op(C.cn[1],sm(u1,0,.15));showZ(C.Z[1],sm(u1,.05,.25));
+    C.su.ring.setAttribute('stroke-dashoffset',f1(100*(1-sm(u1,.2,.5))));
+    op(C.su.subs,sm(u1,.45,.62));op(C.su.hot,sm(u1,.6,.78)*pulse);
+    op(C.cap[1],sm(u1,.78,.95));
+    /* 3 — the four bases: T in DNA, U in RNA */
+    op(C.cn[2],sm(u2,0,.15));showZ(C.Z[2],sm(u2,.05,.25));
+    C.ba.forEach((g,k)=>op(g,sm(u2,.25+k*.08,.35+k*.08)));
+    op(C.ba.ring,sm(u2,.6,.75)*pulse);
+    op(C.cap[2],sm(u2,.75,.92));
+    /* 4 — side-by-side comparison */
+    C.L.forEach((L,k)=>{const w=sm(u3,.05+k*.1,.3+k*.1);op(L.g,w>0?1:0);
+      L.line.setAttribute('stroke-dashoffset',f1(L.len*(1-w)));op(L.dot,w);op(L.t,sm(u3,.15+k*.1,.4+k*.1));});
+  });
+  op(VS,sm(u0,.1,.3));
+  MID.forEach((t,i)=>{op(t,sm(u[i],0,.25));t.setAttribute('fill',i===cur?ACC:DARK);});
+  const cn=sm(u3,.5,.8);CON.setAttribute('transform',`translate(${MIDX} 690) scale(${f2(.6+.4*cn)})`);op(CON,cn);
+}
+let last=performance.now();
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:600,y:380});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:600,y:380});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
