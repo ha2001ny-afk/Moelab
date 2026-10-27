@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تكوين الأحماض الأمينية</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl;color:#1b1b1b}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .tl{fill:#1b1b1b;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lab{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Tahoma,Arial,sans-serif}
+  .mid{font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .con{fill:#1f3a52;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .nl{font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;font-family:"Segoe UI",Arial,sans-serif}
+  .sm{fill:#1b1b1b;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .bd{fill:#fff;font-size:12px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  @media (prefers-reduced-motion:reduce){.dot{transition:none}}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">شكل ( 5 - 40 ) : تكوين الأحماض الأمينية</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gC" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#b07a52"/><stop offset="1" stop-color="#3b1f12"/></radialGradient>
+        <radialGradient id="gN" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#8fbaff"/><stop offset="1" stop-color="#1c46b0"/></radialGradient>
+        <radialGradient id="gO" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ff948a"/><stop offset="1" stop-color="#bf1a10"/></radialGradient>
+        <radialGradient id="gH" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#a9b7c2"/></radialGradient>
+        <filter id="hot" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+function mtext(p,x,y,lines,cls,lh){const t=el('text',{class:cls,x,y},p);
+  lines.forEach((s,i)=>{el('tspan',{x,dy:i?lh+'em':(-(lines.length-1)*lh/2)+'em'},t).textContent=s;});return t;}
+
+const TITLE='شكل ( 5 - 40 ) : تكوين الأحماض الأمينية';
+/* انفكاك الـ DNA · النسخ · الكودونات · استدعاء الأحماض الأمينية · سلسلة عديد الببتيد */
+const DUR=[6,10,7,9,7];
+
+const ACC='#c4623a',DARK='#1b1b1b',ARC='#3d3d3d';
+const TPL='TGAGGACTCCTCTTC';                                   /* DNA template strand (as in the figure) */
+const PAIR_D={A:'T',T:'A',G:'C',C:'G'},PAIR_R={A:'U',T:'A',G:'C',C:'G'};
+const COD=TPL.split('').map(b=>PAIR_D[b]),MR=TPL.split('').map(b=>PAIR_R[b]);
+const NX=i=>257+54*i,YD=120;                                  /* nucleotide x · DNA base line */
+const cls=b=>(b==='G'||b==='C')?'r':'t';                        /* G≡C pairs round, A=T/U pairs pointed */
+
+const world=G(view);
+const boxL=G(world),seqL=G(world),arL=G(world),molL=G(world),fxL=G(world),txtL=G(world);
+
+/* ---------- nucleotide blocks (shape keys fit like the textbook puzzle pieces) ---------- */
+const DNA_P={t:'M-25,-26 H25 V0 H11 L0,13 L-11,0 H-25 Z',r:'M-25,-26 H25 V0 H11 A11,11 0 0 1 -11,0 H-25 Z'};
+const LOW_P={t:'M-25,0 H-11 L0,13 L11,0 H25 V34 H-25 Z',r:'M-25,0 H-11 A11,11 0 0 0 11,0 H25 V34 H-25 Z'};
+function upper(p,b){const g=G(p);el('path',{d:DNA_P[cls(b)],fill:'#2f8fcf',stroke:'#1d5f8c','stroke-width':1.6,'stroke-linejoin':'round'},g);
+  el('rect',{x:-20,y:-23,width:40,height:4,rx:2,fill:'#fff',opacity:.3},g);
+  el('text',{class:'nl',x:0,y:-12,fill:'#fff'},g).textContent=b;return g;}
+function lower(p,b,fill,stroke,tc){const g=G(p);el('path',{d:LOW_P[cls(b)],fill,stroke,'stroke-width':1.6,'stroke-linejoin':'round'},g);
+  el('text',{class:'nl',x:0,y:24,fill:tc},g).textContent=b;return g;}
+
+/* row (أ) : DNA template + its partner strand + the mRNA copy */
+const tpl=G(seqL,{opacity:0});TPL.split('').forEach((b,i)=>upper(G(tpl,{transform:`translate(${NX(i)} ${YD})`}),b));
+const cod=COD.map((b,i)=>lower(seqL,b,'#a9cbe2','#5d8fb2',DARK));
+const mr=MR.map((b,i)=>({g:lower(seqL,b,'#6b2f1f','#3e1a10','#fff'),i,grp:Math.floor(i/3),
+  jx:22*Math.cos(i*1.7),jy:250+28*Math.sin(i*2.1),jr:18*Math.sin(i*2.3)}));
+mr.forEach(m=>op(m.g,0));
+
+const labD=el('text',{class:'lab',x:1125,y:107,opacity:0},txtL);labD.textContent='DNA';
+const labC=el('text',{class:'lab',x:1125,y:137,opacity:0,fill:'#5d8fb2'},txtL);labC.textContent='DNA';
+const labM=el('text',{class:'lab',x:1125,y:0,opacity:0,fill:'#6b2f1f'},txtL);labM.textContent='mRNA';
+const tagA=el('text',{class:'lab',x:1180,y:122,opacity:0,fill:ACC},txtL);tagA.textContent='(أ)';
+
+/* RNA polymerase moving along the template */
+const enz=G(fxL,{opacity:0});
+el('ellipse',{cx:0,cy:8,rx:46,ry:56,fill:'rgba(46,160,110,.16)',stroke:'#2e9f6e','stroke-width':2.5,'stroke-dasharray':'7 5'},enz);
+mtext(enz,0,-66,['إنزيم','بلمرة RNA'],'sm',1.2).setAttribute('fill','#22795a');
+
+/* pairing rule card (DNA → mRNA) */
+const rule=G(txtL,{opacity:0,transform:'translate(110 247)'});
+el('rect',{x:-78,y:-47,width:156,height:94,rx:12,fill:'#f4f8fb',stroke:'#1f3a52','stroke-width':1.6},rule);
+[['T','A'],['A','U'],['G','C'],['C','G']].forEach((q,k)=>{const y=-33+k*22,c=G(rule);
+  el('rect',{x:-48,y:y-10,width:24,height:20,rx:4,fill:'#2f8fcf'},c);el('text',{class:'nl',x:-36,y,'font-size':13,fill:'#fff'},c).textContent=q[0];
+  el('path',{d:`M-14,${y} H12`,stroke:ARC,'stroke-width':2.2},c);el('path',{d:`M12,${y-5} L20,${y} L12,${y+5}Z`,fill:ARC},c);
+  el('rect',{x:26,y:y-10,width:24,height:20,rx:4,fill:'#6b2f1f'},c);el('text',{class:'nl',x:38,y,'font-size':13,fill:'#fff'},c).textContent=q[1];});
+
+/* row (ب) : codon boxes */
+const YB=300,SP=16,GX=g=>NX(3*g+1)+(g-2)*SP;
+const box=[0,1,2,3,4].map(g=>el('rect',{x:GX(g)-83,y:YB-10,width:166,height:52,rx:5,fill:'none',stroke:DARK,'stroke-width':2.2,pathLength:100,'stroke-dasharray':100,opacity:0},boxL));
+const labK=el('text',{class:'lab',x:1125,y:YB-6,opacity:0,'font-size':18},txtL);labK.textContent='كودونات';
+const tagB=el('text',{class:'lab',x:1180,y:YB+6,opacity:0,fill:ACC},txtL);tagB.textContent='(ب)';
+
+/* ---------- amino acids (ball-and-stick) ---------- */
+const BASE={N:[-28,-10,'N'],CA:[0,0,'C'],C:[26,-12,'C'],O1:[24,-38,'O'],O2:[50,-2,'O'],H1:[-44,-26,'H'],H2:[-44,4,'H'],H3:[64,-14,'H']};
+const BB=[['N','CA'],['CA','C'],['C','O1',2],['C','O2'],['N','H1'],['N','H2'],['O2','H3']];
+const AA=[
+ {n:'ثريونين',s:.95,col:'#e09a2e',a:{CB:[0,28,'C'],OG:[-24,44,'O'],CG:[24,46,'C'],HG:[-40,34,'H']},b:[['CA','CB'],['CB','OG'],['CB','CG'],['OG','HG']]},
+ {n:'برولين',s:.95,col:'#8e6bbf',a:{CB:[-6,28,'C'],CG:[-32,32,'C'],CD:[-46,10,'C']},b:[['CA','CB'],['CB','CG'],['CG','CD'],['CD','N']],noH2:1},
+ {n:'كلوتاميت',s:.8,col:'#d0483f',a:{CB:[0,28,'C'],CG:[-12,54,'C'],CD:[0,80,'C'],OE1:[-18,100,'O'],OE2:[26,86,'O'],HE:[40,100,'H']},b:[['CA','CB'],['CB','CG'],['CG','CD'],['CD','OE1',2],['CD','OE2'],['OE2','HE']]},
+ null,
+ {n:'لايسين',s:.7,col:'#3f8fd2',a:{CB:[0,28,'C'],CG:[-10,54,'C'],CD:[4,78,'C'],CE:[-8,102,'C'],NZ:[6,126,'N'],HZ1:[-8,142,'H'],HZ2:[24,138,'H']},b:[['CA','CB'],['CB','CG'],['CG','CD'],['CD','CE'],['CE','NZ'],['NZ','HZ1'],['NZ','HZ2']]}];
+AA[3]=AA[2];
+const RAD={C:10,N:10,O:10,H:6};
+function molecule(p,t){const g=G(p),A=Object.assign({},BASE,t.a);if(t.noH2)delete A.H2;
+  const st=G(g);
+  BB.concat(t.b).forEach(q=>{const a=A[q[0]],b=A[q[1]];if(!a||!b)return;
+    if(q[2]){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),nx=-dy/L*3,ny=dx/L*3;
+      [1,-1].forEach(s=>el('path',{d:`M${f1(a[0]+nx*s)},${f1(a[1]+ny*s)} L${f1(b[0]+nx*s)},${f1(b[1]+ny*s)}`,stroke:'#9aa4ad','stroke-width':3.2,'stroke-linecap':'round'},st));}
+    else el('path',{d:`M${a[0]},${a[1]} L${b[0]},${b[1]}`,stroke:'#9aa4ad','stroke-width':5,'stroke-linecap':'round'},st);});
+  Object.values(A).sort((x,y)=>(x[2]==='H')-(y[2]==='H')).reverse()
+    .forEach(q=>el('circle',{cx:q[0],cy:q[1],r:RAD[q[2]],fill:`url(#g${q[2]})`,stroke:'rgba(0,0,0,.35)','stroke-width':.8},g));
+  return g;}
+
+const YM=470,YN=598,YCH=668,CHX=g=>400+120*g;
+const ARR=[0,1,2,3,4].map(g=>{const a=G(arL,{opacity:0}),L=YM-48-(YB+48);
+  el('rect',{x:-3.5,y:0,width:7,height:L-12,fill:ARC},a);el('path',{d:`M-11,${L-14} L0,${L} L11,${L-14}Z`,fill:ARC},a);return{g:a,x:GX(g),y0:YB+48};});
+const MOL=AA.map((t,g)=>{const w=G(molL,{opacity:0}),m=molecule(w,t);
+  const nm=el('text',{class:'tl',x:GX(g),y:YN,opacity:0},txtL);nm.textContent=t.n;
+  const bead=G(molL,{opacity:0});el('circle',{r:34,fill:t.col,stroke:'rgba(0,0,0,.3)','stroke-width':1.5},bead);
+  el('circle',{cx:-11,cy:-12,r:9,fill:'#fff',opacity:.3},bead);
+  el('text',{class:'bd',x:0,y:1},bead).textContent=t.n;
+  return{w,m,nm,bead,t,x:GX(g)};});
+const BND=[0,1,2,3].map(g=>el('path',{d:`M${CHX(g)+34},${YCH} L${CHX(g+1)-34},${YCH}`,stroke:ARC,'stroke-width':6,'stroke-linecap':'round',pathLength:100,'stroke-dasharray':100,opacity:0},boxL));
+const BL=G(txtL,{opacity:0});
+el('path',{d:`M460,${YCH+6} L460,${YCH+42}`,stroke:DARK,'stroke-width':2},BL);el('circle',{cx:460,cy:YCH+4,r:3.5,fill:DARK},BL);
+el('text',{class:'tl',x:460,y:YCH+58,'font-size':15},BL).textContent='رابطة ببتيدية';
+const CHT=el('text',{class:'tl',x:705,y:YCH+58,fill:ACC,opacity:0},txtL);CHT.textContent='سلسلة عديد الببتيد';
+
+/* step labels (left column) + conclusion */
+const MID=[[70,['انفكاك شريطي','الـ DNA']],[150,['النسخ:','تكوين mRNA']],[YB+16,['تقسيم mRNA','إلى كودونات']],[YM+10,['كل كودون','يستدعي حمضاً','أمينياً واحداً']],[YCH,['ربط الأحماض','الأمينية']]]
+  .map(m=>{const t=mtext(txtL,110,m[0],m[1],'mid',1.35);op(t,0);return t;});
+const CON=G(txtL,{opacity:0});
+el('rect',{x:-100,y:-62,width:200,height:124,rx:14,fill:'#fff4e5',stroke:ACC,'stroke-width':2.5},CON);
+const conT=mtext(CON,0,0,['النتيجة:','كل 3 قواعد = كودون','وكل كودون يستدعي','حمضاً أمينياً واحداً'],'con',1.4);
+conT.firstChild.setAttribute('fill',ACC);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1)),[u0,u1,u2,u3,u4]=u;
+  const pulse=.78+.22*Math.sin(T*5),cur=clamp(Math.ceil(P-1e-6)-1,0,4);
+  /* 1 — DNA appears, then unzips: the partner strand peels away */
+  op(tpl,sm(u0,0,.2)*(1-.45*sm(u2,.1,.35)));op(labD,sm(u0,0,.2));op(tagA,sm(u0,0,.2));
+  op(labC,sm(u0,.05,.25)*(1-sm(u0,.35,.6)));
+  cod.forEach((g,i)=>{const s=sm(u0,.3+.025*i,.55+.025*i);
+    g.setAttribute('transform',`translate(${NX(i)} ${f1(YD+95*s)}) rotate(${f1(8*s*Math.sin(i))})`);op(g,sm(u0,.05,.25)*(1-sm(u0,.6+.012*i,.78+.012*i)));});
+  /* 2 — transcription: free nucleotides pair one by one with the template */
+  const run=sm(u1,.05,.9);
+  enz.setAttribute('transform',`translate(${f1(lerp(NX(0)-6,NX(14)+6,run))} ${YD})`);op(enz,sm(u1,0,.08)*(1-sm(u1,.9,1)));
+  op(rule,sm(u1,0,.15));
+  /* 3 — the mRNA moves down and splits into codons */
+  const dn=sm(u2,.05,.4),spr=sm(u2,.4,.6);
+  mr.forEach(m=>{const st=.05+.052*m.i,a=sm(u1,st,st+.1);
+    const x=NX(m.i)+lerp(m.jx,0,a)+(m.grp-2)*SP*spr,y=lerp(m.jy,YD,a)+(YB-YD)*dn,r=lerp(m.jr,0,a);
+    m.g.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) rotate(${f1(r)})`);op(m.g,sm(u1,st-.07,st));});
+  labM.setAttribute('y',f1(YD+20+(YB-YD)*dn));op(labM,sm(u1,.85,1));
+  box.forEach((b,g)=>{const w=sm(u2,.55+g*.07,.75+g*.07);op(b,w>0?1:0);b.setAttribute('stroke-dashoffset',f1(100*(1-w)));});
+  op(labK,sm(u2,.7,.9));op(tagB,sm(u2,.7,.9));
+  /* 4 — every codon calls one amino acid */
+  ARR.forEach((A,g)=>{const s=sm(u3,.02+g*.13,.12+g*.13);A.g.setAttribute('opacity',s>.001?1:0);
+    A.g.setAttribute('transform',`translate(${A.x} ${A.y0}) scale(1 ${f2(Math.max(s,.001))})`);});
+  MOL.forEach((M,g)=>{const a=sm(u3,.1+g*.13,.22+g*.13),c=sm(u4,.05+g*.08,.35+g*.08);
+    M.w.setAttribute('transform',`translate(${M.x} ${YM}) rotate(${f1(5*Math.sin(T*.8+g))}) scale(${f2((.5+.5*a)*M.t.s)})`);op(M.w,a);
+    op(M.nm,sm(u3,.18+g*.13,.28+g*.13));
+    /* 5 — the amino acids join into a polypeptide chain */
+    M.bead.setAttribute('transform',`translate(${f1(lerp(M.x,CHX(g),c))} ${f1(lerp(YM,YCH,c))}) scale(${f2(.5+.5*c)})`);op(M.bead,sm(u4,.05+g*.08,.15+g*.08));});
+  BND.forEach((b,g)=>{const w=sm(u4,.45+g*.07,.6+g*.07);op(b,w>0?1:0);b.setAttribute('stroke-dashoffset',f1(100*(1-w)));});
+  op(BL,sm(u4,.6,.75));op(CHT,sm(u4,.7,.85));
+  MID.forEach((t,i)=>{op(t,sm(u[i],0,.25));t.setAttribute('fill',i===cur?ACC:DARK);});
+  const cn=sm(u4,.65,.9);CON.setAttribute('transform',`translate(1092 ${YCH+10}) scale(${f2(.6+.4*cn)})`);op(CON,cn);
+}
+let last=performance.now();
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:600,y:380});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:600,y:380});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
