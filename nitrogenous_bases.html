@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>القواعد النيتروجينية في DNA و RNA</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .dot.gap{margin-left:8px}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .lbl{fill:#1b1b1b;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hd{fill:#b0306a;font-size:28px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .sub{fill:#555;font-size:19px;text-anchor:middle;dominant-baseline:central}
+  .en{fill:#333;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .at{fill:#13244a;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .tag{fill:#fff;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .sg{fill:#1d6b36;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">القواعد النيتروجينية في DNA و RNA</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1320 630" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <linearGradient id="gS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4cc06e"/><stop offset="1" stop-color="#25824a"/></linearGradient>
+        <linearGradient id="gRing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3cdf5"/><stop offset="1" stop-color="#7fa6e6"/></linearGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+
+const TITLE='القواعد النيتروجينية في DNA و RNA';
+/* G · A · C · T · U · الفرق بين T و U */
+const DUR=[4,4,4,4,4,5];
+
+/* ---------- ring geometry ----------
+   hexagon with a vertex on top; purines add an imidazole pentagon on the right edge */
+const R=40,SC=1.15,RING='#9dbcf0',BOND='#1d2f55';
+const V=a=>[R*Math.cos(a*PI/180),R*Math.sin(a*PI/180)];
+const c18=Math.cos(18*PI/180),s18=Math.sin(18*PI/180),c54=Math.cos(54*PI/180);
+function geom(kind){
+  if(kind==='pyr'){
+    const at={N1:V(150),C2:V(90),N3:V(30),C4:V(-30),C5:V(-90),C6:V(210)};
+    return{at,hex:['N1','C2','N3','C4','C5','C6'],pent:null,
+      bonds:[['N1','C2'],['C2','N3'],['N3','C4'],['C4','C5'],['C5','C6'],['C6','N1']],hc:[0,0],shift:0};}
+  const at={C6:V(-90),C5:V(-30),C4:V(30),N3:V(90),C2:V(150),N1:V(210)};
+  const x5=at.C5[0];
+  at.N7=[x5+R*c18,-R/2-R*s18];at.C8=[x5+R*c18+R*c54,0];at.N9=[x5+R*c18,R/2+R*s18];
+  const pent=['C5','N7','C8','N9','C4'],pc=[pent.reduce((s,k)=>s+at[k][0],0)/5,0];
+  return{at,hex:['C6','C5','C4','N3','C2','N1'],pent,pc,hc:[0,0],shift:-.6*R,
+    bonds:[['C6','C5'],['C5','C4'],['C4','N3'],['N3','C2'],['C2','N1'],['N1','C6'],['C5','N7'],['N7','C8'],['C8','N9'],['N9','C4']]};}
+
+/* substituents: [ring atom, label, bond order, length (×R), flag] — 'S' = sugar */
+const BASES=[
+ {kind:'pur',x:1160,en:'Guanine (G)',ar:'الكوانين',tag:'يوجد في DNA و RNA',tc:'#1f9e7a',
+  dbl:['C2-N3','C4-C5','N7-C8'],subs:[['C6','O',2,1],['N1','H',1,.75],['C2','H₂N',1,1],['C8','H',1,.75],['N9','S']]},
+ {kind:'pur',x:900,en:'Adenine (A)',ar:'الأدنين',tag:'يوجد في DNA و RNA',tc:'#1f9e7a',
+  dbl:['N1-C6','C2-N3','C4-C5','N7-C8'],subs:[['C6','NH₂',1,1],['C2','H',1,.75],['C8','H',1,.75],['N9','S']]},
+ {kind:'pyr',x:620,en:'Cytosine (C)',ar:'السايتوسين',tag:'يوجد في DNA و RNA',tc:'#1f9e7a',
+  dbl:['N3-C4','C5-C6'],subs:[['C2','O',2,1],['C4','NH₂',1,1],['C5','H',1,.75],['C6','H',1,.75],['N1','S']]},
+ {kind:'pyr',x:400,en:'Thymine (T)',ar:'الثايمين',tag:'يوجد في DNA فقط',tc:'#2c6fd1',
+  dbl:['C5-C6'],subs:[['C2','O',2,1],['N3','H',1,.75],['C4','O',2,1],['C5','CH₃',1,1,1],['C6','H',1,.75],['N1','S']]},
+ {kind:'pyr',x:180,en:'Uracil (U)',ar:'اليوراسيل',tag:'يوجد في RNA فقط',tc:'#e07b22',
+  dbl:['C5-C6'],subs:[['C2','O',2,1],['N3','H',1,.75],['C4','O',2,1],['C5','H',1,.75,1],['C6','H',1,.75],['N1','S']]}];
+const MY=270;
+
+const world=G(view);
+const glowL=G(world),molL=G(world),txtL=G(world);
+
+function line(p,q,g,w,c){return el('line',{x1:f1(p[0]),y1:f1(p[1]),x2:f1(q[0]),y2:f1(q[1]),stroke:c||BOND,'stroke-width':w||2.6,'stroke-linecap':'round'},g);}
+function polyD(pts){return pts.map((p,i)=>(i?'L':'M')+f1(p[0])+','+f1(p[1])).join('')+'Z';}
+function buildMol(B){
+  const m=geom(B.kind),at=m.at,outer=G(molL),g=G(outer,{transform:`translate(${f1(m.shift)} 0)`});
+  const ringOf=k=>(m.pent&&['N7','C8','N9'].includes(k))?m.pc:m.hc;
+  /* ring faces */
+  el('path',{d:polyD(m.hex.map(k=>at[k])),fill:'url(#gRing)'},g);
+  if(m.pent)el('path',{d:polyD(m.pent.map(k=>at[k])),fill:'url(#gRing)'},g);
+  /* ring bonds, with the second line of a double bond drawn inside the ring */
+  m.bonds.forEach(([a,b])=>{const p=at[a],q=at[b];line(p,q,g);
+    if(B.dbl.includes(a+'-'+b)||B.dbl.includes(b+'-'+a)){
+      const inPent=m.pent&&(['N7','C8','N9'].includes(a)||['N7','C8','N9'].includes(b)),c=inPent?m.pc:m.hc;
+      const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dl=Math.hypot(c[0]-mx,c[1]-my),ox=(c[0]-mx)/dl*7,oy=(c[1]-my)/dl*7;
+      line([lerp(p[0],q[0],.22)+ox,lerp(p[1],q[1],.22)+oy],[lerp(p[0],q[0],.78)+ox,lerp(p[1],q[1],.78)+oy],g,2.2);}});
+  /* substituents */
+  const labels=[];let me=null;
+  B.subs.forEach(([k,lab,ord,len,flag])=>{const p=at[k],c=ringOf(k),dx=p[0]-c[0],dy=p[1]-c[1],dl=Math.hypot(dx,dy),ux=dx/dl,uy=dy/dl;
+    if(lab==='S'){const q=[p[0]+ux*R*1.25,p[1]+uy*R*1.25];line(p,q,g);
+      let d='';for(let i=0;i<5;i++){const a=(-90+72*i)*PI/180;d+=(i?'L':'M')+f1(q[0]+15*Math.cos(a))+','+f1(q[1]+15*Math.sin(a));}
+      el('path',{d:d+'Z',fill:'url(#gS)',stroke:'#1d6b36','stroke-width':1.5},g);
+      el('text',{class:'sg',x:f1(q[0]),y:f1(q[1]+28)},g).textContent='سكر';return;}
+    const q=[p[0]+ux*R*len,p[1]+uy*R*len];
+    if(ord===2){const nx=-uy*3.6,ny=ux*3.6;line([p[0]+nx,p[1]+ny],[q[0]+nx,q[1]+ny],g,2.2);line([p[0]-nx,p[1]-ny],[q[0]-nx,q[1]-ny],g,2.2);}
+    else line(p,q,g);
+    labels.push([q,lab,false]);if(flag)me=q;});
+  /* atom letters on top of the bonds */
+  Object.keys(at).forEach(k=>labels.push([at[k],k[0],true]));
+  labels.forEach(([q,lab,ring])=>{
+    if(lab.length>1)el('rect',{x:f1(q[0]-24),y:f1(q[1]-13),width:48,height:26,rx:8,fill:'#fff'},g);
+    else el('circle',{cx:f1(q[0]),cy:f1(q[1]),r:ring?11:10,fill:ring?RING:'#fff'},g);
+    el('text',{class:'at',x:f1(q[0]),y:f1(q[1]+1)},g).textContent=lab;});
+  B.g=outer;
+  B.gl=el('circle',{cx:B.x,cy:MY,r:130,fill:'url(#gGlow)',opacity:0},glowL);
+  if(me){B.me=el('circle',{cx:f1(B.x+(m.shift+me[0])*SC),cy:f1(MY+me[1]*SC),r:38,fill:'url(#gGlow)',opacity:0},glowL);}
+  /* names and where it is found */
+  const t=G(txtL,{opacity:0});
+  el('text',{class:'en',x:B.x,y:428},t).textContent=B.en;
+  el('text',{class:'lbl',x:B.x,y:462},t).textContent=B.ar;
+  B.t=t;
+  B.tg=G(txtL,{opacity:0});
+  el('rect',{x:-100,y:-18,width:200,height:36,rx:18,fill:B.tc},B.tg);
+  el('text',{class:'tag',x:0,y:1},B.tg).textContent=B.tag;}
+BASES.forEach(buildMol);
+
+/* group headings with brackets */
+function heading(x1,x2,t1,t2){const g=G(txtL,{opacity:0}),cx=(x1+x2)/2;
+  el('text',{class:'hd',x:cx,y:36},g).textContent=t1;
+  el('text',{class:'sub',x:cx,y:70},g).textContent=t2;
+  el('path',{d:`M${x1},112 L${x1},94 L${x2},94 L${x2},112`,fill:'none',stroke:'#1b1b1b','stroke-width':2.2},g);
+  return g;}
+const hPur=heading(800,1290,'البيورينات (Purines)','حلقتان: سداسية وخماسية');
+const hPyr=heading(85,715,'البريميدينات (Pyrimidines)','حلقة سداسية واحدة');
+const divider=el('line',{x1:770,y1:100,x2:770,y2:520,stroke:'#9aa7b5','stroke-width':2,'stroke-dasharray':'8 7',opacity:0},txtL);
+
+/* T vs U */
+const diff=G(txtL,{opacity:0});
+el('text',{class:'lbl',x:290,y:568},diff).textContent='الفرق بين الثايمين واليوراسيل:';
+el('text',{class:'lbl',x:290,y:603},diff).textContent='مجموعة مثيل CH₃ في T تقابلها ذرة H في U';
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const u=DUR.map((_,i)=>clamp(P-i,0,1));
+  op(hPur,sm(u[0],0,.3));op(hPyr,sm(u[2],0,.3));op(divider,sm(u[2],0,.3));
+  BASES.forEach((B,i)=>{const v=u[i],s=sm(v,0,.35);
+    B.g.setAttribute('transform',`translate(${B.x} ${MY}) scale(${f2(SC*(.6+.4*s))})`);op(B.g,s);
+    op(B.gl,Math.sin(PI*sm(v,.05,.95))*.8);
+    op(B.t,sm(v,.35,.65));
+    const k=sm(v,.55,.85);B.tg.setAttribute('transform',`translate(${B.x} 508) scale(${f2(.7+.3*k)})`);op(B.tg,k);});
+  /* 6 — the methyl group of T and the H of U pulse */
+  const w=sm(u[5],0,.3)*(.55+.35*Math.sin(T*4));
+  BASES.forEach(B=>{if(B.me)op(B.me,w);});
+  op(diff,sm(u[5],.2,.5));
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i===1||i===4?' gap':'');b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:660,y:315});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:660,y:315});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
