@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>خطوات تضاعف الـ DNA</title>
+<style>
+  html{height:100%;box-sizing:border-box;color-scheme:light}
+  html,body{margin:0;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav{width:62px;height:62px;border-radius:50%;border:3px solid #1f3a52;background:#fff;color:#1f3a52;font-size:26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);flex:none}
+  .nav:active{background:#d9ebf7}
+  .nav:focus-visible,.dot:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  #dots{display:flex;gap:9px;align-items:center}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid #1f3a52;background:#fff;padding:0;cursor:pointer;transition:all .3s}
+  .dot.on{background:#c4623a;border-color:#c4623a;transform:scale(1.45)}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .lbl{fill:#1b1b1b;font-size:23px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cap{fill:#1b1b1b;font-size:25px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cap2{fill:#555;font-size:21px;text-anchor:middle;dominant-baseline:central}
+  .red{fill:#b0306a}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">خطوات تضاعف الـ DNA</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1300 650" preserveAspectRatio="xMidYMid meet">
+      <defs id="defs">
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gHel" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#f6e6ff" stop-opacity=".95"/><stop offset=".55" stop-color="#c58ef0" stop-opacity=".75"/><stop offset="1" stop-color="#8a3fc4" stop-opacity=".8"/></radialGradient>
+        <radialGradient id="gPol" cx=".38" cy=".33" r=".72"><stop offset="0" stop-color="#e9fff6" stop-opacity=".95"/><stop offset=".5" stop-color="#55cfa0" stop-opacity=".72"/><stop offset="1" stop-color="#16805a" stop-opacity=".85"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl">
+    <button class="nav" id="prev" aria-label="المرحلة السابقة">▶</button>
+    <div id="dots"></div>
+    <button class="nav" id="next" aria-label="المرحلة التالية">◀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const op=(e,a)=>e.setAttribute('opacity',f2(a));
+const s01=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+
+const TITLE='خطوات تضاعف الـ DNA';
+/* 1 الجزيء الأصلي · 2 الهيليكيز يفصل السلسلتين · 3 إنزيم البلمرة يضيف النيوكليوتيدات · 4 جزيئان متطابقان */
+const DUR=[4,7,8,6];
+
+const BASEC={A:'#e2452b',T:'#f39c12',G:'#8e44ad',C:'#16a6b6'},COMP={A:'T',T:'A',G:'C',C:'G'};
+const OLD={front:'#4a86e8',back:'#2c56a8',ol:'#1d3a78'},NEW={front:'#3fbf7f',back:'#25875a',ol:'#1b5e3d'};
+
+/* ---------- geometry ----------
+   the parent helix (axis X0) opens below the fork yF into two daughter axes X0±Sc;
+   below the polymerases (yP) each old strand twists with a new strand */
+const X0=650,TOP=60,BOT=520,A=45,a=40,K=2*PI/160;
+let yF=BOT+80,yP=BOT+80,Sc=130,yDraw=TOP;
+const th=y=>K*y+.6;
+function pos(y){const t=th(y),s=Math.sin(t),c=Math.cos(t),e=s01((y-yF)/80),w=s01((y-yP)/60),fl=e*(1-w);
+  return{e,
+    p1:lerp(X0+A*s,X0-Sc+a*lerp(-1,s,w),e), p2:lerp(X0-A*s,X0+Sc+a*lerp(1,-s,w),e),
+    nl:X0-Sc+a*lerp(1,-s,w), nr:X0+Sc+a*lerp(-1,s,w),
+    z1:lerp(c,1,fl), z2:lerp(-c,1,fl), zl:-c, zr:c};}
+
+const world=G(view);
+const backL=G(world),rungL=G(world),frontL=G(world),enzL=G(world),txtL=G(world);
+
+/* ---------- strands ---------- */
+const STR=[['p1','z1',OLD],['p2','z2',OLD],['nl','zl',NEW],['nr','zr',NEW]].map(([k,z,C])=>{
+  const mk=(L,col,w,extra)=>el('path',Object.assign({fill:'none',stroke:col,'stroke-width':w,'stroke-linecap':'round','stroke-linejoin':'round'},extra||{}),L);
+  return{k,z,isNew:C===NEW,bOl:mk(backL,C.ol,17),b:mk(backL,C.back,13),fOl:mk(frontL,C.ol,17),f:mk(frontL,C.front,13),hl:mk(frontL,'#fff',3,{'stroke-opacity':.3})};});
+function strandD(S,y0,y1){let f='',b='',lf=false,lb=false;
+  if(y1-y0<1)return{f,b};
+  let py=y0,pp=pos(py);
+  for(let y=y0+4;;y+=4){if(y>y1)y=y1;
+    const q=pos(y),z=(pp[S.z]+q[S.z])/2,p0='M'+f1(pp[S.k])+','+f1(py),nx='L'+f1(q[S.k])+','+f1(y);
+    if(z>=0){if(!lf)f+=p0;f+=nx;lf=true;lb=false;}else{if(!lb)b+=p0;b+=nx;lb=true;lf=false;}
+    py=y;pp=q;if(y>=y1)break;}
+  return{f,b};}
+
+/* ---------- base pairs ---------- */
+const SEQ='ATGCGTACCGATTGCAGTCAAGCTTGACGGATCCAT';
+const rungs=[];
+for(let i=0;;i++){const y=TOP+7+i*13;if(y>BOT-5)break;const t=SEQ[i%SEQ.length];
+  const L=c=>el('line',{y1:y,y2:y,stroke:BASEC[c],'stroke-width':6,opacity:0},rungL);
+  rungs.push({y,b1:L(t),b2:L(COMP[t]),bl:L(COMP[t]),br:L(t)});}
+const setL=(l,x1,x2,v)=>{l.setAttribute('x1',f1(x1));l.setAttribute('x2',f1(x2));op(l,v);};
+const toward=(x,m)=>m-Math.sign(m-x)*1.5;
+
+/* ---------- enzymes ---------- */
+const hel=G(enzL,{opacity:0});
+el('ellipse',{cx:0,cy:0,rx:50,ry:30,fill:'url(#gHel)',stroke:'#7a3cb0','stroke-width':1.5},hel);
+el('ellipse',{cx:-14,cy:-12,rx:16,ry:7,fill:'#fff',opacity:.55},hel);
+const pols=[0,1].map(()=>{const g=G(enzL,{opacity:0});
+  el('circle',{cx:0,cy:0,r:34,fill:'url(#gPol)',stroke:'#1b6e4c','stroke-width':1.5},g);
+  el('ellipse',{cx:-11,cy:-13,rx:12,ry:7,fill:'#fff',opacity:.6},g);return g;});
+/* free nucleotides drifting into each polymerase */
+const NUC='ATGCAGTC';
+const parts=[];
+[-1,1].forEach(sd=>{for(let i=0;i<7;i++){const ang=(sd<0?180:0)+(i-3)*24+(sd<0?1:-1)*0,c=NUC[(i+(sd>0?3:0))%8];
+  parts.push({sd,ang:ang*PI/180+(sd<0?0:0),ph:i/7,e:el('circle',{r:6.5,fill:BASEC[c],stroke:'#fff','stroke-width':1.5,opacity:0},enzL)});}});
+
+/* ---------- labels ---------- */
+function arrowD(x1,y1,x2,y2){const L=Math.hypot(x2-x1,y2-y1)||1,ux=(x2-x1)/L,uy=(y2-y1)/L,bx=x2-12*ux,by=y2-12*uy;
+  return{line:`M${f1(x1)},${f1(y1)}L${f1(bx)},${f1(by)}`,head:`M${f1(x2)},${f1(y2)}L${f1(bx-6*uy)},${f1(by+6*ux)}L${f1(bx+6*uy)},${f1(by-6*ux)}Z`};}
+function note(lines){const g=G(txtL,{opacity:0});
+  const ts=lines.map(t=>{const e=el('text',{class:'lbl'},g);e.textContent=t;return e;});
+  const ln=el('path',{stroke:'#1b1b1b','stroke-width':2.2,fill:'none','stroke-linecap':'round'},g),hd=el('path',{fill:'#1b1b1b'},g);
+  return{g,set(x,y,ax1,ay1,ax2,ay2){const n=ts.length;ts.forEach((e,k)=>{e.setAttribute('x',f1(x));e.setAttribute('y',f1(y+(k-(n-1)/2)*29));});
+    const d=arrowD(ax1,ay1,ax2,ay2);ln.setAttribute('d',d.line);hd.setAttribute('d',d.head);}};}
+const nMol=note(['جزيء DNA','الأصلي']);
+const nHel=note(['إنزيم الهيليكيز']);
+const nFork=note(['شوكة التضاعف']);
+const nPol=note(['إنزيم بلمرة DNA']);
+const nNuc=note(['نيوكليوتيدات','حرة']);
+const nOldL=note(['سلسلة DNA','أصلية']),nNewL=note(['سلسلة DNA','جديدة']),nOldR=note(['سلسلة DNA','أصلية']),nNewR=note(['سلسلة DNA','جديدة']);
+/* unzipping direction */
+const dirG=G(txtL,{opacity:0});{const d=arrowD(1205,480,1205,95);
+  el('path',{d:d.line,stroke:'#2a7ab8','stroke-width':4,fill:'none'},dirG);el('path',{d:d.head,fill:'#2a7ab8'},dirG);
+  el('text',{class:'lbl',x:1240,y:290,transform:'rotate(-90 1240 290)',fill:'#1f3a52'},dirG).textContent='اتجاه فك الجديلة';}
+/* step captions */
+const caps=[
+ ['جزيء DNA الأصلي يتكون من سلسلتين ملتفتين حول بعضهما',''],
+ ['(أ) يفصل إنزيم الهيليكيز سلسلتي DNA الأصلي','فتتكشف القواعد النيتروجينية في كل سلسلة'],
+ ['(ب) يضيف إنزيم بلمرة DNA نيوكليوتيدات متممة إلى كل سلسلة DNA أصلية','A مقابل T و G مقابل C'],
+ ['(ج) يتحرر إنزيم بلمرة DNA وينتج جزيئان من DNA مطابقان للجزيء الأصلي','كل جزيء يتكون من سلسلة أصلية وسلسلة جديدة']].map(([a,b])=>{
+  const g=G(txtL,{opacity:0});el('text',{class:'cap',x:X0,y:575},g).textContent=a;
+  if(b)el('text',{class:'cap2',x:X0,y:612},g).textContent=b;return g;});
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:1,dur:DUR[0]};
+let stage=0,T=0,t0=0,paused=false,P=0,last=performance.now();
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+/* ---------------- render ---------------- */
+function render(){
+  const [u0,u1,u2,u3]=DUR.map((_,i)=>clamp(P-i,0,1));
+  /* timeline of the fork, the polymerases and the spread of the daughters */
+  yDraw=lerp(TOP,BOT,sm(u0,0,.6));
+  yF=lerp(BOT+80,300,sm(u1,.15,.95));
+  yF=lerp(yF,-40,sm(u2,.05,.9));
+  yF=lerp(yF,-110,sm(u3,0,.5));
+  yP=Math.max(yF+70,lerp(BOT+80,15,sm(u2,.05,.95)));
+  Sc=lerp(130,190,sm(u3,.1,.7));
+
+  /* strands */
+  STR.forEach(S=>{let y0=TOP,y1=yDraw;
+    if(S.isNew){y0=Math.max(TOP,yP);if(y0>=BOT)y1=y0;}
+    const d=strandD(S,y0,y1);
+    S.bOl.setAttribute('d',d.b);S.b.setAttribute('d',d.b);S.fOl.setAttribute('d',d.f);S.f.setAttribute('d',d.f);S.hl.setAttribute('d',d.f);});
+  /* base pairs: each old base points to the place of its partner; new bases grow behind the polymerase */
+  rungs.forEach(r=>{const y=r.y;
+    if(y>yDraw){[r.b1,r.b2,r.bl,r.br].forEach(l=>op(l,0));return;}
+    const p=pos(y),q1=lerp(p.p2,p.nl,p.e),m1=(p.p1+q1)/2,q2=lerp(p.p1,p.nr,p.e),m2=(p.p2+q2)/2;
+    setL(r.b1,p.p1,toward(p.p1,m1),1);setL(r.b2,p.p2,toward(p.p2,m2),1);
+    const g=clamp((y-yP)/25,0,1);
+    setL(r.bl,p.nl,lerp(p.nl,toward(p.nl,m1),g),g>0?1:0);setL(r.br,p.nr,lerp(p.nr,toward(p.nr,m2),g),g>0?1:0);});
+
+  /* helicase at the fork */
+  const hv=sm(u1,0,.15)*(1-sm(u3,0,.4))*clamp((yF-TOP+40)/40,0,1);
+  hel.setAttribute('transform',`translate(${X0} ${f1(yF)})`);op(hel,hv);
+  /* polymerases on the two old strands */
+  const pv=sm(u2,0,.15)*(1-sm(u3,0,.4)),pp=pos(yP);
+  const px=[(pp.p1+pp.nl)/2,(pp.p2+pp.nr)/2];
+  pols.forEach((g,k)=>{g.setAttribute('transform',`translate(${f1(px[k])} ${f1(yP)}) scale(${f2(.6+.4*pv)})`);op(g,pv);});
+  const nv=pv*(1-sm(u2,.92,1));
+  parts.forEach(q=>{const f=(T*.6+q.ph)%1,r=34+80*(1-f),cx=px[q.sd<0?0:1];
+    q.e.setAttribute('cx',f1(cx+Math.cos(q.ang)*r));q.e.setAttribute('cy',f1(yP+20+Math.sin(q.ang)*r*.8));op(q.e,nv*Math.sin(PI*f));});
+
+  /* labels */
+  op(nMol.g,sm(u0,.5,.8)*(1-sm(u1,0,.15)));
+  {const p=pos(300);nMol.set(380,300,445,300,Math.min(p.p1,p.p2)-10,300);}
+  const yl=clamp(yF,95,470),fade=clamp((yF-60)/50,0,1);
+  op(nHel.g,sm(u1,.2,.4)*(1-sm(u3,0,.2))*fade);nHel.set(X0+300,yl-30,X0+205,yl-30,X0+52,yF-6);
+  op(nFork.g,sm(u1,.3,.5)*(1-sm(u2,0,.2)));nFork.set(X0+300,yl+60,X0+215,yl+60,X0+6,yF+46);
+  op(dirG,sm(u1,.1,.3)*(1-sm(u3,0,.3)));
+  const ylp=clamp(yP,110,480);
+  op(nPol.g,sm(u2,.15,.35)*(1-sm(u2,.9,1)));nPol.set(X0-345,ylp-40,X0-345+95,ylp-40,px[0]-36,yP-8);
+  op(nNuc.g,sm(u2,.25,.45)*(1-sm(u2,.9,1)));nNuc.set(X0+330,ylp+70,X0+255,ylp+60,px[1]+60,yP+40);
+  const ov=sm(u3,.5,.8);
+  {const a=pos(300),b=pos(420);
+    op(nOldL.g,ov);nOldL.set(250,300,320,300,a.p1-10,300);
+    op(nNewL.g,ov);nNewL.set(250,420,320,420,b.nl-10,420);
+    op(nOldR.g,ov);nOldR.set(1050,300,980,300,a.p2+10,300);
+    op(nNewR.g,ov);nNewR.set(1050,420,980,420,b.nr+10,420);}
+  caps.forEach((g,i)=>{const ui=[u0,u1,u2,u3][i],un=[u1,u2,u3,0][i];op(g,sm(ui,.05,.3)*(1-sm(un,0,.15)));});
+}
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render();requestAnimationFrame(frame);}
+
+/* ---------------- navigation ---------------- */
+const dotsEl=document.getElementById('dots');
+DUR.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label','المرحلة '+(i+1));b.onclick=()=>go(i);dotsEl.appendChild(b);});
+function setUI(){document.title=TITLE;[...dotsEl.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('on',i===stage));}
+function go(i){i=(i+DUR.length)%DUR.length;const tgt=i+1;
+  if(tgt<=P+1e-3)P=i;
+  let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  if(tgt-P>1.01)d*=.6;
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1.2,d);
+  setUI();}
+document.getElementById('next').onclick=()=>go(stage+1);
+document.getElementById('prev').onclick=()=>go(stage-1);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(stage+1);if(e.key==='ArrowRight')go(stage-1);});
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------------- zoom, pan, fullscreen ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:650,y:320});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:650,y:320});
+document.getElementById('zreset').onclick=reset;
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+go(0);render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
