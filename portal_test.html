@@ -929,8 +929,6 @@
   <div class="exp-title">الصفات التي تتحور عن النسبة المندلية</div>
   <div class="exp-tag">تشمل السيادة غير التامة (نبات حنك السبع) والسيادة المشاركة أو المواكبة (الماشية ومجموعة الدم MN)</div>
 </div>
-          </div>
-        </div>
 
         <div class="exp-card" onclick="openExp('bio_ch5', 'dominance_examples.html', 'امثلة عن السيادة التامة والسيادة المشاركة')">
   <span class="exp-icon">🧬</span>
@@ -1032,7 +1030,10 @@
   <div class="exp-title">إنتاج الإنسولين البشري بواسطة البكتيريا</div>
   <div class="exp-tag">تطبيقات الهندسة الوراثية: دمج جين الإنسولين في البلازميد وإنتاجه داخل البكتيريا (E. coli)</div>
 </div>
-        
+          </div>
+        </div>
+      </div>
+
       <!-- مادة الكيمياء -->
       <div id="container_chemistry" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
         <div class="chapter-section" data-chapter="chem_ch1">
@@ -1090,10 +1091,12 @@
   <script>
     const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1iYfqiK-IKHPhLClPO_P3GMQBSprkemJ10QKB6W4_TwA/gviz/tq";
     const OFFLINE_GRACE_DAYS = 30;
-    const MASTER_KEY = "ADMIN2026";
+    // بعد نشر Google Apps Script ضع رابطه هنا. ما دام فارغاً تبقى المنصة تقرأ من الشيت بالطريقة القديمة.
+    const APPS_SCRIPT_URL = "";
 
     let rawPermissions = "";
     let currentKey = "";
+    let manualSync = false;
 
     function getStoredKey() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -1132,18 +1135,15 @@
         const lic = JSON.parse(stored);
         const now = Date.now();
 
-        if (lic.key.toLowerCase() !== keyToTest.trim().toLowerCase()) return false;
-
-        if (lic.key.toUpperCase() === MASTER_KEY || lic.permissions === 'all') {
-          currentKey = lic.key;
-          rawPermissions = "all";
-          setAdminBadge();
-          document.getElementById('keyModal').style.display = 'none';
-          renderPortals();
-          return true;
+        if (String(lic.key).toUpperCase() === 'ADMIN2026') {
+          localStorage.removeItem('moe_offline_license');
+          return false;
         }
 
-        if (now < lic.lastVerified - (2 * 60 * 1000)) {
+        if (lic.key.toLowerCase() !== keyToTest.trim().toLowerCase()) return false;
+
+        const lastSeen = Math.max(lic.lastSeen || 0, lic.lastVerified);
+        if (now < lastSeen - (2 * 60 * 1000)) {
           openKeyModal("⚠️ تم رصد اختلاف في تاريخ وساعة الجهاز، يرجى ضبط الوقت والاتصال بالإنترنت.");
           return true;
         }
@@ -1158,13 +1158,21 @@
           return true;
         }
 
+        lic.lastSeen = now;
+        localStorage.setItem('moe_offline_license', JSON.stringify(lic));
+
         currentKey = lic.key;
         rawPermissions = lic.permissions;
 
         const badge = document.getElementById('teacherDisplay');
-        badge.innerText = lic.teacher || "@DESNEOO";
-        badge.style.color = "#38bdf8";
-        badge.style.borderColor = "#38bdf8";
+        if (isAdminPerms(rawPermissions)) {
+          setAdminBadge();
+        } else {
+          badge.innerText = lic.teacher || "@DESNEOO";
+          badge.style.color = "#38bdf8";
+          badge.style.borderColor = "#38bdf8";
+          badge.style.background = "rgba(56, 189, 248, 0.1)";
+        }
 
         document.getElementById('keyModal').style.display = 'none';
         renderPortals();
@@ -1172,6 +1180,11 @@
       } catch (e) {
         return false;
       }
+    }
+
+    function isAdminPerms(p) {
+      const perms = String(p || '').split(',').map(s => s.trim().toLowerCase());
+      return perms.includes('all') || perms.includes('*') || perms.includes('admin');
     }
 
     function setAdminBadge() {
@@ -1185,28 +1198,6 @@
     function verifySubscription(keyToTest) {
       if (!keyToTest) {
         openKeyModal();
-        return;
-      }
-
-      if (keyToTest.trim().toUpperCase() === MASTER_KEY) {
-        currentKey = MASTER_KEY;
-        rawPermissions = "all";
-        localStorage.setItem('moe_teacher_key', MASTER_KEY);
-        
-        const nowMs = Date.now();
-        const offlineLicense = {
-          key: MASTER_KEY,
-          permissions: "all",
-          teacher: "المدير العام",
-          lastVerified: nowMs,
-          offlineExpiry: nowMs + (365 * 24 * 60 * 60 * 1000),
-          officialExpiry: null
-        };
-        localStorage.setItem('moe_offline_license', JSON.stringify(offlineLicense));
-        
-        document.getElementById('keyModal').style.display = 'none';
-        setAdminBadge();
-        renderPortals();
         return;
       }
 
@@ -1244,7 +1235,11 @@
 
       const script = document.createElement('script');
       script.id = 'gvizScriptTag';
-      script.src = `${SHEET_BASE_URL}?tqx=responseHandler:${callbackName}&_t=${Date.now()}`;
+      if (APPS_SCRIPT_URL) {
+        script.src = `${APPS_SCRIPT_URL}?key=${encodeURIComponent(keyToTest.trim())}&callback=${callbackName}&_t=${Date.now()}`;
+      } else {
+        script.src = `${SHEET_BASE_URL}?tqx=responseHandler:${callbackName}&_t=${Date.now()}`;
+      }
 
       script.onerror = function() {
         if (responded) return;
@@ -1260,6 +1255,11 @@
     }
 
     function processSheetData(response, keyToTest) {
+      if (response && typeof response.found !== 'undefined') {
+        processApiData(response, keyToTest);
+        return;
+      }
+
       if (!response || !response.table || !response.table.rows) {
         if (!checkOfflineLicense(keyToTest)) {
           openKeyModal("تعذر قراءة بيانات الجدول.");
@@ -1319,12 +1319,34 @@
         return;
       }
 
+      applyLicense(userData, keyToTest);
+    }
+
+    function processApiData(res, keyToTest) {
+      const fail = (msg) => {
+        localStorage.removeItem('moe_offline_license');
+        rawPermissions = "";
+        renderPortals();
+        openKeyModal(msg);
+      };
+      if (!res.found) return fail("كود الاشتراك غير صحيح. تأكد من إدخال الكود المخصص لك.");
+      if (res.status !== 'active') return fail("تم إيقاف الاشتراك من الإدارة. يرجى مراجعة المسؤول.");
+      if (res.expiry && Date.now() > res.expiry) return fail("انتهت فترة الاشتراك. يرجى التواصل للتجديد.");
+      applyLicense({
+        teacher: res.teacher || "",
+        permissions: String(res.permissions || "").toLowerCase(),
+        officialExpiry: res.expiry || null
+      }, keyToTest);
+    }
+
+    function applyLicense(userData, keyToTest) {
       const nowMs = Date.now();
       const offlineLicense = {
         key: keyToTest.trim(),
         permissions: userData.permissions,
         teacher: userData.teacher,
         lastVerified: nowMs,
+        lastSeen: nowMs,
         offlineExpiry: nowMs + (OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000),
         officialExpiry: userData.officialExpiry
       };
@@ -1336,7 +1358,7 @@
 
       rawPermissions = userData.permissions;
       const badge = document.getElementById('teacherDisplay');
-      if (rawPermissions.includes('all') || rawPermissions.includes('*') || rawPermissions.includes('admin')) {
+      if (isAdminPerms(rawPermissions)) {
         setAdminBadge();
       } else {
         badge.innerText = userData.teacher || "@DESNEOO";
@@ -1346,6 +1368,11 @@
       }
 
       renderPortals();
+
+      if (manualSync) {
+        manualSync = false;
+        alert("✅ تم تحديث الصلاحيات وتجديد رخصة الأوفلاين بنجاح!");
+      }
     }
 
     // الدالة الآمنة لتحديث الصلاحيات بدون كسر وضع الأوفلاين
@@ -1365,18 +1392,15 @@
       badge.innerText = "⏳ جاري التحديث...";
       badge.style.color = "#fef08a";
 
+      manualSync = true;
       verifySubscription(key);
-
-      setTimeout(() => {
-        alert("✅ تم تحديث الصلاحيات وتجديد رخصة الأوفلاين بنجاح!");
-      }, 1800);
     }
 
     function isSubjectAllowed(subj) {
       if (!rawPermissions) return false;
       const perms = rawPermissions.split(',').map(s => s.trim().toLowerCase());
 
-      if (perms.includes('all') || perms.includes('*') || perms.includes('admin') || currentKey.toUpperCase() === MASTER_KEY) return true;
+      if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
 
       if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
       if (subj === 'biology' && (perms.includes('biology') || perms.includes('احياء') || perms.includes('أحياء') || perms.includes('bio'))) return true;
@@ -1393,10 +1417,11 @@
       if (!rawPermissions) return false;
       const perms = rawPermissions.split(',').map(s => s.trim().toLowerCase());
 
-      if (perms.includes('all') || perms.includes('*') || perms.includes('admin') || currentKey.toUpperCase() === MASTER_KEY) return true;
+      if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
 
       if (isSubjectAllowed(subj)) {
-        const hasSpecificChapter = perms.some(p => p.startsWith(subj.substring(0, 3) + '_'));
+        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_' }[subj];
+        const hasSpecificChapter = perms.some(p => p.startsWith(prefix));
         if (hasSpecificChapter) {
           return perms.includes(chapter.toLowerCase());
         }
@@ -1473,6 +1498,11 @@
     }
 
     function openExp(chapter, fileName, expTitle) {
+      const subj = chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
+      if (!isChapterAllowed(subj, chapter)) {
+        alert("⚠️ هذا الفصل غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع الإدارة لتفعيله.");
+        return;
+      }
       document.getElementById('activeExpName').innerText = expTitle || "المحاكاة التفاعلية";
       const viewer = document.getElementById('viewerScreen');
       viewer.style.zIndex = "999999";
@@ -1487,6 +1517,7 @@
     }
 
     function openKeyModal(errorMsg = "") {
+      manualSync = false;
       const modal = document.getElementById('keyModal');
       const input = document.getElementById('inputTeacherKey');
       const status = document.getElementById('modalStatus');
