@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>الشبكة البلازمية الداخلية</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go,#prev{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  .lb{fill:var(--ink);font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .ls{fill:var(--sub);font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style></head><body>
+
+<div id="top"><div id="title">الشبكة البلازمية الداخلية</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 -50 1000 870" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gNuc" cx=".35" cy=".6" r=".8"><stop offset="0" stop-color="#d9c2ee"/><stop offset=".7" stop-color="#a77fcf"/><stop offset="1" stop-color="#7d55a8"/></radialGradient>
+        <radialGradient id="gNcl" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#7a64c8"/><stop offset="1" stop-color="#3d2a7a"/></radialGradient>
+        <radialGradient id="gRib" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff1a0"/><stop offset=".6" stop-color="#e8c13a"/><stop offset="1" stop-color="#a98411"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+
+const DUR=[4,5,5,5.5];
+const world=G(view);
+const Lglow=G(world),Lnuc=G(world),Lout=G(world),Lin=G(world),Lrib=G(world),Lobj=G(world);
+
+/* ---------------- building blocks ---------------- */
+function Txt(x,y,s,par,cls){const t=el('text',{class:cls||'lb',x,y},par||Lobj);t.textContent=s;return t;}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},a),p);
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());if(!show(p,v>.005?1:0))return;p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
+const Glow=(cx,cy,rx,ry)=>el('ellipse',{cx,cy,rx,ry,fill:'url(#gGlow)'},Lglow);
+function Lab(x,y,name,alt,d){const g=G(Lobj);lead(d,g);Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');return g;}
+
+/* membrane tube = wall (outer stroke) + lumen (inner stroke), drawn on separate layers so junctions merge */
+const WALL={stroke:'#b9573f','stroke-width':30},LUM={stroke:'#f4c3ad','stroke-width':13};
+function Tube(d){return [path(d,WALL,Lout),path(d,LUM,Lin)];}
+const DashT=(t,v)=>{Dash(t[0],v);Dash(t[1],v);};
+
+const NC=[900,120];
+const pt=(r,a)=>{const q=a*PI/180;return [NC[0]+r*Math.cos(q),NC[1]+r*Math.sin(q)];};
+const arc=(r,a0,a1)=>{const p=pt(r,a0),q=pt(r,a1);return `M${f1(p[0])},${f1(p[1])} A${r},${r} 0 0,1 ${f1(q[0])},${f1(q[1])}`;};
+const seg=(r0,r1,a)=>{const p=pt(r0,a),q=pt(r1,a);return `M${f1(p[0])},${f1(p[1])} L${f1(q[0])},${f1(q[1])}`;};
+
+/* ================= 1) nucleus + nuclear envelope ================= */
+const glN=Glow(900,120,260,260);
+const NUC=G(Lnuc);
+el('circle',{cx:900,cy:120,r:170,fill:'url(#gNuc)'},NUC);
+el('circle',{cx:950,cy:72,r:52,fill:'url(#gNcl)'},NUC);
+for(let k=0;k<22;k++){const a=k*2.4,r=40+((k*37)%110);path(`M${f1(900+r*Math.cos(a))},${f1(120+r*Math.sin(a))} q8,-6 16,0`,{stroke:'#8a63b5','stroke-width':2},NUC);}
+Txt(880,215,'النواة',NUC,'ls');
+const ENVd=`M${pt(178,90).map(f1)} A178,178 0 1,1 ${pt(178,269.9).map(f1)} A178,178 0 1,1 ${pt(178,90).map(f1)}`;
+const envW=path(ENVd,{stroke:'#7d4fa3','stroke-width':18},Lnuc);
+const envL=path(ENVd,{stroke:'#efe0f6','stroke-width':6},Lnuc);
+const pores=G(Lnuc);
+[100,125,150,175,200,225,250].forEach(a=>{const p=pt(178,a);el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:6,fill:'#a77fcf',stroke:'#5a3480','stroke-width':1.5},pores);});
+const lN=Lab(560,40,'الغلاف النووي','(غشاء مزدوج)','M632,46 L724,58');
+
+/* ================= 2) rough ER sacs (flattened cisternae) ================= */
+const SACS=[[225,98,172],[268,96,170],[311,95,168],[354,94,166]];
+const sacs=SACS.map(s=>Tube(arc(...s)));
+const LK=[[186,225,135],[225,268,160],[268,311,112],[311,354,150]];
+const links=LK.map(l=>Tube(seg(...l)));
+/* smooth ER: same flattened sacs, stacked right on the rough ones, no ribosomes */
+const SMS=[[397,93,164],[440,92,162],[483,92,160]];
+const SLK=[[354,397,120],[354,397,155],[397,440,140],[440,483,105],[440,483,150]];
+const smSacs=SMS.map(s=>Tube(arc(...s)));
+const smLinks=SLK.map(l=>Tube(seg(...l)));
+const nearLink=(rr,a)=>LK.concat(SLK).some(([r0,r1,la])=>rr>r0&&rr<r1&&Math.abs(a-la)<3.5);
+const glR=Glow(640,280,300,230);
+
+/* ================= 3) ribosomes on the sacs' outer surfaces ================= */
+const ribs=[];
+SACS.forEach(([r,a0,a1],i)=>{[r-17,r+17].forEach((rr,j)=>{
+  for(let a=a0+3+j*2.5;a<a1-1;a+=4.6){if(nearLink(rr,a))continue;const p=pt(rr,a);const c=el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:5.5,fill:'url(#gRib)',stroke:'#8a6a0e','stroke-width':1},Lrib);
+    ribs.push({c,x:p[0],y:p[1],k:(a-a0)/(a1-a0)*.6+i*.1+Math.random()*.08});}});});
+ribs.forEach(o=>o.k=o.k/1);const kMax=Math.max(...ribs.map(o=>o.k));ribs.forEach(o=>o.k/=kMax);
+const rT=pt(370,163.6);
+const lRib=Lab(250,195,'رايبوسوم','(بناء البروتين)',`M305,207 L${f1(rT[0]-6)},${f1(rT[1]-3)}`);
+const lRough=Lab(250,95,'شبكة بلازمية داخلية خشنة','(سطحها مغطى بالرايبوسومات)','M392,100 L590,180');
+
+/* ================= 4) smooth ER (branching tubules) ================= */
+const glS=Glow(630,460,330,240);
+const lSm=Lab(850,700,'شبكة بلازمية داخلية ملساء','(خالية من الرايبوسومات)','M850,686 L852,618');
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const N=DUR.length,s=[0];for(let i=1;i<=N;i++)s.push(clamp(P-(i-1),0,1));
+  /* 1 nucleus pops, envelope membrane is traced, pores appear */
+  popAt(NUC,900,120,sm(s[1],0,.4));
+  Dash(envW,sm(s[1],.2,.7));Dash(envL,sm(s[1],.2,.7));
+  show(pores,sm(s[1],.6,.8));show(glN,.8*Math.sin(PI*sm(s[1],.3,1)));show(lN,sm(s[1],.65,.95));
+  /* 2 flattened sacs grow out from the envelope, one after another */
+  DashT(links[0],sm(s[2],0,.15));
+  sacs.forEach((tb,i)=>DashT(tb,sm(s[2],.1+i*.17,.4+i*.17)));
+  links.slice(1).forEach((tb,i)=>DashT(tb,sm(s[2],.45+i*.12,.6+i*.12)));
+  /* 3 ribosomes stud the surface -> rough ER */
+  ribs.forEach(o=>popAt(o.c,o.x,o.y,sm(s[3],o.k*.55,o.k*.55+.12)));
+  show(glR,.7*Math.sin(PI*sm(s[3],.2,.9)));show(lRib,sm(s[3],.55,.75));show(lRough,sm(s[3],.72,.95));
+  /* 4 smooth tubules branch out from the rough ER */
+  smLinks.slice(0,2).forEach(tb=>DashT(tb,sm(s[4],0,.15)));
+  smSacs.forEach((tb,i)=>DashT(tb,sm(s[4],.1+i*.18,.42+i*.18)));
+  smLinks.slice(2).forEach((tb,i)=>DashT(tb,sm(s[4],.35+i*.15,.5+i*.15)));
+  show(glS,.6*Math.sin(PI*sm(s[4],.55,1)));show(lSm,sm(s[4],.7,.95));
+}
+
+/* ---------------- next / previous buttons ---------------- */
+const btn=document.getElementById('go'),pbtn=document.getElementById('prev');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+function back(){if(stage<0)return;const tgt=stage;stage--;S.entry=P;S.tgt=tgt;t0=T;S.dur=.9;}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+pbtn.onclick=back;
+let lbl='',paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  pbtn.disabled=stage<0;
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:410});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:410});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();else if(e.key==='ArrowRight')back();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
