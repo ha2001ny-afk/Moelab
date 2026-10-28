@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>منصة المختبرات التفاعلية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Tajawal', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: #050b14;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      height: 56px;
+      background: #0b1526;
+      border-bottom: 1px solid #1a2942;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 18px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .teacher-badge {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid #38bdf8;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: #38bdf8;
+      transition: all 0.3s;
+    }
+
+    .btn-key-change {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .main-wrapper {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    #subjectsView {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .portal-heading {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .portal-heading h2 {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+
+    .portal-heading p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .subjects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .subject-portal-card {
+      background: #0b1526;
+      border: 2px solid #1a2942;
+      border-radius: 16px;
+      padding: 22px 18px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subject-portal-card:hover:not(.locked) {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+    }
+
+    .subject-portal-card[data-subj="physics"] {
+      background: radial-gradient(circle at top, rgba(14, 165, 233, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="physics"]:hover:not(.locked) {
+      border-color: #0ea5e9;
+    }
+
+    .subject-portal-card[data-subj="chemistry"] {
+      background: radial-gradient(circle at top, rgba(168, 85, 247, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="chemistry"]:hover:not(.locked) {
+      border-color: #a855f7;
+    }
+
+    .subject-portal-card[data-subj="biology"] {
+      background: radial-gradient(circle at top, rgba(16, 185, 129, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="biology"]:hover:not(.locked) {
+      border-color: #10b981;
+    }
+
+    .subject-icon-box {
+      font-size: 3rem;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    .subject-name {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #f8fafc;
+    }
+
+    .subject-desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .subject-status-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+
+    .subject-portal-card.active-sub .subject-status-pill {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+
+    .subject-portal-card.locked {
+      opacity: 0.55;
+      border-color: #1e293b;
+      cursor: not-allowed;
+      filter: grayscale(0.6);
+    }
+
+    .subject-portal-card.locked .subject-status-pill {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid #ef4444;
+    }
+
+    #chaptersView {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chapters-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b1526;
+      border: 1px solid #1a2942;
+      padding: 10px 16px;
+      border-radius: 12px;
+    }
+
+    .current-subj-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back-subjects {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chapter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chapter-title {
+      font-size: 0.98rem;
+      font-weight: 900;
+      color: #fef08a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #1a2942;
+      padding-bottom: 5px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .exp-card {
+      background: #0b1526;
+      border: 1px solid #1a2942;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .exp-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    .exp-card.locked {
+      opacity: 0.45;
+      border-color: #1e293b;
+    }
+
+    .exp-icon {
+      font-size: 1.8rem;
+    }
+
+    .exp-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .exp-tag {
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 7, 18, 0.94);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #0b1526;
+      border: 2px solid #0284c7;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-card h2 {
+      font-size: 1.25rem;
+      color: #38bdf8;
+      font-weight: 900;
+    }
+
+    .modal-card p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #050b14;
+      border: 1.5px solid #334155;
+      color: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      text-align: center;
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .modal-btn {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .modal-status {
+      font-size: 0.82rem;
+      min-height: 18px;
+      font-weight: bold;
+    }
+
+    #viewerScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+    }
+
+    .viewer-bar {
+      height: 44px;
+      background: #0b1526;
+      border-bottom: 1px solid #1a2942;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 14px;
+    }
+
+    .btn-back {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+  <style id="theme">
+    /* ===== ألوان المنصة: غيّر هذه القيم فقط ===== */
+    :root {
+      --bg: #FFF8EE;          /* الخلفية */
+      --surface: #FFFFFF;     /* البطاقات والشريط العلوي */
+      --border: #F1E2C8;      /* الحدود */
+      --text: #2B2622;        /* الكتابة الرئيسية */
+      --muted: #7A6E61;       /* الكتابة الثانوية */
+      --accent: #FFA500;      /* اللون الرئيسي */
+      --accent-dark: #B86E00; /* لون الكتابة البرتقالية */
+      --accent-soft: #FFF1D6; /* خلفية برتقالية فاتحة */
+      --ok: #1F9D63;
+      --danger: #D64545;
+      --bio: #1F9D63;
+      --phy: #2F7FD1;
+      --chem: #8A5CD1;
+    }
+
+    body { background: var(--bg); color: var(--text); }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(184, 110, 0, 0.06);
+    }
+    .brand { color: var(--accent-dark); }
+
+    .teacher-badge {
+      background: var(--accent-soft) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent-dark) !important;
+    }
+    .btn-key-change {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--muted) !important;
+    }
+    .btn-key-change:first-of-type { border-color: var(--ok) !important; color: var(--ok) !important; }
+
+    .portal-heading h2 { color: var(--text); }
+    .portal-heading p { color: var(--muted); }
+
+    .subject-portal-card {
+      background: var(--surface) !important;
+      border: 2px solid var(--border);
+      box-shadow: 0 6px 18px rgba(43, 38, 34, 0.05);
+    }
+    .subject-portal-card[data-subj="biology"] { border-top: 6px solid var(--bio); }
+    .subject-portal-card[data-subj="physics"] { border-top: 6px solid var(--phy); }
+    .subject-portal-card[data-subj="chemistry"] { border-top: 6px solid var(--chem); }
+    .subject-portal-card:hover:not(.locked) {
+      border-color: var(--accent) !important;
+      box-shadow: 0 12px 26px rgba(255, 165, 0, 0.22);
+    }
+    .subject-name { color: var(--text); }
+    .subject-desc { color: var(--muted); }
+    .subject-portal-card.active-sub .subject-status-pill {
+      background: #E6F6EE; color: var(--ok); border: 1px solid #A8DEC3;
+    }
+    .subject-portal-card.locked { opacity: 0.6; filter: grayscale(0.7); border-color: var(--border) !important; }
+    .subject-portal-card.locked .subject-status-pill {
+      background: #FBE9E9; color: var(--danger); border: 1px solid #F0BDBD;
+    }
+
+    .chapters-top-bar { background: var(--surface); border: 1px solid var(--border); }
+    .current-subj-title { color: var(--accent-dark); }
+    .btn-back-subjects {
+      background: var(--accent); border: none; color: #2B2622;
+    }
+
+    .chapter-title { color: var(--accent-dark); border-bottom: 2px solid var(--accent-soft); }
+
+    .exp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 3px 10px rgba(43, 38, 34, 0.04);
+    }
+    .exp-card:hover { border-color: var(--accent); box-shadow: 0 8px 18px rgba(255, 165, 0, 0.18); }
+    .exp-card.locked { opacity: 0.5; border-color: var(--border); }
+    .exp-title { color: var(--text); }
+    .exp-tag { color: var(--muted); }
+    .lock-overlay { background: var(--danger); }
+
+    .modal-overlay { background: rgba(43, 38, 34, 0.55); }
+    .modal-card { background: var(--surface); border: 2px solid var(--accent); box-shadow: 0 16px 40px rgba(0,0,0,0.18); }
+    .modal-card h2 { color: var(--accent-dark); }
+    .modal-card p { color: var(--muted); }
+    .modal-input { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
+    .modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .modal-btn { background: var(--accent); color: #2B2622; }
+
+    .viewer-bar { background: var(--surface); border-bottom: 1px solid var(--border); }
+    #activeExpName { color: var(--accent-dark) !important; }
+
+    /* شريط الحفظ الأوفلاين */
+    #offlineManagerBar {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-bottom: 2px solid var(--accent) !important;
+      border-top: 1px solid var(--border);
+    }
+    #offlineManagerBar button { background: var(--accent) !important; color: #2B2622 !important; }
+    #offlineManagerBar div[style*="background:#334155"] { background: var(--accent-soft) !important; }
+    #downloadProgressBar { background: var(--accent) !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">🧪 منصة المختبرات العلمية التفاعلية</div>
+    <div class="header-left">
+      <div class="teacher-badge" id="teacherDisplay">@DESNEOO</div>
+      <!-- زر التحديث السريع والآمن -->
+      <button class="btn-key-change" onclick="forceSyncPermissions()" title="تحديث الصلاحيات والفصول" style="border-color:#10b981; color:#34d399;">🔄 تحديث الصلاحيات</button>
+      <button class="btn-key-change" onclick="openKeyModal()" title="تغيير كود الاشتراك">🔑 الكود</button>
+    </div>
+  </header>
+
+  <div class="main-wrapper">
+    <!-- واجهة اختيار المادة -->
+    <div id="subjectsView">
+      <div class="portal-heading">
+        <h2>اختر المادة التعليمية</h2>
+        <p>المختبرات التفاعلية المنهجية لمرحلة السادس العلمي</p>
+      </div>
+
+      <div class="subjects-grid">
+        <div class="subject-portal-card" data-subj="biology" onclick="selectSubject('biology')">
+          <div class="subject-icon-box">🧬</div>
+          <div class="subject-name">علم الأحياء</div>
+          <div class="subject-desc">الغشاء البلازمي، أنسجة النبات والحيوان، والأنشطة الخلوية المنهجية</div>
+          <div class="subject-status-pill" id="status_biology">فحص الصلاحية...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="physics" onclick="selectSubject('physics')">
+          <div class="subject-icon-box">⚡</div>
+          <div class="subject-name">الفيزياء</div>
+          <div class="subject-desc">أنشطة المتسعات، الحث الكهرومغناطيسي، وقوانين فراداي ولنز</div>
+          <div class="subject-status-pill" id="status_physics">فحص الصلاحية...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="chemistry" onclick="selectSubject('chemistry')">
+          <div class="subject-icon-box">🧪</div>
+          <div class="subject-name">الكيمياء</div>
+          <div class="subject-desc">الاتزان الكيميائي، المسعر الحراري، والتفاعلات الكيميائية</div>
+          <div class="subject-status-pill" id="status_chemistry">فحص الصلاحية...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- واجهة الفصول والتجارب -->
+    <div id="chaptersView">
+      <div class="chapters-top-bar">
+        <div class="current-subj-title" id="currentSubjectTitle">⚡ مختبر الفيزياء</div>
+        <button class="btn-back-subjects" onclick="showSubjectsView()">🔙 تغيير المادة</button>
+      </div>
+
+      <!-- مادة الفيزياء -->
+      <div id="container_physics" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <div class="chapter-section" data-chapter="phy_ch1">
+          <div class="chapter-title">⚡ الفصل الأول: المتسعات</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('phy_ch1', 'faraday_dielectric.html', 'نشاط العازل الكهربائي')">
+              <span class="exp-icon">🧲</span>
+              <div class="exp-title">نشاط (1): إدخال العازل الكهربائي</div>
+              <div class="exp-tag">تأثير العازل على فرق الجهد والسعة</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chapter-section" data-chapter="phy_ch2">
+          <div class="chapter-title">🧲 الفصل الثاني: الحث الكهرومغناطيسي</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('phy_ch2', 'faraday_induction.html', 'نشاط فراداي في الحث')">
+              <span class="exp-icon">💡</span>
+              <div class="exp-title">نشاط فراداي في الحث</div>
+              <div class="exp-tag">الملفان الابتدائي والثانوي وحلقة الحديد</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- مادة علم الأحياء -->
+      <div id="container_biology" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        
+        <!-- الفصل الأول -->
+        <div class="chapter-section" data-chapter="bio_ch1">
+          <div class="chapter-title">🔬 الفصل الأول: تركيب الخلية وأنشطتها وانقسامها</div>
+          <div class="cards-grid">
+            <!-- التجربة الجديدة (بدائية النواة) -->
+    <div class="exp-card" onclick="openExp('bio_ch1', 'prokaryotic_cell.html', 'الخلية بدائية النواة')">
+      <span class="exp-icon">🦠</span>
+      <div class="exp-title">الخلية بدائية النواة</div>
+      <div class="exp-tag">تركيب الخلية البكتيرية، المنطقة النووية، الجدار الخلوي والمحفظة</div>
+    </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'cells_structure.html', 'تركيب الخلية النباتية والحيوانية')">
+              <span class="exp-icon">🔬</span>
+              <div class="exp-title">تركيب الخلية النباتية والخلية الحيوانية</div>
+              <div class="exp-tag">مقارنة العضيات الحية، الجدار، الفجوة، والجسيمات المركزية</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'plasma_membrane.html', 'تركيب الغشاء البلازمي')">
+              <span class="exp-icon">🧬</span>
+              <div class="exp-title">تركيب الغشاء البلازمي في الخلية حقيقية النواة</div>
+              <div class="exp-tag">الطبقة الثنائية للشحوم المفسفرة، القناة الناقلة، والبروتينات</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'organelles.html', 'تركيب المايتوكوندريا ، البلاستيدات الخضراء ، الكروموسوم')">
+              <span class="exp-icon">⚡</span>
+              <div class="exp-title">تركيب المايتوكوندريا ، البلاستيدات الخضراء ، الكروموسوم</div>
+              <div class="exp-tag">الأعراف والقالب، الكرانوم والسدى، والكروماتيدات الشقيقة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'diffusion.html', 'عملية الانتشار')">
+              <span class="exp-icon">💧</span>
+              <div class="exp-title">الأنشطة الخلوية: عملية الانتشار (Diffusion)</div>
+              <div class="exp-tag">حركة الجزيئات من التركيز العالي إلى الواطئ، شكل (1-17)</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'osmosis.html', 'تجربة التناضح')">
+              <span class="exp-icon">🧪</span>
+              <div class="exp-title">الأنشطة الخلوية: ظاهرة التناضح (Osmosis)</div>
+              <div class="exp-tag">حركة جزيئات الماء عبر غشاء شبه منفذ والضغط الهيدروستاتيكي</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'active_transport.html', 'النقل الفعال أو النشط')">
+              <span class="exp-icon">🔋</span>
+              <div class="exp-title">الأنشطة الخلوية: النقل الفعال أو النشط (Active Transport)</div>
+              <div class="exp-tag">حركة المواد عكس منحدر التركيز باستخدام البروتين الناقل وطاقة ATP</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'endocytosis.html', 'الأكل والشرب والإخراج الخلوي')">
+              <span class="exp-icon">🍽️</span>
+              <div class="exp-title">الأنشطة الخلوية: الأكل والشرب والإخراج الخلوي</div>
+              <div class="exp-tag">البلعمة، تكوين الحويصلات السائلة، وطرح الفضلات خارج الغشاء البلازمي</div>
+            </div>
+
+<div class="exp-card" onclick="openExp('bio_ch1', 'respiration.html', 'التنفس الخلوي')">
+  <span class="exp-icon">🫁</span>
+  <div class="exp-title">التنفس الخلوي (الهوائي واللاهوائي)</div>
+  <div class="exp-tag">مقارنة شاملة لمراحل التحلل السكري، التنفس الهوائي، والتنفس اللاهوائي (التخمر)</div>
+</div>
+            
+<div class="exp-card" onclick="openExp('bio_ch1', 'aerobic_respiration.html', 'التنفس الهوائي')">
+  <span class="exp-icon">⚡</span>
+  <div class="exp-title">الأنشطة الخلوية: التنفس الهوائي</div>
+  <div class="exp-tag">التحلل السكري، دورة كريبس، وتكوين الطاقة (38 ATP) داخل المايتوكوندريا</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch1', 'krebs_cycle.html', 'دورة كريبس')">
+  <span class="exp-icon">🔄</span>
+  <div class="exp-title">التنفس الخلوي: دورة كريبس</div>
+  <div class="exp-tag">سلسلة التفاعلات داخل المايتوكوندريا، وتحرير الطاقة (ATP) وغاز CO2</div>
+</div>
+            
+            <div class="exp-card" onclick="openExp('bio_ch1', 'mitosis.html', 'أطوار الانقسام الخيطي')">
+              <span class="exp-icon">🧬</span>
+              <div class="exp-title">انقسام الخلية: أطوار الانقسام الخيطي (الاعتيادي)</div>
+              <div class="exp-tag">تضاعف الجسيم المركزي، تشكل خيوط المغزل، وانقسام السايتوبلازم</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch1', 'meiosis.html', 'أطوار الانقسام الاختزالي')">
+              <span class="exp-icon">➗</span>
+              <div class="exp-title">انقسام الخلية: أطوار الانقسام الاختزالي (I و II)</div>
+              <div class="exp-tag">مراحل الانقسامين الأول والثاني، وتكوين 4 خلايا أحادية المجموعة</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- الفصل الثاني -->
+        <div class="chapter-section" data-chapter="bio_ch2">
+          <div class="chapter-title">🌿 الفصل الثاني: الأنسجة (النباتية والحيوانية)</div>
+          <div class="cards-grid">
+            
+            <div class="exp-card" onclick="openExp('bio_ch2', 'plant_tissues.html', 'الأنسجة المستديمة في النباتات')">
+              <span class="exp-icon">🌱</span>
+              <div class="exp-title">الأنسجة المستديمة في النباتات</div>
+              <div class="exp-tag">النسيج البرنكيمي، الكولنكيمي، والسكلرنكيمي (الألياف والخلايا الصخرية)</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'phloem_tissue.html', 'نسيج اللحاء')">
+              <span class="exp-icon">🪵</span>
+              <div class="exp-title">نسيج اللحاء (Phloem)</div>
+              <div class="exp-tag">شكل (2-6): الأنابيب المنخلية، الخلايا المرافقة، والصفيحة المنخلية</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'squamous_epithelium.html', 'النسيج الظهاري الحرشفي البسيط')">
+              <span class="exp-icon">🧫</span>
+              <div class="exp-title">النسيج الظهاري الحرشفي البسيط</div>
+              <div class="exp-tag">شكل (2-7 ب): خلايا حرشفية مسطحة، غشاء قاعدي، ونسيج ضام</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'cuboidal_epithelium.html', 'النسيج الظهاري المكعبي البسيط')">
+              <span class="exp-icon">🧊</span>
+              <div class="exp-title">النسيج الظهاري المكعبي البسيط</div>
+              <div class="exp-tag">شكل (2-8 ب): القطاع القوسي الأنبوبي، الغشاء القاعدي اللزج، وتساوي الأبعاد</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'columnar_epithelium.html', 'النسيج الظهاري العمودي البسيط')">
+              <span class="exp-icon">🏛️</span>
+              <div class="exp-title">النسيج الظهاري العمودي البسيط</div>
+              <div class="exp-tag">شكل (2-9 ب): خلايا عمودية موشورية بأنوية بيضوية قرب القاعدة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'pseudostratified_epithelium.html', 'العمودي المطبق الكاذب')">
+              <span class="exp-icon">🌾</span>
+              <div class="exp-title">العمودي المطبق الكاذب (المهدب)</div>
+              <div class="exp-tag">شكل (2-10 ب): أنوية بمستويات متعددة تستند للغشاء القاعدي</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'stratified_squamous.html', 'النسيج الظهاري المطبق الحرشفي')">
+              <span class="exp-icon">🪜</span>
+              <div class="exp-title">النسيج الظهاري المطبق الحرشفي</div>
+              <div class="exp-tag">شكل (2-11 ب): طبقة قاعدية مكعبة وطبقات سطحية حرشفية</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'stratified_cuboidal.html', 'النسيج الظهاري المطبق المكعبي')">
+              <span class="exp-icon">🔲</span>
+              <div class="exp-title">النسيج الظهاري المطبق المكعبي</div>
+              <div class="exp-tag">شكل (2-12 ب): قنوات الغدد العرقية وخلايا سطحية مكعبة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'stratified_columnar.html', 'النسيج الظهاري المطبق العمودي')">
+              <span class="exp-icon">🏛️</span>
+              <div class="exp-title">النسيج الظهاري المطبق العمودي</div>
+              <div class="exp-tag">شكل (2-13 ب): طبقات متعددة بخلايا سطحية عمودية مرتبة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'connective_loose.html', 'الأنسجة الضامة الرخوة')">
+              <span class="exp-icon">🟡</span>
+              <div class="exp-title">النسيج الضام (شحمي، شبكي، مخاطاني)</div>
+              <div class="exp-tag">شكل (2-14 / 2-15): دراسة الخلايا الشحمية والشبكية والمخاطانية</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'compact_bone.html', 'العظم المصمت')">
+              <span class="exp-icon">🦴</span>
+              <div class="exp-title">نسيج العظم المصمت (Compact Bone)</div>
+              <div class="exp-tag">شكل (2-19 ب): جهاز هافرس، قناة هافرس، والصفائح المتحدة المركز</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'red_blood_cells.html', 'خلايا الدم الحمر')">
+              <span class="exp-icon">🔴</span>
+              <div class="exp-title">خلايا الدم الحمر (Erythrocytes)</div>
+              <div class="exp-tag">شكل (2-22 ب): الأقراص مقعرة الوجهين، تغير أبعادها، وتدفقها المجهري</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'muscle_types.html', 'أنواع العضلات')">
+              <span class="exp-icon">💪</span>
+              <div class="exp-title">أنواع العضلات في الإنسان</div>
+              <div class="exp-tag">شكل (2-26): مقارنة تفاعلية بين العضلات الملساء والهيكلية والقلبية</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch2', 'neurons.html', 'تركيب الخلية العصبية وأنواعها')">
+              <span class="exp-icon">🧠</span>
+              <div class="exp-title">تركيب الخلية العصبية وأنواعها</div>
+              <div class="exp-tag">شكل (2-27): متعددة الأقطاب، ثنائية القطب، كاذبة، وخلايا الدبق</div>
+            </div>
+
+          </div>
+        </div>
+
+<!-- الفصل الثالث: التكاثر في الكائنات الحية -->
+        <div class="chapter-section" data-chapter="bio_ch3">
+          <div class="chapter-title">🌸 الفصل الثالث: التكاثر في الكائنات الحية</div>
+          <div class="cards-grid">
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'spermatogenesis.html', 'تكوين النطف في الثدييات')">
+              <span class="exp-icon">🔬</span>
+              <div class="exp-title">تكوين النطف في الثدييات</div>
+              <div class="exp-tag">شكل (3-1): سليفات النطف، الخلايا النطفية الأولية والثانوية، وأرومات النطف</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'oogenesis.html', 'تكوين البيوض في الثدييات')">
+              <span class="exp-icon">🥚</span>
+              <div class="exp-title">تكوين البيوض في الثدييات</div>
+              <div class="exp-tag">شكل (3-2): الخلية البيضية الأولية، الأجسام القطبية، والخلية البيضية الثانوية</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'bacteriophage.html', 'التكاثر في الفيروسات (البلعم البكتيري)')">
+              <span class="exp-icon">🦠</span>
+              <div class="exp-title">التكاثر في الفيروسات (البلعم البكتيري)</div>
+              <div class="exp-tag">مراحل الاتصال، الاختراق، التخليق، الإنضاج، ودورة التحلل والإنتاج</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'binary_fission.html', 'الانشطار الثنائي في البكتيريا')">
+              <span class="exp-icon">➗</span>
+              <div class="exp-title">التكاثر اللاجنسي: الانشطار الثنائي في البكتيريا</div>
+              <div class="exp-tag">شكل (3-4): تضاعف DNA، استطالة الخلية، وتخصر الجدار لتكوين خليتين</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'bacteria_conjugation.html', 'التكاثر الجنسي في البكتيريا (الاقتران)')">
+              <span class="exp-icon">🧬</span>
+              <div class="exp-title">التكاثر الجنسي: الاقتران في البكتيريا</div>
+              <div class="exp-tag">شكل (3-5): هلب الاقتران، عامل الخصوبة، الخلية المعطية والمستلمة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'chlamydomonas.html', 'التكاثر في الكلاميدوموناس')">
+              <span class="exp-icon">🌱</span>
+              <div class="exp-title">التكاثر في الكلاميدوموناس</div>
+              <div class="exp-tag">شكل (3-7 / 3-8): تكوين الأبواغ السابحة والأمشاج المتشابهة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'paramecium.html', 'التكاثر في البراميسيوم')">
+              <span class="exp-icon">🧫</span>
+              <div class="exp-title">التكاثر في طليعي البراميسيوم</div>
+              <div class="exp-tag">الانقسام الثنائي المستعرض وتكاثر الاقتران والإخصاب الذاتي</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'euglena.html', 'التكاثر في اليوغلينا')">
+              <span class="exp-icon">🦠</span>
+              <div class="exp-title">التكاثر في طليعي اليوغلينا</div>
+              <div class="exp-tag">شكل (3-9): الانقسام الثنائي الطولي، تضاعف السوط والنواة في الطور الحر والمكيس</div>
+            </div>
+            
+            <div class="exp-card" onclick="openExp('bio_ch3', 'alternation_of_generations.html', 'ظاهرة تعاقب الأجيال في النباتات')">
+              <span class="exp-icon">🔄</span>
+              <div class="exp-title">ظاهرة تعاقب الأجيال في تكاثر النباتات</div>
+              <div class="exp-tag">شكل (3-12): المقارنة بين الطور البوغي (2س) والطور المشيجي (1س)</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'insect_reproductive_system.html', 'الجهاز التكاثري في الحشرات')">
+              <span class="exp-icon">🦗</span>
+              <div class="exp-title">الجهاز التكاثري في الحشرات</div>
+              <div class="exp-tag">شكل (3-24): تشريح الجهازين الذكري والأنثوي ووظائف الغدد المساعدة</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'frog_lifecycle.html', 'التكاثر ودورة الحياة في الضفدع')">
+              <span class="exp-icon">🐸</span>
+              <div class="exp-title">التكاثر ودورة الحياة في الضفدع</div>
+              <div class="exp-tag">الأجهزة التناسلية، التزاوج الخارجي، وتطور الدعموص والتحول الشكلي</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'male_reproductive_system.html', 'الجهاز التكاثري الذكري والنطفة الناضجة')">
+              <span class="exp-icon">🚹</span>
+              <div class="exp-title">الجهاز التكاثري الذكري في الإنسان والنطفة الناضجة</div>
+              <div class="exp-tag">شكل (3-30 و 3-31): الخصى، الغدد الملحقة، وتركيب الرأس والجسيم الطرفي</div>
+            </div>
+
+            <div class="exp-card" onclick="openExp('bio_ch3', 'ovarian_cycle.html', 'الدورة المبيضية في أنثى الإنسان')">
+              <span class="exp-icon">🌺</span>
+              <div class="exp-title">الدورة المبيضية في أنثى الإنسان</div>
+              <div class="exp-tag">شكل (3-34): نضوج حويصلة غراف، الإباضة، وتكوين واضمحلال الجسم الأصفر</div>
+            </div>
+<!-- تجارب الفصل الثالث الجديدة -->
+<div class="exp-card" onclick="openExp('bio_ch3', 'rhizopus.html', 'التكاثر في عفن الخبز الأسود')">
+  <span class="exp-icon">🍞</span>
+  <div class="exp-title">التكاثر في عفن الخبز الأسود</div>
+  <div class="exp-tag">تكوين الخيوط الفطرية والزيجة والأبواغ</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'gametophyte_reduction.html', 'اختزال الطور المشيجي')">
+  <span class="exp-icon">📉</span>
+  <div class="exp-title">اختزال الطور المشيجي</div>
+  <div class="exp-tag">تطور النباتات وسيادة الطور البوغي</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'polytrichum.html', 'التكاثر في الحزازيات (البوليتراكم)')">
+  <span class="exp-icon">🌱</span>
+  <div class="exp-title">التكاثر في الحزازيات - تكاثر البوليتراكم</div>
+  <div class="exp-tag">الأنثريديا والأركيجونيا والطور البوغي</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'polypodium.html', 'التكاثر في السرخسيات (البوليبوديوم)')">
+  <span class="exp-icon">🌿</span>
+  <div class="exp-title">التكاثر في السرخسيات - البوليبوديوم</div>
+  <div class="exp-tag">الثالوس الأولي وتناوب الأجيال</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'flower_structure.html', 'تركيب الزهرة النموذجية')">
+  <span class="exp-icon">🌸</span>
+  <div class="exp-title">تركيب الزهرة النموذجية</div>
+  <div class="exp-tag">الكأس، التويج، الأسدية، والمدقة</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'anther_structure.html', 'تركيب المتك في نبات زهري')">
+  <span class="exp-icon">🌾</span>
+  <div class="exp-title">تركيب المتك في نبات زهري</div>
+  <div class="exp-tag">فصوص المتك، أكياس اللقاح وجدار المتك</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'anther_pollen.html', 'المتك وتكوين حبوب اللقاح')">
+  <span class="exp-icon">🔬</span>
+  <div class="exp-title">المتك وتكوين حبوب اللقاح</div>
+  <div class="exp-tag">الخلايا الأم للأبواغ وتكوين حبة اللقاح الناضجة</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'dicot_embryo.html', 'التكوين الجنيني لنبات ذوات الفلقتين')">
+  <span class="exp-icon">🌰</span>
+  <div class="exp-title">التكوين الجنيني لنبات ذوات الفلقتين</div>
+  <div class="exp-tag">مراحل الجنين: الزيجة، التكور، القلب، والطوربيد</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'seed_structure.html', 'تركيب البذور')">
+  <span class="exp-icon">🪴</span>
+  <div class="exp-title">تركيب البذور</div>
+  <div class="exp-tag">غلاف البذرة (القصرة)، الجنين، ونسيج السويداء</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'fruit_structure.html', 'تركيب الثمرة')">
+  <span class="exp-icon">🍎</span>
+  <div class="exp-title">تركيب الثمرة</div>
+  <div class="exp-tag">الطبقة الخارجية والوسطى والداخلية لجدار الثمرة</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'frog_reproductive_system.html', 'الجهاز التكاثري في الضفدع')">
+  <span class="exp-icon">🐸</span>
+  <div class="exp-title">الجهاز التكاثري الذكري والأنثوي في الضفدع</div>
+  <div class="exp-tag">المناسل، الأجسام الدهنية، وقنوات البيض والبول</div>
+</div>
+
+<div class="exp-card" onclick="openExp('bio_ch3', 'human_testis_structure.html', 'تركيب الخصية في الإنسان')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">تركيب الخصية في الإنسان</div>
+  <div class="exp-tag">النبيبات المنوية وخلايا سلي وتكوين النطف</div>
+</div>
+            
+          </div>
+        </div>
+        <!-- الفصل الرابع -->
+        <div class="chapter-section" data-chapter="bio_ch4">
+          <div class="chapter-title">🐣 الفصل الرابع: التكوين الجنيني</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('bio_ch4', 'amphioxus.html', 'تكوين جنين الرميح')">
+              <span class="exp-icon">🔬</span>
+              <div class="exp-title">مراحل تفلج وتكوين المعيدة في الرميح</div>
+              <div class="exp-tag">تشكل الحبل الظهري والأنبوب العصبي</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch4', 'embryo_membranes.html', 'الأغشية الجنينية')">
+              <span class="exp-icon">🥚</span>
+              <div class="exp-title">الأغشية الجنينية ووظائفها</div>
+              <div class="exp-tag">الغشاء السلوي والكوريوني ومح البيضة</div>
+            </div>
+          </div>
+        </div>
+
+              <!-- الفصل الخامس -->
+        <div class="chapter-section" data-chapter="bio_ch5">
+          <div class="chapter-title">🧬 الفصل الخامس: الوراثة والوراثة الجزيئية</div>
+          <div class="cards-grid">
+
+            <!-- 1. النظرية الكروموسومية -->
+<div class="exp-card" onclick="openExp('bio_ch5', 'chromosomal_theory.html', 'النظرية الكروموسومية')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">النظرية الكروموسومية</div>
+  <div class="exp-tag">موقع الجينات على الكروموسومات وانتقالها عبر الأجيال</div>
+</div>
+
+<!-- 2. قانون الانعزال (مندل الأول) -->
+<div class="exp-card" onclick="openExp('bio_ch5', 'law_of_segregation.html', 'قانون الانعزال (مندل الأول)')">
+  <span class="exp-icon">🌱</span>
+  <div class="exp-title">قانون الانعزال (مندل الأول)</div>
+  <div class="exp-tag">انعزال عوامل الصفة الواحدة عن بعضها عند تكوين الأمشاج</div>
+</div>
+
+<!-- 3. مربع بانيت -->
+<div class="exp-card" onclick="openExp('bio_ch5', 'punnett_square.html', 'مربع بانيت')">
+  <span class="exp-icon">📊</span>
+  <div class="exp-title">مربع بانيت</div>
+  <div class="exp-tag">معرفة احتمالات الطرز الوراثية والمظهرية للأبناء</div>
+</div>
+
+<!-- 4. التهجين العكسي -->
+<div class="exp-card" onclick="openExp('bio_ch5', 'reciprocal_cross.html', 'التهجين العكسي')">
+  <span class="exp-icon">🔄</span>
+  <div class="exp-title">التهجين العكسي</div>
+  <div class="exp-tag">تحديد موقع المورثة (على كروموسوم جسمي أم جنسي)</div>
+</div>
+
+<!-- 5. التهجين الاختباري -->
+<div class="exp-card" onclick="openExp('bio_ch5', 'test_cross.html', 'التهجين الاختباري')">
+  <span class="exp-icon">🧪</span>
+  <div class="exp-title">التهجين الاختباري</div>
+  <div class="exp-tag">التعرف على الطراز الوراثي للفرد الذي يحمل الصفة السائدة (نقي أم هجين)</div>
+</div>
+
+<!-- 6. التهجين الرجعي -->
+<div class="exp-card" onclick="openExp('bio_ch5', 'back_cross.html', 'التهجين الرجعي')">
+  <span class="exp-icon">🔙</span>
+  <div class="exp-title">التهجين الرجعي</div>
+  <div class="exp-tag">تضريب هجائن الجيل الأول مع أحد الأبوين أو فرد يماثلهما</div>
+</div>
+            
+            <div class="exp-card" onclick="openExp('bio_ch5', 'mendel_second_law.html', 'تطبيق على قانون مندل الثاني')">
+              <span class="exp-icon">🔀</span>
+              <div class="exp-title">تطبيق على قانون مندل الثاني</div>
+              <div class="exp-tag">قانون التوزيع الحر، دراسة توارث زوجين من الصفات المتضادة معاً (التهجين الثنائي)</div>
+            </div>
+            
+<div class="exp-card" onclick="openExp('bio_ch5', 'non_mendelian.html', 'الصفات التي تتحور عن النسبة المندلية')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">الصفات التي تتحور عن النسبة المندلية</div>
+  <div class="exp-tag">تشمل السيادة غير التامة (نبات حنك السبع) والسيادة المشاركة أو المواكبة (الماشية ومجموعة الدم MN)</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'dominance_examples.html', 'امثلة عن السيادة التامة والسيادة المشاركة')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">أمثلة عن السيادة التامة والسيادة المشاركة</div>
+  <div class="exp-tag">تطبيقات ومقارنة بين الوراثة المندلية (السيادة التامة) واللامندلية (السيادة المشاركة أو المواكبة)</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'lethal_alleles.html', 'الأليلات المميتة')">
+  <span class="exp-icon">🐁</span>
+  <div class="exp-title">الأليلات المميتة</div>
+  <div class="exp-tag">فقر الدم المنجلي، الفئران الصفراء، الدجاج الزاحف، والكلاب المكسيكية عديمة الشعر</div>
+</div>
+        <div class="exp-card" onclick="openExp('bio_ch5', 'gene_interaction.html', 'تداخل الفعل الجيني')">
+  <span class="exp-icon">🎃</span>
+  <div class="exp-title">تداخل الفعل الجيني</div>
+  <div class="exp-tag">التفوق في لون ثمار القرع (الأبيض، الأصفر، الأخضر)، وتوارث شكل العرف في الدجاج</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'multiple_alleles.html', 'الأليلات المتعددة ونقل الدم')">
+  <span class="exp-icon">💉</span>
+  <div class="exp-title">الأليلات المتعددة ونقل الدم</div>
+  <div class="exp-tag">نظام مجاميع الدم (ABO)، المستضدات والأجسام المضادة، وقواعد نقل الدم الآمن بين الفصائل</div>
+</div>
+
+      <div class="exp-card" onclick="openExp('bio_ch5', 'rh_system.html', '( وراثـة نظـام الـ Rh )')">
+  <span class="exp-icon">🩸</span>
+  <div class="exp-title">( وراثـة نظـام الـ Rh )</div>
+  <div class="exp-tag">توافق مستضدات Rh ومرض يرقان الأطفال (Erythroblastosis Fetalis)</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'chromosomal_mutations.html', 'الطفرات الكروموسومية')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">الطفرات الكروموسومية</div>
+  <div class="exp-tag">الحذف و الانقلاب والانتقال </div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'gene_mutations.html', 'الطفرات الجينية')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">الطفرات الجينية</div>
+  <div class="exp-tag">الطفرات النقطية (الاستبدال، الإضافة، الحذف) وتأثيرها على تسلسل DNA</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'human_common_traits.html', 'وراثة بعض الصفات الشائعة في الإنسان')">
+  <span class="exp-icon">👥</span>
+  <div class="exp-title">بعض الصفات الشائعة في الإنسان</div>
+  <div class="exp-tag">توارث صفات مثل استخدام اليد (اليمنى/اليسرى)، شعر الجسم ووجود شق الذقن</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'centromere_position.html', 'موقع السنترومير في الكروموسومات')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">موقع السنترومير في الكروموسومات</div>
+  <div class="exp-tag">تصنيف الكروموسومات بناءً على موقع السنترومير (وسطي، شبه وسطي، طرفي، ونهائي)</div>
+</div> 
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'hershey_chase.html', 'تجربة هيرشي وتشيس')">
+  <span class="exp-icon">🦠</span>
+  <div class="exp-title">تجربة هيرشي وتشيس</div>
+  <div class="exp-tag">استخدام البلعم البكتيري والنظائر المشعة لإثبات أن الـ DNA هو المادة الوراثية وليس البروتين</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'dna_structure.html', 'تركيب الـ DNA')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">تركيب الـ DNA</div>
+  <div class="exp-tag">نموذج واطسون وكريك، النيوكليوتيدات، القواعد النيتروجينية (A, T, C, G)، والروابط الهيدروجينية</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'nitrogenous_bases.html', 'القواعد النيتروجينية في DNA و RNA')">
+  <span class="exp-icon">🧩</span>
+  <div class="exp-title">القواعد النيتروجينية في DNA و RNA</div>
+  <div class="exp-tag">البيورينات والبريميدينات، والمقارنة بين قواعد (A, T, C, G) في الـ DNA وقواعد (A, U, C, G) في الـ RNA</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'dna_vs_rna.html', 'الفرق بين DNA - RNA')">
+  <span class="exp-icon">🧬</span>
+  <div class="exp-title">الفرق بين DNA - RNA</div>
+  <div class="exp-tag">نوع السكر، وتركيب الشريط الحلزوني</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'dna_replication.html', 'خطوات تضاعف الـ DNA')">
+  <span class="exp-icon">🔄</span>
+  <div class="exp-title">خطوات تضاعف الـ DNA</div>
+  <div class="exp-tag">انفصال الشريطين، عمل إنزيمات البلمرة، وبناء الأشرطة الجديدة بطريقة شبه محافظة</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'amino_acids_synthesis.html', 'تكوين الأحماض الأمينية')">
+  <span class="exp-icon">⛓️</span>
+  <div class="exp-title">تكوين الأحماض الأمينية</div>
+  <div class="exp-tag">دور mRNA و tRNA والرايبوسومات في عملية الترجمة وتكوين السلسلة الببتيدية للبروتين</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'restriction_enzymes.html', 'الإنزيمات القاطعة')">
+  <span class="exp-icon">✂️</span>
+  <div class="exp-title">الإنزيمات القاطعة</div>
+  <div class="exp-tag">التعرف على تسلسلات معينة من الـ DNA وقطعها، ودورها الأساسي في تقنيات الهندسة الوراثية</div>
+</div>
+
+        <div class="exp-card" onclick="openExp('bio_ch5', 'insulin_production.html', 'توجيه خلايا البكتيريا لإنتاج إنسولين الإنسان')">
+  <span class="exp-icon">🧪</span>
+  <div class="exp-title">إنتاج الإنسولين البشري بواسطة البكتيريا</div>
+  <div class="exp-tag">تطبيقات الهندسة الوراثية: دمج جين الإنسولين في البلازميد وإنتاجه داخل البكتيريا (E. coli)</div>
+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- مادة الكيمياء -->
+      <div id="container_chemistry" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <div class="chapter-section" data-chapter="chem_ch1">
+          <div class="chapter-title">🔥 الفصل الأول: علم الثرموداينمك</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('chem_ch1', 'calorimeter.html', 'تجربة المسعر الحراري')">
+              <span class="exp-icon">🌡️</span>
+              <div class="exp-title">تجربة المسعر الحراري</div>
+              <div class="exp-tag">قياس حرارة التفاعل وسعة الامتصاص</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chapter-section" data-chapter="chem_ch2">
+          <div class="chapter-title">⚖️ الفصل الثاني: الاتزان الكيميائي</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('chem_ch2', 'le_chatelier.html', 'قاعدة لوشاتليه التفاعلية')">
+              <span class="exp-icon">⚗️</span>
+              <div class="exp-title">قاعدة لوشاتليه التفاعلية</div>
+              <div class="exp-tag">تأثير الضغط والحرارة والتركيز على الاتزان</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- نافذة تفعيل الكود -->
+  <div class="modal-overlay" id="keyModal">
+    <div class="modal-card">
+      <h2>🔐 تفعيل اشتراك المنصة</h2>
+      <p>يرجى إدخال كود الاشتراك الخاص بك للوصول إلى المواد والمختبرات المصرح بها:</p>
+      
+      <input type="text" id="inputTeacherKey" class="modal-input" placeholder="مثال: ALI2026" autocomplete="off" autocapitalize="characters">
+      
+      <button class="modal-btn" onclick="submitKey()">تفعيل الحساب والبدء</button>
+      <div class="modal-status" id="modalStatus"></div>
+
+      <div style="font-size: 0.72rem; color: #64748b;">
+        إشراف المنصة: المهندس محمد حسن
+      </div>
+    </div>
+  </div>
+
+  <!-- مشغل المحاكاة الداخلي -->
+  <div id="viewerScreen">
+    <div class="viewer-bar">
+      <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">المحاكاة التفاعلية</span>
+      <button class="btn-back" onclick="closeExp()">🔙 العودة للمنصة</button>
+    </div>
+    <iframe id="expFrame" src=""></iframe>
+  </div>
+
+  <script>
+    const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1iYfqiK-IKHPhLClPO_P3GMQBSprkemJ10QKB6W4_TwA/gviz/tq";
+    const OFFLINE_GRACE_DAYS = 30;
+    // بعد نشر Google Apps Script ضع رابطه هنا. ما دام فارغاً تبقى المنصة تقرأ من الشيت بالطريقة القديمة.
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1tNTorBhGtfvleAdpXxoA4JtGs7p1JYqfg8Z6c0-Z393XYkQbj0MqjgYam7cZBX5DCQ/exec";
+
+    let rawPermissions = "";
+    let currentKey = "";
+    let manualSync = false;
+
+    function getStoredKey() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlKey = urlParams.get('key');
+      if (urlKey) {
+        localStorage.setItem('moe_teacher_key', urlKey.trim());
+        return urlKey.trim();
+      }
+      return localStorage.getItem('moe_teacher_key') || "";
+    }
+
+    function parseGvizDate(cell) {
+      if (!cell) return null;
+      if (typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+        const nums = cell.v.match(/\d+/g);
+        if (nums && nums.length >= 3) {
+          return new Date(parseInt(nums[0]), parseInt(nums[1]), parseInt(nums[2]), 23, 59, 59);
+        }
+      }
+      if (cell.f) {
+        const d = new Date(cell.f + 'T23:59:59');
+        if (!isNaN(d.getTime())) return d;
+      }
+      if (cell.v) {
+        const d = new Date(cell.v);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return null;
+    }
+
+    function checkOfflineLicense(keyToTest) {
+      const stored = localStorage.getItem('moe_offline_license');
+      if (!stored) return false;
+
+      try {
+        const lic = JSON.parse(stored);
+        const now = Date.now();
+
+        if (String(lic.key).toUpperCase() === 'ADMIN2026') {
+          localStorage.removeItem('moe_offline_license');
+          return false;
+        }
+
+        if (lic.key.toLowerCase() !== keyToTest.trim().toLowerCase()) return false;
+
+        const lifetime = hasFlag(lic.permissions, 'lifetime');
+        const lastSeen = Math.max(lic.lastSeen || 0, lic.lastVerified);
+        if (!lifetime && now < lastSeen - (2 * 60 * 1000)) {
+          openKeyModal("⚠️ تم رصد اختلاف في تاريخ وساعة الجهاز، يرجى ضبط الوقت والاتصال بالإنترنت.");
+          return true;
+        }
+
+        if (!lifetime && now > lic.offlineExpiry) {
+          openKeyModal("⚠️ انتهت مدة التشغيل بدون إنترنت (30 يوماً). يرجى الاتصال بالإنترنت لثوانٍ لتجديد الرخصة.");
+          return true;
+        }
+
+        if (!lifetime && lic.officialExpiry && now > lic.officialExpiry) {
+          openKeyModal("⚠️ انتهت فترة الاشتراك الرسمي. يرجى التواصل للتجديد.");
+          return true;
+        }
+
+        lic.lastSeen = now;
+        if (lifetime) { lic.offlineExpiry = 4102444800000; lic.officialExpiry = null; }
+        localStorage.setItem('moe_offline_license', JSON.stringify(lic));
+
+        currentKey = lic.key;
+        rawPermissions = lic.permissions;
+
+        const badge = document.getElementById('teacherDisplay');
+        if (isAdminPerms(rawPermissions)) {
+          setAdminBadge();
+        } else {
+          badge.innerText = lic.teacher || "@DESNEOO";
+          badge.style.color = "#38bdf8";
+          badge.style.borderColor = "#38bdf8";
+          badge.style.background = "rgba(56, 189, 248, 0.1)";
+        }
+
+        document.getElementById('keyModal').style.display = 'none';
+        renderPortals();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function hasFlag(p, flag) {
+      return String(p || '').split(',').map(s => s.trim().toLowerCase()).includes(flag);
+    }
+
+    function isAdminPerms(p) {
+      const perms = String(p || '').split(',').map(s => s.trim().toLowerCase());
+      return perms.includes('all') || perms.includes('*') || perms.includes('admin');
+    }
+
+    function setAdminBadge() {
+      const badge = document.getElementById('teacherDisplay');
+      badge.innerText = "👑 المدير العام";
+      badge.style.color = "#f59e0b";
+      badge.style.borderColor = "#f59e0b";
+      badge.style.background = "rgba(245, 158, 11, 0.15)";
+    }
+
+    function verifySubscription(keyToTest) {
+      if (!keyToTest) {
+        openKeyModal();
+        return;
+      }
+
+      if (!navigator.onLine) {
+        const ok = checkOfflineLicense(keyToTest);
+        if (!ok) openKeyModal("يلزم الاتصال بالإنترنت لمرة واحدة لتفعيل رخصة الجهاز.");
+        return;
+      }
+
+      let responded = false;
+      const callbackName = 'gvizCallback_' + Date.now();
+
+      const timeoutId = setTimeout(() => {
+        if (!responded) {
+          responded = true;
+          delete window[callbackName];
+          const oldTag = document.getElementById('gvizScriptTag');
+          if (oldTag) oldTag.remove();
+          if (!checkOfflineLicense(keyToTest)) {
+            openKeyModal("تعذر الاتصال بقاعدة البيانات. تأكد من الإنترنت.");
+          }
+        }
+      }, 8000);
+
+      window[callbackName] = function(response) {
+        if (responded) return;
+        responded = true;
+        clearTimeout(timeoutId);
+        delete window[callbackName];
+        const oldTag = document.getElementById('gvizScriptTag');
+        if (oldTag) oldTag.remove();
+
+        processSheetData(response, keyToTest);
+      };
+
+      const script = document.createElement('script');
+      script.id = 'gvizScriptTag';
+      if (APPS_SCRIPT_URL) {
+        script.src = `${APPS_SCRIPT_URL}?key=${encodeURIComponent(keyToTest.trim())}&callback=${callbackName}&_t=${Date.now()}`;
+      } else {
+        script.src = `${SHEET_BASE_URL}?tqx=responseHandler:${callbackName}&_t=${Date.now()}`;
+      }
+
+      script.onerror = function() {
+        if (responded) return;
+        responded = true;
+        clearTimeout(timeoutId);
+        delete window[callbackName];
+        if (!checkOfflineLicense(keyToTest)) {
+          openKeyModal("تعذر الاتصال بقاعدة البيانات. يلزم الإنترنت لأول مرة لتسجيل الرخصة.");
+        }
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function processSheetData(response, keyToTest) {
+      if (response && typeof response.found !== 'undefined') {
+        processApiData(response, keyToTest);
+        return;
+      }
+
+      if (!response || !response.table || !response.table.rows) {
+        if (!checkOfflineLicense(keyToTest)) {
+          openKeyModal("تعذر قراءة بيانات الجدول.");
+        }
+        return;
+      }
+
+      const rows = response.table.rows;
+      const today = new Date();
+      let found = false;
+      let userData = null;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i].c;
+        if (!row) continue;
+
+        const teacherName = row[0]?.v ? String(row[0].v).trim() : "";
+        const teacherKey = row[1]?.v ? String(row[1].v).trim() : "";
+        const expiryCell = row[2];
+        const status = row[3]?.v ? String(row[3].v).trim().toLowerCase() : "";
+        const permissions = row[4]?.v ? String(row[4].v).trim().toLowerCase() : "";
+
+        if (teacherKey.toLowerCase() === keyToTest.trim().toLowerCase()) {
+          found = true;
+          const expiryDate = parseGvizDate(expiryCell);
+
+          if (status !== 'active') {
+            localStorage.removeItem('moe_offline_license');
+            openKeyModal("تم إيقاف الاشتراك من الإدارة. يرجى مراجعة المسؤول.");
+            rawPermissions = "";
+            renderPortals();
+            return;
+          }
+
+          if (expiryDate && today > expiryDate) {
+            localStorage.removeItem('moe_offline_license');
+            openKeyModal("انتهت فترة الاشتراك. يرجى التواصل للتجديد.");
+            rawPermissions = "";
+            renderPortals();
+            return;
+          }
+
+          userData = {
+            teacher: teacherName,
+            permissions: permissions,
+            officialExpiry: expiryDate ? expiryDate.getTime() : null
+          };
+          break;
+        }
+      }
+
+      if (!found) {
+        localStorage.removeItem('moe_offline_license');
+        openKeyModal("كود الاشتراك غير صحيح. تأكد من إدخال الكود المخصص لك.");
+        rawPermissions = "";
+        renderPortals();
+        return;
+      }
+
+      applyLicense(userData, keyToTest);
+    }
+
+    function processApiData(res, keyToTest) {
+      const fail = (msg) => {
+        localStorage.removeItem('moe_offline_license');
+        rawPermissions = "";
+        renderPortals();
+        openKeyModal(msg);
+      };
+      if (!res.found) return fail("كود الاشتراك غير صحيح. تأكد من إدخال الكود المخصص لك.");
+      if (res.status !== 'active') return fail("تم إيقاف الاشتراك من الإدارة. يرجى مراجعة المسؤول.");
+      if (res.expiry && Date.now() > res.expiry) return fail("انتهت فترة الاشتراك. يرجى التواصل للتجديد.");
+      applyLicense({
+        teacher: res.teacher || "",
+        permissions: String(res.permissions || "").toLowerCase(),
+        officialExpiry: res.expiry || null
+      }, keyToTest);
+    }
+
+    function applyLicense(userData, keyToTest) {
+      const nowMs = Date.now();
+      const lifetime = hasFlag(userData.permissions, 'lifetime');
+      const offlineLicense = {
+        key: keyToTest.trim(),
+        permissions: userData.permissions,
+        teacher: userData.teacher,
+        lastVerified: nowMs,
+        lastSeen: nowMs,
+        // اشتراك مدى الحياة: لا يحتاج تجديداً بالإنترنت
+        offlineExpiry: lifetime ? 4102444800000 : nowMs + (OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000),
+        officialExpiry: lifetime ? null : userData.officialExpiry
+      };
+      localStorage.setItem('moe_offline_license', JSON.stringify(offlineLicense));
+
+      currentKey = keyToTest.trim();
+      localStorage.setItem('moe_teacher_key', currentKey);
+      document.getElementById('keyModal').style.display = 'none';
+
+      rawPermissions = userData.permissions;
+      const badge = document.getElementById('teacherDisplay');
+      if (isAdminPerms(rawPermissions)) {
+        setAdminBadge();
+      } else {
+        badge.innerText = userData.teacher || "@DESNEOO";
+        badge.style.color = "#38bdf8";
+        badge.style.borderColor = "#38bdf8";
+        badge.style.background = "rgba(56, 189, 248, 0.1)";
+      }
+
+      renderPortals();
+
+      if (manualSync) {
+        manualSync = false;
+        alert("✅ تم تحديث الصلاحيات وتجديد رخصة الأوفلاين بنجاح!");
+      }
+    }
+
+    // الدالة الآمنة لتحديث الصلاحيات بدون كسر وضع الأوفلاين
+    function forceSyncPermissions() {
+      if (!navigator.onLine) {
+        alert("⚠️ أنت تعمل حالياً في وضع الأوفلاين (بدون إنترنت). رخصتك الحالية سارية ومحمية، ولا يلزم التحديث إلا عند تفعيل فصول جديدة مع توفر إنترنت.");
+        return;
+      }
+
+      const key = getStoredKey();
+      if (!key) {
+        openKeyModal("يرجى إدخال الكود أولاً.");
+        return;
+      }
+
+      const badge = document.getElementById('teacherDisplay');
+      badge.innerText = "⏳ جاري التحديث...";
+      badge.style.color = "#fef08a";
+
+      manualSync = true;
+      verifySubscription(key);
+    }
+
+    function isSubjectAllowed(subj) {
+      if (!rawPermissions) return false;
+      const perms = rawPermissions.split(',').map(s => s.trim().toLowerCase());
+
+      if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
+
+      if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
+      if (subj === 'biology' && (perms.includes('biology') || perms.includes('احياء') || perms.includes('أحياء') || perms.includes('bio'))) return true;
+      if (subj === 'chemistry' && (perms.includes('chemistry') || perms.includes('كيمياء') || perms.includes('chem'))) return true;
+
+      if (subj === 'physics' && perms.some(p => p.startsWith('phy_'))) return true;
+      if (subj === 'biology' && perms.some(p => p.startsWith('bio_'))) return true;
+      if (subj === 'chemistry' && perms.some(p => p.startsWith('chem_'))) return true;
+
+      return false;
+    }
+
+    function isChapterAllowed(subj, chapter) {
+      if (!rawPermissions) return false;
+      const perms = rawPermissions.split(',').map(s => s.trim().toLowerCase());
+
+      if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
+
+      if (isSubjectAllowed(subj)) {
+        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_' }[subj];
+        const hasSpecificChapter = perms.some(p => p.startsWith(prefix));
+        if (hasSpecificChapter) {
+          return perms.includes(chapter.toLowerCase());
+        }
+        return true;
+      }
+      return false;
+    }
+
+    function renderPortals() {
+      const subjects = ['physics', 'chemistry', 'biology'];
+
+      subjects.forEach(subj => {
+        const card = document.querySelector(`.subject-portal-card[data-subj="${subj}"]`);
+        const statusPill = document.getElementById(`status_${subj}`);
+        const allowed = isSubjectAllowed(subj);
+
+        if (allowed) {
+          card.classList.remove('locked');
+          card.classList.add('active-sub');
+          statusPill.innerText = "🟢 مفعّل بالاشتراك";
+        } else {
+          card.classList.add('locked');
+          card.classList.remove('active-sub');
+          statusPill.innerText = "🔒 غير مفعّل";
+        }
+
+        // only: إخفاء المواد غير المشترك بها
+        card.style.display = (hasFlag(rawPermissions, 'only') && !allowed) ? 'none' : '';
+      });
+
+      // only + مادة واحدة: فتحها مباشرة وإخفاء زر تغيير المادة
+      const visible = subjects.filter(s => isSubjectAllowed(s));
+      const single = hasFlag(rawPermissions, 'only') && visible.length === 1;
+      document.querySelector('.btn-back-subjects').style.display = single ? 'none' : '';
+      if (single) selectSubject(visible[0]);
+    }
+
+    function selectSubject(subj) {
+      if (!isSubjectAllowed(subj)) {
+        alert("⚠️ هذه المادة غير مفعّلة ضمن اشتراكك الحالي. يرجى التواصل مع الإدارة لتفعيلها.");
+        return;
+      }
+
+      document.getElementById('subjectsView').style.display = 'none';
+      document.getElementById('chaptersView').style.display = 'flex';
+
+      document.querySelectorAll('.subject-content-container').forEach(c => c.style.display = 'none');
+
+      const targetContainer = document.getElementById(`container_${subj}`);
+      if (targetContainer) targetContainer.style.display = 'flex';
+
+      const titleElem = document.getElementById('currentSubjectTitle');
+      if (subj === 'physics') titleElem.innerHTML = "⚡ مختبر الفيزياء المنهجي";
+      if (subj === 'biology') titleElem.innerHTML = "🧬 مختبر علم الأحياء المنهجي";
+      if (subj === 'chemistry') titleElem.innerHTML = "🧪 مختبر الكيمياء المنهجي";
+
+      targetContainer.querySelectorAll('.chapter-section').forEach(sec => {
+        const ch = sec.getAttribute('data-chapter');
+        const cards = sec.querySelectorAll('.exp-card');
+        const chAllowed = isChapterAllowed(subj, ch);
+
+        cards.forEach(card => {
+          if (chAllowed) {
+            card.classList.remove('locked');
+            const badge = card.querySelector('.lock-overlay');
+            if (badge) badge.remove();
+          } else {
+            card.classList.add('locked');
+            if (!card.querySelector('.lock-overlay')) {
+              const badge = document.createElement('div');
+              badge.className = 'lock-overlay';
+              badge.innerText = '🔒 غير مفعّل';
+              card.appendChild(badge);
+            }
+          }
+        });
+      });
+    }
+
+    function showSubjectsView() {
+      document.getElementById('chaptersView').style.display = 'none';
+      document.getElementById('subjectsView').style.display = 'flex';
+    }
+
+    function openExp(chapter, fileName, expTitle) {
+      const subj = chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
+      if (!isChapterAllowed(subj, chapter)) {
+        alert("⚠️ هذا الفصل غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع الإدارة لتفعيله.");
+        return;
+      }
+      document.getElementById('activeExpName').innerText = expTitle || "المحاكاة التفاعلية";
+      const viewer = document.getElementById('viewerScreen');
+      viewer.style.zIndex = "999999";
+      viewer.style.display = 'flex';
+      document.getElementById('expFrame').src = './' + fileName;
+    }
+
+    function closeExp() {
+      const viewer = document.getElementById('viewerScreen');
+      viewer.style.display = 'none';
+      document.getElementById('expFrame').src = "about:blank";
+    }
+
+    function openKeyModal(errorMsg = "") {
+      manualSync = false;
+      const modal = document.getElementById('keyModal');
+      const input = document.getElementById('inputTeacherKey');
+      const status = document.getElementById('modalStatus');
+
+      input.value = currentKey || localStorage.getItem('moe_teacher_key') || "";
+      status.innerText = errorMsg;
+      status.style.color = "#ef4444";
+      modal.style.display = 'flex';
+    }
+
+    function submitKey() {
+      const input = document.getElementById('inputTeacherKey');
+      const status = document.getElementById('modalStatus');
+      const keyVal = input.value.trim();
+
+      if (!keyVal) {
+        status.innerText = "يرجى كتابة كود الاشتراك أولاً!";
+        status.style.color = "#ef4444";
+        return;
+      }
+
+      status.innerText = "جاري التحقق من الكود...";
+      status.style.color = "#38bdf8";
+      verifySubscription(keyVal);
+    }
+
+    window.onload = () => {
+      const key = getStoredKey();
+      verifySubscription(key);
+    };
+  </script>
+
+  <!-- شريط التأمين الأوفلاين الذكي -->
+  <div id="offlineManagerBar" style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-bottom:2px solid #3b82f6; font-family:system-ui, sans-serif; direction:rtl;">
+    <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="downloadStatusIcon" style="font-size:18px;">⏳</span>
+        <div>
+          <div id="downloadStatusText" style="font-size:14px; font-weight:bold;">جاري التحقق من التجارب وحفظها بالذاكرة...</div>
+          <div id="downloadErrors" style="font-size:12px; color:#f87171; margin-top:2px;"></div>
+        </div>
+      </div>
+      
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:140px; height:8px; background:#334155; border-radius:4px; overflow:hidden;">
+          <div id="downloadProgressBar" style="width:0%; height:100%; background:#3b82f6; transition:width 0.2s;"></div>
+        </div>
+        <span id="downloadPercent" style="font-size:13px; font-weight:bold;">0%</span>
+        <button onclick="startAutoSync()" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">إعادة الفحص</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+        .then(reg => reg.update());
+    }
+
+    async function startAutoSync() {
+      const icon = document.getElementById('downloadStatusIcon');
+      const text = document.getElementById('downloadStatusText');
+      const errBox = document.getElementById('downloadErrors');
+      const bar = document.getElementById('downloadProgressBar');
+      const percent = document.getElementById('downloadPercent');
+
+      if (!navigator.onLine) {
+        icon.innerText = '📶';
+        text.innerText = 'أنت تعمل بالوضع بدون نت (أوفلاين) - التجارب المحفوظة جاهزة';
+        bar.style.width = '100%';
+        percent.innerText = '100%';
+        return;
+      }
+
+      try {
+        const fileSet = new Set(['./' + (location.pathname.split('/').pop() || 'portal.html')]);
+        document.querySelectorAll('[onclick]').forEach(el => {
+          const attr = el.getAttribute('onclick') || '';
+          const match = attr.match(/['"]([^'"]+\.html)['"]/);
+          if (match && match[1]) {
+            fileSet.add(match[1].startsWith('./') ? match[1] : './' + match[1]);
+          }
+        });
+
+        const files = Array.from(fileSet);
+        const total = files.length;
+        let cachedCount = 0;
+        let failedFiles = [];
+
+        const cache = await caches.open('moelab-v2026-final');
+
+        for (let i = 0; i < total; i++) {
+          const file = files[i];
+          try {
+            const res = await fetch(file, { cache: 'reload' });
+            if (res.ok) {
+              await cache.put(file, res);
+              cachedCount++;
+            } else {
+              failedFiles.push(file.replace('./', ''));
+            }
+          } catch (e) {
+            failedFiles.push(file.replace('./', ''));
+          }
+
+          const p = Math.round(((i + 1) / total) * 100);
+          bar.style.width = p + '%';
+          percent.innerText = p + '%';
+        }
+
+        if (failedFiles.length === 0) {
+          icon.innerText = '✅';
+          text.innerHTML = `<span style="color:#10b981;">تم حفظ جميع التجارب بنجاح (${cachedCount}/${total}) - المنصة جاهزة 100% بدون نت</span>`;
+          errBox.innerText = '';
+          bar.style.background = '#10b981';
+        } else {
+          icon.innerText = '⚠️';
+          text.innerHTML = `<span style="color:#f59e0b;">تم حفظ ${cachedCount} تجربة، ولكن هناك ${failedFiles.length} ملفات غير موجودة على GitHub!</span>`;
+          errBox.innerHTML = `الملفات الناقصة: <b>${failedFiles.join(', ')}</b>`;
+          bar.style.background = '#f59e0b';
+        }
+      } catch (err) {
+        console.error(err);
+        text.innerText = 'تعذر استكمال المزامنة، يرجى تحديث الصفحة';
+      }
+    }
+
+    window.addEventListener('load', startAutoSync);
+  </script>
+</body>
+</html>
