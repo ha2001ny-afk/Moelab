@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>الجسيمات الحالة</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go,#prev{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  .lb{fill:var(--ink);font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .ls{fill:var(--sub);font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style></head><body>
+
+<div id="top"><div id="title">الجسيمات الحالة (اللايسوسومات)</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 -30 1000 860" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gNuc" cx=".35" cy=".4" r=".8"><stop offset="0" stop-color="#d9c2ee"/><stop offset=".7" stop-color="#a77fcf"/><stop offset="1" stop-color="#7d55a8"/></radialGradient>
+        <radialGradient id="gLys" cx=".35" cy=".35" r=".75"><stop offset="0" stop-color="#fbf3ff"/><stop offset="1" stop-color="#dcc2f2"/></radialGradient>
+        <radialGradient id="gFood" cx=".35" cy=".35" r=".75"><stop offset="0" stop-color="#e8b878"/><stop offset="1" stop-color="#9a6326"/></radialGradient>
+        <radialGradient id="gMit" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#e9c9a8"/><stop offset="1" stop-color="#a97c55"/></radialGradient>
+        <marker id="arw" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#6b7280"/></marker>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+
+const DUR=[5,7.5,7,6.5];
+const world=G(view);
+const Ltint=G(world),Lout0=G(world),Lglow=G(world),Lnuc=G(world),Gout=G(world),Gin=G(world),Lorg=G(world),Lves=G(world),Lbits=G(world),Lobj=G(world);
+
+/* ---------------- building blocks ---------------- */
+function Txt(x,y,s,par,cls){const t=el('text',{class:cls||'lb',x,y},par||Lobj);t.textContent=s;return t;}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},a),p);
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());if(!show(p,v>.005?1:0))return;p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
+const Glow=(cx,cy,rx,ry)=>el('ellipse',{cx,cy,rx,ry,fill:'url(#gGlow)'},Lglow);
+function Lab(x,y,name,alt,d){const g=G(Lobj);(Array.isArray(d)?d:[d]).forEach(q=>lead(q,g));Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');return g;}
+function LabD(x,y,name,alt){const g=G(Lobj);const L=lead('M0,0',g);Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');
+  return{g,set:(x0,y0,x1,y1)=>L.setAttribute('d',`M${f1(x0)},${f1(y0)} L${f1(x1)},${f1(y1)}`)};}
+function Tube(d,W,Lm,lo,li){return [path(d,W,lo),path(d,Lm,li)];}
+const DashT=(t,v)=>{Dash(t[0],v);Dash(t[1],v);};
+const polar=c=>(r,a)=>{const q=a*PI/180;return [c[0]+r*Math.cos(q),c[1]+r*Math.sin(q)];};
+const arcOf=pt=>(r,a0,a1)=>{const p=pt(r,a0),q=pt(r,a1);return `M${f1(p[0])},${f1(p[1])} A${r},${r} 0 0,1 ${f1(q[0])},${f1(q[1])}`;};
+const qb=(p,c,q,t)=>[(1-t)*(1-t)*p[0]+2*(1-t)*t*c[0]+t*t*q[0],(1-t)*(1-t)*p[1]+2*(1-t)*t*c[1]+t*t*q[1]];
+const mix=(p,q,t)=>[lerp(p[0],q[0],t),lerp(p[1],q[1],t)];
+function place(g,p,sc){if(!show(g,sc>.01?1:0))return;g.setAttribute('transform',`translate(${f1(p[0])} ${f1(p[1])}) scale(${f2(sc)})`);}
+
+/* lysosome: single membrane sac full of digestive enzymes */
+const ENZ=[[-9,-7],[8,-9],[10,6],[-8,9],[0,0],[-1,-14],[14,-1]];
+function enzyme(x,y,p){/* small enzyme with an active-site notch */
+  return el('path',{d:`M${x},${y} m5.5,-2.5 a6,6 0 1,0 0,5 l-5.5,-2.5z`,fill:'#7b2fb5'},p);}
+function Lys(){const g=G(Lves);el('circle',{cx:0,cy:0,r:27,fill:'url(#gLys)',stroke:'#7b2fb5','stroke-width':6},g);ENZ.forEach(([x,y])=>enzyme(x,y,g));return g;}
+/* loose enzymes that move freely (inside a vacuole or released into the cytoplasm) */
+function enzSet(n,par){const a=[];for(let k=0;k<n;k++){const g=G(par);enzyme(0,0,g);a.push({g,ph:k*2.39,r:.35+.6*((k*37)%10)/10});}return a;}
+function moveSet(a,cx,cy,R,t,op){a.forEach(o=>{if(!show(o.g,op))return;const ang=o.ph+t*(.9+o.r*.6),rr=R*o.r;o.g.setAttribute('transform',`translate(${f1(cx+rr*Math.cos(ang))} ${f1(cy+rr*Math.sin(ang))}) rotate(${f1(ang*57)})`);});}
+/* small digestion products (amino acids, sugars) */
+function bits(n,par){const a=[];for(let k=0;k<n;k++){const c=el('circle',{r:4.5,fill:'#2e9d5b'},par);a.push({c,ang:k*2*PI/n+.3*(k%2),d:.7+.5*((k*29)%10)/10});}return a;}
+function spread(a,cx,cy,R,op){a.forEach(o=>{if(!show(o.c,op))return;o.c.setAttribute('cx',f1(cx+Math.cos(o.ang)*R*o.d));o.c.setAttribute('cy',f1(cy+Math.sin(o.ang)*R*o.d));});}
+
+/* ================= cell membrane (top) with an outside region ================= */
+const memY=(x,dip,cx)=>70+18*Math.sin(x/170)+dip*Math.exp(-Math.pow((x-cx)/58,2));
+function memD(dip,cx){let d='';for(let x=-80;x<=1080;x+=8)d+=(d?'L':'M')+f1(x)+','+f1(memY(x,dip,cx));return d;}
+const OUT=G(Lout0);
+const outF=el('path',{d:'',fill:'#e8eef7'},OUT);
+const memW=path('',{stroke:'#7d8aa6','stroke-width':14},OUT),memL=path('',{stroke:'#d6deeb','stroke-width':4},OUT);
+function setMem(dip,cx){const d=memD(dip,cx);memW.setAttribute('d',d);memL.setAttribute('d',d);outF.setAttribute('d',d+' L1080,-300 L-80,-300Z');}
+setMem(0,700);
+Txt(170,10,'خارج الخلية',OUT,'ls');
+const lMem=Lab(80,150,'الغشاء البلازمي','','M80,134 L112,96');
+
+/* nucleus (bottom-right corner) */
+const NUC=G(Lnuc);el('circle',{cx:930,cy:860,r:175,fill:'url(#gNuc)',stroke:'#7d4fa3','stroke-width':14},NUC);Txt(900,775,'النواة',NUC,'ls');
+
+/* ================= 1) Golgi apparatus and a budding lysosome ================= */
+const GC=[60,830],gpt=polar(GC),garc=arcOf(gpt);
+const GW={stroke:'#4f5d73','stroke-width':24},GL={stroke:'#bcc5d3','stroke-width':10};
+const GS=[[170,-80,-12],[210,-79,-13],[250,-78,-14],[290,-77,-15]];
+const gSacs=GS.map(s=>Tube(garc(...s),GW,GL,Gout,Gin));
+const bulbs=[];GS.forEach(([r,a0,a1],i)=>[a0,a1].forEach(a=>{const p=gpt(r,a),go=G(Gout),gi=G(Gin);
+  el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:18,fill:'#4f5d73'},go);el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:11,fill:'#bcc5d3'},gi);bulbs.push({go,gi,p,i});}));
+const glG=Glow(260,600,230,200);
+const lG=Lab(150,430,'جهاز كولجي','','M150,446 L215,560');
+const BUD=gpt(318,-46);           /* lysosomes pinch off the outer face of the Golgi */
+const REST=[410,440];
+
+/* lysosomes */
+const L1=Lys(),L2=Lys(),L3=Lys(),L4=Lys(),L5=Lys();
+const lL=LabD(560,330,'جسيم حال','(كيس غشائي فيه إنزيمات هاضمة)');
+const ar0=path(`M${f1(BUD[0]+20)},${f1(BUD[1]-26)} Q370,470 ${f1(REST[0]-20)},${f1(REST[1]+26)}`,{stroke:'#6b7280','stroke-width':2.5,'stroke-dasharray':'7 6','marker-end':'url(#arw)'},Lobj);
+
+/* ================= 2) phagocytosis -> food vacuole -> digestion ================= */
+const FX=700;
+const FOOD=G(Lorg);[[0,0,22],[-15,8,13],[14,10,12],[4,-16,11]].forEach(([x,y,r])=>el('circle',{cx:x,cy:y,r,fill:'url(#gFood)',stroke:'#7a4a18','stroke-width':1.5},FOOD));
+const VAC=G(Lves);const vacC=el('circle',{cx:0,cy:0,r:46,fill:'#fff6e6',stroke:'#7d8aa6','stroke-width':7},VAC);
+const VP=[630,320];
+const enzV=enzSet(7,Lbits),bitsV=bits(10,Lbits);
+const lF=Lab(860,10,'جسم غريب أو غذاء','',`M860,26 L${FX+30},10`);
+const lV=LabD(830,250,'فجوة غذائية','(بلعمة)');
+const lD=Lab(430,215,'هضم المواد','(تتحرر نواتج الهضم إلى السايتوبلازم)',`M500,230 L${VP[0]-48},${VP[1]-18}`);
+const arF=path(`M${FX},-28 L${FX},20`,{stroke:'#6b7280','stroke-width':2.5,'stroke-dasharray':'7 6','marker-end':'url(#arw)'},Lobj);
+const glV=Glow(VP[0],VP[1],170,140);
+
+/* ================= 3) autophagy: digesting a worn-out mitochondrion ================= */
+const MP=[790,520];
+const MIT=G(Lorg);el('ellipse',{cx:0,cy:0,rx:62,ry:32,fill:'url(#gMit)',stroke:'#7a5636','stroke-width':4},MIT);
+path('M-42,-18 q8,18 0,36 M-22,-24 q10,24 0,48 M-2,-26 q10,26 0,52 M18,-24 q10,24 0,48 M38,-18 q8,18 0,36',{stroke:'#7a5636','stroke-width':3},MIT);
+el('path',{d:'M14,-31 l6,12 l-10,6 l6,12',fill:'none',stroke:'#fff','stroke-width':3},MIT); /* crack = worn out */
+const wrapO=el('ellipse',{cx:MP[0],cy:MP[1],rx:94,ry:64,fill:'none',stroke:'#7d8aa6','stroke-width':6,'stroke-linecap':'round'},Lves);
+const wrapI=el('ellipse',{cx:MP[0],cy:MP[1],rx:84,ry:54,fill:'rgba(255,246,230,.6)',stroke:'#7d8aa6','stroke-width':4,'stroke-linecap':'round'},Lves);
+const enzM=enzSet(7,Lbits),bitsM=bits(10,Lbits);
+const lM=Lab(860,370,'عضية تالفة','(مايتوكوندريا)',`M860,410 L${MP[0]+30},${MP[1]-32}`);
+const lA=Lab(560,690,'هضم العضيات التالفة','(يعاد استعمال نواتجها)',`M640,672 L${MP[0]-60},${MP[1]+50}`);
+const glM=Glow(MP[0],MP[1],180,140);
+
+/* ================= 4) autolysis: lysosome membranes rupture ================= */
+const P4=[[300,330],[520,560],[440,720],[250,470]];
+const TINT=el('rect',{x:-80,y:-30,width:1160,height:900,fill:'#c9a3e6'},Ltint);
+const enzR=P4.map(()=>enzSet(8,Lbits));
+const lR=Lab(500,110,'تحلل الخلية ذاتياً','(تتمزق أغشية الجسيمات الحالة فتتحرر إنزيماتها)','M420,150 L330,300');
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+const ruptured=(i,s4)=>sm(s4,.32+i*.06,.42+i*.06);
+
+function render(t){
+  const N=DUR.length,s=[0];for(let i=1;i<=N;i++)s.push(clamp(P-(i-1),0,1));
+  /* 1 Golgi sacs, a lysosome buds off its outer face */
+  show(OUT,1);show(lMem,sm(s[1],0,.2));show(NUC,1);
+  gSacs.forEach((tb,i)=>DashT(tb,sm(s[1],i*.08,.25+i*.08)));
+  bulbs.forEach(b=>{const v=sm(s[1],.25+b.i*.06,.38+b.i*.06);popAt(b.go,b.p[0],b.p[1],v);popAt(b.gi,b.p[0],b.p[1],v);});
+  show(glG,.7*Math.sin(PI*sm(s[1],.2,.9)));show(lG,sm(s[1],.3,.5));
+  const b1=sm(s[1],.5,.62),m1=sm(s[1],.62,.85);
+  /* L1 later carries enzymes to the food vacuole */
+  const go1=sm(s[2],.45,.62),fu1=sm(s[2],.6,.68);
+  let p1=m1>0?qb(BUD,[360,500],REST,m1):BUD;if(go1>0)p1=qb(REST,[520,470],[VP[0]-40,VP[1]+30],go1);if(fu1>0)p1=mix(p1,VP,fu1);
+  place(L1,p1,b1*(1-fu1));Dash(ar0,sm(s[1],.6,.85)*(1-sm(s[2],.4,.5)));
+  if(show(lL.g,sm(s[1],.82,.98)*(1-sm(s[2],.4,.48))))lL.set(560,346,p1[0]+18,p1[1]-22);
+  /* 2 a food particle is engulfed (phagocytosis), forms a food vacuole, the lysosome fuses and digests it */
+  const dn=sm(s[2],0,.25),pin=sm(s[2],.22,.32),mv=sm(s[2],.32,.48);
+  setMem(110*dn*(1-pin),FX);
+  const fy=lerp(-10,150,dn),fp=mv>0?mix([FX,150],VP,mv):[FX,fy];
+  const dig=sm(s[2],.68,.88);
+  if(show(FOOD,s[2]>0?(1-sm(s[2],.86,.92)):0))FOOD.setAttribute('transform',`translate(${f1(fp[0])} ${f1(fp[1])}) scale(${f2(1-.85*dig)})`);
+  place(VAC,fp,pin*(1-sm(s[2],.92,1)*.0));show(arF,sm(s[2],0,.1)*(1-sm(s[2],.2,.3)));
+  vacC.setAttribute('fill',fu1>0?'#f4e8fb':'#fff6e6');
+  moveSet(enzV,fp[0],fp[1],34,t,fu1);
+  spread(bitsV,fp[0],fp[1],40+130*sm(s[2],.82,1),sm(s[2],.78,.84)*(1-sm(s[3],.1,.3)));
+  show(lF,sm(s[2],0,.1)*(1-sm(s[2],.25,.32)));
+  if(show(lV.g,sm(s[2],.32,.45)*(1-sm(s[2],.7,.78))))lV.set(830,266,fp[0]+40,fp[1]-30);
+  show(lD,sm(s[2],.75,.92)*(1-sm(s[3],.05,.15)));show(glV,.6*Math.sin(PI*sm(s[2],.6,1)));
+  /* 3 a worn-out mitochondrion is wrapped by a membrane, a lysosome fuses and digests it */
+  const mDig=sm(s[3],.62,.85);
+  if(show(MIT,sm(s[3],0,.12)>0?1:0)){const v=sm(s[3],0,.12);MIT.setAttribute('transform',`translate(${MP[0]} ${MP[1]}) scale(${f2(pop(v)*(1-.88*mDig))})`);MIT.setAttribute('opacity',f2(1-sm(s[3],.8,.88)));}
+  Dash(wrapO,sm(s[3],.14,.38));Dash(wrapI,sm(s[3],.18,.42));
+  const b2=sm(s[3],.3,.38),m2=sm(s[3],.38,.55),fu2=sm(s[3],.55,.63);
+  let p2=m2>0?qb(BUD,[560,760],[MP[0]-95,MP[1]+40],m2):BUD;if(fu2>0)p2=mix(p2,MP,fu2);
+  place(L2,p2,b2*(1-fu2));
+  moveSet(enzM,MP[0],MP[1],56,t,fu2);
+  spread(bitsM,MP[0],MP[1],50+120*sm(s[3],.82,1),sm(s[3],.8,.86)*(1-sm(s[4],0,.2)));
+  show(lM,sm(s[3],.08,.2)*(1-sm(s[3],.7,.78)));show(lA,sm(s[3],.78,.95));show(glM,.6*Math.sin(PI*sm(s[3],.5,1)));
+  /* earlier scenes fade out before autolysis */
+  const fo=1-sm(s[4],0,.22);if(s[4]>0){[VAC,wrapO,wrapI,lD,lA].forEach(e=>{if(e.style.display!=='none')e.setAttribute('opacity',f2(fo*(+e.getAttribute('opacity')||1)));});
+    enzV.concat(enzM).forEach(o=>{if(o.g.style.display!=='none')o.g.setAttribute('opacity',f2(fo));});bitsV.concat(bitsM).forEach(o=>{if(o.c.style.display!=='none')o.c.setAttribute('opacity',f2(fo*(+o.c.getAttribute('opacity')||1)));});}
+  /* 4 several lysosomes are present, then their membranes rupture and the enzymes digest the cell itself */
+  const appear=sm(s[4],0,.2);
+  [L3,L4,L5].forEach((L,i)=>{const pp=P4[i+1];place(L,pp,appear*(1-ruptured(i+1,s[4])));});
+  /* the first spot reuses a fresh lysosome bud */
+  P4.forEach((pp,i)=>{const r=ruptured(i,s[4]);const R=20+190*sm(s[4],.4+i*.06,.95);moveSet(enzR[i],pp[0],pp[1],R,t*.6,r>0?r*(1-sm(s[4],.97,1)*.0):0);});
+  show(TINT,.35*sm(s[4],.5,1));
+  if(s[4]>0){memW.setAttribute('stroke-dasharray',`${f1(lerp(2000,22,sm(s[4],.6,.95)))} ${f1(lerp(0,16,sm(s[4],.6,.95)))}`);}else memW.removeAttribute('stroke-dasharray');
+  show(lR,sm(s[4],.6,.85));
+  show(spot0,appear*(1-ruptured(0,s[4])));if(appear>0)spot0.setAttribute('transform',`translate(${P4[0][0]} ${P4[0][1]}) scale(${f2(appear)})`);
+}
+const spot0=Lys();
+
+/* ---------------- next / previous buttons ---------------- */
+const btn=document.getElementById('go'),pbtn=document.getElementById('prev');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+function back(){if(stage<0)return;const tgt=stage;stage--;S.entry=P;S.tgt=tgt;t0=T;S.dur=.9;}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+pbtn.onclick=back;
+let lbl='',paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  pbtn.disabled=stage<0;
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:410});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:410});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();else if(e.key==='ArrowRight')back();});
+
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
