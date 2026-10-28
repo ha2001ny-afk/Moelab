@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>جهاز كولجي</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go,#prev{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  .lb{fill:var(--ink);font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .ls{fill:var(--sub);font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style></head><body>
+
+<div id="top"><div id="title">جهاز كولجي</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 -30 1000 860" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gNuc" cx=".35" cy=".6" r=".8"><stop offset="0" stop-color="#d9c2ee"/><stop offset=".7" stop-color="#a77fcf"/><stop offset="1" stop-color="#7d55a8"/></radialGradient>
+        <radialGradient id="gNcl" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#7a64c8"/><stop offset="1" stop-color="#3d2a7a"/></radialGradient>
+        <marker id="arw" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#6b7280"/></marker>
+        <radialGradient id="gRib" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff1a0"/><stop offset=".6" stop-color="#e8c13a"/><stop offset="1" stop-color="#a98411"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+
+const DUR=[4.5,4.5,6,7];
+const world=G(view);
+const Lout0=G(world),Lglow=G(world),Lnuc=G(world),Lout=G(world),Lin=G(world),Lrib=G(world),Gout=G(world),Gin=G(world),Lcargo=G(world),Lves=G(world),Lobj=G(world);
+
+/* ---------------- building blocks ---------------- */
+function Txt(x,y,s,par,cls){const t=el('text',{class:cls||'lb',x,y},par||Lobj);t.textContent=s;return t;}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},a),p);
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());if(!show(p,v>.005?1:0))return;p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
+const Glow=(cx,cy,rx,ry)=>el('ellipse',{cx,cy,rx,ry,fill:'url(#gGlow)'},Lglow);
+function Lab(x,y,name,alt,d){const g=G(Lobj);(Array.isArray(d)?d:[d]).forEach(q=>lead(q,g));Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');return g;}
+/* label whose lead lines follow moving objects */
+function LabD(x,y,name,alt,n){const g=G(Lobj);const L=[];for(let i=0;i<n;i++)L.push(lead('M0,0',g));Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');
+  return{g,set:(i,x0,y0,x1,y1)=>L[i].setAttribute('d',`M${f1(x0)},${f1(y0)} L${f1(x1)},${f1(y1)}`)};}
+
+/* membrane tube = wall + lumen on separate layers so junctions merge */
+function Tube(d,W,Lm,lo,li){return [path(d,W,lo),path(d,Lm,li)];}
+const DashT=(t,v)=>{Dash(t[0],v);Dash(t[1],v);};
+const polar=c=>(r,a)=>{const q=a*PI/180;return [c[0]+r*Math.cos(q),c[1]+r*Math.sin(q)];};
+const arcOf=pt=>(r,a0,a1)=>{const p=pt(r,a0),q=pt(r,a1);return `M${f1(p[0])},${f1(p[1])} A${r},${r} 0 0,1 ${f1(q[0])},${f1(q[1])}`;};
+const segOf=pt=>(r0,r1,a)=>{const p=pt(r0,a),q=pt(r1,a);return `M${f1(p[0])},${f1(p[1])} L${f1(q[0])},${f1(q[1])}`;};
+const qb=(p,c,q,t)=>[(1-t)*(1-t)*p[0]+2*(1-t)*t*c[0]+t*t*q[0],(1-t)*(1-t)*p[1]+2*(1-t)*t*c[1]+t*t*q[1]];
+const mix=(p,q,t)=>[lerp(p[0],q[0],t),lerp(p[1],q[1],t)];
+
+/* vesicle: membrane sphere with protein cargo inside */
+function Ves(w,l){const g=G(Lves);el('circle',{cx:0,cy:0,r:19,fill:l,stroke:w,'stroke-width':6},g);
+  [[-6,-4],[6,-3],[0,7]].forEach(([x,y])=>el('circle',{cx:x,cy:y,r:4,fill:'#2b4f9a'},g));return g;}
+function place(g,p,sc){if(!show(g,sc>.01?1:0))return;g.setAttribute('transform',`translate(${f1(p[0])} ${f1(p[1])}) scale(${f2(sc)})`);}
+
+/* ================= cell membrane (top-right) ================= */
+const MEMd='M470,-90 C700,-10 930,160 1120,520';
+const OUT=G(Lout0);
+el('path',{d:MEMd+' L1500,520 L1500,-400 L470,-400Z',fill:'#e8eef7'},OUT);
+const memW=path(MEMd,{stroke:'#7d8aa6','stroke-width':16},OUT);
+path(MEMd,{stroke:'#d6deeb','stroke-width':5},OUT);
+const memPt=f=>{const L=memW.getTotalLength(),p=memW.getPointAtLength(f*L),q=memW.getPointAtLength(f*L+2),r=memW.getPointAtLength(f*L-2);
+  let nx=-(q.y-r.y),ny=q.x-r.x;const m=Math.hypot(nx,ny);nx/=m;ny/=m;if(nx*(850-p.x)+ny*(250-p.y)<0){nx=-nx;ny=-ny;}return{p:[p.x,p.y],n:[nx,ny]};}; /* n points into the cell */
+
+/* ================= 1) nucleus + rough ER ================= */
+const NC=[150,720],npt=polar(NC),narc=arcOf(npt),nseg=segOf(npt);
+const NUC=G(Lnuc);
+el('circle',{cx:150,cy:720,r:190,fill:'url(#gNuc)'},NUC);
+el('circle',{cx:100,cy:760,r:46,fill:'url(#gNcl)'},NUC);
+for(let k=0;k<20;k++){const a=k*2.4,r=40+((k*37)%120);path(`M${f1(150+r*Math.cos(a))},${f1(720+r*Math.sin(a))} q8,-6 16,0`,{stroke:'#8a63b5','stroke-width':2},NUC);}
+Txt(185,690,'النواة',NUC);
+const ENVd=`M${npt(198,0).map(f1)} A198,198 0 1,0 ${npt(198,180).map(f1)} A198,198 0 1,0 ${npt(198,0).map(f1)}`;
+const envW=path(ENVd,{stroke:'#7d4fa3','stroke-width':16},Lnuc),envL=path(ENVd,{stroke:'#efe0f6','stroke-width':5},Lnuc);
+
+const EW={stroke:'#b9573f','stroke-width':28},EL={stroke:'#f4c3ad','stroke-width':12};
+const ERS=[[240,-93,-8],[280,-92,-10],[320,-91,-12]];
+const ELK=[[205,240,-50],[240,280,-25],[280,320,-70]];
+const erSacs=ERS.map(s=>Tube(narc(...s),EW,EL,Lout,Lin));
+const erLinks=ELK.map(l=>Tube(nseg(...l),EW,EL,Lout,Lin));
+const RIB=G(Lrib);
+ERS.forEach(([r,a0,a1])=>[r-16,r+16].forEach((rr,j)=>{for(let a=a0+2+j*2;a<a1-1;a+=3.6){
+  if(ELK.some(([r0,r1,la])=>rr>r0&&rr<r1&&Math.abs(a-la)<3))continue;
+  if(rr>330&&Math.abs(a+40)<5)continue;
+  const p=npt(rr,a);el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:4,fill:'url(#gRib)',stroke:'#8a6a0e','stroke-width':.8},RIB);}}));
+const glN=Glow(260,600,330,280);
+const lER=Lab(175,330,'الشبكة البلازمية الداخلية','(تصنع البروتين)','M200,370 L232,412');
+
+/* ================= 2) Golgi stack ================= */
+const GC=[850,250],gpt=polar(GC),garc=arcOf(gpt);
+const GW={stroke:'#4f5d73','stroke-width':26},GL={stroke:'#bcc5d3','stroke-width':11};
+const GS=[[344,106,170],[308,104,172],[272,103,173],[236,104,172],[200,106,170]]; /* cis (facing ER) -> trans (facing membrane) */
+const gSacs=GS.map(s=>Tube(garc(...s),GW,GL,Gout,Gin));
+const bulbs=[];
+GS.forEach(([r,a0,a1],i)=>[a0,a1].forEach(a=>{const p=gpt(r,a);const go=G(Gout),gi=G(Gin);
+  el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:20,fill:'#4f5d73'},go);el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:12,fill:'#bcc5d3'},gi);
+  bulbs.push({go,gi,p,i});}));
+const glG=Glow(650,440,250,220);
+const lG=Lab(830,690,'جهاز كولجي','(مجموعة أكياس غشائية مسطحة)','M800,674 L726,586');
+const kA=gpt(344,168),kB=gpt(308,170);
+const lK=Lab(390,215,'كيس','',[`M410,228 L${f1(kA[0]-14)},${f1(kA[1]-10)}`,`M415,224 L${f1(kB[0]-8)},${f1(kB[1]-16)}`]);
+/* cargo arriving in the cis sac */
+const CG=G(Lcargo);[138,146,154].forEach(a=>{const p=gpt(344,a);el('circle',{cx:f1(p[0]),cy:f1(p[1]),r:3.6,fill:'#2b4f9a'},CG);});
+
+/* ================= 3) transport vesicle: ER -> Golgi ================= */
+const E0=npt(352,-40),E1=gpt(377,150),EC=[470,440],EM=qb(E0,EC,E1,.5);
+const v1=Ves('#b9573f','#f8d6c6'),v2=Ves('#b9573f','#f8d6c6');
+const ar1=path(`M${f1(E0[0]+8)},${f1(E0[1]-32)} Q${f1(EC[0]-6)},${f1(EC[1]-28)} ${f1(E1[0]-20)},${f1(E1[1]-22)}`,{stroke:'#6b7280','stroke-width':2.5,'stroke-dasharray':'7 6','marker-end':'url(#arw)'},Lobj);
+const glV=Glow(470,470,150,110);
+const lV=LabD(380,325,'حويصلة','(تنقل البروتين)',1);
+
+/* ================= 4) secretory vesicles: Golgi -> outside the cell ================= */
+const TA=gpt(168,150),TB=gpt(168,132),TC=gpt(168,116);
+const MA=memPt(.45),MB=memPt(.58);
+const MAin=[MA.p[0]+MA.n[0]*26,MA.p[1]+MA.n[1]*26],MBin=[MB.p[0]+MB.n[0]*26,MB.p[1]+MB.n[1]*26];
+const CA=[(TA[0]+MAin[0])/2-40,(TA[1]+MAin[1])/2+10],BS=mix(TB,MBin,.5),CS=mix(TC,GC,.18);
+const va=Ves('#4f5d73','#d3d9e3'),vb=Ves('#4f5d73','#d3d9e3'),vc=Ves('#4f5d73','#d3d9e3');
+const REL=G(Lves),rel=[];
+for(let k=0;k<6;k++){const c=el('circle',{r:4.5,fill:'#2b4f9a'},REL);rel.push({c,ang:(k-2.5)*.32,d:40+(k%3)*22});}
+const ar2=path(`M${f1(TA[0]-18)},${f1(TA[1]-30)} Q${f1(CA[0]-10)},${f1(CA[1]-10)} ${f1(MAin[0]-26)},${f1(MAin[1]+8)}`,{stroke:'#6b7280','stroke-width':2.5,'stroke-dasharray':'7 6','marker-end':'url(#arw)'},Lobj);
+const glS=Glow(MA.p[0],MA.p[1],150,120);
+const lVs=LabD(560,105,'حويصلات','(تنقل المواد إلى خارج الخلية)',2);
+const mL=memPt(.68);
+const lM=Lab(930,40,'الغشاء البلازمي','',`M${f1(930)},${f1(56)} L${f1(mL.p[0]-4)},${f1(mL.p[1]-10)}`);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const N=DUR.length,s=[0];for(let i=1;i<=N;i++)s.push(clamp(P-(i-1),0,1));
+  /* 1 nucleus, nuclear envelope and the rough ER around it; cell membrane in the corner */
+  popAt(NUC,150,720,sm(s[1],0,.35));Dash(envW,sm(s[1],.15,.5));Dash(envL,sm(s[1],.15,.5));
+  DashT(erLinks[0],sm(s[1],.3,.4));
+  erSacs.forEach((tb,i)=>DashT(tb,sm(s[1],.35+i*.1,.6+i*.1)));
+  erLinks.slice(1).forEach((tb,i)=>DashT(tb,sm(s[1],.6+i*.08,.7+i*.08)));
+  show(RIB,sm(s[1],.7,.85));show(OUT,sm(s[1],.2,.5));
+  show(glN,.6*Math.sin(PI*sm(s[1],.3,1)));show(lER,sm(s[1],.75,.95));
+  /* 2 Golgi sacs stack up from the cis face to the trans face, ends swell */
+  gSacs.forEach((tb,i)=>DashT(tb,sm(s[2],i*.12,.3+i*.12)));
+  bulbs.forEach(b=>{const v=sm(s[2],.3+b.i*.12,.45+b.i*.12);popAt(b.go,b.p[0],b.p[1],v);popAt(b.gi,b.p[0],b.p[1],v);});
+  show(glG,.7*Math.sin(PI*sm(s[2],.3,1)));show(lG,sm(s[2],.7,.9));show(lK,sm(s[2],.78,.98));
+  /* 3 a vesicle buds from the ER, carries protein to the Golgi and fuses; a second one is on its way */
+  const b1=sm(s[3],0,.15),m1=sm(s[3],.15,.5),f1_=sm(s[3],.5,.62);
+  place(v1,m1>0?qb(E0,EC,E1,m1):E0,b1*(1-f1_));
+  show(CG,sm(s[3],.55,.68));
+  const b2=sm(s[3],.62,.75),m2=sm(s[3],.75,.95);
+  place(v2,qb(E0,EC,E1,.5*m2),b2);
+  Dash(ar1,sm(s[3],.1,.4));show(glV,.6*Math.sin(PI*sm(s[3],.2,.8)));
+  if(show(lV.g,sm(s[3],.85,1))){const p=qb(E0,EC,E1,.5*m2);lV.set(0,395,342,p[0]-10,p[1]-18);}
+  /* 4 vesicles bud from the trans face; one reaches the membrane and releases its contents outside */
+  const ab=sm(s[4],0,.12),am=sm(s[4],.12,.45),af=sm(s[4],.45,.58);
+  place(va,am>0?qb(TA,CA,MAin,am):TA,ab*(1-af));
+  const ru=sm(s[4],.47,.85);
+  if(show(REL,ru>0?1-sm(s[4],.85,1)*.0:0)){rel.forEach(o=>{const n=MA.n,ca=Math.cos(o.ang),sa=Math.sin(o.ang);
+    const dx=-(n[0]*ca-n[1]*sa),dy=-(n[0]*sa+n[1]*ca),d=o.d*ru;
+    o.c.setAttribute('cx',f1(MA.p[0]+dx*d));o.c.setAttribute('cy',f1(MA.p[1]+dy*d));});}
+  place(vb,mix(TB,BS,sm(s[4],.3,.6)),sm(s[4],.2,.32));
+  place(vc,mix(TC,CS,sm(s[4],.62,.8)),sm(s[4],.52,.64));
+  Dash(ar2,sm(s[4],.08,.35));show(glS,.7*Math.sin(PI*sm(s[4],.42,.9)));
+  show(lM,sm(s[4],.5,.65));
+  if(show(lVs.g,sm(s[4],.82,.97))){lVs.set(0,610,120,BS[0]-14,BS[1]-12);lVs.set(1,585,125,CS[0]-14,CS[1]-12);}
+}
+
+/* ---------------- next / previous buttons ---------------- */
+const btn=document.getElementById('go'),pbtn=document.getElementById('prev');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+function back(){if(stage<0)return;const tgt=stage;stage--;S.entry=P;S.tgt=tgt;t0=T;S.dur=.9;}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+pbtn.onclick=back;
+let lbl='',paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'ابدأ':(stage>=DUR.length-1&&P>DUR.length-.001)?'إعادة ⟲':'التالي ◀';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  pbtn.disabled=stage<0;
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:410});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:410});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();else if(e.key==='ArrowRight')back();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
