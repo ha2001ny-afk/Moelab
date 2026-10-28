@@ -21,7 +21,8 @@
   body.fs #stage{top:0}
   #go:active,#prev:active{background:#d9ebf7}
   .lb{fill:var(--ink);font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
-  .lr{fill:#c62828;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lr{fill:#c62828;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lt{fill:#7b3fa0;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px}
   .ls{fill:var(--sub);font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
 </style></head><body>
 
@@ -29,7 +30,7 @@
 <div id="stage">
   <div class="zb"><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
   <div id="cv">
-    <svg id="svg" viewBox="0 0 1000 940" preserveAspectRatio="xMidYMid meet">
+    <svg id="svg" viewBox="0 0 1000 810" preserveAspectRatio="xMidYMid meet">
       <defs>
         <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
         <radialGradient id="gNuc" cx=".35" cy=".6" r=".8"><stop offset="0" stop-color="#d9c2ee"/><stop offset=".7" stop-color="#a77fcf"/><stop offset="1" stop-color="#7d55a8"/></radialGradient>
@@ -54,7 +55,7 @@ const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
 const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
 const pop=v=>v*(1+.25*Math.sin(PI*v));
 
-const DUR=[3.5,4,4.5,6.5];
+const DUR=[4,4.5,5,7];
 const world=G(view);
 const Lglow=G(world),Lobj0=G(world),Lobj=G(world);
 
@@ -66,78 +67,81 @@ function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());if(!show(p,v>.005?1
 const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
 const Glow=(cx,cy,rx,ry)=>el('ellipse',{cx,cy,rx,ry,fill:'url(#gGlow)'},Lglow);
 function Lab(x,y,name,alt,d){const g=G(Lobj);(Array.isArray(d)?d:[d]).forEach(q=>lead(q,g));Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');return g;}
-const CX=[300,700];
+const arrow=(d,dash)=>path(d,Object.assign({stroke:'#1f3a52','stroke-width':5,'marker-end':'url(#arw)'},dash?{'stroke-dasharray':'10 7'}:{}),Lobj0);
 
-/* ================= 1) two-cell stage of one fertilised egg ================= */
-const Y1=95,two=[];
-CX.forEach(cx=>{const g=G(Lobj0);
-  el('circle',{cx,cy:Y1,r:54,fill:'#e4e4e4',stroke:'#7a7a7a','stroke-width':3},g);
-  [-1,1].forEach(s=>{el('ellipse',{cx:cx+s*23,cy:Y1,rx:22,ry:42,fill:'#f4f4f4',stroke:'#8a8a8a','stroke-width':2},g);
-    el('circle',{cx:cx+s*23,cy:Y1,r:9,fill:'#9a9a9a',stroke:'#555','stroke-width':1.5},g);});
-  two.push(g);});
-const gl1=Glow(500,95,330,80);
-const l1=Lab(500,85,'مرحلة الفلجتين','(من بيضة مخصبة واحدة)',['M432,90 L358,95','M568,90 L642,95']);
+/* three ways one zygote can give identical twins: (أ) split at two cells, (ب) two inner cell masses, (ج) one inner cell mass splits later */
+const COL=[170,500,830],A2=[105,235];
 
-/* ================= 2) blastocysts: trophoblast ring + inner cell mass ================= */
-const Y2=270,bla=[];
-CX.forEach(cx=>{const g=G(Lobj0);
-  el('circle',{cx,cy:Y2,r:72,fill:'#fff',stroke:'#4a2418','stroke-width':4},g);
-  for(let a=0;a<360;a+=20){const q=a*PI/180;el('ellipse',{cx:f1(cx+72*Math.cos(q)),cy:f1(Y2+72*Math.sin(q)),rx:9,ry:4,fill:'#7a3a28',transform:`rotate(${a+90} ${f1(cx+72*Math.cos(q))} ${f1(Y2+72*Math.sin(q))})`},g);}
-  [[-18,-55],[0,-58],[18,-55],[-26,-46],[-9,-46],[9,-46],[26,-46],[-16,-36],[0,-36],[16,-36]].forEach(([x,y])=>el('circle',{cx:cx+x,cy:Y2+y,r:8,fill:'#2f6fb0',stroke:'#173f6b','stroke-width':1.5},g));
-  bla.push(g);});
-const gl2=Glow(500,270,360,110);
-const l2a=Lab(110,200,'كتلة خلوية داخلية','',`M165,214 L272,222`);
-const l2b=Lab(890,200,'الارومة الغازية','',`M850,214 L763,232`);
+/* ================= 1) one two-cell stage, three possible paths ================= */
+const Y1=75;
+const ZY=G(Lobj0);
+el('circle',{cx:500,cy:Y1,r:50,fill:'#e4e4e4',stroke:'#7a7a7a','stroke-width':3},ZY);
+[-1,1].forEach(s=>{el('ellipse',{cx:500+s*21,cy:Y1,rx:20,ry:39,fill:'#f4f4f4',stroke:'#8a8a8a','stroke-width':2},ZY);el('circle',{cx:500+s*21,cy:Y1,r:8,fill:'#9a9a9a',stroke:'#555','stroke-width':1.5},ZY);});
+const lZ=Lab(700,62,'مرحلة الفلجتين','(بيضة مخصبة واحدة)','M630,68 L552,72');
+const ar1=[arrow('M458,104 L200,170',1),arrow('M500,128 L500,170',1),arrow('M542,104 L800,170',1)];
+const LET=[['(أ)',300,118],['(ب)',548,152],['(ج)',700,118]].map(([s,x,y])=>{const g=G(Lobj);Txt(x,y,s,g,'lt');return g;});
 
-/* ================= 3) chorion with villi, amniotic cavity, yolk sac, chorionic cavity ================= */
-const Y3=470,cho=[];
-CX.forEach(cx=>{const g=G(Lobj0);
-  for(let a=190;a<=350;a+=8){const q=a*PI/180,x0=cx+98*Math.cos(q),y0=Y3+98*Math.sin(q),x1=cx+112*Math.cos(q),y1=Y3+112*Math.sin(q);
-    path(`M${f1(x0)},${f1(y0)} L${f1(x1)},${f1(y1)}`,{stroke:'#c0392b','stroke-width':3},g);el('circle',{cx:f1(x1),cy:f1(y1),r:3,fill:'#c0392b'},g);}
-  el('circle',{cx,cy:Y3,r:95,fill:'#fff',stroke:'#d24a2a','stroke-width':9},g);
-  el('path',{d:`M${cx-40},${Y3-48} Q${cx},${Y3-92} ${cx+40},${Y3-48}Z`,fill:'#cfe7f8',stroke:'#2f6fb0','stroke-width':2.5},g);
-  el('rect',{x:cx-42,y:Y3-50,width:84,height:9,rx:4,fill:'#2f6fb0'},g);
-  el('circle',{cx,cy:Y3-8,r:34,fill:'#fff',stroke:'#2f6fb0','stroke-width':2.5},g);
-  cho.push(g);});
-const gl3=Glow(500,470,380,120);
-const l3a=Lab(500,385,'تجويف السلي','',`M445,392 L${CX[0]+22},${Y3-62}`);
-const l3b=Lab(500,440,'كيس المح','',`M462,446 L${CX[0]+30},${Y3-8}`);
-const l3c=Lab(500,520,'التجويف المشيمي','',`M430,526 L${CX[0]+60},${Y3+50}`);
+/* ================= 2) blastocysts ================= */
+const Y2=255;
+function blast(cx,r,icms){const g=G(Lobj0);
+  el('circle',{cx,cy:Y2,r,fill:'#fff',stroke:'#4a2418','stroke-width':3.5},g);
+  for(let a=0;a<360;a+=22){const q=a*PI/180,x=cx+r*Math.cos(q),y=Y2+r*Math.sin(q);el('ellipse',{cx:f1(x),cy:f1(y),rx:8,ry:3.5,fill:'#7a3a28',transform:`rotate(${a+90} ${f1(x)} ${f1(y)})`},g);}
+  icms.forEach(a=>{const q=a*PI/180,c=[cx+(r-20)*Math.cos(q),Y2+(r-20)*Math.sin(q)];
+    [[-12,-6],[0,-9],[12,-6],[-17,4],[-5,4],[7,4],[17,4],[-8,13],[6,13]].forEach(([x,y])=>{const rx=x*Math.cos(q+PI/2)-y*Math.sin(q+PI/2),ry=x*Math.sin(q+PI/2)+y*Math.cos(q+PI/2);
+      el('circle',{cx:f1(c[0]+rx*.8),cy:f1(c[1]+ry*.8),r:6,fill:'#2f6fb0',stroke:'#173f6b','stroke-width':1.2},g);});});
+  return {g,cx,cy:Y2};}
+const BL=[blast(A2[0],52,[-90]),blast(A2[1],52,[-90]),blast(COL[1],62,[-128,-52]),blast(COL[2],62,[-90])];
+const gl2=Glow(500,255,470,90);
+const lICM=Lab(365,196,'كتلة خلوية','داخلية',`M418,202 L${COL[1]-36},${Y2-30}`);
+const lBC=Lab(665,196,'تجويف الكيس','الارومي',`M620,212 L${COL[2]-10},${Y2+18}`);
 
-/* ================= 4) in the uterus: separate vs fused placentas ================= */
-const arrows=[path('M470,585 L345,640',{stroke:'#1f3a52','stroke-width':6,'marker-end':'url(#arw)'},Lobj0),path('M530,585 L655,640',{stroke:'#1f3a52','stroke-width':6,'marker-end':'url(#arw)'},Lobj0)];
-const UY=650;
-function uterusPath(cx,i){const k=i;return `M${cx-130+k},${UY+60} C${cx-130+k},${UY+15+k} ${cx-95},${UY+k} ${cx},${UY+k} C${cx+95},${UY+k} ${cx+130-k},${UY+15+k} ${cx+130-k},${UY+60} L${cx+124-k},${UY+120} C${cx+112-k},${UY+170} ${cx+60-k},${UY+190} ${cx+30-k*.6},${UY+205} L${cx+24-k*.6},${UY+235} L${cx-24+k*.6},${UY+235} L${cx-30+k*.6},${UY+205} C${cx-60+k},${UY+190} ${cx-112+k},${UY+170} ${cx-124+k},${UY+120}Z`;}
-const UT=[],INNER=[],FET=[];
-function fetus(par,x,y,flip){const g=G(par);const s=flip?-1:1;
-  el('ellipse',{cx:x,cy:y+4,rx:30,ry:44,fill:'#6fb6ea',stroke:'#fff','stroke-width':4},g);
+/* ================= 3) amnion, yolk sac and chorion ================= */
+const Y3=455;
+function chorion(cx,r,kind){const g=G(Lobj0);
+  for(let a=192;a<=348;a+=10){const q=a*PI/180,x0=cx+(r+3)*Math.cos(q),y0=Y3+(r+3)*Math.sin(q),x1=cx+(r+14)*Math.cos(q),y1=Y3+(r+14)*Math.sin(q);
+    path(`M${f1(x0)},${f1(y0)} L${f1(x1)},${f1(y1)}`,{stroke:'#c0392b','stroke-width':2.6},g);el('circle',{cx:f1(x1),cy:f1(y1),r:2.6,fill:'#c0392b'},g);}
+  el('circle',{cx,cy:Y3,r,fill:'#fff',stroke:'#d24a2a','stroke-width':7},g);
+  const amn=(x,w,y)=>{el('path',{d:`M${f1(x-w)},${f1(y)} Q${f1(x)},${f1(y-w*1.1)} ${f1(x+w)},${f1(y)}Z`,fill:'#cfe7f8',stroke:'#2f6fb0','stroke-width':2.2},g);
+    el('rect',{x:f1(x-w-2),y:f1(y-2),width:f1(2*w+4),height:7,rx:3,fill:'#2f6fb0'},g);};
+  const yolk=(x,y,rr)=>el('circle',{cx:f1(x),cy:f1(y),r:rr,fill:'#fff',stroke:'#2f6fb0','stroke-width':2.2},g);
+  if(kind==='one'){amn(cx,r*.42,Y3-r*.45);yolk(cx,Y3-r*.45+5+r*.3,r*.3);}
+  if(kind==='two'){[-1,1].forEach(s=>{amn(cx+s*r*.4,r*.3,Y3-r*.3);yolk(cx+s*r*.4,Y3-r*.3+5+r*.22,r*.22);});}
+  if(kind==='shared'){amn(cx,r*.66,Y3-r*.2);yolk(cx,Y3-r*.2+5+r*.3,r*.3);}
+  return {g,cx,cy:Y3};}
+const CH=[chorion(A2[0],56,'one'),chorion(A2[1],56,'one'),chorion(COL[1],80,'two'),chorion(COL[2],80,'shared')];
+const ar2=[[A2[0],320,370],[A2[1],320,370],[COL[1],328,360],[COL[2],328,360]].map(([x,a,b])=>arrow(`M${x},${a} L${x},${b}`));
+const gl3=Glow(500,455,480,100);
+const lAm=Lab(358,372,'تجويف السلي','',`M310,380 L${A2[1]+8},${Y3-40}`);
+const lYk=Lab(358,470,'كيس المح','',`M318,470 L${A2[1]+16},${Y3-12}`);
+const lCC=Lab(665,512,'تجويف مشيمي','مشترك',`M610,515 L${COL[1]+48},${Y3+42}`);
+const lSA=Lab(665,380,'تجويف سلي','مشترك',`M712,386 L${COL[2]-30},${Y3-38}`);
+
+/* ================= 4) inside the uterus ================= */
+const UY=610,K=.62;
+const ar3=COL.map(x=>arrow(`M${x},${545} L${x},${590}`));
+function uterusPath(i){const k=i;return `M${-130+k},60 C${-130+k},${15+k} -95,${k} 0,${k} C95,${k} ${130-k},${15+k} ${130-k},60 L${124-k},120 C${112-k},170 ${60-k},190 ${30-k*.6},205 L${24-k*.6},235 L${-24+k*.6},235 L${-30+k*.6},205 C${-60+k},190 ${-112+k},170 ${-124+k},120Z`;}
+const FET=[];
+function fetus(par,x,y,flip,amn){const g=G(par);const s=flip?-1:1;
+  if(amn)el('ellipse',{cx:x,cy:y+4,rx:30,ry:44,fill:'#6fb6ea',stroke:'#fff','stroke-width':4},g);
   const f=G(g);
   path(`M${x+s*8},${y-14} C${x+s*24},${y+2} ${x+s*18},${y+30} ${x},${y+32} C${x-s*14},${y+30} ${x-s*14},${y+14} ${x-s*4},${y+8}`,{stroke:'#1f5fa0','stroke-width':15},f);
   el('circle',{cx:x+s*2,cy:y-20,r:14,fill:'#1f5fa0'},f);
   path(`M${x-s*4},${y+10} q${-s*10},-6 ${-s*14},-26`,{stroke:'#1f5fa0','stroke-width':5},f);
   path(`M${x},${y+30} q${s*-14},4 ${s*-10},18`,{stroke:'#1f5fa0','stroke-width':6},f);
-  FET.push({f,x,y,ph:x*.01});return g;}
-[0,1].forEach(i=>{const cx=CX[i]+(i?30:-30),g=G(Lobj0);
-  el('path',{d:uterusPath(cx,0),fill:'#d9d9d9',stroke:'#8a8a8a','stroke-width':3},g);
-  el('path',{d:uterusPath(cx,14),fill:'#f6ece8',stroke:'#b9a9a2','stroke-width':2},g);
-  UT.push({g,cx});
-  const IN=G(g);
-  if(i===0){ /* two separate chorions, each with its own placenta */
-    [-55,55].forEach(dx=>{el('ellipse',{cx:cx+dx,cy:UY+85,rx:52,ry:72,fill:'#c62828'},IN);
-      el('ellipse',{cx:cx+dx+(dx<0?6:-6),cy:UY+88,rx:40,ry:58,fill:'#fff',stroke:'#e0b4b4','stroke-width':2},IN);
-      fetus(IN,cx+dx+(dx<0?6:-6),UY+88,dx>0);});
-  }else{ /* one fused placenta and fused chorion */
-    el('ellipse',{cx,cy:UY+88,rx:110,ry:78,fill:'#c62828'},IN);
-    el('ellipse',{cx,cy:UY+94,rx:92,ry:62,fill:'#fff',stroke:'#e0b4b4','stroke-width':2},IN);
-    fetus(IN,cx-44,UY+94,false);fetus(IN,cx+44,UY+94,true);
-    path(`M${cx},${UY+36} L${cx},${UY+152}`,{stroke:'#e7a3a3','stroke-width':6},IN);
-    path(`M${cx},${UY+36} L${cx},${UY+152}`,{stroke:'#fff','stroke-width':2},IN);}
-  INNER.push(IN);});
-const gl4=Glow(500,740,460,150);
-const b1=G(Lobj);Txt(270,912,'سخد وغشاء مشيمي منفصلين',b1,'lr');
-const b2=G(Lobj);Txt(730,912,'سخد وغشاء مشيمي ملتحمين',b2,'lr');
-const l4a=Lab(925,610,'سخد ملتحم','(مشيمة)',`M900,640 L${CX[1]+30+60},${UY+40}`);
-const l4b=Lab(500,800,'غشاء مشيمي ملتحم','',`M592,800 L${CX[1]+30-4},${UY+140}`);
+  FET.push({f,x,y,ph:x*.03+(flip?1:0)});return g;}
+const UT=COL.map((cx,i)=>{const o=G(Lobj0),g=G(o,{transform:`translate(${cx} ${UY}) scale(${K})`});
+  el('path',{d:uterusPath(0),fill:'#d9d9d9',stroke:'#8a8a8a','stroke-width':4},g);
+  el('path',{d:uterusPath(14),fill:'#f6ece8',stroke:'#b9a9a2','stroke-width':3},g);
+  if(i===0){[-55,55].forEach(dx=>{el('ellipse',{cx:dx,cy:85,rx:52,ry:72,fill:'#c62828'},g);
+      el('ellipse',{cx:dx+(dx<0?6:-6),cy:88,rx:40,ry:58,fill:'#fff',stroke:'#e0b4b4','stroke-width':2},g);fetus(g,dx+(dx<0?6:-6),88,dx>0,true);});}
+  else{el('ellipse',{cx:0,cy:88,rx:110,ry:78,fill:'#c62828'},g);
+    el('ellipse',{cx:0,cy:94,rx:92,ry:62,fill:'#fff',stroke:'#e0b4b4','stroke-width':2},g);
+    if(i===1){fetus(g,-44,94,false,true);fetus(g,44,94,true,true);}
+    else{el('ellipse',{cx:0,cy:96,rx:80,ry:52,fill:'#6fb6ea',stroke:'#fff','stroke-width':4},g);fetus(g,-34,94,false,false);fetus(g,34,94,true,false);}}
+  return {o,cx};});
+const gl4=Glow(500,690,480,110);
+const CAP=[['سخد منفصل لكل جنين',COL[0]],['سخد مشترك وسلي منفصل',COL[1]],['سخد مشترك وسلي مشترك',COL[2]]].map(([s,x])=>{const g=G(Lobj);Txt(x,UY+235*K+28,s,g,'lr');return g;});
+const lPl=Lab(345,620,'سخد مشترك','',`M392,628 L${COL[1]-40},${UY+30}`);
 
 /* ---------------- state / timeline ---------------- */
 const S={entry:0,tgt:0,dur:1};
@@ -146,22 +150,24 @@ function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
 
 function render(t){
   const N=DUR.length,s=[0];for(let i=1;i<=N;i++)s.push(clamp(P-(i-1),0,1));
-  /* 1 the two cells of one zygote separate */
-  two.forEach((g,i)=>popAt(g,CX[i],Y1,sm(s[1],i*.15,.45+i*.15)));
-  show(gl1,.6*Math.sin(PI*sm(s[1],.2,1)));show(l1,sm(s[1],.6,.85));
-  /* 2 each becomes a blastocyst */
-  bla.forEach((g,i)=>popAt(g,CX[i],Y2,sm(s[2],i*.15,.45+i*.15)));
-  show(gl2,.6*Math.sin(PI*sm(s[2],.2,1)));show(l2a,sm(s[2],.55,.75));show(l2b,sm(s[2],.7,.9));
-  /* 3 each forms its own amnion, yolk sac and chorion */
-  cho.forEach((g,i)=>popAt(g,CX[i],Y3,sm(s[3],i*.12,.42+i*.12)));
-  show(gl3,.6*Math.sin(PI*sm(s[3],.2,1)));show(l3a,sm(s[3],.5,.65));show(l3b,sm(s[3],.62,.77));show(l3c,sm(s[3],.74,.9));
-  /* 4 in the uterus the two can stay separate, or their placentas and chorions can fuse */
-  arrows.forEach((a,i)=>Dash(a,sm(s[4],i*.08,.2+i*.08)));
-  UT.forEach((u,i)=>popAt(u.g,u.cx,UY+120,sm(s[4],.15+i*.15,.4+i*.15)));
-  INNER.forEach((g,i)=>show(g,sm(s[4],.3+i*.15,.45+i*.15)));
+  /* 1 one fertilised egg reaches the two-cell stage; three possible routes branch off */
+  popAt(ZY,500,Y1,sm(s[1],0,.35));show(lZ,sm(s[1],.3,.5));
+  ar1.forEach((a,i)=>Dash(a,sm(s[1],.4+i*.1,.6+i*.1)));
+  LET.forEach((g,i)=>show(g,sm(s[1],.6+i*.1,.75+i*.1)));
+  /* 2 (أ) two blastocysts, (ب) one with two inner cell masses, (ج) one with a single inner cell mass */
+  BL.forEach((b,i)=>popAt(b.g,b.cx,b.cy,sm(s[2],i*.1,.35+i*.1)));
+  show(gl2,.5*Math.sin(PI*sm(s[2],.2,1)));show(lICM,sm(s[2],.6,.78));show(lBC,sm(s[2],.75,.93));
+  /* 3 amnion, yolk sac and chorion form */
+  ar2.forEach((a,i)=>Dash(a,sm(s[3],i*.04,.15+i*.04)));
+  CH.forEach((c,i)=>popAt(c.g,c.cx,c.cy,sm(s[3],.15+i*.08,.45+i*.08)));
+  show(gl3,.5*Math.sin(PI*sm(s[3],.3,1)));
+  show(lAm,sm(s[3],.55,.68));show(lYk,sm(s[3],.64,.77));show(lCC,sm(s[3],.73,.86));show(lSA,sm(s[3],.82,.95));
+  /* 4 in the uterus: separate placentas, a shared placenta with separate amnions, or a shared placenta and amnion */
+  ar3.forEach((a,i)=>Dash(a,sm(s[4],i*.05,.15+i*.05)));
+  UT.forEach((u,i)=>popAt(u.o,u.cx,UY+70,sm(s[4],.15+i*.12,.4+i*.12)));
   FET.forEach(o=>o.f.setAttribute('transform',`rotate(${f2(4*Math.sin(1.6*t+o.ph))} ${o.x} ${o.y})`));
   show(gl4,.5*Math.sin(PI*sm(s[4],.4,1)));
-  show(b1,sm(s[4],.5,.65));show(b2,sm(s[4],.62,.77));show(l4a,sm(s[4],.72,.85));show(l4b,sm(s[4],.82,.95));
+  CAP.forEach((g,i)=>show(g,sm(s[4],.55+i*.08,.68+i*.08)));show(lPl,sm(s[4],.82,.95));
 }
 
 /* ---------------- next / previous buttons ---------------- */
