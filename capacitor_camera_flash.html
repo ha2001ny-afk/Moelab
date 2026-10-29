@@ -15,7 +15,8 @@
   --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
   --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
-html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink);touch-action:none;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.pane{touch-action:pan-y}
 body{font-family:var(--f-body);margin:0}
 .stage{position:relative;height:100%}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -513,23 +514,38 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
 requestAnimationFrame(frame);
 })();
 
-/* fullscreen: real fullscreen when the browser allows it, otherwise an immersive mode that hides the panels */
+/* fullscreen: stays on until the fullscreen button is pressed again.
+   If the browser drops it (a hard touch, an edge swipe, Esc), the next touch on the page brings it straight back. */
 (function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
   const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
   const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
-  let imm=false;
-  const sync=()=>{const on=isFs()||imm;ico.setAttribute('d',on?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');window.dispatchEvent(new Event('resize'));};
+  let want=false,imm=false,leaving=false,entered=false;
+  const sync=()=>{ico.setAttribute('d',want?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',want?'الخروج من ملء الشاشة':'ملء الشاشة');window.dispatchEvent(new Event('resize'));};
   const setImm=v=>{imm=v;document.body.classList.toggle('imm',v);
     if(v){document.querySelectorAll('.pane').forEach(p=>p.hidden=true);document.querySelectorAll('.hbtn.on,.sbtn.on').forEach(x=>{x.classList.remove('on');x.setAttribute('aria-expanded','false');});}
     sync();};
+  const lockKeys=()=>{try{if(navigator.keyboard&&navigator.keyboard.lock)navigator.keyboard.lock(['Escape']).catch(()=>{});}catch(e){}};
+  function enter(){if(isFs())return true;
+    if(!req||document.fullscreenEnabled===false)return false;
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.then)r.then(lockKeys,()=>{if(want&&!isFs())setImm(true);});return true;}catch(e){return false;}}
   b.addEventListener('click',()=>{
-    if(isFs()){try{const r=exit.call(document);if(r&&r.catch)r.catch(()=>{});}catch(e){}return;}
-    if(imm){setImm(false);return;}
-    let ok=false;
-    if(req&&document.fullscreenEnabled!==false){try{const r=req.call(el,{navigationUI:'hide'});ok=true;if(r&&r.catch)r.catch(()=>setImm(true));}catch(e){ok=false;}}
-    if(!ok)setImm(true);else setTimeout(()=>{if(!isFs()&&!imm)setImm(true);},600);});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&imm)setImm(false);});
-  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+    if(want){want=false;leaving=true;
+      try{if(navigator.keyboard&&navigator.keyboard.unlock)navigator.keyboard.unlock();}catch(e){}
+      if(isFs()){try{const r=exit.call(document);if(r&&r.catch)r.catch(()=>{});}catch(e){}}
+      setImm(false);setTimeout(()=>leaving=false,800);return;}
+    want=true;entered=false;sync();
+    if(!enter())setImm(true);else setTimeout(()=>{if(want&&!entered&&!isFs()&&!imm)setImm(true);},700);});
+  // the browser left fullscreen on its own: bring it back on the very next touch or click
+  const restore=e=>{if(!want||leaving||isFs()||imm)return;if(e.target&&e.target.closest&&e.target.closest('#fsBtn'))return;enter();};
+  ['pointerup','touchend','click','keydown'].forEach(t=>document.addEventListener(t,restore,true));
+  document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')restore(e);},true);
+  const onChange=()=>{if(isFs()){entered=true;lockKeys();}sync();};
+  document.addEventListener('fullscreenchange',onChange);document.addEventListener('webkitfullscreenchange',onChange);
+  // a firm press or long press should never open the browser's own menus or zoom while working
+  document.addEventListener('contextmenu',e=>e.preventDefault());
+  ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+  document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+})();
 
 /* panels: activity tools / steps / conclusion, and the lamp hint */
 (function(){
