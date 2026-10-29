@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المتسعة الموضوعة في جهاز تحفيز القلب</title>
+<style>
+/* Layout: one full-screen navy lab bench; the Figure 32 flash circuit on a large board, camera control unit and capacitor tray below it */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --pos:#ff6b6b; --neg:#5eaaff; --field:#62d98a; --force:#ffab5c; --accent:#7fd3ff;
+  --wire-p:#e94848; --wire-n:#1b2029; --plate:#8593a9; --warn:#ffc04d; --lamp:#ffd27a; --res:#2aa58f;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body);margin:0}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+
+.hdr{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));max-width:calc(100% - 84px - env(safe-area-inset-left,0px));display:flex;gap:14px;align-items:flex-start;pointer-events:none}
+.hdr>*{pointer-events:auto}
+.hbtns{display:flex;flex-direction:column;gap:7px;flex:none}
+.hbtn{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;min-width:126px;border-radius:10px;border:1px solid var(--line);background:rgba(8,20,41,.62);color:var(--ink);font:600 13.5px var(--f-body);cursor:pointer;text-align:start}
+.hbtn svg{width:17px;height:17px;flex:none;color:var(--accent)}
+.hbtn:hover{border-color:var(--accent)}
+.hbtn.on{border-color:var(--accent);background:rgba(127,211,255,.14);color:var(--accent)}
+.hbtn:focus-visible,.sbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.htitle{min-width:0;padding-top:2px}
+.eyebrow{display:inline-block;font:600 12px var(--f-display);color:var(--force);background:rgba(255,171,92,.14);border:1px solid rgba(255,171,92,.3);border-radius:999px;padding:1px 10px;letter-spacing:.02em}
+.htitle h1{margin:6px 0 0;font:600 20px/1.45 var(--f-display);color:var(--ink);max-width:330px;text-wrap:balance}
+@media (max-width:759px){.htitle h1{font-size:15px;line-height:1.5}.hbtn{min-width:118px;font-size:13px;height:34px}}
+
+.lbtns{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+.sbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.sbtn:hover{border-color:var(--accent)}
+.sbtn svg{width:20px;height:20px}
+.sbtn.lamp{color:var(--lamp)}
+.sbtn.lamp:hover,.sbtn.lamp.on{border-color:var(--lamp);background:rgba(255,210,122,.14)}
+.toast{position:absolute;top:max(110px,calc(env(safe-area-inset-top,0px) + 104px));left:max(10px,env(safe-area-inset-left,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+
+.pane{position:absolute;overflow:auto;background:rgba(8,20,41,.95);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.pane h2{margin:0 0 8px;font:600 16px var(--f-display);padding-left:30px;text-wrap:balance}
+.pane p{margin:0 0 8px}
+.pane .m,.pane b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.pane p.m{text-align:center;color:var(--accent);font-weight:600;font-size:15px}
+.pane .note{color:var(--muted);font-size:13px}
+.pane .hl{color:var(--force);font-weight:600}
+.pane .q{color:var(--lamp);font-weight:600}
+.pane .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.pane .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.pane .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.pane .x:hover{color:var(--ink)}
+.tip{top:max(110px,calc(env(safe-area-inset-top,0px) + 104px));left:max(10px,env(safe-area-inset-left,0px));width:min(340px,calc(100% - 20px));max-height:calc(100% - 130px);border:1px solid rgba(255,210,122,.35)}
+.tip h2{color:var(--lamp)}
+.info{right:max(12px,env(safe-area-inset-right,0px));width:min(430px,calc(100% - 24px));border:1px solid rgba(127,211,255,.32)}
+.info h2{color:var(--accent)}
+.info ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.info ul li{display:flex;gap:10px;align-items:flex-start}
+.info ul li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:10px}
+.info ol{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.info ol li{display:flex;gap:10px;align-items:flex-start}
+.info .ck{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:600 13px var(--f-mono);color:var(--muted);margin-top:2px}
+.info li.ok .ck{background:var(--field);border-color:var(--field);color:#062012}
+.info li.ok>div{color:var(--muted)}
+.info .fig{color:var(--accent);font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;font-size:12.5px}
+.info .reset{margin-top:12px;font:600 13px var(--f-body);color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;padding:6px 14px;cursor:pointer}
+.info .reset:hover{border-color:var(--accent)}
+.info .box{border:1px solid rgba(255,171,92,.35);background:rgba(255,171,92,.08);border-radius:10px;padding:8px 12px;margin:8px 0}
+.info .box p:last-child{margin:0}
+.tbl{overflow-x:auto;margin:6px 0}
+.tbl table{border-collapse:collapse;width:100%;direction:ltr;font:500 12.5px var(--f-mono);font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.tbl th{color:var(--muted);font-weight:600}
+body.imm .hdr,body.imm #tipBtn{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="جهاز تحفيز القلب: مريض ممدد يظهر قلبه داخل صدره، ومجدافا الجهاز، والجهاز بشاشة تخطيط القلب ومقبض الطاقة وزري الشحن والصدمة"></canvas>
+
+  <header class="hdr" id="hdr">
+    <div class="hbtns">
+      <button class="hbtn" data-p="tools" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>أدوات النشاط</button>
+      <button class="hbtn" data-p="steps" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>خطوات النشاط</button>
+      <button class="hbtn" data-p="concl" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.6L16 9.6"/></svg>الاستنتاج</button>
+    </div>
+    <div class="htitle">
+      <span class="eyebrow">تطبيق</span>
+      <h1>المتسعة في جهاز تحفيز القلب</h1>
+    </div>
+  </header>
+  <div class="pane info" id="infoPanel" hidden role="dialog" aria-labelledby="infoTitle"><button class="x" id="infoClose" aria-label="إغلاق">×</button><h2 id="infoTitle"></h2><div id="infoBody"></div></div>
+
+  <div class="lbtns">
+    <button class="sbtn lamp" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+    <button class="sbtn" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+  <div class="pane tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene'),ctx=cv.getContext('2d'),hdr=document.getElementById('hdr');
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* physics (SI): 100 µF capacitor charged by a ~90 W charger, discharged through the chest resistance */
+const CAP=100e-6,PCH=90,STEPS=[10,20,30,50,70,100,150,200,300,360];
+const PTS=[{n:'طفل',kg:20,R:40,lo:40,hi:80,harm:120},{n:'بالغ',kg:70,R:50,lo:150,hi:200,harm:1e9},{n:'بالغ وزنه كبير',kg:110,R:80,lo:200,hi:360,harm:1e9}];
+const S={ei:3,E:0,charging:false,pi:1,rhythm:'vf',rT:0,sinus0:0,anim:0,art:-9,msg:null,knobTouched:false,dumpT:-9};
+const pads={st:{at:null,x:0,y:0},ap:{at:null,x:0,y:0}};
+const done=[false,false,false,false];let hadFail=false,lastShock=null;
+const recs=[],ecg=[];
+let W=0,H=0,DPR=1,narrow=false,G={},col={},time=0,drag=null,hover=null;
+let placedBoard=false,placedDev=false,placedTray=false;
+const cam={z:1,x:0,y:0};
+const Eset=()=>STEPS[S.ei],pt=()=>PTS[S.pi],V=()=>Math.sqrt(2*S.E/CAP);
+const ready=()=>!S.charging&&S.E>=Eset()*0.99&&S.E>0;
+
+function readColors(){const cs=getComputedStyle(document.documentElement);
+  ['deep','navy','glow','ink','muted','pos','neg','field','accent','wire-p','wire-n','plate','warn','line','force','lamp','res'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- layout ---------- */
+function layout(){
+  const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;
+  W=nw;H=nh;narrow=W<900;
+  DPR=window.devicePixelRatio||1;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  const hr=hdr.getBoundingClientRect(),sr=cv.getBoundingClientRect(),hb=hr.bottom-sr.top,hl=hr.left-sr.left;
+  const dh=184,trW=330,trH=58;let board,dev,tray;const hbx=Math.max(hb,narrow?58:0);
+  if(!narrow){
+    const left=70;let top=30,right=Math.min(W-24,hl-20);
+    if(right-left<520){top=hbx+12;right=W-24;}
+    const avail=right-left,dw=440,side=avail>=dw+28+trW;
+    const BW=clamp(avail,440,760),BH=clamp(H-top-58-dh-(side?0:trH+24),300,470);
+    board={x:left+Math.max(0,(avail-BW)/2),y:top,w:BW,h:BH};
+    const cx=board.x+BW/2,dy=board.y+BH+54;
+    if(side){const tot=dw+28+trW;dev={x:cx-tot/2,y:dy,w:dw,h:dh};tray={x:dev.x+dw+28,y:dy+50,w:trW};}
+    else{dev={x:cx-dw/2,y:dy,w:dw,h:dh};tray={x:cx-trW/2,y:dy+dh+18,w:trW};}
+  }else{
+    const BW=Math.min(W-20,640),BH=clamp(Math.min(BW*0.8,H*0.42),280,420);
+    board={x:(W-BW)/2,y:hbx+12,w:BW,h:BH};
+    const dw=Math.min(440,BW);dev={x:board.x+(BW-dw)/2,y:board.y+BH+50,w:dw,h:dh};
+    const tw=Math.min(trW,BW);tray={x:board.x+(BW-tw)/2,y:dev.y+dh+16,w:tw};
+  }
+  if(!placedBoard)G.board=board;
+  if(!placedDev)G.dev=dev;
+  if(!placedTray)G.tray=tray;
+  parts();
+}
+function parts(){const b=G.board,x0=b.x,y0=b.y,BW=b.w,BH=b.h;
+  const u=Math.min(BW/560,BH/390),cx=x0+BW/2;
+  G.T={u,cx,y0,hx:cx,hy:y0+52*u,heart:{x:cx+20*u,y:y0+212*u,s:46*u},
+    tg:{st:{x:cx-54*u,y:y0+150*u},ap:{x:cx+84*u,y:y0+262*u}}};
+  const d=G.dev,w=d.w;
+  G.D={scr:{x:d.x+14,y:d.y+26,w:w-14-150,h:d.h-38},knob:{x:d.x+w-104,y:d.y+56,r:20},
+    chg:{x:d.x+w-138,y:d.y+94,w:124,h:32},shk:{x:d.x+w-138,y:d.y+134,w:124,h:36},
+    hold:{st:{x:d.x+52,y:d.y-20},ap:{x:d.x+w-52,y:d.y-20}},port:{st:{x:d.x+14,y:d.y+40},ap:{x:d.x+w-14,y:d.y+40}}};
+  for(const k of['st','ap']){const p=pads[k];if(p.at){const t=G.T.tg[p.at];p.x=t.x;p.y=t.y;}else if(!(drag&&drag.type==='pad'&&drag.k===k)){p.x=G.D.hold[k].x;p.y=G.D.hold[k].y;}}
+}
+const padsOn=()=>pads.st.at&&pads.ap.at;
+
+/* ---------- physiology & device ---------- */
+function ecgV(t){
+  let v=0;
+  if(S.rhythm==='vf'){const m=0.55+0.35*Math.sin(t*0.6)+0.1*Math.sin(t*1.7);
+    v=m*(0.55*Math.sin(2*Math.PI*5.1*t+0.8*Math.sin(0.9*t))+0.3*Math.sin(2*Math.PI*3.6*t+1.1)+0.15*Math.sin(2*Math.PI*7.4*t));}
+  else if(S.rhythm==='sinus'){const u=((t-S.sinus0)%0.8+0.8)%0.8,g=(a,c,w)=>a*Math.exp(-((u-c)*(u-c))/(2*w*w));
+    v=g(0.12,0.08,0.022)+g(-0.12,0.18,0.008)+g(1.0,0.2,0.009)+g(-0.28,0.225,0.01)+g(0.3,0.42,0.04);}
+  else v=0.02*Math.sin(t*9);
+  const a=t-S.art;if(a>=0&&a<0.6)v+=3.2*Math.exp(-a/0.05)*(a<0.01?1:1);
+  return v;}
+function contraction(t){if(S.rhythm!=='sinus')return 0;const u=((t-S.sinus0)%0.8+0.8)%0.8;return Math.exp(-((u-0.3)*(u-0.3))/(2*0.06*0.06));}
+function step(dt){
+  if(S.charging){S.E=Math.min(Eset(),S.E+PCH*dt);if(S.E>=Eset()){S.charging=false;done[0]=true;}}
+  if(S.rhythm==='pause'){S.rT-=dt;if(S.rT<=0){S.rhythm='sinus';S.sinus0=time;}}
+  S.anim=Math.max(0,S.anim-dt*1.6);
+  ecg.push([time,ecgV(time),S.rhythm==='vf']);while(ecg.length&&ecg[0][0]<time-4)ecg.shift();
+  if(S.msg){S.msg.t-=dt;if(S.msg.t<=0)S.msg=null;}
+  if(padsOn())done[1]=true;
+}
+function say(text,color,t){S.msg={text,color:color||col.warn,t:t||3};}
+function charge(){if(S.charging)return;if(ready()){say('المتسعة مشحونة وجاهزة',col.field,2);return;}S.charging=true;}
+function shock(){
+  if(!ready()){say(S.charging?'انتظر حتى يكتمل الشحن':'اشحن المتسعة أولاً بزر الشحن');return;}
+  if(!padsOn()){say('ضع المجدافين على صدر المريض أولاً');return;}
+  const p=pt(),E=S.E,V0=V(),I0=V0/p.R,tau=p.R*CAP,dur=5*tau*1000;
+  const prev=S.rhythm;let ok=false,warn='';
+  if(prev==='vf'){ok=E>=p.lo;S.rhythm=ok?'pause':'vf';S.rT=1.6;if(!ok)hadFail=true;else done[2]=true;}
+  else{S.rhythm='vf';warn='sinus';}
+  if(ok&&E>p.harm)warn='harm';
+  S.E=0;S.anim=1;S.art=time;
+  lastShock={pt:p.n,kg:p.kg,E,V0,I0,dur,ok,warn,prev};
+  recs.push(lastShock);if(recs.length>6)recs.shift();
+  if(hadFail&&done[2])done[3]=true;
+  if(warn==='sinus')say('صدمة لقلب منتظم أحدثت اضطراباً فيه! لا تُعطى الصدمة إلا لقلب مضطرب',col.pos,4);
+  else if(warn==='harm')say('عاد انتظام القلب، لكن الطاقة أكبر بكثير مما يحتاجه الطفل وقد تؤذي عضلة قلبه',col.warn,4.5);
+  else if(ok)say('عاد انتظام القلب بعد الصدمة',col.field,3);
+  else say('الطاقة غير كافية: ما زال القلب مضطرباً. ارفع الطاقة واشحن من جديد',col.warn,4);
+}
+
+/* ---------- drawing helpers ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||'600 13px system-ui, Tahoma, sans-serif';ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function pulseRect(x,y,w,h,color){const pu=0.5+0.5*Math.sin(time*5),e=3+pu*4;rr(x-e,y-e,w+2*e,h+2*e,10);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+
+function hint(){if(drag||S.anim>0.3)return null;
+  if(S.rhythm!=='vf')return done[3]?null:'tray';
+  if(!S.knobTouched)return'knob';
+  if(!ready()&&!S.charging)return'charge';
+  if(!padsOn())return'pad';
+  if(ready())return'shock';return null;}
+
+function drawBg(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const g=ctx.createRadialGradient(W*0.5,H*0.45,0,W*0.5,H*0.45,Math.max(W,H)*0.75);
+  g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const h=ctx.createRadialGradient(W*0.5,-H*0.1,0,W*0.5,-H*0.1,H*0.7);
+  h.addColorStop(0,'rgba(255,255,255,0.10)');h.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=h;ctx.fillRect(0,0,W,H);
+  ctx.setTransform(DPR*cam.z,0,0,DPR*cam.z,DPR*cam.x,DPR*cam.y);
+}
+
+/* ---------- board: the patient ---------- */
+function drawBoard(){const b=G.board,hv=hover==='board'||(drag&&drag.type==='board');
+  rr(b.x,b.y,b.w,b.h,18);ctx.fillStyle='rgba(255,255,255,.035)';ctx.fill();
+  ctx.strokeStyle=hv?col.accent:'rgba(234,240,250,.12)';ctx.lineWidth=hv?1.6:1;ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.05)';for(let x=b.x+18;x<b.x+b.w-10;x+=24)for(let y=b.y+18;y<b.y+b.h-10;y+=24)ctx.fillRect(x-1,y-1,2,2);}
+function drawPatient(){const b=G.board,T=G.T,u=T.u,cx=T.cx,y0=T.y0,j=RM?0:S.anim*S.anim*10*Math.sin(S.anim*40);
+  ctx.save();rr(b.x,b.y,b.w,b.h,18);ctx.clip();ctx.translate(0,-Math.abs(j));
+  const skin='rgba(214,180,160,.16)',edge='rgba(234,215,200,.55)';
+  // arms
+  [-1,1].forEach(s=>{ctx.beginPath();ctx.moveTo(cx+s*128*u,y0+104*u);ctx.quadraticCurveTo(cx+s*168*u,y0+120*u,cx+s*170*u,y0+170*u);
+    ctx.lineTo(cx+s*178*u,b.y+b.h+10);ctx.lineTo(cx+s*140*u,b.y+b.h+10);ctx.lineTo(cx+s*132*u,y0+180*u);ctx.closePath();ctx.fillStyle=skin;ctx.fill();ctx.strokeStyle=edge;ctx.lineWidth=1.5;ctx.stroke();});
+  // torso
+  ctx.beginPath();ctx.moveTo(cx-30*u,y0+80*u);ctx.quadraticCurveTo(cx-40*u,y0+96*u,cx-118*u,y0+102*u);ctx.quadraticCurveTo(cx-138*u,y0+120*u,cx-128*u,y0+180*u);
+  ctx.lineTo(cx-112*u,b.y+b.h+10);ctx.lineTo(cx+112*u,b.y+b.h+10);ctx.lineTo(cx+128*u,y0+180*u);ctx.quadraticCurveTo(cx+138*u,y0+120*u,cx+118*u,y0+102*u);
+  ctx.quadraticCurveTo(cx+40*u,y0+96*u,cx+30*u,y0+80*u);ctx.closePath();ctx.fillStyle=skin;ctx.fill();ctx.strokeStyle=edge;ctx.lineWidth=1.6;ctx.stroke();
+  // skeleton hints: clavicles, sternum, ribs
+  ctx.strokeStyle='rgba(234,240,250,.16)';ctx.lineWidth=2;
+  [-1,1].forEach(s=>{ctx.beginPath();ctx.moveTo(cx+s*8*u,y0+108*u);ctx.quadraticCurveTo(cx+s*60*u,y0+98*u,cx+s*104*u,y0+110*u);ctx.stroke();});
+  ctx.lineWidth=5*u;ctx.beginPath();ctx.moveTo(cx,y0+112*u);ctx.lineTo(cx,y0+250*u);ctx.stroke();
+  ctx.lineWidth=1.6;for(let i=0;i<7;i++){const y=y0+(128+i*22)*u;[-1,1].forEach(s=>{ctx.beginPath();ctx.moveTo(cx+s*6*u,y);ctx.quadraticCurveTo(cx+s*70*u,y-8*u,cx+s*(104+i*2)*u,y+18*u);ctx.stroke();});}
+  // head and neck
+  ctx.fillStyle=skin;ctx.strokeStyle=edge;ctx.lineWidth=1.6;
+  rr(cx-22*u,y0+66*u,44*u,24*u,6*u);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.ellipse(cx,T.hy,30*u,36*u,0,0,7);ctx.fill();ctx.stroke();
+  drawHeart();
+  // targets
+  const hk=hint();
+  for(const k of['st','ap']){const t=T.tg[k];if(Object.values(pads).some(p=>p.at===k))continue;
+    ctx.setLineDash([5,4]);ctx.beginPath();ctx.arc(t.x,t.y,20,0,7);ctx.strokeStyle=(drag&&drag.type==='pad')?col.accent:'rgba(127,211,255,.45)';ctx.lineWidth=1.6;ctx.stroke();ctx.setLineDash([]);
+    if(hk==='pad'||(drag&&drag.type==='pad'))pulseRing(t.x,t.y,22,col.accent,k==='st'?0:1.5);}
+  // shock current through the chest
+  if(S.anim>0.02&&padsOn()){const A=pads.st,B=pads.ap,mx=(A.x+B.x)/2,my=(A.y+B.y)/2,dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L;
+    ctx.lineCap='round';for(let k=-3;k<=3;k++){const off=k*16*u;ctx.strokeStyle=`rgba(255,226,140,${S.anim*(0.9-Math.abs(k)*0.18)})`;ctx.lineWidth=2.4;ctx.setLineDash([10,8]);ctx.lineDashOffset=-time*240;
+      ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.quadraticCurveTo(mx+nx*off*2,my+ny*off*2,B.x,B.y);ctx.stroke();}ctx.setLineDash([]);}
+  ctx.restore();
+  // labels
+  const lf='500 11px system-ui, Tahoma, sans-serif',h=T.heart;
+  txt('القلب',h.x+h.s*1.15,h.y-h.s*0.95,{align:'left',font:lf,color:col.muted});}
+function drawHeart(){const h=G.T.heart,s=h.s,vf=S.rhythm==='vf',c=contraction(time),sc=1-0.1*c;
+  const jit=k=>vf?0.06*Math.sin(time*31+k*2.1)+0.04*Math.sin(time*47+k*5.3):0;
+  ctx.save();ctx.translate(h.x,h.y);ctx.rotate(-0.42);ctx.scale(s*sc,s*sc);
+  // great vessels
+  ctx.strokeStyle=vf?'#7a3a58':'#c0485a';ctx.lineWidth=0.22;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-0.05,-0.6);ctx.bezierCurveTo(-0.05,-1.2,0.55,-1.25,0.62,-0.85);ctx.stroke();
+  ctx.strokeStyle=vf?'#3d4f7a':'#4a6fb0';ctx.beginPath();ctx.moveTo(-0.35,-0.55);ctx.lineTo(-0.38,-1.08);ctx.stroke();
+  // ventricles and atria
+  ctx.beginPath();ctx.moveTo(0,-0.55+jit(1));
+  ctx.bezierCurveTo(0.35+jit(2),-1.0,1.05+jit(3),-0.6,0.75+jit(4),0.05);
+  ctx.bezierCurveTo(0.6+jit(5),0.5,0.35,0.85+jit(6),0.12,1.05);
+  ctx.bezierCurveTo(-0.2,0.8+jit(7),-0.8+jit(8),0.45,-0.8+jit(9),-0.05);
+  ctx.bezierCurveTo(-0.85,-0.6+jit(10),-0.3,-0.95,0,-0.55+jit(1));ctx.closePath();
+  const g=ctx.createRadialGradient(-0.2,-0.3,0.1,0,0,1.2);
+  if(vf){g.addColorStop(0,'#9a4a6e');g.addColorStop(1,'#4d2140');}else{g.addColorStop(0,'#f06a6a');g.addColorStop(1,'#8f1f2e');}
+  ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='rgba(255,220,220,.5)';ctx.lineWidth=0.04;ctx.stroke();
+  ctx.strokeStyle='rgba(255,210,122,.55)';ctx.lineWidth=0.035;ctx.beginPath();ctx.moveTo(0.05,-0.45);ctx.bezierCurveTo(0.2,0,0.1,0.5,0.12,0.95);ctx.stroke();
+  ctx.restore();
+  if(S.rhythm==='sinus'&&c>0.4){ctx.beginPath();ctx.arc(h.x,h.y,s*1.25,0,7);ctx.strokeStyle=`rgba(255,107,107,${0.35*c})`;ctx.lineWidth=2;ctx.stroke();}}
+
+function drawInfo(){const b=G.board,p=pt(),f='600 11.5px ui-monospace, Menlo, Consolas, monospace',lf='500 11px system-ui, Tahoma, sans-serif';
+  txt('الشكل (34-b)',b.x+b.w-14,b.y+18,{align:'right',font:lf,color:col.muted});
+  txt('المريض: '+p.n,b.x+14,b.y+18,{align:'left',font:'600 12px system-ui, Tahoma, sans-serif'});
+  txt(p.kg+' kg   R = '+p.R+' Ω',b.x+14,b.y+36,{align:'left',font:f,color:col.accent,dir:'ltr'});
+  txt('الطاقة المناسبة:',b.x+14,b.y+56,{align:'left',font:lf,color:col.muted});
+  txt(p.lo+' – '+p.hi+' J',b.x+14,b.y+73,{align:'left',font:f,color:col.lamp,dir:'ltr'});
+  if(lastShock){const l=lastShock;const x=b.x+b.w-14;
+    txt('آخر صدمة',x,b.y+40,{align:'right',font:lf,color:col.muted});
+    [['E = '+l.E.toFixed(0)+' J',col.lamp],['ΔV = '+l.V0.toFixed(0)+' V',col.ink],['I₀ = '+l.I0.toFixed(0)+' A',col.ink],['t ≈ '+l.dur.toFixed(0)+' ms',col.ink]].forEach((r,i)=>txt(r[0],x,b.y+58+i*17,{align:'right',font:f,color:r[1],dir:'ltr'}));}
+  // rhythm status
+  const st=S.rhythm==='vf'?['رجفان: القلب غير قادر على ضخ الدم',col.pos]:S.rhythm==='pause'?['توقف لحظي بعد الصدمة…',col.warn]:['نظم طبيعي: 75 نبضة في الدقيقة',col.field];
+  let m=S.msg?[S.msg.text,S.msg.color]:st;
+  ctx.font='600 12.5px system-ui, Tahoma, sans-serif';const w=Math.min(b.w-24,ctx.measureText(m[0]).width+28);
+  rr(b.x+(b.w-w)/2,b.y+b.h-34,w,24,9);ctx.fillStyle='rgba(8,20,41,.88)';ctx.fill();ctx.strokeStyle=m[1];ctx.globalAlpha=.5;ctx.lineWidth=1;ctx.stroke();ctx.globalAlpha=1;
+  txt(m[0],b.x+b.w/2,b.y+b.h-22,{font:'600 12.5px system-ui, Tahoma, sans-serif',color:m[1]});}
+
+/* ---------- paddles and cords ---------- */
+function drawCord(k){const P=G.D.port[k],p=pads[k],ex=p.x,ey=p.y-52,s=k==='st'?-1:1;
+  const c1={x:P.x+s*40,y:P.y+30},c2={x:ex+s*30,y:ey-10};const pts=[];
+  for(let i=0;i<=60;i++){const t=i/60,u=1-t;pts.push({x:u*u*u*P.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*ex,y:u*u*u*P.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*ey});}
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=6;ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y+3):ctx.moveTo(q.x,q.y+3));ctx.stroke();
+  ctx.strokeStyle='#1b2029';ctx.lineWidth=5;ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1.2;ctx.beginPath();
+  for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,o=Math.sin(i*1.3)*3;ctx.moveTo(b.x-dy/L*o,b.y+dx/L*o);ctx.lineTo(b.x+dy/L*o,b.y-dx/L*o);}ctx.stroke();}
+function drawPaddle(k){const p=pads[k],hv=hover==='pad'+k||(drag&&drag.type==='pad'&&drag.k===k);
+  if(hint()==='pad'&&!p.at)pulseRing(p.x,p.y,24,col.accent,k==='st'?0:1.5);
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;
+  const pg=ctx.createRadialGradient(p.x-5,p.y-5,2,p.x,p.y,19);pg.addColorStop(0,'#eef2f7');pg.addColorStop(1,'#7f8a9b');
+  ctx.beginPath();ctx.arc(p.x,p.y,18,0,7);ctx.fillStyle=pg;ctx.fill();ctx.restore();
+  ctx.beginPath();ctx.arc(p.x,p.y,18,0,7);ctx.strokeStyle=hv?col.accent:'rgba(0,0,0,.35)';ctx.lineWidth=hv?2:1.2;ctx.stroke();
+  if(S.anim>0.05&&p.at){ctx.beginPath();ctx.arc(p.x,p.y,22+10*(1-S.anim),0,7);ctx.strokeStyle=`rgba(255,226,140,${S.anim})`;ctx.lineWidth=3;ctx.stroke();}
+  const hg=ctx.createLinearGradient(p.x-11,0,p.x+11,0);hg.addColorStop(0,'#1d2433');hg.addColorStop(0.5,'#4a5570');hg.addColorStop(1,'#1d2433');
+  rr(p.x-11,p.y-54,22,44,7);ctx.fillStyle=hg;ctx.fill();ctx.strokeStyle=hv?col.accent:'rgba(255,255,255,.2)';ctx.lineWidth=1;ctx.stroke();
+  rr(p.x-6,p.y-46,12,8,3);ctx.fillStyle='#e8b923';ctx.fill();
+  txt(k==='st'?'القص':'القمة',p.x,p.y-24,{font:'600 9.5px system-ui, Tahoma, sans-serif',color:'#e9edf3'});}
+
+/* ---------- the defibrillator (Figure 34-a) ---------- */
+function drawDevice(){const d=G.dev,D=G.D,hk=hint(),hv=hover==='dev'||(drag&&drag.type==='dev');
+  if(hv){rr(d.x-8,d.y-8,d.w+16,d.h+16,16);ctx.strokeStyle=col.accent;ctx.globalAlpha=.5;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;
+  rr(d.x,d.y,d.w,d.h,14);const bg=ctx.createLinearGradient(0,d.y,0,d.y+d.h);bg.addColorStop(0,'#f2c73a');bg.addColorStop(1,'#c9930f');ctx.fillStyle=bg;ctx.fill();ctx.restore();
+  rr(d.x,d.y,d.w,d.h,14);ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.stroke();
+  // paddle cradles
+  for(const k of['st','ap']){const h=D.hold[k];rr(h.x-24,d.y-6,48,12,5);ctx.fillStyle='#2a3346';ctx.fill();}
+  // screen with ECG
+  const s=D.scr;rr(s.x-4,s.y-4,s.w+8,s.h+8,9);ctx.fillStyle='#2a3346';ctx.fill();
+  rr(s.x,s.y,s.w,s.h,6);ctx.fillStyle='#071410';ctx.fill();
+  const eh=s.h-46,ey=s.y+8+eh/2;
+  ctx.strokeStyle='rgba(126,240,164,.08)';ctx.lineWidth=1;for(let i=1;i<8;i++){const x=s.x+s.w*i/8;ctx.beginPath();ctx.moveTo(x,s.y+6);ctx.lineTo(x,s.y+8+eh);ctx.stroke();}
+  ctx.save();rr(s.x,s.y,s.w,s.h,6);ctx.clip();
+  ctx.lineWidth=1.8;ctx.lineJoin='round';let pv=null,px=0,py=0;
+  ecg.forEach(q=>{const x=s.x+s.w-(time-q[0])/4*s.w,y=ey-clamp(q[1],-1.6,1.6)*eh*0.3;
+    if(q[2]!==pv){if(pv!==null)ctx.stroke();ctx.strokeStyle=q[2]?'#ff8a8a':'#7ef0a4';ctx.beginPath();ctx.moveTo(pv===null?x:px,pv===null?y:py);pv=q[2];}
+    ctx.lineTo(x,y);px=x;py=y;});if(pv!==null)ctx.stroke();ctx.restore();
+  txt('ECG',s.x+6,s.y+10,{align:'left',font:'600 9px ui-monospace, Menlo, Consolas, monospace',color:'rgba(126,240,164,.6)',dir:'ltr'});
+  txt(S.rhythm==='vf'?'VF':S.rhythm==='sinus'?'HR 75':'---',s.x+s.w-6,s.y+10,{align:'right',font:'600 10px ui-monospace, Menlo, Consolas, monospace',color:S.rhythm==='vf'?'#ff8a8a':'#7ef0a4',dir:'ltr'});
+  ctx.strokeStyle='rgba(126,240,164,.2)';ctx.beginPath();ctx.moveTo(s.x+6,s.y+s.h-38);ctx.lineTo(s.x+s.w-6,s.y+s.h-38);ctx.stroke();
+  const fr=s.y+s.h-24,f1='600 13px ui-monospace, Menlo, Consolas, monospace';
+  txt(Eset()+' J',s.x+10,fr,{align:'left',font:'600 16px ui-monospace, Menlo, Consolas, monospace',color:'#ffd27a',dir:'ltr'});
+  txt('ΔV = '+V().toFixed(0)+' V',s.x+s.w*0.52,fr,{font:f1,color:'#7ef0a4',dir:'ltr'});
+  const pr=S.E/Eset();rr(s.x+10,s.y+s.h-9,s.w-20,4,2);ctx.fillStyle='rgba(126,240,164,.15)';ctx.fill();
+  rr(s.x+10,s.y+s.h-9,(s.w-20)*clamp(pr,0,1),4,2);ctx.fillStyle=ready()?'#ffd27a':'#7ef0a4';ctx.fill();
+  const stt=S.charging?'شحن '+Math.round(pr*100)+'%':ready()?'جاهز':'—';
+  txt(stt,s.x+s.w-10,fr,{align:'right',font:'600 12px system-ui, Tahoma, sans-serif',color:ready()?'#ffd27a':'#a3b3cc'});
+  // energy knob
+  const k=D.knob,f=S.ei/(STEPS.length-1),a0=Math.PI*0.75,ang=a0+f*Math.PI*1.5;
+  if(hk==='knob')pulseRing(k.x,k.y,k.r+10,'#1b2029',0.7);
+  for(let i=0;i<STEPS.length;i++){const a=a0+i/(STEPS.length-1)*Math.PI*1.5;ctx.strokeStyle=i<=S.ei?'#1b2029':'rgba(27,32,41,.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(k.x+Math.cos(a)*(k.r+4),k.y+Math.sin(a)*(k.r+4));ctx.lineTo(k.x+Math.cos(a)*(k.r+9),k.y+Math.sin(a)*(k.r+9));ctx.stroke();}
+  const kg=ctx.createRadialGradient(k.x-6,k.y-7,2,k.x,k.y,k.r);kg.addColorStop(0,'#5a6884');kg.addColorStop(1,'#1f2738');
+  ctx.beginPath();ctx.arc(k.x,k.y,k.r,0,7);ctx.fillStyle=kg;ctx.fill();ctx.strokeStyle=hover==='knob'||(drag&&drag.type==='knob')?col.accent:'rgba(255,255,255,.3)';ctx.lineWidth=1.6;ctx.stroke();
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(k.x+Math.cos(ang)*5,k.y+Math.sin(ang)*5);ctx.lineTo(k.x+Math.cos(ang)*(k.r-5),k.y+Math.sin(ang)*(k.r-5));ctx.stroke();
+  txt('① الطاقة',d.x+d.w-46,k.y,{font:'700 12px system-ui, Tahoma, sans-serif',color:'#1b2029'});
+  // buttons
+  const btn=(r,label,key,fill,on,pulse)=>{if(pulse)pulseRect(r.x,r.y,r.w,r.h,'#1b2029');
+    rr(r.x,r.y+3,r.w,r.h,9);ctx.fillStyle='rgba(0,0,0,.3)';ctx.fill();const pd=drag&&drag.type===key?2:0;
+    rr(r.x,r.y+pd,r.w,r.h,9);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=hover===key?'#fff':'rgba(0,0,0,.35)';ctx.lineWidth=1.4;ctx.stroke();
+    txt(label,r.x+r.w/2,r.y+r.h/2+pd,{font:'700 13px system-ui, Tahoma, sans-serif',color:on?'#fff':'#1b2029'});};
+  btn(D.chg,'② شحن','chg','#f7e08a',false,hk==='charge');
+  const rd=ready();btn(D.shk,'③ صدمة ⚡','shk',rd?(Math.sin(time*8)>0?'#e94848':'#c62f2f'):'#a85a4a',true,hk==='shock');
+}
+
+/* ---------- patient tray ---------- */
+function drawTray(){const t=G.tray,hk=hint(),gap=8,tw=(t.w-2*gap)/3;
+  txt('اختر المريض',t.x+t.w,t.y+6,{align:'right',font:'600 12px system-ui, Tahoma, sans-serif',color:col.muted});
+  PTS.forEach((p,i)=>{const x=t.x+t.w-(i+1)*tw-i*gap,y=t.y+18,sel=i===S.pi,hv=hover==='tile'+i;
+    if(hk==='tray'&&!sel)pulseRect(x,y,tw,40,col.accent);
+    rr(x,y,tw,40,8);ctx.fillStyle=sel?'rgba(127,211,255,.14)':'rgba(8,20,41,.55)';ctx.fill();
+    ctx.strokeStyle=sel?col.accent:hv?'rgba(127,211,255,.55)':col.line;ctx.lineWidth=sel?1.6:1;ctx.stroke();
+    txt(p.n,x+tw/2,y+13,{font:'600 12px system-ui, Tahoma, sans-serif'});
+    txt(p.kg+' kg',x+tw/2,y+29,{font:'600 11px ui-monospace, Menlo, Consolas, monospace',color:col.muted,dir:'ltr'});});}
+
+function draw(){drawBg();drawBoard();drawPatient();drawInfo();drawDevice();drawTray();
+  drawCord('st');drawCord('ap');drawPaddle('st');drawPaddle('ap');
+  if(S.anim>0.6&&lastShock){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle=`rgba(255,246,210,${(RM?0.15:0.5)*(S.anim-0.6)/0.4*clamp(lastShock.E/360,0.25,1)})`;ctx.fillRect(0,0,W,H);}}
+
+/* ---------- hands-on input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+const toWorld=s=>({x:(s.x-cam.x)/cam.z,y:(s.y-cam.y)/cam.z});
+const inR=(p,x,y,w,h)=>p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h;
+function hit(p){const D=G.D;
+  for(const k of['ap','st']){const q=pads[k];if(Math.hypot(q.x-p.x,q.y-p.y)<22||inR(p,q.x-13,q.y-56,26,48))return{type:'pad',k,key:'pad'+k};}
+  if(Math.hypot(D.knob.x-p.x,D.knob.y-p.y)<D.knob.r+10)return{type:'knob',key:'knob'};
+  const c=D.chg;if(inR(p,c.x,c.y,c.w,c.h))return{type:'chg',key:'chg'};
+  const s=D.shk;if(inR(p,s.x,s.y,s.w,s.h))return{type:'shk',key:'shk'};
+  const t=G.tray,tw=(t.w-16)/3;for(let i=0;i<3;i++){const x=t.x+t.w-(i+1)*tw-i*8;if(inR(p,x,t.y+18,tw,40))return{type:'tile',i,key:'tile'+i};}
+  if(inR(p,t.x,t.y-4,t.w,20))return{type:'tray',key:'tray'};
+  const d=G.dev;if(inR(p,d.x-4,d.y-6,d.w+8,d.h+10))return{type:'dev',key:'dev'};
+  const bd=G.board;if(inR(p,bd.x,bd.y,bd.w,bd.h))return{type:'board',key:'board'};
+  return null;}
+function cursorFor(h){if(!h)return'grab';return h.type==='knob'?'ns-resize':h.type==='pad'?'grab':['dev','board','tray'].includes(h.type)?'move':'pointer';}
+function setEnergy(i){if(i===S.ei)return;S.ei=i;S.knobTouched=true;
+  if(S.E>0||S.charging){S.E=0;S.charging=false;say('تغيرت الطاقة المختارة، فأفرغ الجهاز المتسعة داخلياً. اشحن من جديد',col.accent,3);}}
+function pickPatient(i){if(i===S.pi)return;S.pi=i;S.rhythm='vf';say('مريض جديد: '+PTS[i].n+' ('+PTS[i].kg+' kg) مصاب برجفان',col.accent,3);}
+
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);
+  const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){if(drag&&drag.type==='pad'){const q=pads[drag.k];q.at=drag.prevAt;}drag=null;parts();const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:cam.z,x0:cam.x,y0:cam.y};return;}
+  if(ptrs.size>2)return;
+  const p=toWorld(s),h=hit(p);
+  if(!h){const now=performance.now();if(now-lastTap<320){cam.z=1;cam.x=0;cam.y=0;}lastTap=now;drag={type:'pan',s0:s,x0:cam.x,y0:cam.y};cv.style.cursor='grabbing';return;}
+  if(h.type==='pad'){const q=pads[h.k];drag={type:'pad',k:h.k,prevAt:q.at,ox:p.x-q.x,oy:p.y-q.y};q.at=null;cv.style.cursor='grabbing';return;}
+  if(h.type==='chg'){drag={type:'chg'};charge();return;}
+  if(h.type==='shk'){drag={type:'shk'};shock();return;}
+  if(h.type==='tile'){drag={type:'tile',i:h.i,s0:s,moved:false,ox:p.x-G.tray.x,oy:p.y-G.tray.y};return;}
+  if(h.type==='knob')drag={type:'knob',s0:s,v0:S.ei};
+  else if(h.type==='tray')drag={type:'tray',ox:p.x-G.tray.x,oy:p.y-G.tray.y};
+  else if(h.type==='dev')drag={type:'dev',ox:p.x-G.dev.x,oy:p.y-G.dev.y};
+  else if(h.type==='board')drag={type:'board',ox:p.x-G.board.x,oy:p.y-G.board.y};
+  cv.style.cursor=cursorFor(h);});
+
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    const z=clamp(pinch.z0*d/pinch.d0,0.6,4),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;
+    cam.z=z;cam.x=mid.x-wx*z;cam.y=mid.y-wy*z;return;}
+  const p=toWorld(s);
+  if(!drag){const h=hit(p);hover=h?h.key:null;cv.style.cursor=cursorFor(h);return;}
+  if(drag.type==='pan'){cam.x=drag.x0+s.x-drag.s0.x;cam.y=drag.y0+s.y-drag.s0.y;return;}
+  if(drag.type==='pad'){const q=pads[drag.k];q.x=p.x-drag.ox;q.y=p.y-drag.oy;}
+  else if(drag.type==='knob'){const i=clamp(Math.round(drag.v0+((s.x-drag.s0.x)-(s.y-drag.s0.y))/14),0,STEPS.length-1);setEnergy(i);}
+  else if(drag.type==='tile'){if(Math.hypot(s.x-drag.s0.x,s.y-drag.s0.y)>6)drag.moved=true;if(drag.moved){G.tray.x=p.x-drag.ox;G.tray.y=p.y-drag.oy;placedTray=true;}}
+  else if(drag.type==='tray'){G.tray.x=p.x-drag.ox;G.tray.y=p.y-drag.oy;placedTray=true;}
+  else if(drag.type==='dev'){G.dev.x=p.x-drag.ox;G.dev.y=p.y-drag.oy;placedDev=true;parts();}
+  else if(drag.type==='board'){G.board.x=p.x-drag.ox;G.board.y=p.y-drag.oy;placedBoard=true;parts();}});
+
+function pointerEnd(e){ptrs.delete(e.pointerId);
+  if(pinch){if(ptrs.size<2)pinch=null;return;}
+  if(!drag)return;
+  if(drag.type==='pad'){const q=pads[drag.k],other=pads[drag.k==='st'?'ap':'st'];let best=null,bd=64;
+    for(const t of['st','ap']){if(other.at===t)continue;const g=G.T.tg[t],d=Math.hypot(g.x-q.x,g.y-q.y);if(d<bd){bd=d;best=t;}}
+    q.at=best;parts();}
+  if(drag.type==='tile'&&!drag.moved)pickPatient(drag.i);
+  drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(cam.z*f,0.6,4),wx=(s.x-cam.x)/cam.z,wy=(s.y-cam.y)/cam.z;
+  cam.z=z;cam.x=s.x-wx*z;cam.y=s.y-wy*z;},{passive:false});
+
+/* ---------- shared state for the panels ---------- */
+function reset(){Object.assign(S,{ei:3,E:0,charging:false,pi:1,rhythm:'vf',anim:0,art:-9,msg:null,knobTouched:false});pads.st.at=null;pads.ap.at=null;done.fill(false);hadFail=false;lastShock=null;recs.length=0;parts();}
+window.__sim={done,reset,recs:()=>recs.slice()};
+
+/* ---------- teacher hint (lamp button) ---------- */
+window.__explain=function(){
+  const p=pt(),E=S.E,v=V(),Q=CAP*v;
+  const nums=`<div class="nums"><span>C = 100 µF</span><span>E = ${E.toFixed(0)} J</span><span>ΔV = ${v.toFixed(0)} V</span><span>Q = ${(Q*1000).toFixed(0)} mC</span></div>`;
+  if(lastShock&&S.anim>0||S.rhythm==='pause'){const l=lastShock;return{t:'المتسعة تفرغ طاقتها في جسم المريض',b:`<p>عند الضغط على زر الصدمة اتصلت صفيحتا المتسعة بالمجدافين الموضوعين على صدر المريض، فانساب خلال صدره وقلبه تيار كبير لمدة قصيرة جداً:</p><p class="m">I₀ = ΔV / R = ${l.V0.toFixed(0)} / ${p.R} = ${l.I0.toFixed(0)} A</p><p class="m">t ≈ 5RC = ${l.dur.toFixed(0)} ms</p><p>هذه الصدمة توقف الإشارات الكهربائية المضطربة في عضلة القلب كلها في اللحظة نفسها، فيعود القلب إلى نظمه الطبيعي.</p>`};}
+  if(S.rhythm==='sinus')return{t:'عاد القلب إلى نظمه الطبيعي',b:`<p>يضخ القلب الدم من جديد، ويظهر على شاشة الجهاز تخطيط قلب منتظم بنبض 75 في الدقيقة.</p><p class="note">لا تُعطى الصدمة لقلب منتظم، لأنها قد تحدث فيه اضطراباً. اختر مريضاً آخر لتكرار النشاط.</p>`};
+  if(lastShock&&!lastShock.ok&&lastShock.prev==='vf'&&!S.charging&&E===0)return{t:'الطاقة غير كافية',b:`<p>الطاقة ${R(lastShock.E.toFixed(0)+' J')} أقل مما يحتاجه هذا المريض (${R(p.lo+' J')} في الأقل)، فلم يكفِ التيار لإيقاف الاضطراب في عضلة القلب كلها.</p><p>ارفع الطاقة بالمقبض واشحن المتسعة من جديد.</p>`};
+  if(S.charging)return{t:'المتسعة تُشحن',b:`<p>تشحن دائرة الشحن في الجهاز المتسعة، فيرتفع فرق الجهد بين صفيحتيها وتزداد الطاقة المختزنة في المجال الكهربائي بينهما:</p><p class="m">E = ½ C ΔV²  ⇒  ΔV = √(2E / C)</p><p>لتخزين ${R(Eset()+' J')} يجب أن يصل فرق الجهد إلى ${R(Math.sqrt(2*Eset()/CAP).toFixed(0)+' V')}.</p>${nums}`};
+  if(ready()){if(!padsOn())return{t:'المتسعة جاهزة',b:`<p>المتسعة مشحونة بطاقة ${R(E.toFixed(0)+' J')}. اسحب المجدافين وضع أحدهما أعلى يمين صدر المريض والآخر أسفل يسار صدره، فيكون القلب بينهما.</p>${nums}`};
+    return{t:'جاهز للصدمة',b:`<p>المجدافان على صدر المريض والمتسعة مشحونة. عند الضغط على زر الصدمة تُفرغ المتسعة طاقتها في جسم المريض.</p><p class="note">في المستشفى يعلن الطبيب «ابتعدوا» قبل الصدمة كي لا يلمس أحد المريض.</p>${nums}`};}
+  return{t:'المريض مصاب برجفان',b:`<p>عضلة القلب ترتجف بإشارات كهربائية مضطربة، فلا يستطيع القلب ضخ الدم، ويظهر على الشاشة خط متعرج غير منتظم.</p><p>اختر الطاقة المناسبة لهذا المريض (${R(p.lo+' – '+p.hi+' J')}) بالمقبض، ثم اضغط زر الشحن.</p>${nums}`};
+  function R(n){return`<b class="m">${n}</b>`;}
+};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(W){step(dt);draw();}requestAnimationFrame(frame);}
+readColors();layout();
+const ro=new ResizeObserver(()=>layout());ro.observe(cv);ro.observe(hdr);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
+requestAnimationFrame(frame);
+})();
+
+/* fullscreen: real fullscreen when the browser allows it, otherwise an immersive mode that hides the panels */
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  let imm=false;
+  const sync=()=>{const on=isFs()||imm;ico.setAttribute('d',on?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');window.dispatchEvent(new Event('resize'));};
+  const setImm=v=>{imm=v;document.body.classList.toggle('imm',v);
+    if(v){document.querySelectorAll('.pane').forEach(p=>p.hidden=true);document.querySelectorAll('.hbtn.on,.sbtn.on').forEach(x=>{x.classList.remove('on');x.setAttribute('aria-expanded','false');});}
+    sync();};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{const r=exit.call(document);if(r&&r.catch)r.catch(()=>{});}catch(e){}return;}
+    if(imm){setImm(false);return;}
+    let ok=false;
+    if(req&&document.fullscreenEnabled!==false){try{const r=req.call(el,{navigationUI:'hide'});ok=true;if(r&&r.catch)r.catch(()=>setImm(true));}catch(e){ok=false;}}
+    if(!ok)setImm(true);else setTimeout(()=>{if(!isFs()&&!imm)setImm(true);},600);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&imm)setImm(false);});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+
+/* panels */
+(function(){
+  const hdr=document.getElementById('hdr'),info=document.getElementById('infoPanel'),iT=document.getElementById('infoTitle'),iB=document.getElementById('infoBody');
+  const tip=document.getElementById('tipPanel'),tT=document.getElementById('tipTitle'),tB=document.getElementById('tipBody'),tipBtn=document.getElementById('tipBtn');
+  const btns=[...document.querySelectorAll('.hbtn')];
+  const STEPS=[
+    'نختار مقدار الطاقة المناسب للمريض بمقبض الطاقة، ثم نضغط زر الشحن، فتُشحن المتسعة ويرتفع فرق الجهد بين صفيحتيها. <span class="fig">(34-a)</span>',
+    'نسحب المجدافين ونضعهما على صدر المريض: أحدهما أعلى يمين الصدر والآخر أسفل يساره، فيكون القلب بينهما. <span class="fig">(34-b)</span>',
+    'نضغط زر الصدمة، فتُفرغ المتسعة طاقتها في جسم المريض لمدة زمنية قصيرة جداً، فتحفز قلبه وتعيد انتظام عمله.',
+    'نختار مريضاً آخر ونكرر بطاقة أقل من اللازم، ثم بالطاقة المناسبة، ونلاحظ أن الطاقة غير الكافية لا تعيد انتظام القلب.'];
+  const R=n=>`<b class="m">${n}</b>`;
+  const P={
+    tools:()=>({t:'أدوات النشاط',b:`<p>جهاز تحفيز وتنظيم حركة عضلات القلب (The defibrillator) كما في الشكل (34-a):</p><ul>
+      <li><div>متسعة سعتها ${R('C = 100 µF')} داخل الجهاز، ودائرة تشحنها من بطارية الجهاز.</div></li>
+      <li><div>مقبض لاختيار مقدار الطاقة من ${R('10 J')} إلى ${R('360 J')}.</div></li>
+      <li><div>زر الشحن وزر الصدمة (Electric Shock).</div></li>
+      <li><div>مجدافان معدنيان موصولان بالجهاز بسلكين، يوضعان على صدر المريض.</div></li>
+      <li><div>شاشة تعرض تخطيط القلب ومقدار الطاقة وفرق الجهد بين صفيحتي المتسعة.</div></li>
+      <li><div>مرضى بأوزان مختلفة: مقاومة الصدر نحو ${R('40')} إلى ${R('80 Ω')}.</div></li></ul>
+      <p class="note" style="margin-top:10px">يمكنك سحب المجدافين واللوحة والجهاز إلى أي مكان، والتكبير بإصبعين أو بعجلة الفأرة.</p>`}),
+    steps:()=>{const d=window.__sim?window.__sim.done:[];return{t:'خطوات النشاط',b:`<ol>${STEPS.map((s,i)=>`<li class="${d[i]?'ok':''}"><span class="ck">${d[i]?'✓':i+1}</span><div>${s}</div></li>`).join('')}</ol>${d.every(Boolean)?'<p class="note" style="margin-top:10px">أكملت خطوات النشاط. افتح الاستنتاج.</p>':''}<button class="reset" type="button" data-act="reset">إعادة النشاط</button>`};},
+    concl:()=>{const f=window.__sim?window.__sim.recs():[];let mine='<p class="note">أعطِ صدمة واحدة في الأقل لترى قياساتك هنا.</p>';
+      if(f.length)mine=`<div class="box"><p>قياساتك:</p><div class="tbl"><table><thead><tr><th>kg</th><th>E (J)</th><th>ΔV (V)</th><th>I₀ (A)</th><th>t (ms)</th><th></th></tr></thead><tbody>${f.map(r=>`<tr><td>${r.kg}</td><td>${r.E.toFixed(0)}</td><td>${r.V0.toFixed(0)}</td><td>${r.I0.toFixed(0)}</td><td>${r.dur.toFixed(0)}</td><td style="color:${r.ok&&!r.warn?'var(--field)':r.prev!=='vf'||r.warn?'var(--warn)':'var(--pos)'}">${r.prev!=='vf'?'!':r.ok?'✓':'✗'}</td></tr>`).join('')}</tbody></table></div></div>`;
+      return{t:'نستنتج من النشاط',b:`<p>يُعد جهاز تحفيز وتنظيم حركة عضلات القلب من التطبيقات المهمة في الطب، إذ يُستعمل لنقل مقادير مختلفة ومحددة من الطاقة الكهربائية إلى المريض الذي يعاني من اضطرابات في حركة عضلات قلبه.</p>
+      <p class="hl">عندما يكون قلب المريض غير قادر على ضخ الدم يلجأ الطبيب إلى استعمال صدمة كهربائية قوية تحفز قلبه وتعيد انتظام عمله، فالمتسعة المشحونة الموجودة في الجهاز تُفرغ طاقتها المختزنة التي تتراوح بين (10 J – 360 J) في جسم المريض لمدة زمنية قصيرة جداً.</p>
+      <p class="m">E = ½ C ΔV²</p>
+      <p class="m">I₀ = ΔV / R</p>
+      <p class="note">كلما زادت الطاقة المختارة زاد فرق الجهد بين صفيحتي المتسعة وزاد تيار الصدمة. ويختار الطبيب الطاقة حسب حالة المريض ووزنه، فالطاقة القليلة لا تكفي، والكبيرة أكثر من اللازم قد تؤذي عضلة القلب.</p>
+      ${mine}`};}};
+  let cur=null,iv=0,lastH='';
+  const place=()=>{const top=hdr.getBoundingClientRect().bottom-document.querySelector('.stage').getBoundingClientRect().top+10;info.style.top=top+'px';info.style.maxHeight=`calc(100% - ${top+16}px)`;};
+  const fill=()=>{if(!cur)return;const r=P[cur](),h=r.t+'|'+r.b;if(h===lastH)return;lastH=h;iT.textContent=r.t;iB.innerHTML=r.b;};
+  const openInfo=n=>{cur=cur===n?null:n;btns.forEach(b=>{const on=b.dataset.p===cur;b.classList.toggle('on',on);b.setAttribute('aria-expanded',on);});
+    info.hidden=!cur;clearInterval(iv);if(cur){openTip(false);place();lastH='';fill();iv=setInterval(fill,500);}};
+  btns.forEach(b=>b.addEventListener('click',()=>openInfo(b.dataset.p)));
+  document.getElementById('infoClose').addEventListener('click',()=>openInfo(cur));
+  iB.addEventListener('click',e=>{if(e.target.closest('[data-act="reset"]')&&window.__sim){window.__sim.reset();lastH='';fill();}});
+  window.addEventListener('resize',()=>{if(cur)place();});
+  let tiv=0,tLast='';
+  const tfill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===tLast)return;tLast=h;tT.textContent=r.t;tB.innerHTML=r.b;};
+  function openTip(v){tip.hidden=!v;tipBtn.setAttribute('aria-expanded',v);tipBtn.classList.toggle('on',v);clearInterval(tiv);if(v){if(cur)openInfo(cur);tLast='';tfill();tiv=setInterval(tfill,400);}}
+  tipBtn.addEventListener('click',()=>openTip(tip.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>openTip(false));
+})();
+</script>
+</body>
+</html>
