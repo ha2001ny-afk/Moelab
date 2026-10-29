@@ -440,6 +440,25 @@
       height: 100%;
       border: none;
     }
+
+    /* زر ملء الشاشة للموقع */
+    .btn-site-fs {
+      border-color: #38bdf8 !important;
+      color: #7dd3fc !important;
+    }
+    .btn-site-fs svg { width: 14px; height: 14px; flex: none; }
+    #siteFsHint {
+      position: fixed; top: 64px; left: 50%; transform: translateX(-50%);
+      background: #0b1526; border: 1px solid #38bdf8; color: #e2e8f0;
+      padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: bold;
+      z-index: 9999999; max-width: calc(100% - 24px); text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,.45); display: none;
+    }
+    @media (max-width: 600px) {
+      header { height: auto; min-height: 56px; flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+      .header-left { flex-wrap: wrap; justify-content: flex-end; }
+      .btn-site-fs .fs-label { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -450,9 +469,12 @@
       <div class="teacher-badge" id="teacherDisplay">@DESNEOO</div>
       <!-- زر التحديث السريع والآمن -->
       <button class="btn-key-change" onclick="forceSyncPermissions()" title="تحديث الصلاحيات والفصول" style="border-color:#10b981; color:#34d399;">🔄 تحديث الصلاحيات</button>
+      <button class="btn-key-change btn-site-fs" id="siteFsBtn" onclick="toggleSiteFullscreen()" title="ملء الشاشة" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path id="siteFsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="fs-label">ملء الشاشة</span></button>
       <button class="btn-key-change" onclick="openKeyModal()" title="تغيير كود الاشتراك">🔑 الكود</button>
     </div>
   </header>
+
+  <div id="siteFsHint" role="status"></div>
 
   <div class="main-wrapper">
     <!-- واجهة اختيار المادة -->
@@ -1593,6 +1615,47 @@
         });
       });
     }
+
+    /* ملء الشاشة للموقع كله (لا يغير أي شيء في التجارب) */
+    function isSiteFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+    function showSiteFsHint(msg) {
+      const h = document.getElementById('siteFsHint');
+      if (!h) return;
+      h.innerText = msg;
+      h.style.display = 'block';
+      clearTimeout(showSiteFsHint._t);
+      showSiteFsHint._t = setTimeout(() => { h.style.display = 'none'; }, 4000);
+    }
+    function toggleSiteFullscreen() {
+      try {
+        if (isSiteFullscreen()) {
+          const exit = document.exitFullscreen || document.webkitExitFullscreen;
+          if (exit) { const r = exit.call(document); if (r && r.catch) r.catch(() => {}); }
+          return;
+        }
+        const el = document.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) { showSiteFsHint('ملء الشاشة غير مدعوم بهذا المتصفح (مثل الآيفون). جرّب الآيباد أو اللابتوب أو السبورة.'); return; }
+        const r = req.call(el);
+        if (r && r.catch) r.catch(() => showSiteFsHint('تعذّر تفعيل ملء الشاشة بهذا المتصفح.'));
+      } catch (e) {
+        showSiteFsHint('تعذّر تفعيل ملء الشاشة بهذا المتصفح.');
+      }
+    }
+    function syncSiteFsBtn() {
+      const on = isSiteFullscreen();
+      const ico = document.getElementById('siteFsIco');
+      const btn = document.getElementById('siteFsBtn');
+      if (!ico || !btn) return;
+      ico.setAttribute('d', on ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+      const label = on ? 'خروج من ملء الشاشة' : 'ملء الشاشة';
+      btn.querySelector('.fs-label').innerText = label;
+      btn.title = label; btn.setAttribute('aria-label', label);
+    }
+    document.addEventListener('fullscreenchange', syncSiteFsBtn);
+    document.addEventListener('webkitfullscreenchange', syncSiteFsBtn);
 
     function showSubjectsView() {
       document.getElementById('chaptersView').style.display = 'none';
