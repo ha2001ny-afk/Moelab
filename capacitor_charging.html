@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>نشاط كيفية شحن المتسعة</title>
+<style>
+/* Layout: one full-screen navy lab bench; the Figure 27 circuit sits on a board, battery below it, live I–t chart beside it */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --pos:#ff6b6b; --neg:#5eaaff; --field:#62d98a; --force:#ffab5c; --accent:#7fd3ff;
+  --wire-p:#e94848; --wire-n:#1b2029; --plate:#8593a9; --warn:#ffc04d; --lamp:#ffd27a; --res:#2aa58f;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body);margin:0}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+
+.hdr{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));max-width:calc(100% - 84px - env(safe-area-inset-left,0px));display:flex;gap:14px;align-items:flex-start;pointer-events:none}
+.hdr>*{pointer-events:auto}
+.hbtns{display:flex;flex-direction:column;gap:7px;flex:none}
+.hbtn{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;min-width:126px;border-radius:10px;border:1px solid var(--line);background:rgba(8,20,41,.62);color:var(--ink);font:600 13.5px var(--f-body);cursor:pointer;text-align:start}
+.hbtn svg{width:17px;height:17px;flex:none;color:var(--accent)}
+.hbtn:hover{border-color:var(--accent)}
+.hbtn.on{border-color:var(--accent);background:rgba(127,211,255,.14);color:var(--accent)}
+.hbtn:focus-visible,.sbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.htitle{min-width:0;padding-top:2px}
+.eyebrow{display:inline-block;font:600 12px var(--f-display);color:var(--force);background:rgba(255,171,92,.14);border:1px solid rgba(255,171,92,.3);border-radius:999px;padding:1px 10px;letter-spacing:.02em}
+.htitle h1{margin:6px 0 0;font:600 20px/1.45 var(--f-display);color:var(--ink);max-width:330px;text-wrap:balance}
+@media (max-width:759px){.htitle h1{font-size:15px;line-height:1.5}.hbtn{min-width:118px;font-size:13px;height:34px}}
+
+.lbtns{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+.sbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.sbtn:hover{border-color:var(--accent)}
+.sbtn svg{width:20px;height:20px}
+.sbtn.lamp{color:var(--lamp)}
+.sbtn.lamp:hover,.sbtn.lamp.on{border-color:var(--lamp);background:rgba(255,210,122,.14)}
+.toast{position:absolute;top:max(110px,calc(env(safe-area-inset-top,0px) + 104px));left:max(10px,env(safe-area-inset-left,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+
+.pane{position:absolute;overflow:auto;background:rgba(8,20,41,.95);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.pane h2{margin:0 0 8px;font:600 16px var(--f-display);padding-left:30px;text-wrap:balance}
+.pane p{margin:0 0 8px}
+.pane .m,.pane b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.pane p.m{text-align:center;color:var(--accent);font-weight:600;font-size:15px}
+.pane .note{color:var(--muted);font-size:13px}
+.pane .hl{color:var(--force);font-weight:600}
+.pane .q{color:var(--lamp);font-weight:600}
+.pane .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.pane .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.pane .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.pane .x:hover{color:var(--ink)}
+.tip{top:max(110px,calc(env(safe-area-inset-top,0px) + 104px));left:max(10px,env(safe-area-inset-left,0px));width:min(340px,calc(100% - 20px));max-height:calc(100% - 130px);border:1px solid rgba(255,210,122,.35)}
+.tip h2{color:var(--lamp)}
+.info{right:max(12px,env(safe-area-inset-right,0px));width:min(410px,calc(100% - 24px));border:1px solid rgba(127,211,255,.32)}
+.info h2{color:var(--accent)}
+.info ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.info ul li{display:flex;gap:10px;align-items:flex-start}
+.info ul li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:10px}
+.info ol{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.info ol li{display:flex;gap:10px;align-items:flex-start}
+.info .ck{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:600 13px var(--f-mono);color:var(--muted);margin-top:2px}
+.info li.ok .ck{background:var(--field);border-color:var(--field);color:#062012}
+.info li.ok>div{color:var(--muted)}
+.info .fig{color:var(--accent);font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;font-size:12.5px}
+.info .reset{margin-top:12px;font:600 13px var(--f-body);color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;padding:6px 14px;cursor:pointer}
+.info .reset:hover{border-color:var(--accent)}
+.info .box{border:1px solid rgba(255,171,92,.35);background:rgba(255,171,92,.08);border-radius:10px;padding:8px 12px;margin:8px 0}
+.info .box p:last-child{margin:0}
+.info .think{border:1px solid rgba(255,107,107,.4);background:rgba(255,107,107,.08);border-radius:10px;padding:8px 12px;margin:10px 0 4px}
+.info .think b.t{color:var(--pos);font-family:var(--f-display)}
+.info details{margin-top:4px}
+.info summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px}
+.info summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="دائرة شحن متسعة فيها بطارية ومقاومة ومصباحان وكلفانوميتر ومفتاح مزدوج، ومخطط تيار الشحن مع الزمن"></canvas>
+
+  <header class="hdr" id="hdr">
+    <div class="hbtns">
+      <button class="hbtn" data-p="tools" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>أدوات النشاط</button>
+      <button class="hbtn" data-p="steps" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>خطوات النشاط</button>
+      <button class="hbtn" data-p="concl" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.6L16 9.6"/></svg>الاستنتاج</button>
+    </div>
+    <div class="htitle">
+      <span class="eyebrow">نشاط</span>
+      <h1>كيفية شحن المتسعة</h1>
+    </div>
+  </header>
+  <div class="pane info" id="infoPanel" hidden role="dialog" aria-labelledby="infoTitle"><button class="x" id="infoClose" aria-label="إغلاق">×</button><h2 id="infoTitle"></h2><div id="infoBody"></div></div>
+
+  <div class="lbtns">
+    <button class="sbtn lamp" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+    <button class="sbtn" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+  <div class="pane tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene'),ctx=cv.getContext('2d'),hdr=document.getElementById('hdr');
+const CAP=1000e-6,RDIS=1000,VMAX=12,IREF=0.012,GFS=0.025,TWIN=12,YMAX=25;
+const RES=[{v:500,n:'500 Ω',b:['#3fae5a','#1b2029','#7a4a2a']},{v:1000,n:'1 kΩ',b:['#7a4a2a','#1b2029','#e94848']},{v:2000,n:'2 kΩ',b:['#e94848','#1b2029','#e94848']}];
+const S={V:12,Q:0,I:0,k:0,res:1,nv:0,nvel:0,kAng:0,kLen:0.72,b1:0,b2:0,eph:0};
+const done=[false,false,false];
+const leads={'B+':null,'B-':null};              // {port:'X'|'Y'} or {port:null,x,y} while held
+let trace=null,ghost=null,lastClosed=false;const rDone=new Set(),fresh=[];
+let W=0,H=0,DPR=1,narrow=false,G={},col={},time=0,drag=null,hover=null,selTerm=null,ranks={};
+let placedBoard=false,placedBat=false,placedPlot=false,placedTray=false;
+const cam={z:1,x:0,y:0};
+
+function readColors(){const cs=getComputedStyle(document.documentElement);
+  ['deep','navy','glow','ink','muted','pos','neg','field','accent','wire-p','wire-n','plate','warn','line','force','lamp','res'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- layout ---------- */
+function layout(){
+  const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;
+  W=nw;H=nh;narrow=W<900;
+  DPR=window.devicePixelRatio||1;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  const hr=hdr.getBoundingClientRect(),sr=cv.getBoundingClientRect(),hb=hr.bottom-sr.top,hl=hr.left-sr.left;
+  const bh=narrow?116:128;let board,bat,plot,tray;
+  if(!narrow){
+    const plW=clamp(W*0.28,300,380),plH=clamp(H*0.38,230,280);
+    plot={x:W-24-plW,y:hb+18,w:plW,h:plH};
+    tray={x:plot.x+plW-122,y:plot.y+plH+26,w:122};
+    const left=70;let top=30,right=Math.min(plot.x-36,hl-20);
+    if(right-left<440){top=hb+12;right=plot.x-36;}
+    const avail=right-left,BW=clamp(avail,380,680),BH=clamp(H-top-34-bh-24,230,370);
+    board={x:left+Math.max(0,(avail-BW)/2),y:top,w:BW,h:BH};
+    bat={x:board.x+BW*0.58-95,y:board.y+BH+34,w:190,h:bh};
+  }else{
+    const BW=Math.min(W-20,640),BH=clamp(Math.min(BW*0.72,H*0.36),220,330);
+    board={x:(W-BW)/2,y:hb+12,w:BW,h:BH};
+    const bw=Math.min(200,BW-122-14);
+    bat={x:board.x,y:board.y+BH+34,w:bw,h:bh};
+    tray={x:board.x+BW-122,y:bat.y-8,w:122};
+    const plW=Math.min(W-20,560),py=bat.y+bh+24;
+    plot={x:(W-plW)/2,y:py,w:plW,h:clamp(H-py-14,170,240)};
+  }
+  if(!placedBoard)G.board=board;
+  if(!placedBat)G.bat=bat;
+  if(!placedPlot)G.plot=plot;
+  if(!placedTray)G.tray=tray;
+  parts();
+}
+function parts(){const b=G.board,x0=b.x,y0=b.y,BW=b.w,BH=b.h,m=Math.max(40,BW*0.09);
+  const P={xL:x0+m,xR:x0+BW-m,yT:y0+46,yM:y0+BH*0.5,yB:y0+BH-46};
+  P.xG=x0+BW*(BW<520?0.36:0.30);P.small=BW<520;P.xC=x0+BW*0.53;P.xK=x0+BW*0.74;P.xRr=x0+BW*0.30;
+  P.gap=clamp(BW*0.025,12,18);P.ax=P.xC-P.gap-7;P.bx=P.xC+P.gap+7;
+  P.ph=Math.min(44,(P.yB-P.yT)*0.2);P.cd=Math.min(36,(P.yB-P.yM)*0.42);
+  P.c1={x:P.xR,y:P.yM+P.cd};P.c2={x:P.xR,y:P.yM-P.cd};P.pv={x:P.xK,y:P.yM};
+  P.a1=Math.atan2(P.cd,P.xR-P.xK);P.bl=Math.hypot(P.xR-P.xK,P.cd);
+  P.L2={x:P.xL,y:(P.yT+P.yM)/2};P.L1={x:P.xL,y:(P.yM+P.yB)/2};
+  P.X={x:x0+BW*0.50,y:P.yB};P.Y={x:x0+BW*0.66,y:P.yB};
+  G.P=P;
+  const t=G.bat;
+  G.T={'B+':{x:t.x+t.w*0.26,y:t.y-17},'B-':{x:t.x+t.w*0.74,y:t.y-17}};
+  G.knob={x:t.x+34,y:t.y+t.h-36,r:18};
+  G.lcd={x:t.x+62,y:t.y+t.h-50,w:Math.max(56,t.w-80),h:28};
+}
+const portPos=id=>id==='X'?G.P.X:G.P.Y;
+const leadAt=port=>['B+','B-'].find(k=>leads[k]&&leads[k].port===port);
+function battState(){const p=leads['B+']&&leads['B+'].port,n=leads['B-']&&leads['B-'].port;return{ok:!!(p&&n&&p!==n),sign:p==='X'?1:-1};}
+
+/* ---------- physics ---------- */
+function step(dt){
+  const b=battState(),R=RES[S.res].v,prev=S.Q;let closed=false,tg=0;
+  if(b.ok&&b.sign>0)done[0]=true;
+  if(S.k===1&&b.ok){closed=true;tg=b.sign*CAP*S.V;const tau=R*CAP;S.Q=tg+(S.Q-tg)*Math.exp(-dt/tau);S.I=(tg-(prev+S.Q)/2)/tau;}
+  else if(S.k===2){const tau=RDIS*CAP;S.Q*=Math.exp(-dt/tau);if(Math.abs(S.Q)<1e-8)S.Q=0;S.I=-((prev+S.Q)/2)/tau;}
+  else S.I=0;
+  // record the charging curve (Figure 28) every time the charging loop closes
+  if(closed&&!lastClosed){if(trace&&trace.pts.length>5)ghost=trace;
+    trace={R,n:RES[S.res].n,V:S.V,pts:[[0,Math.abs(tg-prev)/(R*CAP)]],t:0,fresh:S.V>=1&&Math.abs(prev)<0.05*CAP*S.V,complete:false};}
+  lastClosed=closed;
+  if(closed&&trace){trace.t+=dt;if(trace.t<=TWIN)trace.pts.push([trace.t,Math.abs(S.I)]);
+    if(!trace.complete&&Math.abs(S.Q-tg)<0.01*CAP*Math.max(S.V,0.1)){trace.complete=true;
+      if(trace.fresh&&b.sign>0&&done[0]){done[1]=true;rDone.add(trace.R);
+        fresh.push({R:trace.R,n:trace.n,V:trace.V,I0m:Math.max(...trace.pts.map(q=>q[1])),I0c:trace.V/trace.R});if(fresh.length>4)fresh.shift();
+        if(rDone.size>=2)done[2]=true;}}}
+  // galvanometer needle: centre-zero, damped spring
+  const tn=clamp(S.I/GFS*5,-5.8,5.8);S.nvel+=(90*(tn-S.nv)-12*S.nvel)*dt;S.nv+=S.nvel*dt;
+  if(Math.abs(S.nv)>5.9){S.nv=Math.sign(S.nv)*5.9;S.nvel*=-0.3;}
+  // lamp filaments
+  const i1=closed?Math.abs(S.I):0,i2=S.k===2?Math.abs(S.I):0,f=Math.min(1,dt*14);
+  S.b1+=(clamp(i1/IREF,0,1.3)-S.b1)*f;S.b2+=(clamp(i2/IREF,0,1.3)-S.b2)*f;
+  // switch blade
+  if(!(drag&&drag.type==='blade')){const P=G.P,ta=S.k===1?P.a1:S.k===2?-P.a1:0,tl=S.k===0?0.72:1;S.kAng+=(ta-S.kAng)*f;S.kLen+=(tl-S.kLen)*f;}
+  if(Math.abs(S.I)>2e-5)S.eph+=Math.sign(S.I)*(40+170*Math.min(1,Math.abs(S.I)/IREF))*dt;
+}
+
+/* ---------- drawing helpers ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||'600 13px system-ui, Tahoma, sans-serif';ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function rich(parts,x,y,o={}){const f=o.font||'600 14px ui-monospace, Menlo, Consolas, monospace',fs=o.sub||'600 10px ui-monospace, Menlo, Consolas, monospace';
+  ctx.direction='ltr';ctx.textBaseline='middle';let w=0;parts.forEach(p=>{ctx.font=p[1]?fs:f;w+=ctx.measureText(p[0]).width;});
+  let cx=o.align==='left'?x:o.align==='right'?x-w:x-w/2;ctx.fillStyle=o.color||col.ink;ctx.textAlign='left';
+  parts.forEach(p=>{ctx.font=p[1]?fs:f;ctx.fillText(p[0],cx,y+(p[1]?4:0));cx+=ctx.measureText(p[0]).width;});return w;}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function signMark(x,y,r,positive){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.3,r*0.22);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-r*0.5,y);ctx.lineTo(x+r*0.5,y);if(positive){ctx.moveTo(x,y-r*0.5);ctx.lineTo(x,y+r*0.5);}ctx.stroke();}
+function charge(x,y,r,positive){ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=positive?col.pos:col.neg;ctx.fill();signMark(x,y,r,positive);}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function pulseRect(x,y,w,h,color){const pu=0.5+0.5*Math.sin(time*5),e=3+pu*4;rr(x-e,y-e,w+2*e,h+2*e,10);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function strokePts(pts){ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.stroke();}
+function measure(pts){const len=[0];for(let i=1;i<pts.length;i++)len.push(len[i-1]+Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y));return{pts,len,L:len[len.length-1]};}
+function at(pl,s){const{pts,len}=pl;let i=1;while(i<len.length-1&&len[i]<s)i++;const f=(s-len[i-1])/((len[i]-len[i-1])||1);return{x:pts[i-1].x+(pts[i].x-pts[i-1].x)*f,y:pts[i-1].y+(pts[i].y-pts[i-1].y)*f};}
+/* straight runs, right angles, small rounded corners (a point with r:0 stays sharp, e.g. a junction) */
+function rounded(pts,r){const out=[pts[0]];
+  for(let i=1;i<pts.length-1;i++){const a=pts[i-1],c=pts[i],b=pts[i+1],rc=c.r!=null?c.r:r;
+    const da=Math.hypot(a.x-c.x,a.y-c.y),db=Math.hypot(b.x-c.x,b.y-c.y);if(da<1||db<1||rc<=0){out.push(c);continue;}
+    const k=Math.min(rc,da/2,db/2),p1={x:c.x+(a.x-c.x)/da*k,y:c.y+(a.y-c.y)/da*k},p2={x:c.x+(b.x-c.x)/db*k,y:c.y+(b.y-c.y)/db*k};
+    for(let j=0;j<=6;j++){const t=j/6,u=1-t;out.push({x:u*u*p1.x+2*u*t*c.x+t*t*p2.x,y:u*u*p1.y+2*u*t*c.y+t*t*p2.y});}}
+  out.push(pts[pts.length-1]);return out;}
+function distSeg(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);}
+
+/* next thing the student should touch */
+function hint(){const b=battState(),R=RES[S.res].v,charged=Math.abs(S.Q)>0.1*CAP*Math.max(S.V,1);
+  if(!done[0]){if(!leads['B+']||!leads['B+'].port)return'B+';if(!leads['B-']||!leads['B-'].port)return'B-';return b.sign<0?'swap':null;}
+  if(!done[1]){if(S.V<1)return'knob';
+    if(S.k===1)return trace&&trace.complete&&!trace.fresh?'c2':null;
+    if(S.k===2)return charged?null:'c1';return charged?'c2':'c1';}
+  if(!done[2]){
+    if(S.k===1)return trace&&trace.complete?'c2':null;
+    if(charged)return S.k===2?null:'c2';
+    return rDone.has(R)?'tray':'c1';}
+  return null;}
+
+function drawBg(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const g=ctx.createRadialGradient(W*0.5,H*0.45,0,W*0.5,H*0.45,Math.max(W,H)*0.75);
+  g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const h=ctx.createRadialGradient(W*0.5,-H*0.1,0,W*0.5,-H*0.1,H*0.7);
+  h.addColorStop(0,'rgba(255,255,255,0.10)');h.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=h;ctx.fillRect(0,0,W,H);
+  ctx.setTransform(DPR*cam.z,0,0,DPR*cam.z,DPR*cam.x,DPR*cam.y);
+}
+
+/* ---------- circuit board ---------- */
+function drawBoard(){const b=G.board,hv=hover==='board'||(drag&&drag.type==='board');
+  rr(b.x,b.y,b.w,b.h,18);ctx.fillStyle='rgba(255,255,255,.035)';ctx.fill();
+  ctx.strokeStyle=hv?col.accent:'rgba(234,240,250,.12)';ctx.lineWidth=hv?1.6:1;ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.05)';for(let x=b.x+18;x<b.x+b.w-10;x+=24)for(let y=b.y+18;y<b.y+b.h-10;y+=24)ctx.fillRect(x-1,y-1,2,2);
+  txt('الشكل (27)',b.x+b.w-14,b.y+18,{align:'right',font:'500 11px system-ui, Tahoma, sans-serif',color:col.muted});}
+function wirePolys(){const P=G.P;return[
+  rounded([P.c2,{x:P.xR,y:P.yT},{x:P.xL,y:P.yT},{x:P.xL,y:P.yB},P.X],12),
+  rounded([P.c1,{x:P.xR,y:P.yB},P.Y],12),
+  [{x:P.xL,y:P.yM},{x:P.ax,y:P.yM}],
+  [{x:P.bx,y:P.yM},P.pv]];}
+function drawWires(){ctx.lineCap='round';ctx.lineJoin='round';
+  wirePolys().forEach(pts=>{ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=5.5;ctx.save();ctx.translate(0,2.5);strokePts(pts);ctx.restore();
+    ctx.strokeStyle='#c7d0dd';ctx.lineWidth=3.2;strokePts(pts);});
+  const P=G.P;ctx.beginPath();ctx.arc(P.xL,P.yM,5,0,7);ctx.fillStyle='#c7d0dd';ctx.fill();}
+function paths(){const P=G.P,A={x:P.ax,y:P.yM},B={x:P.bx,y:P.yM},J={x:P.xL,y:P.yM,r:0};
+  const kx=leadAt('X'),ky=leadAt('Y');
+  const c1=rounded([A,J,{x:P.xL,y:P.yB},P.X],12);if(kx)c1.push(...cablePts(kx).slice().reverse().slice(1));
+  const c2=[];if(ky)c2.push(...cablePts(ky).slice(0,-1));c2.push(...rounded([P.Y,{x:P.xR,y:P.yB},P.c1],12),P.pv,B);
+  const d=rounded([A,J,{x:P.xL,y:P.yT},{x:P.xR,y:P.yT},P.c2],12);d.push(P.pv,B);
+  return{c1,c2,d};}
+function drawElectrons(){const a=clamp(Math.abs(S.I)/0.0008,0,1);if(a<0.04)return;
+  const p=paths(),list=S.k===1&&lastClosed?[p.c1,p.c2]:S.k===2?[p.d]:[];
+  ctx.globalAlpha=a;list.forEach(pts=>{const pl=measure(pts),gap=22;
+    for(let s=((S.eph%gap)+gap)%gap;s<pl.L-6;s+=gap){if(s<8)continue;const q=at(pl,s);charge(q.x,q.y,4.4,false);}});
+  ctx.globalAlpha=1;}
+
+function drawGalv(){const P=G.P,cx=P.xG,cy=P.yM,w=74,h=64,x0=cx-w/2,y0=cy-h/2;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.4)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;
+  rr(x0,y0,w,h,10);const bg=ctx.createLinearGradient(0,y0,0,y0+h);bg.addColorStop(0,'#3d4a63');bg.addColorStop(1,'#232c3e');ctx.fillStyle=bg;ctx.fill();ctx.restore();
+  rr(x0,y0,w,h,10);ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=1;ctx.stroke();
+  const fx=x0+5,fy=y0+5,fw=w-10,fh=40;rr(fx,fy,fw,fh,6);const fg=ctx.createLinearGradient(0,fy,0,fy+fh);fg.addColorStop(0,'#f4f6fa');fg.addColorStop(1,'#dde3ec');ctx.fillStyle=fg;ctx.fill();
+  const px=cx,py=fy+fh-5,R=29,A=v=>-Math.PI/2+v/5*0.92;
+  ctx.strokeStyle='#2b3448';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(px,py,R,A(-5),A(5));ctx.stroke();
+  for(let v=-5;v<=5;v++){const a=A(v),mj=v%5===0,r0=R-(mj?7:4);ctx.lineWidth=mj?1.6:1;ctx.beginPath();ctx.moveTo(px+Math.cos(a)*r0,py+Math.sin(a)*r0);ctx.lineTo(px+Math.cos(a)*R,py+Math.sin(a)*R);ctx.stroke();}
+  txt('0',px,py-R+12,{font:'600 9px ui-monospace, Menlo, Consolas, monospace',color:'#2b3448',dir:'ltr'});
+  const na=A(S.nv);ctx.strokeStyle='#d93a3a';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.cos(na)*(R-3),py+Math.sin(na)*(R-3));ctx.stroke();
+  ctx.beginPath();ctx.arc(px,py,3.5,0,7);ctx.fillStyle='#1b2029';ctx.fill();
+  txt('G',cx,y0+h-9,{font:'700 13px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});
+  if(!P.small)txt('كلفانوميتر',cx,y0-11,{font:'500 11px system-ui, Tahoma, sans-serif',color:col.muted});}
+
+function drawLamp(c,b,n){const small=G.P.small;
+  if(b>0.02){const r=18+64*Math.min(1,b),g=ctx.createRadialGradient(c.x,c.y,4,c.x,c.y,r);
+    g.addColorStop(0,`rgba(255,226,150,${0.75*Math.min(1,b)})`);g.addColorStop(0.35,`rgba(255,210,122,${0.32*Math.min(1,b)})`);g.addColorStop(1,'rgba(255,210,122,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(c.x,c.y,r,0,7);ctx.fill();}
+  // metal cap
+  const cg=ctx.createLinearGradient(c.x-9,0,c.x+9,0);cg.addColorStop(0,'#7f8a9b');cg.addColorStop(0.5,'#e3e8ef');cg.addColorStop(1,'#6f7a8b');
+  ctx.fillStyle=cg;ctx.fillRect(c.x-8,c.y+12,16,11);ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;
+  for(let y=c.y+15;y<c.y+23;y+=3){ctx.beginPath();ctx.moveTo(c.x-8,y);ctx.lineTo(c.x+8,y);ctx.stroke();}
+  // glass
+  ctx.beginPath();ctx.arc(c.x,c.y,16,0,7);ctx.fillStyle=col.navy;ctx.fill();
+  ctx.fillStyle=`rgba(255,236,170,${0.85*Math.min(1,b)})`;ctx.fill();
+  ctx.fillStyle='rgba(220,235,255,.10)';ctx.fill();ctx.strokeStyle='rgba(234,240,250,.6)';ctx.lineWidth=1.4;ctx.stroke();
+  ctx.strokeStyle=b>0.05?'#fff6d6':'#8c96a8';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(c.x-5,c.y+12);ctx.lineTo(c.x-5,c.y-2);
+  for(let i=0;i<5;i++)ctx.lineTo(c.x-5+(i+0.5)*2,c.y-2+(i%2?3:-3));ctx.lineTo(c.x+5,c.y-2);ctx.lineTo(c.x+5,c.y+12);ctx.stroke();
+  ctx.beginPath();ctx.arc(c.x-6,c.y-7,4,Math.PI,Math.PI*1.5);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.stroke();
+  rich([['L'],[n,1]],c.x+24,c.y-2,{align:'left',font:'600 15px ui-monospace, Menlo, Consolas, monospace',sub:'600 11px ui-monospace, Menlo, Consolas, monospace'});
+  if(!small)txt('مصباح',c.x+24,c.y+15,{align:'left',font:'500 11px system-ui, Tahoma, sans-serif',color:col.muted});}
+
+function resistorBody(cx,cy,w,h,r){const g=ctx.createLinearGradient(0,cy-h/2,0,cy+h/2);g.addColorStop(0,'#55d1bb');g.addColorStop(0.5,col.res);g.addColorStop(1,'#16685a');
+  rr(cx-w/2,cy-h/2,w,h,h/2);ctx.fillStyle=g;ctx.fill();
+  r.b.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(cx-w/2+w*(0.22+i*0.17),cy-h/2,Math.max(3,w*0.08),h);});
+  ctx.fillStyle='#c9a63d';ctx.fillRect(cx+w/2-w*0.2,cy-h/2,Math.max(3,w*0.07),h);}
+function drawResistor(){const P=G.P,r=RES[S.res];resistorBody(P.xRr,P.yB,60,18,r);
+  txt('R',P.xRr,P.yB-21,{font:'700 15px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});
+  txt(r.n,P.xRr,P.yB+22,{font:'600 12px ui-monospace, Menlo, Consolas, monospace',color:col.muted,dir:'ltr'});}
+
+function drawCap(){const P=G.P,Qr=CAP*VMAX,q=Math.abs(S.Q)/Qr,sg=S.Q>CAP*0.02?1:S.Q<-CAP*0.02?-1:0;
+  const m=Math.round(4*q);
+  if(m&&sg){ctx.strokeStyle=col.field;ctx.lineWidth=1.8;ctx.globalAlpha=0.5+0.5*q;
+    for(let i=0;i<m;i++){const y=P.yM-P.ph+2*P.ph*(i+0.5)/m;ctx.beginPath();ctx.moveTo(P.xC-P.gap+3,y);ctx.lineTo(P.xC+P.gap-3,y);ctx.stroke();arrowHead(P.xC+sg*3,y,sg>0?0:Math.PI,5,col.field);}
+    ctx.globalAlpha=1;}
+  [[P.ax,1],[P.xC+P.gap,-1]].forEach(([x,s])=>{const pg=ctx.createLinearGradient(x,0,x+7,0);pg.addColorStop(0,'#c3cddc');pg.addColorStop(0.5,col.plate);pg.addColorStop(1,'#56627a');
+    rr(x,P.yM-P.ph,7,2*P.ph,2);ctx.fillStyle=pg;ctx.fill();
+    const s2=s*sg,n=sg?Math.max(1,Math.round(7*q)):0;
+    for(let i=0;i<n;i++)charge(x+3.5,P.yM-P.ph+2*P.ph*(i+0.5)/n,4.2,s2>0);});
+  const lx=P.ax-8,rx=P.bx+8;
+  txt('A',lx,P.yM-P.ph-10,{align:'right',font:'700 14px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});
+  txt('B',rx,P.yM-P.ph-10,{align:'left',font:'700 14px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});
+  txt('C',P.xC,P.yM+P.ph+13,{font:'700 14px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});
+  txt('المتسعة',P.xC,P.yM-P.ph-12,{font:'500 11px system-ui, Tahoma, sans-serif',color:col.muted});
+  if(sg){txt(sg>0?'+Q':'−Q',lx,P.yM+P.ph+12,{align:'right',font:'700 13px ui-monospace, Menlo, Consolas, monospace',color:sg>0?col.pos:col.neg,dir:'ltr'});
+    txt(sg>0?'−Q':'+Q',rx,P.yM+P.ph+12,{align:'left',font:'700 13px ui-monospace, Menlo, Consolas, monospace',color:sg>0?col.neg:col.pos,dir:'ltr'});}}
+
+function drawSwitch(){const P=G.P,hk=hint(),hv=hover==='blade'||(drag&&drag.type==='blade');
+  [['c1','1'],['c2','2']].forEach(([c,l])=>{const q=P[c];
+    if(hk===c&&!drag)pulseRing(q.x,q.y,13,col.accent,c==='c1'?0:1);
+    ctx.beginPath();ctx.arc(q.x,q.y,6.5,0,7);ctx.fillStyle=hover===c?col.accent:'#cfd7e3';ctx.fill();ctx.strokeStyle='#5d6880';ctx.lineWidth=1.3;ctx.stroke();
+    txt(l,q.x+15,q.y,{align:'left',font:'700 14px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});});
+  const L=P.bl*S.kLen,tx=P.xK+Math.cos(S.kAng)*L,ty=P.yM+Math.sin(S.kAng)*L;
+  ctx.lineCap='round';ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(P.xK,P.yM+3);ctx.lineTo(tx,ty+3);ctx.stroke();
+  ctx.strokeStyle=hv?col.accent:'#dfe5ee';ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(P.xK,P.yM);ctx.lineTo(tx,ty);ctx.stroke();
+  const hx=P.xK+Math.cos(S.kAng)*L*0.62,hy=P.yM+Math.sin(S.kAng)*L*0.62;
+  ctx.beginPath();ctx.arc(hx,hy,7,0,7);ctx.fillStyle=hv?col.accent:'#e8ecf2';ctx.fill();ctx.strokeStyle='#5d6880';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.beginPath();ctx.arc(P.xK,P.yM,6,0,7);ctx.fillStyle='#8792a6';ctx.fill();ctx.strokeStyle='#cfd7e3';ctx.lineWidth=1.4;ctx.stroke();
+  txt('k',P.xK-4,P.yM-18,{font:'700 15px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});
+  txt(S.k===0?'مفتوح':S.k===1?'شحن':'تفريغ',P.xK-4,P.yM+20,{font:'500 11px system-ui, Tahoma, sans-serif',color:S.k===1?col.field:S.k===2?col.lamp:col.muted});}
+
+function drawPosts(){const wiring=selTerm||(drag&&drag.type==='wire');
+  ['X','Y'].forEach(id=>{const q=portPos(id),own=leadAt(id);
+    if(wiring&&(!own||(drag&&own===drag.k)))pulseRing(q.x,q.y,14,col.accent,id==='X'?0:1);
+    ctx.beginPath();ctx.arc(q.x,q.y,7.5,0,7);ctx.fillStyle='#cfd7e3';ctx.fill();ctx.strokeStyle='#5d6880';ctx.lineWidth=1.4;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(q.x-3.5,q.y);ctx.lineTo(q.x+3.5,q.y);ctx.stroke();});}
+
+/* ---------- battery leads ---------- */
+function computeRanks(){const ls=['B+','B-'].filter(k=>leads[k]&&leads[k].port).map(k=>({k,d:Math.abs(portPos(leads[k].port).x-G.T[k].x)}));
+  ls.sort((a,b)=>a.d-b.d);ranks={};ls.forEach((o,i)=>ranks[o.k]=i);}
+function cablePts(k){const l=leads[k],T=G.T[k];
+  if(l.port){const P=portPos(l.port),r=ranks[k]||0;let m=P.y+18+r*10;
+    if(m>T.y-14)m=Math.min(T.y-14,P.y-24-r*10);
+    return rounded([T,{x:T.x,y:m},{x:P.x,y:m},P],10);}
+  const m=Math.min(T.y-30,l.y+30);return rounded([T,{x:T.x,y:m},{x:l.x,y:m},{x:l.x,y:l.y}],10);}
+function drawCable(k){const l=leads[k];if(!l)return;
+  const pts=cablePts(k),pos=k==='B+',color=pos?col['wire-p']:col['wire-n'];
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=7;ctx.save();ctx.translate(0,3);strokePts(pts);ctx.restore();
+  if(!pos){ctx.strokeStyle='rgba(220,230,245,.6)';ctx.lineWidth=7;strokePts(pts);}
+  ctx.strokeStyle=color;ctx.lineWidth=4.5;strokePts(pts);
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.2;ctx.save();ctx.translate(-0.8,-1);strokePts(pts);ctx.restore();
+  const e=pts[pts.length-1];
+  if(l.port){ctx.beginPath();ctx.arc(e.x,e.y,9,0,7);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();
+    if(hover==='port-'+l.port){ctx.beginPath();ctx.arc(e.x,e.y,14,0,7);ctx.strokeStyle=col.accent;ctx.lineWidth=2;ctx.stroke();}}
+  else{const p2=pts[pts.length-2],a=Math.hypot(e.x-p2.x,e.y-p2.y)<0.5?-Math.PI/2:Math.atan2(e.y-p2.y,e.x-p2.x);
+    ctx.save();ctx.translate(e.x,e.y);ctx.rotate(a);rr(-16,-6,18,12,3);ctx.fillStyle=color;ctx.fill();
+    ctx.fillStyle='#c9d1dc';ctx.beginPath();ctx.moveTo(2,-6);ctx.lineTo(14,-2);ctx.lineTo(2,-1);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(2,6);ctx.lineTo(14,2);ctx.lineTo(2,1);ctx.closePath();ctx.fill();ctx.restore();}}
+
+/* ---------- battery ---------- */
+function caseBody(b,hov,lid){
+  if(hov){rr(b.x-8,b.y-(lid?10:8),b.w+16,b.h+(lid?18:16),14);ctx.strokeStyle=col.accent;ctx.globalAlpha=.5;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;
+  rr(b.x,b.y,b.w,b.h,12);const bg=ctx.createLinearGradient(0,b.y,0,b.y+b.h);bg.addColorStop(0,'#3d4a63');bg.addColorStop(1,'#232c3e');ctx.fillStyle=bg;ctx.fill();ctx.restore();
+  rr(b.x,b.y,b.w,b.h,12);ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=1;ctx.stroke();
+  if(lid){rr(b.x-4,b.y-4,b.w+8,20,8);const lg=ctx.createLinearGradient(0,b.y-4,0,b.y+16);lg.addColorStop(0,'#2a3346');lg.addColorStop(1,'#171e2c');ctx.fillStyle=lg;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.12)';ctx.stroke();}}
+function drawTerminal(k){const p=G.T[k],dev=G.bat,isP=k==='B+',hk=hint();
+  if(selTerm===k||(hk===k&&!drag))pulseRing(p.x,p.y+6,18,isP?col.pos:'rgba(220,230,245,.85)',isP?0:1.6);
+  if(hk==='swap'&&!drag)pulseRing(p.x,p.y+6,18,col.warn,isP?0:1.6);
+  ctx.fillStyle='#9aa6b8';ctx.beginPath();const ny=dev.y-3;
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.lineTo(p.x+Math.cos(a)*13,ny+Math.sin(a)*4.5);}ctx.closePath();ctx.fill();
+  const g=ctx.createLinearGradient(p.x-8,0,p.x+8,0);g.addColorStop(0,'#7f8a9b');g.addColorStop(0.45,'#e3e8ef');g.addColorStop(1,'#6f7a8b');
+  ctx.fillStyle=g;ctx.fillRect(p.x-8,p.y,16,dev.y-3-p.y);
+  ctx.beginPath();ctx.ellipse(p.x,p.y,8,3,0,0,7);ctx.fillStyle='#d9dfe8';ctx.fill();
+  rr(p.x-10,dev.y-9,20,6,2);ctx.fillStyle=isP?'#d93a3a':'#1c2230';ctx.fill();
+  txt(isP?'+':'−',p.x+(isP?-22:22),p.y+6,{font:'700 19px ui-monospace, Menlo, Consolas, monospace',color:isP?col.pos:col.ink,dir:'ltr'});}
+function drawBattery(){const b=G.bat;
+  caseBody(b,hover==='bat'||(drag&&drag.type==='bat'),true);
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;for(let x=b.x+14;x<b.x+b.w-10;x+=10){ctx.beginPath();ctx.moveTo(x,b.y+22);ctx.lineTo(x,b.y+30);ctx.stroke();}
+  drawTerminal('B+');drawTerminal('B-');
+  txt('بطارية',b.x+b.w/2,b.y+42,{font:'600 17px system-ui, Tahoma, sans-serif'});
+  const on=lastClosed&&Math.abs(S.I)>5e-5;ctx.beginPath();ctx.arc(b.x+b.w-16,b.y+30,4,0,7);ctx.fillStyle=on?'#6ff29a':'#3a4458';ctx.fill();
+  if(on){ctx.beginPath();ctx.arc(b.x+b.w-16,b.y+30,8,0,7);ctx.fillStyle='rgba(111,242,154,.18)';ctx.fill();}
+  const k=G.knob,f=S.V/VMAX,a0=Math.PI*0.75,ang=a0+f*Math.PI*1.5;
+  if(hint()==='knob'&&!drag)pulseRing(k.x,k.y,k.r+10,col.accent,0);
+  for(let i=0;i<=12;i++){const a=a0+i/12*Math.PI*1.5;ctx.strokeStyle=i/12<=f+1e-6?col.accent:'rgba(255,255,255,.22)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(k.x+Math.cos(a)*(k.r+4),k.y+Math.sin(a)*(k.r+4));ctx.lineTo(k.x+Math.cos(a)*(k.r+8),k.y+Math.sin(a)*(k.r+8));ctx.stroke();}
+  const kg=ctx.createRadialGradient(k.x-6,k.y-7,2,k.x,k.y,k.r);kg.addColorStop(0,'#5a6884');kg.addColorStop(1,'#1f2738');
+  ctx.beginPath();ctx.arc(k.x,k.y,k.r,0,7);ctx.fillStyle=kg;ctx.fill();
+  ctx.strokeStyle=hover==='knob'||(drag&&drag.type==='knob')?col.accent:'rgba(255,255,255,.3)';ctx.lineWidth=1.6;ctx.stroke();
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(k.x+Math.cos(ang)*5,k.y+Math.sin(ang)*5);ctx.lineTo(k.x+Math.cos(ang)*(k.r-5),k.y+Math.sin(ang)*(k.r-5));ctx.stroke();
+  const l=G.lcd;rr(l.x,l.y,l.w,l.h,5);ctx.fillStyle='#08160f';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=1;ctx.stroke();
+  txt(S.V.toFixed(1)+' V',l.x+l.w/2,l.y+l.h/2+1,{font:'600 15px ui-monospace, Menlo, Consolas, monospace',color:'#7ef0a4',dir:'ltr'});
+  if(hint()==='swap')txt('اعكس سلكي البطارية',b.x+b.w/2,b.y+b.h+16,{color:col.warn,font:'600 12px system-ui, Tahoma, sans-serif'});}
+
+/* ---------- live I–t chart (Figure 28) ---------- */
+function drawPlot(){const p=G.plot;
+  caseBody(p,hover==='plot'||(drag&&drag.type==='plot'),false);
+  txt('مخطط تيار الشحن – الزمن',p.x+p.w/2,p.y+18,{font:'600 13.5px system-ui, Tahoma, sans-serif'});
+  const sx=p.x+40,sy=p.y+38,sw=p.w-40-14,sh=p.h-38-52;
+  rr(sx,sy,sw,sh,4);ctx.fillStyle='#08160f';ctx.fill();
+  const X=t=>sx+t/TWIN*sw,Y=i=>sy+sh-clamp(i*1000/YMAX,0,1.02)*sh;
+  ctx.lineWidth=1;
+  for(let v=0;v<=YMAX;v+=5){const y=Y(v/1000);ctx.strokeStyle=v?'rgba(126,240,164,.10)':'rgba(126,240,164,.35)';ctx.beginPath();ctx.moveTo(sx,y);ctx.lineTo(sx+sw,y);ctx.stroke();
+    txt(String(v),sx-6,y,{align:'right',font:'500 10px ui-monospace, Menlo, Consolas, monospace',color:col.muted,dir:'ltr'});}
+  for(let t=0;t<=TWIN;t+=2){const x=X(t);ctx.strokeStyle=t?'rgba(126,240,164,.10)':'rgba(126,240,164,.35)';ctx.beginPath();ctx.moveTo(x,sy);ctx.lineTo(x,sy+sh);ctx.stroke();
+    txt(t<TWIN?String(t):'t (s)',t<TWIN?x:sx+sw,sy+sh+10,{align:t<TWIN?'center':'right',font:'500 10px ui-monospace, Menlo, Consolas, monospace',color:col.muted,dir:'ltr'});}
+  txt('I (mA)',p.x+12,p.y+18,{align:'left',font:'600 10.5px ui-monospace, Menlo, Consolas, monospace',color:col.muted,dir:'ltr'});
+  ctx.save();rr(sx,sy,sw,sh,4);ctx.clip();
+  const line=(tr,c,w,dash)=>{if(!tr||tr.pts.length<2)return;ctx.strokeStyle=c;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.lineJoin='round';
+    ctx.beginPath();tr.pts.forEach((q,i)=>i?ctx.lineTo(X(q[0]),Y(q[1])):ctx.moveTo(X(q[0]),Y(q[1])));ctx.stroke();ctx.setLineDash([]);};
+  if(ghost){ctx.globalAlpha=0.7;line(ghost,col.muted,1.6,[5,4]);ctx.globalAlpha=1;}
+  if(trace){const y0=Y(trace.V/trace.R);ctx.strokeStyle=col.accent;ctx.globalAlpha=.6;ctx.setLineDash([4,4]);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(sx,y0);ctx.lineTo(sx+sw,y0);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    line(trace,col.force,2.4);const e=trace.pts[trace.pts.length-1];
+    if(lastClosed&&trace.t<=TWIN){ctx.beginPath();ctx.arc(X(e[0]),Y(e[1]),4,0,7);ctx.fillStyle=col.force;ctx.fill();}}
+  ctx.restore();
+  if(trace){const y0=Y(trace.V/trace.R);
+    rich([['I'],['0',1],[' = ΔV/R = '+(trace.V/trace.R*1000).toFixed(1)+' mA']],sx+sw-6,Math.max(sy+9,y0-9),{align:'right',font:'600 11px ui-monospace, Menlo, Consolas, monospace',sub:'600 8.5px ui-monospace, Menlo, Consolas, monospace',color:col.accent});
+    txt('R = '+trace.n,X(0.5),sy+sh-12,{align:'left',font:'600 11px ui-monospace, Menlo, Consolas, monospace',color:col.force,dir:'ltr'});}
+  if(ghost&&ghost.n!==(trace&&trace.n))txt('R = '+ghost.n,X(0.5),sy+sh-26,{align:'left',font:'600 11px ui-monospace, Menlo, Consolas, monospace',color:col.muted,dir:'ltr'});
+  // live readouts
+  const R=RES[S.res].v,VC=Math.abs(S.Q)/CAP,VR=lastClosed?Math.abs(S.I)*R:0,ry=p.y+p.h-15,fnt='600 11.5px ui-monospace, Menlo, Consolas, monospace',fs='600 9px ui-monospace, Menlo, Consolas, monospace';
+  rich([['I = '+(Math.abs(S.I)*1000).toFixed(1)+' mA']],p.x+p.w*0.17,ry,{font:fnt,sub:fs,color:col.force});
+  rich([['ΔV'],['C',1],[' = '+VC.toFixed(2)+' V']],p.x+p.w*0.5,ry,{font:fnt,sub:fs,color:'#7ef0a4'});
+  rich([['ΔV'],['R',1],[' = '+VR.toFixed(2)+' V']],p.x+p.w*0.83,ry,{font:fnt,sub:fs,color:col.ink});}
+
+function drawTray(){const t=G.tray,hk=hint();
+  txt('اختر المقاومة',t.x+t.w,t.y+6,{align:'right',font:'600 12px system-ui, Tahoma, sans-serif',color:col.muted});
+  RES.forEach((r,i)=>{const y=t.y+18+i*36,sel=i===S.res,hv=hover==='tile'+i;
+    if(hk==='tray'&&!sel&&!rDone.has(r.v)&&!drag)pulseRect(t.x,y,t.w,30,col.accent);
+    rr(t.x,y,t.w,30,8);ctx.fillStyle=sel?'rgba(127,211,255,.14)':'rgba(8,20,41,.55)';ctx.fill();
+    ctx.strokeStyle=sel?col.accent:hv?'rgba(127,211,255,.55)':col.line;ctx.lineWidth=sel?1.6:1;ctx.stroke();
+    resistorBody(t.x+t.w-26,y+15,30,11,r);
+    txt(r.n,t.x+10,y+15,{align:'left',font:'600 12.5px ui-monospace, Menlo, Consolas, monospace',dir:'ltr'});});}
+
+function draw(){drawBg();computeRanks();drawBoard();drawWires();drawPosts();drawCable('B+');drawCable('B-');drawElectrons();
+  const P=G.P;drawGalv();drawLamp(P.L2,S.b2,'2');drawLamp(P.L1,S.b1,'1');drawResistor();drawCap();drawSwitch();
+  drawBattery();drawPlot();drawTray();}
+
+/* ---------- hands-on input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+const toWorld=s=>({x:(s.x-cam.x)/cam.z,y:(s.y-cam.y)/cam.z});
+const inR=(p,x,y,w,h)=>p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h;
+function hit(p){const Rp=Math.max(14,20/cam.z),R=Math.max(18,26/cam.z),P=G.P;
+  for(const id of['X','Y']){const q=portPos(id);if(Math.hypot(q.x-p.x,q.y-p.y)<Rp)return{type:'port',id,key:'port-'+id};}
+  for(const k of['B+','B-']){const q=G.T[k];if(Math.hypot(q.x-p.x,q.y+8-p.y)<R)return{type:'term',k,key:'term'+k};}
+  const kn=G.knob;if(Math.hypot(kn.x-p.x,kn.y-p.y)<kn.r+10)return{type:'knob',key:'knob'};
+  for(const c of['c1','c2'])if(Math.hypot(P[c].x-p.x,P[c].y-p.y)<Rp)return{type:'contact',k:c==='c1'?1:2,key:c};
+  const L=P.bl*S.kLen,tip={x:P.xK+Math.cos(S.kAng)*L,y:P.yM+Math.sin(S.kAng)*L};
+  if(distSeg(p,P.pv,tip)<Math.max(12,16/cam.z))return{type:'blade',key:'blade'};
+  const t=G.tray;for(let i=0;i<RES.length;i++)if(inR(p,t.x,t.y+18+i*36,t.w,30))return{type:'tile',i,key:'tile'+i};
+  if(inR(p,t.x,t.y-4,t.w,22))return{type:'tile',i:null,key:'tray'};
+  const pl=G.plot;if(inR(p,pl.x,pl.y,pl.w,pl.h))return{type:'plot',key:'plot'};
+  const b=G.bat;if(inR(p,b.x-4,b.y-6,b.w+8,b.h+10))return{type:'bat',key:'bat'};
+  const bd=G.board;if(inR(p,bd.x,bd.y,bd.w,bd.h))return{type:'board',key:'board'};
+  return null;}
+function cursorFor(h){if(!h)return'grab';return h.type==='knob'?'ns-resize':['bat','plot','board'].includes(h.type)||h.key==='tray'?'move':'pointer';}
+function nearestFreePort(p,k){const R=70/cam.z+20;let best=null,bd=R;['X','Y'].forEach(id=>{const o=leadAt(id);if(o&&o!==k)return;const q=portPos(id),d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=id;}});return best;}
+function cancelDrag(){if(drag&&drag.type==='wire')leads[drag.k]=drag.prevPort?{port:drag.prevPort}:null;drag=null;}
+function spoil(){if(lastClosed&&trace)trace.fresh=false;}
+
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);
+  const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){cancelDrag();const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:cam.z,x0:cam.x,y0:cam.y};return;}
+  if(ptrs.size>2)return;
+  const p=toWorld(s),h=hit(p);
+  if(!h){const now=performance.now();if(now-lastTap<320){cam.z=1;cam.x=0;cam.y=0;}lastTap=now;selTerm=null;drag={type:'pan',s0:s,x0:cam.x,y0:cam.y};cv.style.cursor='grabbing';return;}
+  if(h.type==='contact'){S.k=h.k;return;}
+  if(h.type==='blade'){drag={type:'blade',s0:s,moved:false};return;}
+  if(h.type==='tile'){drag={type:'tray',i:h.i,s0:s,moved:false,ox:p.x-G.tray.x,oy:p.y-G.tray.y};return;}
+  if(h.type==='term'){const prev=leads[h.k]&&leads[h.k].port;
+    leads[h.k]={port:null,x:p.x,y:p.y};drag={type:'wire',k:h.k,prevPort:prev,s0:s,moved:false,fromTerm:true};return;}
+  if(h.type==='port'){const owner=leadAt(h.id);
+    if(owner){leads[owner]={port:null,x:p.x,y:p.y};drag={type:'wire',k:owner,prevPort:h.id,s0:s,moved:false};}
+    else if(selTerm){leads[selTerm]={port:h.id};selTerm=null;}
+    return;}
+  if(h.type==='knob')drag={type:'knob',s0:s,v0:S.V};
+  else if(h.type==='bat')drag={type:'bat',ox:p.x-G.bat.x,oy:p.y-G.bat.y};
+  else if(h.type==='plot')drag={type:'plot',ox:p.x-G.plot.x,oy:p.y-G.plot.y};
+  else if(h.type==='board')drag={type:'board',ox:p.x-G.board.x,oy:p.y-G.board.y};
+  cv.style.cursor=cursorFor(h);});
+
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    const z=clamp(pinch.z0*d/pinch.d0,0.6,4),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;
+    cam.z=z;cam.x=mid.x-wx*z;cam.y=mid.y-wy*z;return;}
+  const p=toWorld(s);
+  if(!drag){const h=hit(p);hover=h?h.key:null;cv.style.cursor=cursorFor(h);return;}
+  const mv=Math.hypot(s.x-(drag.s0?drag.s0.x:s.x),s.y-(drag.s0?drag.s0.y:s.y))>6;
+  if(drag.type==='pan'){cam.x=drag.x0+s.x-drag.s0.x;cam.y=drag.y0+s.y-drag.s0.y;return;}
+  if(drag.type==='wire'){if(mv)drag.moved=true;const l=leads[drag.k];l.x=p.x;l.y=p.y;const np=nearestFreePort(p,drag.k);hover=np?'port-'+np:null;}
+  else if(drag.type==='blade'){if(mv)drag.moved=true;if(drag.moved){const P=G.P;S.kAng=clamp(Math.atan2(p.y-P.yM,p.x-P.xK),-P.a1*1.3,P.a1*1.3);S.kLen+=(1-S.kLen)*0.3;}}
+  else if(drag.type==='tray'){if(mv)drag.moved=true;if(drag.moved){G.tray.x=p.x-drag.ox;G.tray.y=p.y-drag.oy;placedTray=true;}}
+  else if(drag.type==='bat'){G.bat.x=p.x-drag.ox;G.bat.y=p.y-drag.oy;placedBat=true;parts();}
+  else if(drag.type==='plot'){G.plot.x=p.x-drag.ox;G.plot.y=p.y-drag.oy;placedPlot=true;}
+  else if(drag.type==='board'){G.board.x=p.x-drag.ox;G.board.y=p.y-drag.oy;placedBoard=true;parts();}
+  else if(drag.type==='knob'){const v=clamp(Math.round((drag.v0+((s.x-drag.s0.x)-(s.y-drag.s0.y))*0.05)*2)/2,0,VMAX);if(v!==S.V){S.V=v;spoil();}}});
+
+function pointerEnd(e){ptrs.delete(e.pointerId);
+  if(pinch){if(ptrs.size<2)pinch=null;return;}
+  if(!drag)return;
+  if(drag.type==='wire'){const l=leads[drag.k];
+    if(!drag.moved){
+      if(drag.fromTerm){if(drag.prevPort){leads[drag.k]={port:drag.prevPort};selTerm=null;}else{leads[drag.k]=null;selTerm=drag.k;}}
+      else leads[drag.k]=null;
+    }else{const pp=nearestFreePort({x:l.x,y:l.y},drag.k);leads[drag.k]=pp?{port:pp}:null;selTerm=null;}
+    hover=null;}
+  if(drag.type==='blade'){const a1=G.P.a1;if(!drag.moved)S.k=S.k===1?2:1;else S.k=S.kAng>a1*0.5?1:S.kAng<-a1*0.5?2:0;}
+  if(drag.type==='tray'&&!drag.moved&&drag.i!=null&&drag.i!==S.res){S.res=drag.i;spoil();}
+  drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(cam.z*f,0.6,4),wx=(s.x-cam.x)/cam.z,wy=(s.y-cam.y)/cam.z;
+  cam.z=z;cam.x=s.x-wx*z;cam.y=s.y-wy*z;},{passive:false});
+
+/* ---------- shared state for the panels ---------- */
+function reset(){leads['B+']=leads['B-']=null;Object.assign(S,{Q:0,I:0,k:0,nv:0,nvel:0,b1:0,b2:0});trace=ghost=null;lastClosed=false;rDone.clear();fresh.length=0;done.fill(false);selTerm=null;}
+window.__sim={done,reset,fresh:()=>fresh.slice()};
+
+/* ---------- teacher hint (lamp button) ---------- */
+window.__explain=function(){
+  const b=battState(),R=RES[S.res].v,I=Math.abs(S.I),VC=Math.abs(S.Q)/CAP,VR=lastClosed?I*R:0;
+  const nums=`<div class="nums"><span>I = ${(I*1000).toFixed(2)} mA</span><span>ΔV<sub>C</sub> = ${VC.toFixed(2)} V</span><span>ΔV<sub>R</sub> = ${VR.toFixed(2)} V</span><span>Q = ${(Math.abs(S.Q)*1000).toFixed(2)} mC</span></div>`;
+  const rev=b.ok&&b.sign<0?`<p class="note">قطبا البطارية معكوسان عن الشكل (27)، لذلك تُشحن الصفيحة A بالشحنة السالبة وينحرف مؤشر الكلفانوميتر نحو اليسار.</p>`:'';
+  const small=CAP*0.02;
+  if(S.k===2){
+    if(I>1e-5)return{t:'المتسعة تُفرغ شحنتها',b:`<p>في الموقع (2) تتصل الصفيحتان عبر المصباح L<sub>2</sub> بمعزل عن البطارية، فتنتقل الإلكترونات من الصفيحة B إلى الصفيحة A حتى تتعادلا.</p><p>انحرف مؤشر الكلفانوميتر بعكس اتجاه انحرافه في أثناء الشحن، وتوهج المصباح L<sub>2</sub> لبرهة ثم انطفأ.</p>${nums}`};
+    return{t:'المتسعة غير مشحونة',b:`<p>فرغت المتسعة من شحنتها. لتكرار الشحن ضع المفتاح k في الموقع (1)، ويمكنك قبل ذلك اختيار مقاومة أخرى من صينية المقاومات لتقارن منحني تيار الشحن.</p>${nums}`};}
+  if(!b.ok)return{t:'الدائرة غير مكتملة',b:`<p>البطارية غير موصولة بالدائرة. اسحب سلك القطب الموجب إلى النقطة القريبة من المقاومة R، وسلك القطب السالب إلى النقطة الأخرى، كما في الشكل (27).</p><p class="note">يمكنك أيضاً النقر على قطب البطارية ثم النقر على النقطة.</p>`};
+  if(S.k===0){
+    if(Math.abs(S.Q)>small)return{t:'المتسعة معزولة',b:`<p>المفتاح k لا يلامس أي موقع، فالصفيحتان معزولتان ولا يوجد مسار تنتقل فيه الشحنات، لذلك تحتفظ المتسعة بشحنتها.</p>${nums}`};
+    return{t:'المفتاح k مفتوح',b:`<p>ذراع المفتاح k لا يلامس أي موقع، فالدائرة مفتوحة. انقر على الموقع (1) أو اسحب الذراع إليه لربط صفيحتي المتسعة بين قطبي البطارية.</p>${rev}`};}
+  if(S.V<0.5)return{t:'جهد البطارية صفر',b:`<p>أدر مقبض البطارية لرفع فرق جهدها.</p>`};
+  if(I>0.01*S.V/R)return{t:'المتسعة تُشحن',b:`<p>لحظة إغلاق الدائرة تكون المتسعة غير مشحونة، فيقع فرق جهد البطارية كله على المقاومة ويكون التيار أكبر ما يمكن:</p><p class="m">I = ΔV<sub>battery</sub> / R = ${S.V.toFixed(1)} / ${R} = ${(S.V/R*1000).toFixed(1)} mA</p><p>تسحب البطارية الإلكترونات من الصفيحة A وتدفعها إلى الصفيحة B. كلما تراكمت الشحنة ازداد فرق الجهد بين الصفيحتين ΔV<sub>C</sub> وقلّ فرق الجهد على المقاومة <b class="m">ΔV<sub>R</sub> = ΔV<sub>battery</sub> − ΔV<sub>C</sub></b>، فيتناقص التيار ويخفت المصباح L<sub>1</sub>.</p>${rev}${nums}`};
+  return{t:'اكتمل شحن المتسعة',b:`<p>تساوى جهد كل صفيحة مع جهد قطب البطارية المتصل بها، فأصبح:</p><p class="m">ΔV<sub>C</sub> = ΔV<sub>battery</sub> = ${S.V.toFixed(1)} V</p><p>لا يتوافر فرق جهد على طرفي المقاومة، فالتيار صفر: رجع مؤشر الكلفانوميتر إلى الصفر وانطفأ المصباح L<sub>1</sub>. المتسعة المشحونة في دائرة التيار المستمر تعمل كمفتاح مفتوح.</p><p class="m">Q = C ΔV = 1000 µF × ${S.V.toFixed(1)} V = ${(Math.abs(S.Q)*1000).toFixed(1)} mC</p>${rev}${nums}`};
+};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(W){step(dt);draw();}requestAnimationFrame(frame);}
+readColors();layout();
+const ro=new ResizeObserver(()=>layout());ro.observe(cv);ro.observe(hdr);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
+requestAnimationFrame(frame);
+})();
+
+/* fullscreen */
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+/* panels: activity tools / steps / conclusion, and the lamp hint */
+(function(){
+  const hdr=document.getElementById('hdr'),info=document.getElementById('infoPanel'),iT=document.getElementById('infoTitle'),iB=document.getElementById('infoBody');
+  const tip=document.getElementById('tipPanel'),tT=document.getElementById('tipTitle'),tB=document.getElementById('tipBody'),tipBtn=document.getElementById('tipBtn');
+  const btns=[...document.querySelectorAll('.hbtn')];
+  const STEPS=[
+    'نربط الدائرة الكهربائية كما في الشكل (27): نصل القطب الموجب للبطارية بالنقطة القريبة من المقاومة R، والقطب السالب بالنقطة الأخرى. <span class="fig">(27)</span>',
+    'نجعل المفتاح k في الموقع (1)، أي نربط صفيحتي المتسعة بين قطبي البطارية لغرض شحنها. نلاحظ انحراف مؤشر الكلفانوميتر (G) لحظياً نحو اليمين ثم يعود بسرعة إلى الصفر، ونلاحظ في الوقت نفسه توهج المصباح L<sub>1</sub> بضوء ساطع لبرهة من الزمن ثم ينطفئ، وكأن البطارية غير مربوطة في الدائرة.',
+    'نتابع منحني تيار الشحن مع الزمن. نضع المفتاح k في الموقع (2) لتفريغ المتسعة، ثم نختار مقاومة أخرى ونعيد الشحن، ونقارن تيار الشحن الابتدائي في المنحنيين. <span class="fig">(28)</span>'];
+  const R=n=>`<b class="m">${n}</b>`;
+  const P={
+    tools:()=>({t:'أدوات النشاط',b:`<ul>
+      <li><div>بطارية فولطيتها مناسبة، يُضبط جهدها بالمقبض الدوّار من ${R('0')} إلى ${R('12 V')}.</div></li>
+      <li><div>كلفانوميتر ${R('(G)')} صفره في وسط التدريجة.</div></li>
+      <li><div>متسعة ${R('(C)')} ذات الصفيحتين المتوازيتين ${R('A')} و ${R('B')}، سعتها ${R('1000 µF')}.</div></li>
+      <li><div>مفتاح مزدوج ${R('(k)')} له موقعان: ${R('1')} للشحن و ${R('2')} للتفريغ.</div></li>
+      <li><div>مقاومة ثابتة ${R('R')}: ${R('500 Ω')} أو ${R('1 kΩ')} أو ${R('2 kΩ')}.</div></li>
+      <li><div>مصباحان متماثلان ${R('L₁')} و ${R('L₂')}.</div></li>
+      <li><div>أسلاك توصيل.</div></li></ul>
+      <p class="note" style="margin-top:10px">يمكنك سحب لوحة الدائرة والبطارية والمخطط وصينية المقاومات إلى أي مكان على الشاشة.</p>`}),
+    steps:()=>{const d=window.__sim?window.__sim.done:[];return{t:'خطوات النشاط',b:`<ol>${STEPS.map((s,i)=>`<li class="${d[i]?'ok':''}"><span class="ck">${d[i]?'✓':i+1}</span><div>${s}</div></li>`).join('')}</ol>${d.every(Boolean)?'<p class="note" style="margin-top:10px">أكملت خطوات النشاط. افتح الاستنتاج.</p>':''}<button class="reset" type="button" data-act="reset">إعادة النشاط</button>`};},
+    concl:()=>{const f=window.__sim?window.__sim.fresh():[];let mine='<p class="note">أكمل خطوات النشاط لترى قياساتك هنا.</p>';
+      if(f.length){const l=f[f.length-1];
+        mine=`<div class="box"><p>من قياسك: عند ${R('R = '+l.n)} و ${R('ΔV = '+l.V.toFixed(1)+' V')} بدأ تيار الشحن بمقدار ${R((l.I0m*1000).toFixed(1)+' mA')}، وهو يساوي ${R('ΔV/R = '+(l.I0c*1000).toFixed(1)+' mA')}، ثم تناقص إلى الصفر.</p>`;
+        const byR={};f.forEach(x=>byR[x.R]=x);const ks=Object.keys(byR).map(Number).sort((a,b)=>a-b);
+        if(ks.length>1)mine+=`<p>${ks.map(k=>R(byR[k].n+' → '+(byR[k].I0m*1000).toFixed(1)+' mA')).join('، ')}</p><p>كلما كبرت المقاومة R صغر تيار الشحن الابتدائي واستغرق الشحن زمناً أطول.</p>`;
+        mine+='</div>';}
+      return{t:'نستنتج من النشاط',b:`<p class="q">لماذا يرجع مؤشر الكلفانوميتر إلى الصفر؟</p>
+      <p>بعد اكتمال عملية شحن المتسعة يتساوى جهد كل صفيحة مع جهد قطب البطارية المتصل بها، فتصبح المتسعة مشحونة بكامل شحنتها، وعندها يكون فرق الجهد بين صفيحتي المتسعة مساوياً لفرق الجهد بين قطبي البطارية:</p>
+      <p class="m">ΔV<sub>C</sub> = ΔV<sub>battery</sub></p>
+      <p>وفي هذه الحالة لا يتوافر فرق جهد على طرفي المقاومة في الدائرة، مما يجعل التيار في الدائرة يساوي صفراً.</p>
+      <p class="hl">لذا فإن وجود المتسعة في دائرة التيار المستمر يُعد مفتاحاً مفتوحاً بعد أن تُشحن.</p>
+      <p>ولأن صفيحتي المتسعة معزولتان عن بعضهما، تتراكم الإلكترونات على الصفيحة B المربوطة بالقطب السالب للبطارية فتُشحن بالشحنة السالبة ${R('(−Q)')}، في حين تُشحن الصفيحة A المربوطة بالقطب الموجب بالشحنة الموجبة ${R('(+Q)')} وبالمقدار نفسه بطريقة الحث.</p>
+      <p>يبين المخطط البياني في الشكل (28) العلاقة بين تيار شحن المتسعة والزمن: يبدأ تيار الشحن ${R('(I)')} بمقدار كبير لحظة إغلاق دائرة الشحن، ومقداره يساوي:</p>
+      <p class="m">I = ΔV<sub>battery</sub> / R</p>
+      <p>ثم يتناقص مقداره إلى الصفر بسرعة عند اكتمال الشحن، إذ إن: ${R('I')} تيار الشحن، ${R('R')} المقاومة في الدائرة، ${R('ΔV<sub>battery</sub>')} فرق جهد البطارية.</p>
+      ${mine}
+      <div class="think"><b class="t">فكّر:</b> المتسعة الموضوعة في دائرة التيار المستمر تُعد كمفتاح مفتوح؟
+      <details><summary>الجواب</summary><p style="margin:6px 0 0">نعم، بعد اكتمال شحنها. فعندما يصبح ${R('ΔV<sub>C</sub> = ΔV<sub>battery</sub>')} ينعدم فرق الجهد على المقاومة وينقطع التيار المستمر في الدائرة. أما لحظة إغلاق الدائرة فيمر تيار شحن كبير لبرهة قصيرة فقط.</p></details></div>`};}};
+  let cur=null,iv=0,lastH='';
+  const place=()=>{const top=hdr.getBoundingClientRect().bottom-document.querySelector('.stage').getBoundingClientRect().top+10;info.style.top=top+'px';info.style.maxHeight=`calc(100% - ${top+16}px)`;};
+  const fill=()=>{if(!cur)return;const r=P[cur](),h=r.t+'|'+r.b;if(h===lastH)return;
+    const open=iB.querySelector('details[open]');lastH=h;iT.textContent=r.t;iB.innerHTML=r.b;if(open){const d=iB.querySelector('details');if(d)d.open=true;}};
+  const openInfo=n=>{cur=cur===n?null:n;btns.forEach(b=>{const on=b.dataset.p===cur;b.classList.toggle('on',on);b.setAttribute('aria-expanded',on);});
+    info.hidden=!cur;clearInterval(iv);if(cur){openTip(false);place();lastH='';fill();iv=setInterval(fill,400);}};
+  btns.forEach(b=>b.addEventListener('click',()=>openInfo(b.dataset.p)));
+  document.getElementById('infoClose').addEventListener('click',()=>openInfo(cur));
+  iB.addEventListener('click',e=>{if(e.target.closest('[data-act="reset"]')&&window.__sim){window.__sim.reset();lastH='';fill();}});
+  window.addEventListener('resize',()=>{if(cur)place();});
+  let tiv=0,tLast='';
+  const tfill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===tLast)return;tLast=h;tT.textContent=r.t;tB.innerHTML=r.b;};
+  function openTip(v){tip.hidden=!v;tipBtn.setAttribute('aria-expanded',v);tipBtn.classList.toggle('on',v);clearInterval(tiv);if(v){if(cur)openInfo(cur);tLast='';tfill();tiv=setInterval(tfill,400);}}
+  tipBtn.addEventListener('click',()=>openTip(tip.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>openTip(false));
+})();
+</script>
+</body>
+</html>
