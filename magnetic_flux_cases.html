@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081429">
+<link rel="icon" href="data:,">
+<title>الفيض المغناطيسي</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #081429;
+  overscroll-behavior: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.view-tools {
+  position: fixed;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.view-tools button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #dbe9fa25;
+  border-radius: 11px;
+  background: #0b1c2de8;
+  color: #d9edf2;
+  box-shadow: 0 4px 16px #0002;
+  backdrop-filter: blur(15px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.view-tools button:hover {
+  background: #244454;
+  border-color: #8bc8dd99;
+}
+
+.view-tools button:focus-visible {
+  outline: 2px solid #9bd2e6;
+  outline-offset: 3px;
+}
+
+.view-tools svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #9bd2e6;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media(pointer:coarse) {
+  .view-tools button {
+    width: 44px;
+    height: 44px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<canvas
+  id="scene"
+  tabindex="0"
+  aria-label="ثلاث حالات للفيض المغناطيسي؛ اسحب متجه المساحة الأحمر في الشكل الأول لتغيير الزاوية، واسحب مقابض المجال والمساحة لتغيير قيمتيهما">
+</canvas>
+
+<div class="view-tools" role="group" aria-label="عرض المحاكاة">
+  <button type="button" id="zoomIn" aria-label="تكبير" title="تكبير">
+    <svg viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5v14"/>
+    </svg>
+  </button>
+
+  <button type="button" id="zoomOut" aria-label="تصغير" title="تصغير">
+    <svg viewBox="0 0 24 24">
+      <path d="M5 12h14"/>
+    </svg>
+  </button>
+
+  <button
+    type="button"
+    id="fullscreen"
+    aria-label="ملء الشاشة"
+    title="ملء الشاشة"
+    aria-pressed="false">
+    <svg viewBox="0 0 24 24">
+      <path
+        id="fullscreenIcon"
+        d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+'use strict';
+
+const cv = document.querySelector('#scene');
+const c = cv.getContext('2d');
+
+const S = {
+  B: .8,
+  A: .04,
+  theta: 45
+};
+
+const camera = {
+  x: 0,
+  y: 0,
+  z: 1
+};
+
+const colors = {
+  ink: '#e5edf0',
+  muted: '#99b2c3',
+  blue: '#90c9ed',
+  red: '#f18b7f',
+  green: '#93d6b2',
+  gold: '#e3c18e'
+};
+
+let W = innerWidth;
+let H = innerHeight;
+let DPR = 1;
+let portrait = W < 850;
+
+let worldW = 1250;
+let worldH = 690;
+
+let cases = [];
+let targets = [];
+let dirty = true;
+let gesture = null;
+
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const rad = d => d*Math.PI/180;
+
+function cosine(theta) {
+  if (theta === 90) return 0;
+  if (theta === 0) return 1;
+  return Math.cos(rad(theta));
+}
+
+function values() {
+  return [S.theta,0,90].map(theta => ({
+    theta,
+    cosine: cosine(theta),
+    flux: S.B*S.A*cosine(theta)
+  }));
+}
+
+function invalidate() {
+  dirty = true;
+}
+
+/* Layout */
+
+function layout() {
+  portrait = W < 850;
+  worldW = portrait ? 430 : 1250;
+  worldH = portrait ? 900 : 690;
+
+  cases = [0,1,2].map(index => {
+    if (portrait) {
+      return {
+        index,
+        x: 0,
+        y: 145+index*245,
+        w: 430,
+        h: 235,
+        cx: 100,
+        cy: 105,
+        scale: .63,
+        mathX: 315
+      };
+    }
+
+    return {
+      index,
+      x: index*425,
+      y: 110,
+      w: 390,
+      h: 520,
+      cx: 195,
+      cy: 180,
+      scale: 1,
+      mathX: 195
+    };
+  });
+}
+
+function fit() {
+  const left = portrait ? 72 : 76;
+  const margin = portrait ? 12 : 22;
+
+  camera.z = Math.min(
+    (W-left-margin)/worldW,
+    (H-margin*2)/worldH
+  );
+
+  camera.x =
+    left+(W-left-margin-worldW*camera.z)/2;
+
+  camera.y =
+    (H-worldH*camera.z)/2;
+
+  invalidate();
+}
+
+function resize() {
+  W = innerWidth;
+  H = innerHeight;
+
+  DPR = Math.min(devicePixelRatio||1,2);
+
+  cv.width = W*DPR;
+  cv.height = H*DPR;
+
+  layout();
+  fit();
+}
+
+resize();
+addEventListener('resize',resize);
+
+/* Drawing helpers */
+
+function rr(x,y,w,h,r=8) {
+  c.beginPath();
+  c.roundRect(x,y,w,h,r);
+}
+
+function rect(x,y,w,h,color,r=8) {
+  rr(x,y,w,h,r);
+  c.fillStyle = color;
+  c.fill();
+}
+
+function line(points,color,width=1.5) {
+  c.beginPath();
+
+  points.forEach((p,i) => {
+    if (i) c.lineTo(...p);
+    else c.moveTo(...p);
+  });
+
+  c.strokeStyle = color;
+  c.lineWidth = width;
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+  c.stroke();
+}
+
+function circle(x,y,r,color) {
+  c.beginPath();
+  c.arc(x,y,r,0,Math.PI*2);
+  c.fillStyle = color;
+  c.fill();
+}
+
+function text(
+  s,x,y,size=16,
+  color=colors.ink,
+  rtl=false
+) {
+  const fs = Math.max(size,10.5/camera.z);
+
+  c.font =
+    `${fs}px `+
+    (rtl ? 'Tahoma,Arial' : 'Georgia,serif');
+
+  c.direction = rtl ? 'rtl' : 'ltr';
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillStyle = color;
+  c.fillText(s,x,y);
+}
+
+function math(s,x,y,size=20,color=colors.ink) {
+  const fs = Math.max(size,10.5/camera.z);
+  const parts = s.split(/(Φ_B)/);
+
+  c.direction = 'ltr';
+  c.textBaseline = 'middle';
+  c.font = `${fs}px Georgia,serif`;
+
+  let total = 0;
+
+  const widths = parts.map(part => {
+    const width = part === 'Φ_B'
+      ? c.measureText('Φ').width+fs*.45
+      : c.measureText(part).width;
+
+    total += width;
+    return width;
+  });
+
+  let px = x-total/2;
+
+  c.textAlign = 'left';
+  c.fillStyle = color;
+
+  parts.forEach((part,index) => {
+    c.font = `${fs}px Georgia,serif`;
+
+    if (part === 'Φ_B') {
+      c.fillText('Φ',px,y);
+
+      const offset = c.measureText('Φ').width;
+
+      c.font = `${fs*.62}px Georgia,serif`;
+      c.fillText('B',px+offset,y+fs*.28);
+    } else {
+      c.fillText(part,px,y);
+    }
+
+    px += widths[index];
+  });
+}
+
+function arrow(
+  x,y,dx,dy,
+  color,
+  width=2,
+  head=8
+) {
+  const a = Math.atan2(dy,dx);
+
+  line([
+    [x,y],
+    [x+dx,y+dy]
+  ],color,width);
+
+  c.beginPath();
+  c.moveTo(x+dx,y+dy);
+
+  c.lineTo(
+    x+dx-head*Math.cos(a-.42),
+    y+dy-head*Math.sin(a-.42)
+  );
+
+  c.lineTo(
+    x+dx-head*Math.cos(a+.42),
+    y+dy-head*Math.sin(a+.42)
+  );
+
+  c.closePath();
+  c.fillStyle = color;
+  c.fill();
+}
+
+function vectorLetter(s,x,y,color,size=20) {
+  text(s,x,y,size,color);
+
+  arrow(
+    x-size*.32,
+    y-size*.78,
+    size*.66,
+    0,
+    color,
+    1.15,
+    3.5
+  );
+}
+
+function handle(x,y,color,r=6) {
+  const radius = Math.max(r,5.5/camera.z);
+
+  circle(x,y,radius+4,'#081b2a99');
+  circle(x,y,radius,color);
+  circle(x-1.2,y-1.2,radius*.35,'#ffffff66');
+}
+
+/* Shared B and A */
+
+function sliders() {
+  const list = portrait
+    ? [
+        {key:'B',x:35,y:48,w:360,min:.1,max:1.6},
+        {key:'A',x:35,y:112,w:360,min:.01,max:.09}
+      ]
+    : [
+        {key:'B',x:95,y:63,w:440,min:.1,max:1.6},
+        {key:'A',x:755,y:63,w:440,min:.01,max:.09}
+      ];
+
+  for (const q of list) {
+    const isB = q.key === 'B';
+    const value = S[q.key];
+    const color = isB ? colors.blue : colors.green;
+
+    math(
+      isB
+        ? `B = ${value.toFixed(2)} T`
+        : `A = ${value.toFixed(3)} m²`,
+      q.x+q.w/2,
+      q.y-23,
+      portrait ? 19 : 20,
+      color
+    );
+
+    line([
+      [q.x,q.y],
+      [q.x+q.w,q.y]
+    ],'#496879',3);
+
+    const hx =
+      q.x+(value-q.min)/(q.max-q.min)*q.w;
+
+    line([
+      [q.x,q.y],
+      [hx,q.y]
+    ],color,3);
+
+    for (let j=0;j<=8;j++) {
+      const x = q.x+j*q.w/8;
+
+      line([
+        [x,q.y-3],
+        [x,q.y+3]
+      ],'#809aa477',1);
+    }
+
+    handle(hx,q.y,color);
+
+    targets.push({
+      kind:'slider',
+      ...q
+    });
+  }
+}
+
+/* Loop geometry */
+
+function loopGeometry(g,theta) {
+  const scale = g.scale*Math.sqrt(S.A/.04);
+  const a = rad(theta);
+
+  return {
+    length:174*scale,
+    width:44*scale,
+    nx:Math.cos(a),
+    ny:-Math.sin(a),
+    tx:Math.sin(a),
+    ty:Math.cos(a)
+  };
+}
+
+function drawLoop(g,theta) {
+  const z = loopGeometry(g,theta);
+  const cx = g.x+g.cx;
+  const cy = g.y+g.cy;
+
+  c.save();
+  c.translate(cx,cy);
+  c.rotate(-rad(theta));
+
+  c.shadowColor = '#0007';
+  c.shadowBlur = 12*g.scale;
+  c.shadowOffsetY = 4*g.scale;
+
+  const inset = 4*g.scale;
+
+  rr(
+    -z.width/2,
+    -z.length/2,
+    z.width,
+    z.length,
+    5*g.scale
+  );
+
+  const frame = c.createLinearGradient(
+    -z.width/2,0,
+    z.width/2,0
+  );
+
+  frame.addColorStop(0,'#71553c');
+  frame.addColorStop(.28,'#e4c18b');
+  frame.addColorStop(.6,'#9c845b');
+  frame.addColorStop(1,'#375f64');
+
+  c.roundRect(
+    -z.width/2+inset,
+    -z.length/2+inset,
+    z.width-2*inset,
+    z.length-2*inset,
+    2*g.scale
+  );
+
+  c.fillStyle = frame;
+  c.fill('evenodd');
+
+  c.shadowBlur = 0;
+  c.shadowOffsetY = 0;
+  c.shadowColor = 'transparent';
+
+  rect(
+    -z.width/2+inset,
+    -z.length/2+inset,
+    z.width-2*inset,
+    z.length-2*inset,
+    `rgba(89,151,128,${.11+.14*cosine(theta)})`,
+    2*g.scale
+  );
+
+  c.save();
+
+  rr(
+    -z.width/2+inset,
+    -z.length/2+inset,
+    z.width-2*inset,
+    z.length-2*inset,
+    2*g.scale
+  );
+
+  c.clip();
+
+  for (
+    let y=-z.length/2;
+    y<z.length/2;
+    y+=10*g.scale
+  ) {
+    line([
+      [-z.width/2,y],
+      [z.width/2,y+12*g.scale]
+    ],'#acd6a43a',.8*g.scale);
+
+    line([
+      [z.width/2,y],
+      [-z.width/2,y+12*g.scale]
+    ],'#d9c27730',.8*g.scale);
+  }
+
+  c.restore();
+
+  rr(
+    -z.width/2+1,
+    -z.length/2+1,
+    z.width-2,
+    z.length-2,
+    4*g.scale
+  );
+
+  c.strokeStyle = '#dbe1be66';
+  c.lineWidth = .9;
+  c.stroke();
+
+  c.restore();
+
+  const hx =
+    cx+z.nx*z.width/2+z.tx*z.length/2;
+
+  const hy =
+    cy+z.ny*z.width/2+z.ty*z.length/2;
+
+  handle(hx,hy,colors.green,4);
+
+  targets.push({
+    kind:'area',
+    x:hx,
+    y:hy,
+    r:16/camera.z,
+    cx,
+    cy
+  });
+}
+
+/* Uniform magnetic field */
+
+function field(g,theta) {
+  const cx = g.x+g.cx;
+  const cy = g.y+g.cy;
+  const scale = g.scale;
+  const half = 145*scale;
+
+  const rows = 5+Math.round(S.B/1.6*5);
+  const step = 166*scale/(rows-1);
+  const z = loopGeometry(g,theta);
+
+  for (let j=0;j<rows;j++) {
+    const y = cy-83*scale+j*step;
+
+    c.save();
+    c.globalAlpha = .25+S.B/1.6*.55;
+
+    arrow(
+      cx-half,
+      y,
+      half*2,
+      0,
+      colors.blue,
+      1.5*scale+S.B*.35,
+      7*scale
+    );
+
+    c.restore();
+
+    const dy = y-cy;
+
+    if (
+      cosine(theta) > .02 &&
+      Math.abs(dy) < z.length/2*cosine(theta)-3
+    ) {
+      const at = cx+dy*Math.tan(rad(theta));
+
+      circle(
+        at,
+        y,
+        2.2*scale,
+        `rgba(171,232,186,${.3+.65*cosine(theta)})`
+      );
+    }
+  }
+
+  vectorLetter(
+    'B',
+    cx+half-11*scale,
+    cy-111*scale,
+    colors.blue,
+    19*scale
+  );
+}
+
+/* Area normal and angle */
+
+function normal(g,theta) {
+  const cx = g.x+g.cx;
+  const cy = g.y+g.cy;
+  const scale = g.scale;
+  const length = 100*scale;
+  const a = rad(theta);
+
+  const dx = Math.cos(a)*length;
+  const dy = -Math.sin(a)*length;
+
+  line([
+    [cx,cy],
+    [cx+108*scale,cy]
+  ],'#a8c3d345',1);
+
+  if (g.index === 0) {
+    c.save();
+    c.setLineDash([3*scale,5*scale]);
+
+    c.beginPath();
+    c.arc(cx,cy,length,-Math.PI/2,0);
+    c.strokeStyle = '#ecc79d33';
+    c.lineWidth = 1;
+    c.stroke();
+
+    c.restore();
+  }
+
+  arrow(
+    cx,cy,dx,dy,
+    colors.red,
+    3*scale,
+    10*scale
+  );
+
+  circle(cx,cy,3*scale,'#e5d7b7');
+
+  const labelX =
+    cx+dx+Math.cos(a)*15*scale;
+
+  const labelY =
+    cy+dy-Math.sin(a)*15*scale;
+
+  vectorLetter(
+    'A',
+    labelX,
+    labelY,
+    colors.red,
+    20*scale
+  );
+
+  const r = 31*scale;
+
+  if (theta > 1) {
+    c.beginPath();
+    c.arc(cx,cy,r,-a,0);
+    c.strokeStyle = colors.gold;
+    c.lineWidth = 1.4;
+    c.stroke();
+
+    text(
+      g.index===0 ? 'θ' : `${theta}°`,
+      cx+Math.cos(a/2)*(r+17*scale),
+      cy-Math.sin(a/2)*(r+17*scale),
+      16*scale,
+      colors.gold
+    );
+  }
+
+  if (g.index === 0) {
+    handle(
+      cx+dx,
+      cy+dy,
+      colors.gold,
+      5
+    );
+
+    targets.push({
+      kind:'angle',
+      x:cx+dx,
+      y:cy+dy,
+      r:18/camera.z,
+      cx,
+      cy
+    });
+
+    targets.unshift({
+      kind:'angle-body',
+      cx,
+      cy,
+      r:Math.max(
+        loopGeometry(g,theta).length/2,
+        50*scale
+      ),
+      theta,
+      scale
+    });
+  }
+}
+
+/* Relative flux indicator */
+
+function gauge(x,y,w,fraction) {
+  rect(
+    x-w/2,
+    y-3,
+    w,
+    6,
+    '#2b4657',
+    3
+  );
+
+  rect(
+    x-w/2,
+    y-3,
+    w*clamp(fraction,0,1),
+    6,
+    colors.gold,
+    3
+  );
+
+  text('0',x-w/2,y+16,11,colors.muted);
+  text('1',x+w/2,y+16,11,colors.muted);
+  math('Φ_B / (B A)',x,y+17,12,colors.muted);
+}
+
+/* The three cases */
+
+function drawCase(g,value) {
+  const i = g.index;
+
+  const title = i===0
+    ? 'الحلقة القابلة للدوران'
+    : i===1
+      ? 'المجال عمودي على الحلقة'
+      : 'المجال مواز للحلقة';
+
+  text(
+    title,
+    g.x+g.w/2,
+    g.y+15,
+    portrait ? 17 : 18,
+    colors.ink,
+    true
+  );
+
+  field(g,value.theta);
+  drawLoop(g,value.theta);
+  normal(g,value.theta);
+
+  const mx = g.x+g.mathX;
+  const base = g.y+(portrait ? 69 : 364);
+  const fs = portrait ? 17 : 23;
+
+  const equation = i===0
+    ? 'Φ_B = B A cos θ'
+    : i===1
+      ? 'Φ_B = B A cos 0°'
+      : 'Φ_B = B A cos 90°';
+
+  math(equation,mx,base,fs);
+
+  if (i !== 0) {
+    math(
+      i===1 ? 'Φ_B = B A' : 'Φ_B = 0',
+      mx,
+      base+(portrait ? 31 : 34),
+      portrait ? 19 : 25,
+      colors.green
+    );
+  }
+
+  math(
+    `θ = ${value.theta.toFixed(1)}°`,
+    mx,
+    base+(portrait ? 67 : 73),
+    portrait ? 17 : 20,
+    colors.red
+  );
+
+  math(
+    `Φ_B = ${(value.flux*1000).toFixed(2)} mWb`,
+    mx,
+    base+(portrait ? 104 : 110),
+    portrait ? 17 : 22,
+    colors.gold
+  );
+
+  gauge(
+    mx,
+    base+(portrait ? 137 : 151),
+    portrait ? 160 : 242,
+    value.cosine
+  );
+
+  if (portrait) {
+    line([
+      [15,g.y+g.h-1],
+      [415,g.y+g.h-1]
+    ],'#a7c7d31b',1);
+
+  } else if (i < 2) {
+    line([
+      [g.x+410,g.y+8],
+      [g.x+410,g.y+505]
+    ],'#a7c7d31b',1);
+  }
+}
+
+/* Rendering */
+
+function draw() {
+  c.setTransform(DPR,0,0,DPR,0,0);
+
+  const bg = c.createRadialGradient(
+    W*.53,H*.4,0,
+    W*.5,H*.5,
+    Math.max(W,H)*.8
+  );
+
+  bg.addColorStop(0,'#25445e');
+  bg.addColorStop(.6,'#10263e');
+  bg.addColorStop(1,'#081429');
+
+  c.fillStyle = bg;
+  c.fillRect(0,0,W,H);
+
+  c.translate(camera.x,camera.y);
+  c.scale(camera.z,camera.z);
+
+  targets = [];
+
+  sliders();
+
+  const v = values();
+
+  cases.forEach((g,i) => {
+    drawCase(g,v[i]);
+  });
+}
+
+/* Hit testing */
+
+function point(x,y) {
+  return {
+    x:(x-camera.x)/camera.z,
+    y:(y-camera.y)/camera.z
+  };
+}
+
+function hit(x,y) {
+  const p = point(x,y);
+
+  for (const t of [...targets].reverse()) {
+    if (t.kind === 'slider') {
+      if (
+        p.x > t.x-15/camera.z &&
+        p.x < t.x+t.w+15/camera.z &&
+        Math.abs(p.y-t.y) < 15/camera.z
+      ) return t;
+
+    } else if (t.kind === 'angle-body') {
+      const a = rad(t.theta);
+      const dx = p.x-t.cx;
+      const dy = p.y-t.cy;
+
+      const n =
+        dx*Math.cos(a)-dy*Math.sin(a);
+
+      const u =
+        dx*Math.sin(a)+dy*Math.cos(a);
+
+      if (
+        Math.abs(n)<25*t.scale+8/camera.z &&
+        Math.abs(u)<t.r
+      ) return t;
+
+    } else {
+      if (
+        Math.hypot(p.x-t.x,p.y-t.y) <= t.r
+      ) return t;
+    }
+  }
+
+  return {kind:'pan'};
+}
+
+function setAngle(theta) {
+  theta = clamp(theta,0,90);
+
+  S.theta = theta < 2
+    ? 0
+    : theta > 88
+      ? 90
+      : Math.round(theta*10)/10;
+
+  invalidate();
+}
+
+function apply(target,p) {
+  if (target.kind === 'slider') {
+    S[target.key] =
+      target.min+
+      clamp(
+        (p.x-target.x)/target.w,
+        0,
+        1
+      )*(target.max-target.min);
+
+    const precision =
+      target.key==='B' ? 100 : 1000;
+
+    S[target.key] =
+      Math.round(S[target.key]*precision)/precision;
+  }
+
+  if (target.kind === 'angle') {
+    setAngle(
+      Math.atan2(
+        target.cy-p.y,
+        p.x-target.cx
+      )*180/Math.PI
+    );
+  }
+
+  if (target.kind === 'angle-body') {
+    const dx = p.x-target.cx;
+    const dy = p.y-target.cy;
+
+    let degrees =
+      Math.atan2(-dy,dx)*180/Math.PI;
+
+    if (degrees <= 0) degrees += 180;
+
+    setAngle(degrees-90);
+  }
+
+  if (target.kind === 'area') {
+    const distance = Math.hypot(
+      p.x-target.cx,
+      p.y-target.cy
+    );
+
+    S.A = Math.round(
+      clamp(
+        gesture.area*
+        (distance/Math.max(1,gesture.distance))**2,
+        .01,
+        .09
+      )*1000
+    )/1000;
+  }
+
+  invalidate();
+}
+
+/* Fixed view controls */
+
+function zoomAt(z,x=W/2,y=H/2) {
+  const p = point(x,y);
+
+  camera.z = clamp(z,.25,5);
+  camera.x = x-p.x*camera.z;
+  camera.y = y-p.y*camera.z;
+
+  invalidate();
+}
+
+document.querySelector('#zoomIn').onclick = () => {
+  zoomAt(camera.z*1.2);
+};
+
+document.querySelector('#zoomOut').onclick = () => {
+  zoomAt(camera.z/1.2);
+};
+
+document.querySelector('#fullscreen').onclick = async () => {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch {}
+};
+
+document.addEventListener('fullscreenchange',() => {
+  const on = !!document.fullscreenElement;
+  const button = document.querySelector('#fullscreen');
+
+  button.setAttribute('aria-pressed',String(on));
+
+  button.setAttribute(
+    'aria-label',
+    on ? 'الخروج من ملء الشاشة' : 'ملء الشاشة'
+  );
+
+  button.title =
+    on ? 'الخروج من ملء الشاشة' : 'ملء الشاشة';
+
+  document.querySelector('#fullscreenIcon').setAttribute(
+    'd',
+    on
+      ? 'M3 8h5V3M21 8h-5V3M8 21v-5H3M16 21v-5h5'
+      : 'M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5'
+  );
+});
+
+/* Mouse and touch */
+
+const pointers = new Map();
+
+cv.onpointerdown = e => {
+  cv.setPointerCapture(e.pointerId);
+  cv.focus({preventScroll:true});
+
+  pointers.set(e.pointerId,{
+    x:e.clientX,
+    y:e.clientY
+  });
+
+  if (pointers.size === 1) {
+    const target = e.altKey
+      ? {kind:'pan'}
+      : hit(e.clientX,e.clientY);
+
+    const p = point(e.clientX,e.clientY);
+
+    gesture = {
+      target,
+      x:e.clientX,
+      y:e.clientY,
+      cx:camera.x,
+      cy:camera.y,
+      area:S.A,
+      distance:target.kind==='area'
+        ? Math.hypot(p.x-target.cx,p.y-target.cy)
+        : 0
+    };
+
+    if (target.kind === 'slider') {
+      apply(target,p);
+    }
+
+  } else {
+    const [a,b] = [...pointers.values()];
+
+    gesture = {
+      target:{kind:'pinch'},
+      d:Math.hypot(a.x-b.x,a.y-b.y),
+      z:camera.z,
+      world:point(
+        (a.x+b.x)/2,
+        (a.y+b.y)/2
+      )
+    };
+  }
+};
+
+cv.onpointermove = e => {
+  if (!pointers.has(e.pointerId)) {
+    const target = hit(e.clientX,e.clientY);
+
+    cv.style.cursor =
+      target.kind==='pan'
+        ? 'grab'
+        : target.kind==='slider'
+          ? 'ew-resize'
+          : target.kind==='area'
+            ? 'nwse-resize'
+            : 'crosshair';
+
+    return;
+  }
+
+  pointers.set(e.pointerId,{
+    x:e.clientX,
+    y:e.clientY
+  });
+
+  if (
+    pointers.size===2 &&
+    gesture?.target.kind==='pinch'
+  ) {
+    const [a,b] = [...pointers.values()];
+
+    const z = clamp(
+      gesture.z*
+      Math.hypot(a.x-b.x,a.y-b.y)/
+      Math.max(1,gesture.d),
+      .25,
+      5
+    );
+
+    camera.z = z;
+    camera.x = (a.x+b.x)/2-gesture.world.x*z;
+    camera.y = (a.y+b.y)/2-gesture.world.y*z;
+
+    invalidate();
+
+  } else if (gesture) {
+    const target = gesture.target;
+
+    if (target.kind === 'pan') {
+      camera.x =
+        gesture.cx+e.clientX-gesture.x;
+
+      camera.y =
+        gesture.cy+e.clientY-gesture.y;
+
+      invalidate();
+
+    } else {
+      apply(
+        target,
+        point(e.clientX,e.clientY)
+      );
+    }
+  }
+};
+
+function release(e) {
+  pointers.delete(e.pointerId);
+
+  if (pointers.size === 1) {
+    const p = [...pointers.values()][0];
+
+    gesture = {
+      target:{kind:'pan'},
+      x:p.x,
+      y:p.y,
+      cx:camera.x,
+      cy:camera.y
+    };
+  } else {
+    gesture = null;
+  }
+}
+
+cv.onpointerup = release;
+cv.onpointercancel = release;
+
+cv.addEventListener('wheel',e => {
+  e.preventDefault();
+
+  zoomAt(
+    camera.z*Math.exp(-e.deltaY*.001),
+    e.clientX,
+    e.clientY
+  );
+},{passive:false});
+
+cv.ondblclick = () => fit();
+
+cv.onkeydown = e => {
+  const keys = [
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowUp',
+    'ArrowDown',
+    'Home'
+  ];
+
+  if (keys.includes(e.key)) {
+    e.preventDefault();
+  }
+
+  if (e.key === 'ArrowLeft') {
+    if (e.shiftKey) {
+      S.B = clamp(S.B-.05,.1,1.6);
+    } else {
+      setAngle(S.theta-1);
+    }
+  }
+
+  if (e.key === 'ArrowRight') {
+    if (e.shiftKey) {
+      S.B = clamp(S.B+.05,.1,1.6);
+    } else {
+      setAngle(S.theta+1);
+    }
+  }
+
+  if (e.key === 'ArrowUp') {
+    S.A = Math.min(.09,S.A+.001);
+  }
+
+  if (e.key === 'ArrowDown') {
+    S.A = Math.max(.01,S.A-.001);
+  }
+
+  if (e.key === 'Home') fit();
+
+  invalidate();
+};
+
+function frame() {
+  requestAnimationFrame(frame);
+
+  if (dirty) {
+    draw();
+    dirty = false;
+  }
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
