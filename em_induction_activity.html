@@ -1,0 +1,1573 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>نشاط يوضح ظاهرة الحث الكهرومغناطيسي</title>
+<link rel="icon" href="data:,">
+
+<style>
+:root {
+  color-scheme: dark;
+  --ink: #eaf0fa;
+  --line: #dbe9fa25;
+  --accent: #9bd2e6;
+  font-family: Tahoma, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #081429;
+  overscroll-behavior: none;
+}
+button, input { font: inherit; }
+button {
+  cursor: pointer;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+#scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+.menu {
+  position: absolute;
+  left: max(14px, env(safe-area-inset-left));
+  top: max(14px, env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.tab {
+  width: 124px;
+  height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #0b1c2de8;
+  padding: 0 14px;
+  font-size: 13px;
+  backdrop-filter: blur(15px);
+}
+button:hover, button.on {
+  border-color: #8bc8dd99;
+  background: #244454;
+}
+.tab svg, .icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.panel {
+  position: absolute;
+  left: 151px;
+  top: 14px;
+  width: 340px;
+  max-height: calc(100% - 100px);
+  overflow: auto;
+  touch-action: pan-y;
+  border: 1px solid #8bc8dd55;
+  border-radius: 14px;
+  padding: 18px;
+  background: #0d1e30f5;
+  box-shadow: 0 15px 40px #0007;
+  color: var(--ink);
+  backdrop-filter: blur(20px);
+}
+[hidden] { display: none !important; }
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.close {
+  border: 0;
+  background: none;
+  color: #a7bfce;
+  font-size: 23px;
+  padding: 0 3px;
+}
+.lesson-list {
+  margin: 0;
+  padding: 0 20px 0 0;
+  color: #d6e2e9;
+  font-size: 13px;
+  line-height: 1.95;
+}
+.lesson-list li + li { margin-top: 9px; }
+.stage-title {
+  margin: 0 0 14px;
+  color: #a9d7e6;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+.outcome {
+  margin: 0 0 17px;
+  border-right: 2px solid var(--accent);
+  padding: 10px 12px;
+  background: #9bd2e60a;
+  border-radius: 6px;
+  color: #e1eced;
+  font-size: 13px;
+  line-height: 1.95;
+}
+.tuning {
+  border-top: 1px solid var(--line);
+  margin-top: 19px;
+  padding-top: 13px;
+}
+.tuning summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #a9d7e6;
+  padding: 5px 0;
+}
+.control { margin: 22px 0; }
+.control label {
+  display: flex;
+  justify-content: space-between;
+  color: #a7bfce;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+output {
+  direction: ltr;
+  font-family: monospace;
+  color: #e4edf1;
+}
+input[type=range] {
+  width: 100%;
+  direction: ltr;
+  accent-color: #b9d7de;
+  cursor: pointer;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.row button {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px;
+  background: #ffffff06;
+  font-size: 14px;
+}
+.row button.on {
+  background: #89d9b51b;
+  border-color: #89d9b580;
+}
+.readings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  direction: ltr;
+}
+.reading {
+  background: #060d1866;
+  border: 1px solid #ffffff16;
+  border-radius: 9px;
+  padding: 13px 9px;
+}
+.reading span {
+  display: block;
+  font: 12px monospace;
+  color: #91a8b7;
+  margin-bottom: 8px;
+}
+.reading output { font-size: 19px; }
+.reading small {
+  font: 11px monospace;
+  color: #91a8b7;
+  margin-left: 5px;
+}
+#chart {
+  display: block;
+  width: 100%;
+  height: 145px;
+  margin-top: 20px;
+}
+.legend {
+  display: flex;
+  gap: 24px;
+  direction: ltr;
+  font: 12px monospace;
+  color: #e2a279;
+}
+.legend span:last-child { color: #87c7dc; }
+.dock {
+  position: absolute;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  max-width: calc(100% - 28px);
+  padding: 6px;
+  background: #0a192be8;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  backdrop-filter: blur(15px);
+}
+.icon {
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  padding: 0;
+}
+.icon.on {
+  background: #7fd3ff20;
+  border-color: #7fd3ff66;
+}
+.phase-nav {
+  position: absolute;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+  padding: 7px;
+  background: #0a192bef;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  backdrop-filter: blur(15px);
+  z-index: 2;
+}
+.phase-nav button {
+  min-width: 86px;
+  height: 37px;
+  padding: 0 15px;
+  border-radius: 9px;
+  border: 1px solid #dbe9fa25;
+  background: #ffffff04;
+  color: #c8d8e0;
+  font: 600 13px Tahoma, Arial, sans-serif;
+}
+.phase-nav button.on {
+  background: #9bd2e61c;
+  border-color: #9bd2e696;
+  color: #e9f6f8;
+  box-shadow: inset 0 0 0 1px #9bd2e616;
+}
+@media(max-width:600px) {
+  .panel {
+    left: 14px;
+    top: 155px;
+    width: min(340px, calc(100% - 28px));
+    max-height: calc(100% - 300px);
+  }
+  .tab { width:112px; height:36px; }
+  .menu { gap:6px; }
+  .dock {
+    bottom: max(80px, calc(env(safe-area-inset-bottom) + 76px));
+  }
+  .phase-nav {
+    width: calc(100% - 28px);
+    max-width: 340px;
+    justify-content: center;
+  }
+  .phase-nav button {
+    min-width: 0;
+    flex: 1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="scene" tabindex="0"
+  aria-label="نشاط الحث الكهرومغناطيسي؛ اسحب المغناطيس أو الملف وراقب المقياس">
+</canvas>
+
+<div class="menu">
+  <button class="tab" data-panel="tools" aria-expanded="false">
+    الادوات
+    <svg viewBox="0 0 24 24">
+      <path d="M14 4a5 5 0 0 0-6 6L3 17l4 4 7-7a5 5 0 0 0 6-6l-4 3-3-3z"/>
+    </svg>
+  </button>
+  <button class="tab" data-panel="steps" aria-expanded="false">
+    الخطوات
+    <svg viewBox="0 0 24 24">
+      <path d="M9 6h12M9 12h12M9 18h12M2 6h3M2 12h3M2 18h3"/>
+    </svg>
+  </button>
+  <button class="tab" data-panel="results" aria-expanded="false">
+    النتائج
+    <svg viewBox="0 0 24 24">
+      <path d="M3 3v18h18M6 16l4-6 4 3 7-9"/>
+    </svg>
+  </button>
+</div>
+
+<section class="panel" id="tools" hidden>
+  <div class="heading">
+    الادوات
+    <button class="close" aria-label="إغلاق">×</button>
+  </div>
+
+  <ul class="lesson-list">
+    <li>ملفان سلكيان مجوفان مختلفان في قطريهما، يمكن إدخال أحدهما في الآخر.</li>
+    <li>كلفانوميتر صفره في وسط التدريج.</li>
+    <li>أسلاك توصيل.</li>
+    <li>ساق مغناطيسية.</li>
+    <li>بطارية.</li>
+    <li>مفتاح كهربائي.</li>
+  </ul>
+
+  <details class="tuning">
+    <summary>التحكم</summary>
+
+    <div class="control">
+      <label for="voltage">
+        البطارية <output id="vout">6.0 V</output>
+      </label>
+      <input id="voltage" type="range"
+        min="1" max="12" step=".5" value="6">
+    </div>
+
+    <div class="control">
+      <label for="n1">N₁ <output id="n1out">800</output></label>
+      <input id="n1" type="range"
+        min="400" max="1600" step="100" value="800">
+    </div>
+
+    <div class="control">
+      <label for="n2">N₂ <output id="n2out">1600</output></label>
+      <input id="n2" type="range"
+        min="800" max="3200" step="200" value="1600">
+    </div>
+
+    <div class="control" id="magnetControl">
+      <label for="strength">B <output id="bout">1.0 ×</output></label>
+      <input id="strength" type="range"
+        min=".5" max="2" step=".1" value="1">
+    </div>
+
+    <div class="row">
+      <button id="polarity" aria-label="عكس الأقطاب">N ⇄ S</button>
+      <button id="axis" aria-label="حركة رأسية فقط" aria-pressed="false">↕</button>
+    </div>
+  </details>
+</section>
+
+<section class="panel" id="steps" hidden>
+  <div class="heading">
+    الخطوات
+    <button class="close" aria-label="إغلاق">×</button>
+  </div>
+
+  <p class="stage-title" id="stepsTitle"></p>
+  <ol class="lesson-list" id="stepsList"></ol>
+
+  <div class="row" id="switchControls" hidden>
+    <button id="openSwitch" aria-label="فتح المفتاح">○ ╱ ○</button>
+    <button id="closeSwitch" aria-label="غلق المفتاح">○ ── ○</button>
+  </div>
+</section>
+
+<section class="panel" id="results" hidden>
+  <div class="heading">
+    النتائج
+    <button class="close" aria-label="إغلاق">×</button>
+  </div>
+
+  <p class="stage-title" id="resultTitle"></p>
+  <p class="outcome" id="stageConclusion"></p>
+
+  <ul class="lesson-list">
+    <li>
+      تُستحث قوة دافعة كهربائية، وينساب تيار محتث في دائرة كهربائية مغلقة،
+      فقط عندما يتغير الفيض المغناطيسي الذي يخترقها مع الزمن،
+      مع عدم وجود بطارية في دائرة الملف الثانوي.
+    </li>
+    <li>
+      تكون قطبية القوة الدافعة الكهربائية المحتثة واتجاه التيار المحتث
+      عند تزايد الفيض بعكسهما عند تناقصه.
+    </li>
+    <li>
+      يعاكس المجال المغناطيسي الناتج عن التيار المحتث التغير في الفيض المسبب له.
+      وعند ثبات الفيض يعود مؤشر الكلفانوميتر إلى الصفر.
+    </li>
+  </ul>
+
+  <details class="tuning" id="liveReadings">
+    <summary>القياسات المباشرة</summary>
+
+    <div class="readings">
+      <div class="reading">
+        <span>I₁</span><output id="ip">0.000</output><small>A</small>
+      </div>
+      <div class="reading">
+        <span>I₂</span><output id="is">0.00</output><small>mA</small>
+      </div>
+      <div class="reading">
+        <span>Φ</span><output id="flux">0.000</output><small>mWb</small>
+      </div>
+      <div class="reading">
+        <span>ε₂</span><output id="emf">0.000</output><small>V</small>
+      </div>
+    </div>
+
+    <canvas id="chart"></canvas>
+    <div class="legend"><span>— I₁</span><span>— I₂</span></div>
+  </details>
+</section>
+
+<div class="dock">
+  <button class="icon" id="pan"
+    aria-label="تحريك المشهد من أي مكان" aria-pressed="false">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>
+    </svg>
+  </button>
+
+  <button class="icon" id="zoomIn" aria-label="تكبير">
+    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg>
+  </button>
+
+  <button class="icon" id="zoomOut" aria-label="تصغير">
+    <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+  </button>
+
+  <button class="icon" id="fit" aria-label="إظهار جميع الأجهزة">
+    <svg viewBox="0 0 24 24">
+      <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+    </svg>
+  </button>
+
+  <button class="icon" id="reset" aria-label="إعادة ضبط">
+    <svg viewBox="0 0 24 24">
+      <path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/>
+    </svg>
+  </button>
+
+  <button class="icon" id="fullscreen" aria-label="ملء الشاشة">
+    <svg viewBox="0 0 24 24">
+      <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/>
+    </svg>
+  </button>
+</div>
+
+<nav class="phase-nav" aria-label="أجزاء النشاط">
+  <button data-mode="1" aria-pressed="true">اولا</button>
+  <button data-mode="2" aria-pressed="false">ثانيا</button>
+  <button data-mode="3" aria-pressed="false">ثالثا</button>
+</nav>
+
+<script>
+'use strict';
+
+const $ = s => document.querySelector(s);
+const cv = $('#scene');
+const c = cv.getContext('2d');
+
+const S = {
+  mode: 1, v: 6, pol: 1, n1: 800, n2: 1600,
+  strength: 1, closed: false, axis: false,
+  i1: 0, i2: 0, l1: 0, l2: 0,
+  theta: 0, omega: 0, emf: 0,
+  sourceFlux: 0, g: 0, t: 0, blade: 1
+};
+
+const P = {};
+const camera = {x:0,y:0,z:1};
+
+let W = innerWidth;
+let H = innerHeight;
+let DPR = 1;
+let mobile = W < 650;
+let panMode = false;
+let rearranged = false;
+let last = 0;
+let clock = 0;
+let trace = [];
+
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+const LESSONS = {
+  1: {
+    title: 'اولا — المغناطيس والملف',
+    steps: [
+      'نربط طرفي أحد الملفين بطرفي الكلفانوميتر بواسطة أسلاك التوصيل.',
+      'نجعل القطب الشمالي للساق المغناطيسية مواجها لوجه الملف، ونبقي المغناطيس ساكنا بالنسبة إلى الملف، ثم نراقب المؤشر.',
+      'ندفع الساق المغناطيسية نحو وجه الملف، ونلاحظ انحراف المؤشر.',
+      'نبعد الساق المغناطيسية عن الملف، ونقارن اتجاه الانحراف باتجاهه عند التقريب.'
+    ],
+    conclusion:
+      'عند سكون المغناطيس بالنسبة إلى الملف يبقى المؤشر عند الصفر. وعند تقريب المغناطيس أو إبعاده يتغير الفيض ويتولد تيار محتث، وينعكس اتجاهه بين الحالتين.'
+  },
+  2: {
+    title: 'ثانيا — تحريك الملف الابتدائي',
+    steps: [
+      'نربط طرفي الملف الآخر، وهو الملف الابتدائي، بقطبي البطارية بواسطة أسلاك التوصيل.',
+      'نجعل الملف الابتدائي أمام وجه الملف الثانوي المتصل بالكلفانوميتر.',
+      'نقرب الملف الابتدائي من وجه الملف الثانوي، ثم نبعده عنه بموازاة محوره، ونراقب المؤشر في الحالتين.',
+      'نثبت الملفين بالنسبة إلى بعضهما، ونلاحظ عودة المؤشر إلى الصفر.'
+    ],
+    conclusion:
+      'تحريك الملف الابتدائي الحامل للتيار يغير الفيض في الملف الثانوي، فيتولد فيه تيار محتث باتجاهين متعاكسين عند التقريب والإبعاد. وعند ثبات الوضع النسبي واستقرار التيار الابتدائي يعود المؤشر إلى الصفر.'
+  },
+  3: {
+    title: 'ثالثا — غلق المفتاح وفتحه',
+    steps: [
+      'نربط مفتاحا كهربائيا في دائرة الملف الابتدائي ونتركه مفتوحا.',
+      'ندخل الملف الابتدائي في جوف الملف الثانوي، ونحافظ على ثبات أحدهما بالنسبة إلى الآخر.',
+      'نغلق المفتاح، ونلاحظ انحراف المؤشر أثناء نمو التيار الابتدائي، ثم ننتظر حتى يستقر التيار.',
+      'نفتح المفتاح، ونلاحظ انحراف المؤشر في الاتجاه المعاكس أثناء تلاشي التيار الابتدائي.'
+    ],
+    conclusion:
+      'لا تشترط الحركة الميكانيكية لتوليد التيار المحتث؛ فتغير التيار الابتدائي عند غلق المفتاح وفتحه يغير الفيض في الملف الثانوي. ينحرف المؤشر باتجاهين متعاكسين في الحالتين، ثم يعود إلى الصفر عند ثبات الفيض.'
+  }
+};
+
+function active() {
+  if (S.mode===1) return ['secondary','source','meter'];
+  if (S.mode===2) return ['secondary','source','battery','meter'];
+  return ['secondary','source','battery','knife','meter'];
+}
+
+function layout() {
+  if (mobile) {
+    P.secondary = {x:350,y:420};
+    P.source = {x:350,y:S.mode===3?420:130};
+    P.battery = {x:140,y:590};
+    P.meter = {x:625,y:615};
+    P.knife = {x:230,y:800};
+  } else {
+    P.secondary = {x:550,y:440};
+    P.source = {x:550,y:S.mode===3?440:145};
+    P.battery = {x:200,y:430};
+    P.meter = {x:940,y:440};
+    P.knife = {x:280,y:655};
+  }
+}
+
+function bounds(id) {
+  const p=P[id];
+  if (id==='secondary') return {x:p.x-106,y:p.y-128,w:212,h:292};
+  if (id==='source') {
+    return S.mode===1
+      ? {x:p.x-35,y:p.y-83,w:70,h:166}
+      : {x:p.x-64,y:p.y-110,w:128,h:215};
+  }
+  if (id==='battery') return {x:p.x-70,y:p.y-125,w:140,h:220};
+  if (id==='knife') return {x:p.x-105,y:p.y-100,w:210,h:146};
+  return {x:p.x-112,y:p.y-112,w:224,h:224};
+}
+
+function fit() {
+  const bs=active().map(bounds);
+  const x=Math.min(...bs.map(b=>b.x))-30;
+  const y=Math.min(...bs.map(b=>b.y))-25;
+  const r=Math.max(...bs.map(b=>b.x+b.w))+30;
+  const b=Math.max(...bs.map(b=>b.y+b.h))+30;
+  const L=mobile?12:156;
+  const T=mobile?150:30;
+  const bottomGap=mobile?140:85;
+
+  camera.z=Math.min(
+    (W-L-18)/(r-x),
+    (H-T-bottomGap)/(b-y)
+  );
+
+  camera.x=L+(W-L-18-(r-x)*camera.z)/2-x*camera.z;
+  camera.y=T+(H-T-bottomGap-(b-y)*camera.z)/2-y*camera.z;
+}
+
+function resize() {
+  const was=mobile;
+  W=innerWidth;
+  H=innerHeight;
+  mobile=W<650;
+  DPR=Math.min(devicePixelRatio||1,2);
+  cv.width=W*DPR;
+  cv.height=H*DPR;
+
+  if (was!==mobile) {
+    if (!rearranged) layout();
+    fit();
+  }
+}
+
+addEventListener('resize',resize);
+
+/* Drawing helpers */
+
+function rr(x,y,w,h,r=10) {
+  c.beginPath();
+  c.roundRect(x,y,w,h,r);
+}
+
+function fillRect(x,y,w,h,color,r=8) {
+  rr(x,y,w,h,r);
+  c.fillStyle=color;
+  c.fill();
+}
+
+function line(points,color,width=2) {
+  c.beginPath();
+  points.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));
+  c.strokeStyle=color;
+  c.lineWidth=width;
+  c.lineCap='round';
+  c.lineJoin='round';
+  c.stroke();
+}
+
+function circle(x,y,r,color) {
+  c.beginPath();
+  c.arc(x,y,r,0,Math.PI*2);
+  c.fillStyle=color;
+  c.fill();
+}
+
+function txt(t,x,y,size=14,color='#cfdbdf') {
+  c.direction='ltr';
+  c.textAlign='center';
+  c.textBaseline='middle';
+  c.font=`${size}px Georgia,serif`;
+  c.fillStyle=color;
+  c.fillText(t,x,y);
+}
+
+function metal(x,y,w,h,colors,r=8) {
+  const g=c.createLinearGradient(x,y,x+w,y+h);
+  colors.forEach((col,i)=>g.addColorStop(i/(colors.length-1),col));
+  fillRect(x,y,w,h,g,r);
+}
+
+function clearShadow() {
+  c.shadowBlur=0;
+  c.shadowColor='transparent';
+  c.shadowOffsetX=0;
+  c.shadowOffsetY=0;
+}
+
+function screw(x,y,r=4) {
+  circle(x,y,r,'#879797');
+  circle(x-1,y-1,r*.65,'#b4bcb5');
+
+  line([
+    [x-r*.55,y+r*.2],
+    [x+r*.55,y-r*.2]
+  ],'#3b4748',1.3);
+}
+
+function terminal(x,y,red) {
+  circle(x,y,10,'#090f15');
+  circle(x,y,8,red?'#903e35':'#3a4146');
+  circle(x,y,5,'#b9a477');
+  screw(x,y,3);
+}
+
+/* Magnet */
+
+function magnet() {
+  const p=P.source;
+
+  c.save();
+  c.translate(p.x,p.y);
+  c.shadowColor='#0008';
+  c.shadowBlur=16;
+  c.shadowOffsetY=7;
+
+  metal(-30,-75,60,150,['#a3acaa','#e0e2d8','#606e74'],9);
+  clearShadow();
+
+  metal(
+    -30,S.pol>0?0:-75,60,75,
+    ['#9f3a40','#d65a58','#7c242f'],
+    S.pol>0?[0,0,9,9]:[9,9,0,0]
+  );
+
+  const g=c.createLinearGradient(-30,0,30,0);
+  g.addColorStop(0,'#00000033');
+  g.addColorStop(.35,'#ffffff20');
+  g.addColorStop(1,'#00000022');
+  fillRect(-30,-75,60,150,g,9);
+
+  txt(S.pol>0?'S':'N',0,-37,25,S.pol>0?'#33484c':'#f7e3db');
+  txt(S.pol>0?'N':'S',0,38,25,S.pol>0?'#ffe3d7':'#33484c');
+  line([[-29,0],[29,0]],'#ece9d077',1);
+  c.restore();
+}
+
+/* Hollow coils */
+
+function coil(id,front=false) {
+  const p=P[id];
+  const small=id==='source';
+  const rx=small?46:82;
+  const ry=small?13:23;
+  const h=small?138:200;
+  const turns=small?30:43;
+
+  c.save();
+  c.translate(p.x,p.y);
+
+  if (!front) {
+    c.shadowColor='#0008';
+    c.shadowBlur=14;
+    c.shadowOffsetY=6;
+
+    if (!small) {
+      metal(-98,h/2+25,196,25,['#4b6065','#24373e','#526165'],6);
+      screw(-81,h/2+38);
+      screw(81,h/2+38);
+    }
+
+    for (const y of [-h/2,h/2]) {
+      c.beginPath();
+      c.ellipse(0,y,rx+11,ry+6,0,0,Math.PI*2);
+
+      const g=c.createLinearGradient(-rx,0,rx,0);
+      g.addColorStop(0,'#34484f');
+      g.addColorStop(.5,'#8d9a91');
+      g.addColorStop(1,'#31454d');
+
+      c.fillStyle=g;
+      c.fill();
+    }
+
+    clearShadow();
+    fillRect(-rx,-h/2,2*rx,h,'#172d37aa',0);
+
+    for (let j=0;j<turns;j++) {
+      const y=-h/2+5+j/(turns-1)*(h-10);
+      c.beginPath();
+      c.ellipse(0,y,rx,ry,0,Math.PI,Math.PI*2);
+      c.strokeStyle='#79512f';
+      c.lineWidth=3;
+      c.stroke();
+    }
+
+    c.beginPath();
+    c.ellipse(0,-h/2,rx-9,ry-4,0,0,Math.PI*2);
+    c.fillStyle='#0a1b2a';
+    c.fill();
+    c.strokeStyle='#9caaa0';
+    c.lineWidth=2;
+    c.stroke();
+
+    if (small) {
+      for (const x of [-24,24]) terminal(x,-h/2-16,x<0);
+      txt('N₁',0,h/2+28,13,'#d3ba91');
+    } else {
+      for (const x of [-74,74]) terminal(x,h/2+16,x<0);
+      txt('N₂',0,h/2+42,13,'#d3ba91');
+    }
+  } else {
+    const inside=
+      Math.abs(P.source.x-P.secondary.x)<68 &&
+      Math.abs(P.source.y-P.secondary.y)<175;
+
+    if (!small&&inside) c.globalAlpha=.55;
+
+    const g=c.createLinearGradient(-rx,0,rx,0);
+    g.addColorStop(0,'#6c4428');
+    g.addColorStop(.28,'#daa66f');
+    g.addColorStop(.55,'#b8804b');
+    g.addColorStop(.8,'#d8ab75');
+    g.addColorStop(1,'#66442b');
+
+    for (let j=0;j<turns;j++) {
+      const y=-h/2+5+j/(turns-1)*(h-10);
+      c.beginPath();
+      c.ellipse(0,y,rx,ry,0,0,Math.PI);
+      c.strokeStyle='#251b14';
+      c.lineWidth=4.5;
+      c.stroke();
+      c.strokeStyle=g;
+      c.lineWidth=2.9;
+      c.stroke();
+    }
+  }
+  c.restore();
+}
+
+/* Battery */
+
+function battery() {
+  const p=P.battery;
+
+  c.save();
+  c.translate(p.x,p.y);
+  c.shadowColor='#0009';
+  c.shadowBlur=14;
+  c.shadowOffsetY=7;
+
+  metal(-59,-90,118,180,['#29323a','#111923','#25303a'],12);
+  clearShadow();
+
+  metal(-65,-92,130,18,['#596169','#1d2931','#101a21'],4);
+  metal(-51,-66,102,132,['#26313b','#101a23'],7);
+
+  for (const x of [-32,32]) terminal(x,-101,x===-32);
+
+  for (const x of [-30,0,30]) {
+    circle(x,-76,6,'#1a242b');
+    line([[x-3,-76],[x+3,-76]],'#596366',1);
+  }
+
+  fillRect(-42,-24,84,65,'#101c24',4);
+  rr(-40,-22,80,61,3);
+  c.strokeStyle='#bfc9b733';
+  c.lineWidth=1;
+  c.stroke();
+
+  txt(S.v.toFixed(1)+' V',0,0,20,'#d1d6c3');
+  txt('DC',0,23,10,'#839793');
+  txt(S.pol>0?'+':'−',-32,-119,19,'#deb5a0');
+  txt(S.pol>0?'−':'+',32,-119,19,'#b2c2ca');
+  c.restore();
+}
+
+/* Knife switch */
+
+function knife() {
+  const p=P.knife;
+
+  c.save();
+  c.translate(p.x,p.y);
+  c.shadowColor='#000a';
+  c.shadowBlur=13;
+  c.shadowOffsetY=6;
+
+  metal(-95,-24,190,65,['#34434d','#151d25'],7);
+  clearShadow();
+  metal(-90,-22,180,57,['#d8d7c3','#aeb9ad','#d0d0bb'],5);
+
+  for (const x of [-78,78]) {
+    for (const y of [-12,24]) screw(x,y,3);
+  }
+
+  for (const x of [-56,56]) {
+    metal(x-13,-16,26,26,['#e0c78d','#9c875b','#75623e'],3);
+    screw(x,3,3);
+  }
+
+  c.save();
+  c.translate(-56,-6);
+  c.rotate(-S.blade*.67);
+  metal(-4,-5,121,10,['#e1c784','#9b8554','#d5bb7d'],3);
+  metal(84,-12,34,24,['#37434a','#111b24','#34424b'],5);
+  c.restore();
+
+  terminal(-56,12,true);
+  terminal(56,12,false);
+  c.restore();
+}
+
+/* Galvanometer */
+
+function meter() {
+  const p=P.meter;
+
+  c.save();
+  c.translate(p.x,p.y);
+  c.shadowColor='#000a';
+  c.shadowBlur=18;
+  c.shadowOffsetY=7;
+
+  metal(-108,-110,216,205,['#364a49','#152728','#253d3b'],13);
+  clearShadow();
+  metal(-99,-100,198,165,['#b3a376','#6e6347','#d5c798'],7);
+  fillRect(-94,-95,188,155,'#0e1c22',5);
+
+  const g=c.createLinearGradient(0,-90,0,55);
+  g.addColorStop(0,'#ece9d5');
+  g.addColorStop(1,'#bdc7b2');
+  fillRect(-88,-89,176,143,g,4);
+
+  const cy=36,rad=99;
+  c.strokeStyle='#344b42';
+
+  for (let j=-20;j<=20;j++) {
+    const a=-Math.PI/2+j*.04725;
+    const length=j%4===0?10:5;
+
+    c.beginPath();
+    c.moveTo(Math.cos(a)*(rad-length),cy+Math.sin(a)*(rad-length));
+    c.lineTo(Math.cos(a)*rad,cy+Math.sin(a)*rad);
+    c.lineWidth=j%4===0?1:.6;
+    c.stroke();
+
+    if (j%4===0) {
+      txt(
+        j===0?'0':Math.abs(j)/2,
+        Math.cos(a)*(rad+10),
+        cy+Math.sin(a)*(rad+10),
+        10,'#30463d'
+      );
+    }
+  }
+
+  txt('−',-75,-4,14,'#30463d');
+  txt('+',75,-4,14,'#30463d');
+  txt('G',0,2,20,'#30463d');
+  txt('mA',0,49,8,'#586f5f');
+
+  const a=-Math.PI/2+S.theta;
+  line([[0,cy],[Math.cos(a)*99,cy+Math.sin(a)*99]],'#20392f',1.7);
+  circle(0,cy,4,'#9b8d58');
+
+  c.save();
+  rr(-88,-89,176,143,4);
+  c.clip();
+
+  const sheen=c.createLinearGradient(-70,-90,70,50);
+  sheen.addColorStop(0,'#ffffff15');
+  sheen.addColorStop(.45,'#ffffff00');
+  sheen.addColorStop(1,'#ffffff05');
+  c.fillStyle=sheen;
+  c.fillRect(-88,-89,176,143);
+  c.restore();
+
+  for (const x of [-97,97]) {
+    for (const y of [-99,62]) screw(x,y,2.5);
+  }
+
+  circle(0,76,7,'#101c22');
+  line([[-3,76],[3,76]],'#728278',1);
+  for (const x of [-57,57]) terminal(x,96,x<0);
+  c.restore();
+}
+
+/* Flexible wires */
+
+function cable(a,b,color,bend=65) {
+  const y=Math.max(a[1],b[1])+bend;
+  c.beginPath();
+  c.moveTo(...a);
+  c.bezierCurveTo(a[0],y,b[0],y,...b);
+
+  c.save();
+  c.shadowColor='#0008';
+  c.shadowBlur=4;
+  c.shadowOffsetY=3;
+  c.strokeStyle='#07121c';
+  c.lineWidth=8;
+  c.stroke();
+  c.restore();
+
+  c.strokeStyle=color;
+  c.lineWidth=5;
+  c.stroke();
+  c.strokeStyle='#ffffff20';
+  c.lineWidth=1;
+  c.stroke();
+}
+
+function wires() {
+  const s=P.secondary,g=P.meter;
+
+  cable([s.x-74,s.y+116],[g.x-57,g.y+96],'#a95d4f',55);
+  cable([s.x+74,s.y+116],[g.x+57,g.y+96],'#3e505c',85);
+
+  if (S.mode===1) return;
+
+  const p=P.source,b=P.battery,k=P.knife;
+  const a=[p.x-24,p.y-85];
+  const z=[p.x+24,p.y-85];
+  const plus=[b.x-32,b.y-101];
+  const minus=[b.x+32,b.y-101];
+
+  if (S.mode===2) {
+    cable(plus,a,'#ac5d50',75);
+  } else {
+    cable(plus,[k.x-56,k.y-6],'#ac5d50',50);
+    cable([k.x+56,k.y-6],a,'#ac5d50',45);
+  }
+
+  cable(z,minus,'#3c4f5c',90);
+}
+
+/* Finite-length magnetic coupling */
+
+function geometry() {
+  const a=82,A=100,B=S.mode===1?75:69;
+  const z=P.source.y-P.secondary.y;
+  const x=P.source.x-P.secondary.x;
+  const f=u=>Math.sqrt(a*a+u*u);
+  const g=u=>f(u+A+B)-f(u-A+B)-f(u+A-B)+f(u-A-B);
+
+  return clamp(
+    g(z)/g(0)*Math.exp(-((x/94)**2)),
+    0,1
+  );
+}
+
+function params(g=S.g) {
+  const L1=.03*(S.n1/800)**2;
+  const L2=.18*(S.n2/1600)**2+.02;
+  const M=.82*Math.sqrt(L1*(L2-.02))*g;
+
+  return {
+    L1,L2,M,
+    D:L1*L2-M*M,
+    R1:(S.mode===2||S.closed)?6+.012*S.n1:350,
+    R2:20+.01*S.n2
+  };
+}
+
+function fieldLink(g) {
+  return .18*(S.n2/1600)*S.strength*S.pol*g;
+}
+
+/* Electrical response */
+
+function electric(h,g,rate) {
+  const p=params(g);
+  let before=S.i2;
+
+  if (S.mode===1) {
+    const e=Math.exp(-p.R2*h/p.L2);
+    S.i1=0;
+    S.i2=S.i2*e-rate/p.R2*(1-e);
+    S.emf=-rate;
+  } else {
+    const i1=(p.L2*S.l1-p.M*S.l2)/p.D;
+    const i2=(p.L1*S.l2-p.M*S.l1)/p.D;
+    const V=(S.mode===2||S.closed)?S.v*S.pol:0;
+    const eq=V/p.R1;
+
+    const a=-p.L2*p.R1/p.D;
+    const b=p.M*p.R2/p.D;
+    const k=p.M*p.R1/p.D;
+    const d=-p.L1*p.R2/p.D;
+    const tr=(a+d)/2;
+    const q=Math.sqrt((a-d)**2/4+b*k);
+    const v=tr-q;
+    const e=Math.exp(v*h);
+    const f=(Math.exp((tr+q)*h)-e)/(2*q);
+    const x=i1-eq;
+
+    S.i1=eq+(e+f*(a-v))*x+f*b*i2;
+    S.i2=f*k*x+(e+f*(d-v))*i2;
+    S.l1=p.L1*S.i1+p.M*S.i2;
+    S.l2=p.M*S.i1+p.L2*S.i2;
+    S.emf=-(p.M*S.i1-S.sourceFlux)/h;
+    S.sourceFlux=p.M*S.i1;
+    before=i2;
+  }
+
+  const wn=9.5;
+  S.omega+=(
+    8529*(before+S.i2)/2-
+    2*.8*wn*S.omega-
+    wn*wn*S.theta
+  )*h;
+
+  S.theta+=S.omega*h;
+
+  if (Math.abs(S.theta)>.96) {
+    S.theta=Math.sign(S.theta)*.96;
+    S.omega*=-.08;
+  }
+
+  S.t+=h;
+}
+
+function simulate(dt) {
+  if (dt<=0) return;
+
+  const next=geometry();
+  const old=S.g;
+  const flux0=S.sourceFlux;
+  const flux1=fieldLink(next);
+  const rate=(flux1-flux0)/dt;
+  const n=Math.ceil(dt/.0015);
+  const h=dt/n;
+
+  for (let j=0;j<n;j++) {
+    electric(h,old+(next-old)*(j+1)/n,rate);
+  }
+
+  S.g=next;
+
+  if (S.mode===1) S.sourceFlux=flux1;
+}
+
+/* Lesson content */
+
+function renderLesson() {
+  const lesson=LESSONS[S.mode];
+
+  $('#stepsTitle').textContent=lesson.title;
+  $('#resultTitle').textContent=lesson.title;
+
+  $('#stepsList').replaceChildren(
+    ...lesson.steps.map(text=>{
+      const li=document.createElement('li');
+      li.textContent=text;
+      return li;
+    })
+  );
+
+  $('#stageConclusion').textContent=lesson.conclusion;
+}
+
+function switchTo(value) {
+  S.closed=value;
+  $('#openSwitch').classList.toggle('on',!value);
+  $('#closeSwitch').classList.toggle('on',value);
+  $('#openSwitch').setAttribute('aria-pressed',String(!value));
+  $('#closeSwitch').setAttribute('aria-pressed',String(value));
+}
+
+function setMode(mode) {
+  S.mode=mode;
+
+  Object.assign(S,{
+    closed:false,pol:1,i1:0,i2:0,l1:0,l2:0,
+    theta:0,omega:0,emf:0,sourceFlux:0,t:0,blade:1
+  });
+
+  rearranged=false;
+  layout();
+  S.g=geometry();
+
+  const p=params();
+
+  if (mode===1) S.sourceFlux=fieldLink(S.g);
+
+  if (mode===2) {
+    S.i1=S.v/p.R1;
+    S.l1=p.L1*S.i1;
+    S.l2=p.M*S.i1;
+    S.sourceFlux=p.M*S.i1;
+  }
+
+  trace=[];
+  clock=0;
+  last=0;
+  switchTo(false);
+
+  document.querySelectorAll('[data-mode]').forEach(button=>{
+    const on=+button.dataset.mode===mode;
+    button.classList.toggle('on',on);
+    button.setAttribute('aria-pressed',String(on));
+  });
+
+  $('#switchControls').hidden=mode!==3;
+  $('#magnetControl').hidden=mode!==1;
+  $('#voltage').closest('.control').hidden=mode===1;
+  $('#n1').closest('.control').hidden=mode===1;
+  $('#polarity').textContent=mode===1?'N ⇄ S':'+ ⇄ −';
+
+  renderLesson();
+  fit();
+}
+
+/* Interface */
+
+function panel(id) {
+  const show=$('#'+id).hidden;
+  document.querySelectorAll('.panel').forEach(p=>p.hidden=true);
+  $('#'+id).hidden=!show;
+
+  document.querySelectorAll('[data-panel]').forEach(button=>{
+    const on=!$('#'+button.dataset.panel).hidden;
+    button.classList.toggle('on',on);
+    button.setAttribute('aria-expanded',String(on));
+  });
+}
+
+document.querySelectorAll('[data-panel]').forEach(button=>{
+  button.onclick=()=>panel(button.dataset.panel);
+});
+
+document.querySelectorAll('.close').forEach(button=>{
+  button.onclick=()=>panel(button.closest('.panel').id);
+});
+
+document.querySelectorAll('[data-mode]').forEach(button=>{
+  button.onclick=()=>setMode(+button.dataset.mode);
+});
+
+$('#openSwitch').onclick=()=>switchTo(false);
+$('#closeSwitch').onclick=()=>switchTo(true);
+
+$('#voltage').oninput=e=>{
+  S.v=+e.target.value;
+  $('#vout').value=S.v.toFixed(1)+' V';
+};
+
+$('#strength').oninput=e=>{
+  S.strength=+e.target.value;
+  $('#bout').value=S.strength.toFixed(1)+' ×';
+};
+
+for (const id of ['n1','n2']) {
+  $('#'+id).oninput=e=>{
+    S[id]=+e.target.value;
+    $('#'+id+'out').value=S[id];
+    setMode(S.mode);
+  };
+}
+
+$('#polarity').onclick=()=>{
+  S.pol*=-1;
+  $('#polarity').textContent=S.mode===1
+    ?(S.pol>0?'N ⇄ S':'S ⇄ N')
+    :(S.pol>0?'+ ⇄ −':'− ⇄ +');
+};
+
+$('#axis').onclick=()=>{
+  S.axis=!S.axis;
+  $('#axis').classList.toggle('on',S.axis);
+  $('#axis').setAttribute('aria-pressed',String(S.axis));
+};
+
+$('#pan').onclick=()=>{
+  panMode=!panMode;
+  $('#pan').classList.toggle('on',panMode);
+  $('#pan').setAttribute('aria-pressed',String(panMode));
+};
+
+function zoomAt(z,x=W/2,y=H/2) {
+  z=clamp(z,.12,6);
+  const wx=(x-camera.x)/camera.z;
+  const wy=(y-camera.y)/camera.z;
+
+  camera.z=z;
+  camera.x=x-wx*z;
+  camera.y=y-wy*z;
+}
+
+$('#zoomIn').onclick=()=>zoomAt(camera.z*1.2);
+$('#zoomOut').onclick=()=>zoomAt(camera.z/1.2);
+$('#fit').onclick=fit;
+
+$('#fullscreen').onclick=async()=>{
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch {}
+};
+
+$('#reset').onclick=()=>{
+  Object.assign(S,{v:6,n1:800,n2:1600,strength:1,axis:false});
+
+  $('#voltage').value=6;
+  $('#vout').value='6.0 V';
+  $('#strength').value=1;
+  $('#bout').value='1.0 ×';
+
+  for (const id of ['n1','n2']) {
+    $('#'+id).value=S[id];
+    $('#'+id+'out').value=S[id];
+  }
+
+  panMode=false;
+  $('#pan').classList.remove('on');
+  $('#pan').setAttribute('aria-pressed','false');
+  $('#axis').classList.remove('on');
+  $('#axis').setAttribute('aria-pressed','false');
+
+  setMode(S.mode);
+};
+
+/* Free dragging and pinch zoom */
+
+function point(x,y) {
+  return {
+    x:(x-camera.x)/camera.z,
+    y:(y-camera.y)/camera.z
+  };
+}
+
+function hit(x,y) {
+  const p=point(x,y);
+
+  for (const id of [...active()].reverse()) {
+    const b=bounds(id);
+
+    if (
+      p.x>=b.x&&p.x<=b.x+b.w&&
+      p.y>=b.y&&p.y<=b.y+b.h
+    ) return id;
+  }
+
+  return null;
+}
+
+const pointers=new Map();
+let gesture=null;
+let moved=false;
+
+cv.onpointerdown=e=>{
+  cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+  if (pointers.size===1) {
+    const id=panMode||e.altKey?null:hit(e.clientX,e.clientY);
+
+    gesture={
+      id,x:e.clientX,y:e.clientY,
+      cx:camera.x,cy:camera.y,
+      px:id?P[id].x:0,
+      py:id?P[id].y:0
+    };
+
+    moved=false;
+  } else {
+    const [a,b]=[...pointers.values()];
+
+    gesture={
+      pinch:true,
+      d:Math.hypot(a.x-b.x,a.y-b.y),
+      z:camera.z,
+      world:point((a.x+b.x)/2,(a.y+b.y)/2)
+    };
+
+    moved=true;
+  }
+};
+
+cv.onpointermove=e=>{
+  if (!pointers.has(e.pointerId)) {
+    cv.style.cursor=hit(e.clientX,e.clientY)?'grab':'move';
+    return;
+  }
+
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+  if (pointers.size===2&&gesture?.pinch) {
+    const [a,b]=[...pointers.values()];
+
+    const z=clamp(
+      gesture.z*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,gesture.d),
+      .12,6
+    );
+
+    camera.z=z;
+    camera.x=(a.x+b.x)/2-gesture.world.x*z;
+    camera.y=(a.y+b.y)/2-gesture.world.y*z;
+
+  } else if (gesture&&!gesture.pinch) {
+    const dx=e.clientX-gesture.x;
+    const dy=e.clientY-gesture.y;
+
+    if (Math.hypot(dx,dy)>5) moved=true;
+
+    if (moved) {
+      if (gesture.id) {
+        rearranged=true;
+
+        P[gesture.id].x=gesture.px+
+          ((S.axis&&gesture.id==='source')?0:dx/camera.z);
+
+        P[gesture.id].y=gesture.py+dy/camera.z;
+      } else {
+        camera.x=gesture.cx+dx;
+        camera.y=gesture.cy+dy;
+      }
+    }
+  }
+};
+
+cv.onpointerup=e=>{
+  if (!moved&&gesture?.id==='knife') switchTo(!S.closed);
+
+  pointers.delete(e.pointerId);
+
+  if (pointers.size===1) {
+    const p=[...pointers.values()][0];
+    gesture={id:null,x:p.x,y:p.y,cx:camera.x,cy:camera.y};
+    moved=true;
+  } else {
+    gesture=null;
+  }
+};
+
+cv.onpointercancel=e=>{
+  pointers.delete(e.pointerId);
+  gesture=null;
+};
+
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  zoomAt(
+    camera.z*Math.exp(-e.deltaY*.001),
+    e.clientX,e.clientY
+  );
+},{passive:false});
+
+cv.onkeydown=e=>{
+  if (e.code==='Space'&&S.mode===3) {
+    e.preventDefault();
+    switchTo(!S.closed);
+  }
+
+  if (e.key==='ArrowLeft') camera.x-=25;
+  if (e.key==='ArrowRight') camera.x+=25;
+  if (e.key==='ArrowUp') camera.y-=25;
+  if (e.key==='ArrowDown') camera.y+=25;
+};
+
+addEventListener('keydown',e=>{
+  if (e.key==='Escape') {
+    document.querySelectorAll('.panel:not([hidden])')
+      .forEach(p=>panel(p.id));
+  }
+});
+
+document.addEventListener('visibilitychange',()=>last=0);
+
+/* Live plot */
+
+function chart() {
+  if ($('#results').hidden||!$('#liveReadings').open) return;
+
+  const cn=$('#chart');
+  const q=cn.getContext('2d');
+  const w=cn.clientWidth;
+  const h=cn.clientHeight;
+
+  cn.width=w*2;
+  cn.height=h*2;
+  q.scale(2,2);
+  q.strokeStyle='#829daf25';
+
+  for (const y of [30,72,114]) {
+    q.beginPath();
+    q.moveTo(0,y);
+    q.lineTo(w,y);
+    q.stroke();
+  }
+
+  for (const [key,color,gain] of [
+    ['a','#e2a279',60],
+    ['b','#87c7dc',4200]
+  ]) {
+    q.beginPath();
+    q.strokeStyle=color;
+    q.lineWidth=1.6;
+
+    trace.forEach((p,i)=>{
+      const x=w-(trace.length-1-i)*w/300;
+      const y=72-p[key]*gain;
+      if (i) q.lineTo(x,y);
+      else q.moveTo(x,y);
+    });
+
+    q.stroke();
+  }
+}
+
+/* Render */
+
+function draw() {
+  c.setTransform(DPR,0,0,DPR,0,0);
+
+  const bg=c.createRadialGradient(
+    W*.57,H*.4,10,
+    W*.5,H*.5,Math.max(W,H)*.8
+  );
+
+  bg.addColorStop(0,'#25445e');
+  bg.addColorStop(.6,'#10263e');
+  bg.addColorStop(1,'#081429');
+
+  c.fillStyle=bg;
+  c.fillRect(0,0,W,H);
+
+  c.translate(camera.x,camera.y);
+  c.scale(camera.z,camera.z);
+
+  wires();
+  coil('secondary');
+
+  if (S.mode===1) {
+    magnet();
+  } else {
+    coil('source');
+    coil('source',true);
+  }
+
+  coil('secondary',true);
+
+  if (S.mode!==1) battery();
+  if (S.mode===3) knife();
+
+  meter();
+
+  if (gesture?.id&&moved) {
+    const b=bounds(gesture.id);
+
+    rr(b.x-6,b.y-6,b.w+12,b.h+12,12);
+    c.strokeStyle='#b3dce855';
+    c.lineWidth=1/camera.z;
+    c.setLineDash([5/camera.z,5/camera.z]);
+    c.stroke();
+    c.setLineDash([]);
+  }
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+
+  const dt=last?Math.min(.12,(now-last)/1000):0;
+  last=now;
+  simulate(dt);
+
+  S.blade+=
+    ((S.closed?0:1)-S.blade)*
+    (1-Math.exp(-Math.max(.001,dt)*22));
+
+  clock+=dt;
+
+  if (clock>.025) {
+    trace.push({a:S.i1,b:S.i2});
+    if (trace.length>300) trace.shift();
+    clock=0;
+  }
+
+  $('#ip').value=S.mode===1?'—':S.i1.toFixed(3);
+  $('#is').value=(S.i2*1000).toFixed(2);
+  $('#flux').value=(S.sourceFlux/S.n2*1000).toFixed(3);
+  $('#emf').value=S.emf.toFixed(3);
+
+  draw();
+  chart();
+}
+
+resize();
+setMode(1);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
