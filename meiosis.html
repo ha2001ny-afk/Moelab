@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
-<meta charset="UTF-8">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>أطوار الانقسام الاختزالي</title>
 <style>
@@ -173,6 +172,69 @@
     stroke-width: 1.5;
   }
 
+  .dot.sub {
+    width: 10px;
+    height: 10px;
+  }
+  #info {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(16px + clamp(48px, 6.5vw, 58px) + 12px);
+    width: min(780px, calc(100% - 24px));
+    max-height: 30vh;
+    overflow: auto;
+    background: #fff;
+    border: 2px solid #1f3a52;
+    border-radius: 14px;
+    padding: 10px 16px 12px 40px;
+    color: #1f3a52;
+    font-size: clamp(13px, 1.9vw, 16px);
+    line-height: 1.85;
+    box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    z-index: 15;
+    direction: rtl;
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: pan-y;
+  }
+  #info.side {
+    left: auto;
+    right: 12px;
+    top: 12px;
+    bottom: auto;
+    transform: none;
+    width: min(400px, 34%);
+    max-height: calc(100% - 110px);
+  }
+  #info h3 {
+    margin: 0 0 4px;
+    color: #c4623a;
+    font-size: 1.08em;
+  }
+  #info p {
+    margin: 0;
+  }
+  #info .en {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: bold;
+    color: #a8431b;
+  }
+  #infoX {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: none;
+    color: #1f3a52;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
   @media (orientation: portrait) and (max-width: 768px) {
     .zb { flex-direction: row; }
     .lbl { font-size: 15px; }
@@ -182,7 +244,7 @@
 <body>
 <div id="top">
   <div id="mainTitle">أطوار الانقسام الاختزالي</div>
-  <div id="subTitle">الطور التمهيدي I</div>
+  <div id="subTitle">الطور التمهيدي I : الدور القلادي (Leptotene)</div>
 </div>
 
 <div id="stage">
@@ -191,7 +253,9 @@
     <button id="zout" title="تصغير">−</button>
     <button id="zreset" title="إعادة ضبط">⟲</button>
     <button id="zfs" title="ملء الشاشة">⛶</button>
+    <button id="zinfo" title="الشرح">📖</button>
   </div>
+  <div id="info" hidden><button id="infoX" title="إغلاق">×</button><h3 id="infoT"></h3><p id="infoB"></p></div>
   <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
     <defs>
       <radialGradient id="gNuc" cx="40%" cy="38%" r="70%">
@@ -211,14 +275,17 @@
 
 <script>
 (function(){
-const NS="http://www.w3.org/2000/svg",CX=450,CY=330,PI=Math.PI;
+const NS="http://www.w3.org/2000/svg",CX=450,CY=330,PI=Math.PI,MI=7;
 const svg=document.getElementById('svg'),view=document.getElementById('view');
 const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
 
 /* ---------------- stage data ---------------- */
 const names=[
-  "الطور التمهيدي I",
-  "الطور التمهيدي المتأخر I",
+  "الطور التمهيدي I : الدور القلادي (Leptotene)",
+  "الطور التمهيدي I : الدور الازدواجي (Zygotene)",
+  "الطور التمهيدي I : الدور التغلظي (Pachytene)",
+  "الطور التمهيدي I : الدور الانفراجي (Diplotene)",
+  "الطور التمهيدي I : الدور الحركي (Diakinesis)",
   "الطور الاستوائي I",
   "الطور الانفصالي I",
   "الطور النهائي I",
@@ -230,17 +297,23 @@ const names=[
 ];
 const n=(x,y,r,e,f)=>({x,y,r,e,f}),hid=(x,y,r)=>n(x,y,r||60,0,0);
 const SP=(a,b,c,d,pf,kf,h)=>({x1:a,y1:b,x2:c,y2:d,pf,kf,h});
-const H=(x,y,rot,co,be,sc)=>({x,y,rot,co,be,sc});
+const H=(x,y,rot,co,be,sc,bc=0,ln=1)=>({x,y,rot,co,be,sc,bc,ln});
 const mk=f=>{const a=[];for(let c=0;c<4;c++)for(let w=0;w<2;w++)a.push(f(c,w));return a;};
 const Z=[0,0,0,0],CA1=[1,1,0,0,0,0],CA2=[0,0,1,1,1,1],S1h=SP(-200,0,-200,0,0,0,0),S2h=SP(200,0,200,0,0,0,0);
 const P0=[[-24,-34],[24,-30],[22,34],[-22,32]],P1=[[-9,-34],[9,-34],[8,34],[-8,34]],P2=[[-13,-46],[13,-46],[13,46],[-13,46]];
 const X=(c,w)=>w?-28:28;
 const PRE={lobe:Z,rx:190,ry:140,nuc:[n(0,0,85,1,.9),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-9,100,9,100,0,0,0),S1h,S2h],ca:CA1,lab:[0,0,0,0],mx:0,ch:mk((c,w)=>H(P0[c][0]*1.3,P0[c][1]*1.3,0,0,0,.8))};
+const LP=[[-30,-30],[30,32],[30,-30],[-30,32]],ZP=[[-46,-5],[-34,-5],[34,8],[46,8]];
+const TX=[[-44.5,-53.5],[-26.5,-35.5],[26.5,35.5],[44.5,53.5]],DX=[[-43,-50],[-30,-37],[30,37],[43,50]];
 const N9=[-225,-100,100,225],N10=[-255,-85,85,255];
 const fin=(N,sc)=>mk((c,w)=>{const i=(c===0||c===3)?w:2+w;return H(N[i]+(c<2?-9:9),c<2?-14:14,0,0,0,sc);});
 const S=[
- {lobe:Z,rx:190,ry:140,nuc:[n(0,0,85,1,.9),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-9,100,9,100,0,0,0),S1h,S2h],ca:CA1,mx:0,lab:[1,0,1,0],ch:mk((c,w)=>H(P0[c][0],P0[c][1],X(c,w),.8,0,1))},
- {lobe:Z,rx:190,ry:140,ca:CA1,nuc:[n(0,0,88,.5,.3),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-175,0,175,0,.7,0,40),S1h,S2h],lab:[0,0,1,1],mx:1,ch:mk((c,w)=>H(P1[c][0],P1[c][1],X(c,w),1,0,1))},
+/* الطور التمهيدي I : خمسة ادوار */
+ {lobe:Z,rx:190,ry:140,nuc:[n(0,0,85,1,.9),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-9,100,9,100,0,0,0),S1h,S2h],ca:CA1,mx:0,nl:1,bd:1,lab:[1,0,1,0,1,0,0,0,0],ch:mk((c,w)=>H(LP[c][0],LP[c][1],0,0,0,.75))},
+ {lobe:Z,rx:190,ry:140,nuc:[n(0,0,85,1,.9),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-9,100,9,100,0,0,0),S1h,S2h],ca:CA1,mx:0,nl:1,bd:.45,lab:[0,0,0,0,0,1,0,0,0],ch:mk((c,w)=>H(ZP[c][0],ZP[c][1],0,.4,0,.7))},
+ {lobe:Z,rx:190,ry:140,nuc:[n(0,0,85,1,.9),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-9,100,9,100,0,0,0),S1h,S2h],ca:CA1,mx:1,nl:.9,bd:0,lab:[0,0,0,0,0,0,1,1,0],ch:mk((c,w)=>H(TX[c][w],c<2?-5:8,0,.9,0,.7))},
+ {lobe:Z,rx:190,ry:140,nuc:[n(0,0,86,.9,.8),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-9,100,9,100,0,0,0),S1h,S2h],ca:CA1,mx:1,nl:.7,bd:0,lab:[0,0,0,0,0,0,0,0,1],ch:mk((c,w)=>H(DX[c][w],c<2?-5:8,0,.95,c%2?.9:-.9,.7,-.4))},
+ {lobe:Z,rx:190,ry:140,nuc:[n(0,0,88,.45,.3),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-175,0,175,0,.7,0,40),S1h,S2h],ca:CA1,mx:1,nl:.12,bd:0,lab:[0,1,0,1,0,0,0,0,1],ch:mk((c,w)=>H(DX[c][w]*1.1,c<2?-5:8,0,1,c%2?.6:-.6,.7,-.85,.75))},
  {lobe:Z,rx:190,ry:140,ca:CA1,nuc:[hid(0,0,88),hid(0,0,85),hid(0,0,85),hid(0,0,85)],sp:[SP(-175,0,175,0,1,1,70),S1h,S2h],lab:[0,0,1,1],mx:1,ch:mk((c,w)=>H(P2[c][0],P2[c][1],X(c,w),1,0,1))},
  {lobe:[-60,-60,60,60],rx:185,ry:125,nuc:[hid(-110,0,62),hid(-110,0,62),hid(110,0,62),hid(110,0,62)],sp:[SP(-215,0,215,0,1,1,60),S1h,S2h],ca:CA1,lab:[0,0,1,1],mx:1,
   ch:mk((c,w)=>H(c===0||c===3?-150:150,c<2?-46:46,w?-14:14,1,(c===0||c===3)?.55:-.55,1))},
@@ -256,6 +329,7 @@ const S=[
  {lobe:[-255,-85,85,255],rx:70,ry:80,nuc:[n(-255,0,52,1,.9),n(-85,0,52,1,.9),n(85,0,52,1,.9),n(255,0,52,1,.9)],sp:[SP(-200,0,200,0,0,0,0),SP(-255,52,-85,52,0,0,0),SP(85,52,255,52,0,0,0)],ca:CA2,lab:[1,0,1,0],mx:1,ch:fin(N10,.45)}
 ];
 
+[PRE,...S].forEach(s=>{if(s.nl===undefined)s.nl=0;if(s.bd===undefined)s.bd=0;while(s.lab.length<9)s.lab.push(0);});PRE.nl=1;
 const lerp=(a,b,e)=>{if(typeof a==='number')return a+(b-a)*e;if(Array.isArray(a))return a.map((v,i)=>lerp(v,b[i],e));const o={};for(const k in a)o[k]=lerp(a[k],b[k],e);return o;};
 let cur=lerp(PRE,PRE,0),from=cur,to=PRE,t0=-1e9,idx=0;
 const DUR=2800,ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -266,18 +340,20 @@ const lobeF=[0,1,2,3].map(()=>el('ellipse',{fill:'#fbe0b0'}));
 const polar=[0,1,2].map(()=>[0,1,2,3,4].map(()=>el('path',{fill:'none',stroke:'#8a6a45','stroke-width':1.4})));
 const kin=[...Array(8)].map(()=>el('line',{stroke:'#8a6a45','stroke-width':1.3}));
 const nuc=[0,1,2,3].map(()=>{const g=el('g',{});return{g,f:el('ellipse',{fill:'url(#gNuc)'},g),e:el('ellipse',{fill:'none',stroke:'#27459f','stroke-width':3.5,'stroke-linecap':'round'},g)};});
+const nlE=el('ellipse',{rx:17,ry:15,fill:'#1b3486',stroke:'#13286b','stroke-width':1.5});
 const K=36,thr=[];
-for(let id=0;id<8;id++){const p1=id*1.7+.3,p2=id*2.9+1,p3=id*.8,a=[];
-  for(let k=0;k<K;k++){const t=k/(K-1)*2-1;a.push([30*Math.sin(2.6*PI*t+p1)+9*Math.sin(6*PI*t+p2),42*t+18*Math.cos(3.4*PI*t+p3)+7*Math.sin(7*PI*t+p1)]);}thr.push(a);}
+for(let c=0;c<4;c++){const pr=c>>1,p1=pr*3.4+.3,p2=pr*5.8+1,p3=pr*1.6,q=c%2?1:-1,a=[];
+  for(let k=0;k<K;k++){const t=k/(K-1)*2-1;a.push([30*Math.sin(2.6*PI*t+p1)+9*Math.sin(6*PI*t+p2)+3*q*Math.sin(5*PI*t),42*t+18*Math.cos(3.4*PI*t+p3)+7*Math.sin(7*PI*t+p1)]);}thr.push(a);}
 const GR='#1e8e3e',MG='#b0176b';
 const chr=[...Array(8)].map((_,id)=>el('polyline',{fill:'none',stroke:((id>>1)%2)?MG:GR,'stroke-linecap':'round','stroke-linejoin':'round'}));
 const OV={0:MG,3:GR,5:MG,6:GR},K0=Math.round((K-1)*.3),ov={};
 for(const id in OV)ov[id]=el('polyline',{fill:'none',stroke:OV[id],'stroke-linecap':'round','stroke-linejoin':'round'});
 const cmr=[...Array(8)].map(()=>el('circle',{r:3.8,fill:'#fff',stroke:'#333','stroke-width':1.2}));
+const beads=[...Array(8)].map((_,id)=>[...Array(9)].map(()=>el('circle',{r:3.3,fill:((id>>1)%2)?MG:GR})));
 const cen=[...Array(6)].map(()=>{const g=el('g',{});el('circle',{r:12,fill:'#fff','fill-opacity':.45},g);el('rect',{x:-8,y:-2.5,width:15,height:5,rx:2.5,fill:'#6b3f14'},g);el('rect',{x:2.5,y:-8,width:5,height:15,rx:2.5,fill:'#6b3f14'},g);return g;});
 
 /* labels : نواة، غلاف النواة، كروموسوم، الياف المغزل */
-const LB=[{s:'L',py:110,w:90,t:'نواة'},{s:'L',py:170,w:150,t:'غلاف النواة'},{s:'R',py:110,w:130,t:'كروموسوم'},{s:'R',py:560,w:150,t:'الياف المغزل'}];
+const LB=[{s:'L',py:110,w:90,t:'نواة'},{s:'L',py:170,w:150,t:'غلاف النواة'},{s:'R',py:110,w:130,t:'كروموسوم'},{s:'R',py:560,w:150,t:'الياف المغزل'},{s:'R',py:470,w:90,t:'نوية'},{s:'L',py:330,w:190,t:'ثنائي (Bivalent)'},{s:'L',py:330,w:170,t:'رباعي (Tetrad)'},{s:'L',py:440,w:225,t:'تعابر (Crossing Over)'},{s:'L',py:440,w:185,t:'تصالب (Chiasma)'}];
 const lg=el('g',{'pointer-events':'none'});
 LB.forEach(l=>{l.px=l.s==='L'?20+l.w:880-l.w;const cx=l.s==='L'?20+l.w/2:880-l.w/2;
   l.g=el('g',{},lg);l.ln=el('line',{class:'ln',x1:l.px,y1:l.py},l.g);l.dt=el('circle',{class:'td',r:5},l.g);
@@ -289,22 +365,26 @@ const KMI=[[0,0],[0,0],[0,1],[0,1],[0,1],[0,1],[0,0],[0,0]],KMII=[[1,0],[1,1],[2
 function render(s,t){
   for(let i=0;i<4;i++)for(const e of[lobeS[i],lobeF[i]]){e.setAttribute('cx',CX+s.lobe[i]);e.setAttribute('cy',CY);e.setAttribute('rx',s.rx);e.setAttribute('ry',s.ry);}
   s.sp.forEach((p,i)=>{[-1,-.5,0,.5,1].forEach((o,k)=>{const d=polar[i][k];d.setAttribute('d',`M${CX+p.x1},${CY+p.y1}Q${CX+(p.x1+p.x2)/2},${CY+(p.y1+p.y2)/2+o*2*p.h} ${CX+p.x2},${CY+p.y2}`);d.setAttribute('stroke-opacity',(p.pf*.6).toFixed(2));});});
-  const KM=idx<=4?KMI:KMII;
+  const KM=idx<=MI?KMI:KMII;
   kin.forEach((ln,id)=>{const m=KM[id],p=s.sp[m[0]],c=s.ch[id];
     ln.setAttribute('x1',CX+(m[1]?p.x2:p.x1));ln.setAttribute('y1',CY+(m[1]?p.y2:p.y1));ln.setAttribute('x2',CX+c.x);ln.setAttribute('y2',CY+c.y);ln.setAttribute('stroke-opacity',(p.kf*.7).toFixed(2));});
   s.nuc.forEach((q,i)=>{const o=nuc[i],cx=CX+q.x,cy=CY+q.y;o.g.setAttribute('display',Math.max(q.f,q.e)<.02?'none':'');
     for(const e of[o.f,o.e]){e.setAttribute('cx',cx);e.setAttribute('cy',cy);e.setAttribute('rx',q.r);e.setAttribute('ry',q.r*.97);}
     o.f.setAttribute('fill-opacity',q.f);o.e.setAttribute('stroke-opacity',Math.min(1,q.e*1.2));
     o.e.setAttribute('stroke-dasharray',(3+8*q.e).toFixed(1)+' '+(6+16*(1-q.e)).toFixed(1));o.e.setAttribute('stroke-dashoffset',(t*8).toFixed(1));});
+  {const q=s.nuc[0];nlE.setAttribute('cx',CX+q.x+42);nlE.setAttribute('cy',CY+q.y+38);nlE.setAttribute('opacity',s.nl.toFixed(2));}
   s.ch.forEach((c,id)=>{
     const lf=id<4?1:.72,co=Math.cos(c.rot*PI/180),si=Math.sin(c.rot*PI/180),pts=[];
-    for(let k=0;k<K;k++){const tt=k/(K-1)*2-1,th=thr[id][k],j=2.5*Math.sin(t*2+k*.7+id)*(1-c.co);
-      const lx=(1-c.co)*(th[0]*c.sc*lf+j)+c.co*(c.be*24*lf*Math.abs(tt)),ly=(1-c.co)*(th[1]*c.sc*lf)+c.co*tt*30*lf;
-      pts.push((CX+c.x+lx*co-ly*si).toFixed(1)+','+(CY+c.y+lx*si+ly*co).toFixed(1));}
+    const bp=[];
+    for(let k=0;k<K;k++){const tt=k/(K-1)*2-1,th=thr[id>>1][k],j=2.5*Math.sin(t*2+k*.7+(id>>1))*(1-c.co);
+      const lx=(1-c.co)*(th[0]*c.sc*lf+j)+c.co*(c.be*24*lf*Math.abs(tt-c.bc)),ly=(1-c.co)*(th[1]*c.sc*lf)+c.co*tt*30*lf*c.ln;
+      const px=CX+c.x+lx*co-ly*si,py=CY+c.y+lx*si+ly*co;
+      pts.push(px.toFixed(1)+','+py.toFixed(1));if(k%4===2)bp.push([px,py]);}
+    beads[id].forEach((b,i)=>{b.setAttribute('cx',bp[i][0].toFixed(1));b.setAttribute('cy',bp[i][1].toFixed(1));b.setAttribute('opacity',s.bd.toFixed(2));b.setAttribute('display',s.bd<.02?'none':'');});
     const w=(2+c.co*4.5).toFixed(1);
     chr[id].setAttribute('points',pts.join(' '));chr[id].setAttribute('stroke-width',w);
     if(ov[id]){ov[id].setAttribute('points',pts.slice(0,K0+1).join(' '));ov[id].setAttribute('stroke-width',w);ov[id].setAttribute('opacity',s.mx.toFixed(2));}
-    cmr[id].setAttribute('cx',CX+c.x);cmr[id].setAttribute('cy',CY+c.y);cmr[id].setAttribute('opacity',Math.max(0,c.co*2-1));
+    const l0=c.co*c.be*24*lf*Math.abs(c.bc);cmr[id].setAttribute('cx',CX+c.x+l0*co);cmr[id].setAttribute('cy',CY+c.y+l0*si);cmr[id].setAttribute('opacity',Math.max(0,c.co*2-1));
   });
   cen.forEach((g,i)=>{const p=s.sp[i>>1],a=s.ca[i];g.setAttribute('display',a<.02?'none':'');g.setAttribute('opacity',a);
     g.setAttribute('transform',`translate(${CX+(i%2?p.x2:p.x1)} ${CY+(i%2?p.y2:p.y1)}) scale(${(1+.08*Math.sin(t*3+i)).toFixed(3)})`);});
@@ -313,15 +393,48 @@ function render(s,t){
     [CX+q0.x-.4*q0.r,CY+q0.y-.4*q0.r],
     [CX+q0.x-.707*q0.r,CY+q0.y-.707*q0.r],
     [CX+s.ch[0].x,CY+s.ch[0].y],
-    fiberPt(s.sp[idx<=4?0:1],1,.25)];
+    fiberPt(s.sp[idx<=MI?0:1],1,.25),
+    [CX+q0.x+42,CY+q0.y+38],
+    [CX+(s.ch[0].x+s.ch[2].x)/2,CY+s.ch[0].y+28],
+    [CX+(s.ch[0].x+s.ch[2].x)/2,CY+s.ch[0].y+22],
+    [CX+(s.ch[0].x+s.ch[3].x)/2,CY+s.ch[0].y-12],
+    [CX+(s.ch[0].x+s.ch[3].x)/2,CY+s.ch[0].y+s.ch[0].bc*30*s.ch[0].ln]];
   LB.forEach((l,k)=>{const a=s.lab[k];l.g.setAttribute('opacity',a.toFixed(2));if(a<.02)return;l.ln.setAttribute('x2',tg[k][0]);l.ln.setAttribute('y2',tg[k][1]);l.dt.setAttribute('cx',tg[k][0]);l.dt.setAttribute('cy',tg[k][1]);});
 }
 function frame(ms){const t=ms/1000,k=Math.min(1,(ms-t0)/DUR);cur=lerp(from,to,ease(k));render(cur,t);requestAnimationFrame(frame);}
 
+
+/* ---------------- شرح ادوار الطور التمهيدي I ---------------- */
+const E=t=>'<span class="en">'+t+'</span>';
+const INFO=[
+ ['الدور القلادي ('+E('Leptotene')+')','تكون الكروموسومات في هذا الدور بشكل خيوط طويلة نحيفة مفردة ذات تثخنات شبيهة بالفصوص او الخرز مما يضفي على الكروموسومات شكل القلادة ، ويكون ال '+E('DNA')+' متضاعفا في كل كروموسوم .'],
+ ['الدور الازدواجي ('+E('Zygotene')+')','تتراصف الكروموسومات المتماثلة في هذا الدور وتزدوج، وبعد ازدواجها يلتوي بعضها على البعض الآخر وتدعى العملية بالأيثاق او التشابك ('+E('Synapsis')+') ويسمى الكروموسومان المزدوجان بالثنائي ('+E('Bivalent')+') ، وهذه العملية تشكل صفة مميزة للانقسام الاختزالي اذ لاتحدث في الانقسام الخيطي (الاعتيادي) .'],
+ ['الدور التغلظي ('+E('Pachytene')+')','يزداد في هذا الدور تكثف الكروموسومات وتغلظها ويقل طولها. ويظهر في هذا الدور تضاعف كل كروموسوم الى كروماتيدين واضحين ، يرتبطان فيما بينهما بوساطة جزئيهما المركزيين ('+E('Centromeres')+') ويطلق على كل كروماتيدين يكونا نفس الكروموسوم بالشقيقين ('+E('Sister Chromatides')+') يظهر في هذا الدور كل زوج من الكروموسومات المتماثلة مكونا من حزمة مؤلفة من اربعة كروماتيدات ، وتدعى هذه الحزمة بالرباعي ('+E('Tetrad')+') ، ولناخذ مثلاً خلية الانسان نجدها تحوي في هذا الدور (23) رباعياً اي (92) كروماتيد كمجموع كلي ويحصل في هذا الدور تبادل في مواقع المورثات بين الكرموسومين المتماثلين وتدعى عملية التبادل هذه بالتعابر ('+E('Crossing Over')+') .'],
+ ['الدور الانفراجي ('+E('Diplotene')+')','يبدأ في هذا الدور كل كروموسومين متماثلين الابتعاد عن بعضهما ، ويبقى الكروماتيدان غير الشقيقين مرتبطان بنقطة واحدة او اكثر ، وتدعى نقاط الارتباط بالتصالبات ('+E('Chiasmata')+') ويختلف موقع وعدد التصالبات من كروموسوم الى آخر ومن خلية الى اخرى وتتبادل قطع الكروماتيدات غير الشقيقة في كل منطقة تصالب ('+E('Chiasma')+') بعضها مع بعض.'],
+ ['الدور الحركي ('+E('Diakinesis')+')','يمثل هذا الدور آخر ادوار الطور التمهيدي وفيه تزداد الكروموسومات ( كروماتيدات الكروموسومات المتماثلة ) قصراً وتغلظاً ، تبدأ النوية والغشاء النووي بالانحلال التدريجي وتتحرك مواقع التصالبات باتجاه نهايات الكروموسومات وينتج عن ذلك تناقص في عدد التصالبات .']
+];
+const infoEl=document.getElementById('info'),infoBtn=document.getElementById('zinfo');let infoClosed=false;
+const stageEl=document.getElementById('stage');
+function placeInfo(){
+  svg.style.width='';svg.style.height='';svg.style.marginRight='';
+  if(infoEl.hidden){infoEl.classList.remove('side');return;}
+  const W=stageEl.clientWidth,Hh=stageEl.clientHeight;
+  const side=W>Hh*1.15&&W>=700;infoEl.classList.toggle('side',side);
+  if(side){const pw=infoEl.offsetWidth+24;svg.style.width=(W-pw)+'px';svg.style.marginRight=pw+'px';}
+  else{svg.style.height=Math.max(200,Hh-infoEl.offsetHeight-110)+'px';}
+}
+function showInfo(i){const ok=i<INFO.length;infoBtn.style.display=ok?'':'none';
+  if(ok){document.getElementById('infoT').innerHTML=INFO[i][0];document.getElementById('infoB').innerHTML=INFO[i][1];infoEl.scrollTop=0;}
+  infoEl.hidden=!ok||infoClosed;placeInfo();}
+addEventListener('resize',placeInfo);
+document.getElementById('infoX').onclick=()=>{infoClosed=true;infoEl.hidden=true;placeInfo();};
+infoBtn.onclick=()=>{infoClosed=!infoClosed;showInfo(idx);};
+infoEl.addEventListener('pointerdown',e=>e.stopPropagation());
+
 /* ---------------- navigation ---------------- */
 const subTitle=document.getElementById('subTitle'),dotsEl=document.getElementById('dots'),dots=[];
-names.forEach((_,i)=>{const b=document.createElement('button');b.className='dot';if(i===5)b.style.marginInlineStart='14px';b.onclick=()=>go(i);dotsEl.appendChild(b);dots.push(b);});
-function setUI(i){subTitle.style.opacity=0;setTimeout(()=>{subTitle.textContent=names[i];subTitle.style.opacity=1;},180);dots.forEach((d,k)=>d.classList.toggle('on',k===i));}
+names.forEach((_,i)=>{const b=document.createElement('button');b.className=i<5?'dot sub':'dot';if(i===5||i===8)b.style.marginInlineStart='14px';b.onclick=()=>go(i);dotsEl.appendChild(b);dots.push(b);});
+function setUI(i){showInfo(i);subTitle.style.opacity=0;setTimeout(()=>{subTitle.textContent=names[i];subTitle.style.opacity=1;},180);dots.forEach((d,k)=>d.classList.toggle('on',k===i));}
 function go(i){
   if(i<0||(i===idx&&t0>0))return;
   if(i>=S.length){svg.style.opacity=0;setTimeout(()=>{idx=0;from=to=PRE;cur=lerp(PRE,PRE,0);t0=-1e9;svg.style.opacity=1;go2(0);},320);return;}
