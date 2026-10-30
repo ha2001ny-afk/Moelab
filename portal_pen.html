@@ -441,43 +441,6 @@
       border: none;
     }
 
-    /* الكتابة على المحاكاة */
-    .viewer-body { position: relative; flex: 1; display: flex; min-height: 0; }
-    .viewer-actions { display: flex; align-items: center; gap: 8px; }
-    .btn-pen {
-      background: #1e293b; color: #fde68a; border: 1px solid #f59e0b;
-      padding: 5px 12px; border-radius: 6px; font-weight: 900; font-size: 0.82rem; cursor: pointer;
-    }
-    .btn-pen.on { background: #f59e0b; color: #0b1526; }
-    #inkLayer {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      pointer-events: none; touch-action: none; z-index: 5;
-    }
-    #inkLayer.active { pointer-events: auto; cursor: crosshair; }
-    #inkTools {
-      position: absolute; top: 10px; left: 10px; right: 10px; margin: 0 auto; width: fit-content;
-      z-index: 6; display: none; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;
-      max-width: calc(100% - 20px); padding: 7px 10px;
-      background: rgba(11, 21, 38, 0.94); border: 1px solid #334155; border-radius: 14px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.45); direction: rtl;
-    }
-    #inkTools.show { display: flex; }
-    #inkTools button {
-      min-width: 38px; height: 38px; border-radius: 10px; border: 2px solid transparent;
-      background: #1e293b; color: #e2e8f0; font-size: 0.85rem; font-weight: bold; cursor: pointer; padding: 0 9px;
-    }
-    #inkTools button.sel { border-color: #fde68a; }
-    #inkTools .sw { width: 38px; padding: 0; }
-    #inkTools .sw span { display: block; width: 22px; height: 22px; margin: auto; border-radius: 50%; border: 2px solid #fff; }
-    #inkTools .sep { width: 1px; height: 26px; background: #334155; }
-    @media (max-width: 600px) {
-      .ink-lbl { display: none; }
-      #inkTools { gap: 4px; padding: 5px 6px; }
-      #inkTools button { min-width: 34px; height: 34px; padding: 0 6px; }
-      #inkTools .sw { width: 34px; }
-      #inkTools .sep { display: none; }
-    }
-
     /* زر ملء الشاشة للموقع */
     .btn-site-fs {
       border-color: #38bdf8 !important;
@@ -1286,30 +1249,9 @@
   <div id="viewerScreen">
     <div class="viewer-bar">
       <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">المحاكاة التفاعلية</span>
-      <div class="viewer-actions">
-        <button class="btn-pen" id="penBtn" onclick="toggleInk()" title="الكتابة والتأشير على المحاكاة">✏️<span class="ink-lbl"> قلم</span></button>
-        <button class="btn-back" onclick="closeExp()">🔙 العودة للمنصة</button>
-      </div>
+      <button class="btn-back" onclick="closeExp()">🔙 العودة للمنصة</button>
     </div>
-    <div class="viewer-body">
-      <iframe id="expFrame" src=""></iframe>
-      <canvas id="inkLayer"></canvas>
-      <div id="inkTools">
-        <button class="sw sel" data-c="#ef4444" title="أحمر"><span style="background:#ef4444"></span></button>
-        <button class="sw" data-c="#2563eb" title="أزرق"><span style="background:#2563eb"></span></button>
-        <button class="sw" data-c="#16a34a" title="أخضر"><span style="background:#16a34a"></span></button>
-        <button class="sw" data-c="#facc15" title="أصفر"><span style="background:#facc15"></span></button>
-        <button class="sw" data-c="#111827" title="أسود"><span style="background:#111827"></span></button>
-        <button class="sw" data-c="#ffffff" title="أبيض"><span style="background:#ffffff"></span></button>
-        <div class="sep"></div>
-        <button data-m="pen" class="sel" title="قلم">✏️<span class="ink-lbl"> قلم</span></button>
-        <button data-m="hl" title="تظليل">🖍️<span class="ink-lbl"> تظليل</span></button>
-        <button data-m="er" title="ممحاة">🧽<span class="ink-lbl"> ممحاة</span></button>
-        <div class="sep"></div>
-        <button id="inkUndo" title="تراجع">↩️<span class="ink-lbl"> تراجع</span></button>
-        <button id="inkClear" title="مسح الكل">🗑️<span class="ink-lbl"> مسح الكل</span></button>
-      </div>
-    </div>
+    <iframe id="expFrame" src=""></iframe>
   </div>
 
   <script>
@@ -1773,85 +1715,204 @@
       viewer.style.zIndex = "999999";
       viewer.style.display = 'flex';
       document.getElementById('expFrame').src = './' + fileName;
-      setTimeout(inkResize, 50);
     }
 
-    /* ---------- الكتابة والتأشير فوق المحاكاة ---------- */
-    const ink = { on: false, color: '#ef4444', mode: 'pen', strokes: [], cur: null };
-    function inkCanvas() { return document.getElementById('inkLayer'); }
-    function inkResize() {
-      const cv = inkCanvas(); if (!cv) return;
-      const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
-      cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
-      inkRedraw();
-    }
-    function inkStyle(ctx, s) {
-      const d = window.devicePixelRatio || 1;
-      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      ctx.globalCompositeOperation = s.mode === 'er' ? 'destination-out' : 'source-over';
-      ctx.globalAlpha = s.mode === 'hl' ? 0.35 : 1;
-      ctx.strokeStyle = s.color;
-      ctx.lineWidth = (s.mode === 'hl' ? 22 : s.mode === 'er' ? 34 : 4) * d;
-    }
-    function inkPath(ctx, s) {
-      const d = window.devicePixelRatio || 1, p = s.pts;
-      inkStyle(ctx, s); ctx.beginPath();
-      ctx.moveTo(p[0][0] * d, p[0][1] * d);
-      if (p.length === 1) ctx.lineTo(p[0][0] * d + 0.1, p[0][1] * d);
-      for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0] * d, p[i][1] * d);
-      ctx.stroke();
-    }
-    function inkRedraw() {
-      const cv = inkCanvas(), ctx = cv.getContext('2d');
-      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      ink.strokes.forEach(s => inkPath(ctx, s));
-      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-    }
-    function toggleInk(force) {
-      ink.on = typeof force === 'boolean' ? force : !ink.on;
-      inkCanvas().classList.toggle('active', ink.on);
-      document.getElementById('inkTools').classList.toggle('show', ink.on);
-      const b = document.getElementById('penBtn');
-      b.classList.toggle('on', ink.on);
-      b.innerHTML = ink.on ? '🖐️<span class="ink-lbl"> تحكم بالمحاكاة</span>' : '✏️<span class="ink-lbl"> قلم</span>';
-      if (ink.on) inkResize();
-    }
-    function inkClearAll() { ink.strokes = []; ink.cur = null; inkRedraw(); }
-    (function setupInk() {
-      const cv = inkCanvas(), tools = document.getElementById('inkTools');
-      const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-      cv.addEventListener('pointerdown', e => {
-        if (!ink.on) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
-        ink.cur = { color: ink.color, mode: ink.mode, pts: [pos(e)], id: e.pointerId };
-        ink.strokes.push(ink.cur); inkRedraw();
+    /* ---------- الكتابة والتأشير: تُحقن داخل المحاكاة نفسها حتى تبقى ظاهرة بملء الشاشة ---------- */
+    function moeInkMain() {
+      var d = document, w = window;
+      if (d.getElementById('moeInkCv')) return;
+      var css = d.createElement('style');
+      css.textContent = [
+        '#moeInkCv{position:fixed;inset:0;width:100%;height:100%;z-index:2147482990;pointer-events:none;touch-action:none}',
+        '#moeInkCv.on{pointer-events:auto;cursor:crosshair}',
+        '#moeInkBtn.moe-float{position:fixed;left:max(10px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);z-index:2147482995;width:44px;height:44px;border-radius:50%;border:2px solid #f59e0b;background:#0b1526e6;color:#fff;font-size:20px;line-height:1;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:0}',
+        '#moeInkBtn.on{background:#f59e0b!important;border-color:#f59e0b!important}',
+        '#moeInkBar{position:fixed;top:8px;left:62px;right:10px;margin:0 auto;width:fit-content;max-width:calc(100% - 72px);z-index:2147482996;display:none;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;padding:6px 9px;background:rgba(11,21,38,.95);border:1px solid #334155;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.45);direction:rtl;font-family:Tahoma,Arial,sans-serif}',
+        '#moeInkBar.show{display:flex}',
+        '#moeInkBar button{min-width:36px;height:36px;border-radius:10px;border:2px solid transparent;background:#1e293b;color:#e2e8f0;font:bold 13px Tahoma,Arial,sans-serif;cursor:pointer;padding:0 8px}',
+        '#moeInkBar button.sel{border-color:#fde68a}',
+        '#moeInkBar .sw{width:36px;padding:0}',
+        '#moeInkBar .sw i{display:block;width:20px;height:20px;margin:auto;border-radius:50%;border:2px solid #fff}',
+        '#moeInkBar .sep{width:1px;height:24px;background:#334155}',
+        '@media (max-width:600px){#moeInkBar .t{display:none}#moeInkBar{gap:4px;padding:5px}#moeInkBar button{min-width:32px;height:32px;padding:0 5px}#moeInkBar .sw{width:32px}#moeInkBar .sep{display:none}}'
+      ].join('\n');
+      d.head.appendChild(css);
+
+      var cv = d.createElement('canvas'); cv.id = 'moeInkCv'; d.body.appendChild(cv);
+      var ctx = cv.getContext('2d');
+      var COLORS = ['#ef4444', '#2563eb', '#16a34a', '#facc15', '#111827', '#ffffff'];
+      var bar = d.createElement('div'); bar.id = 'moeInkBar';
+      bar.innerHTML = COLORS.map(function (c, i) { return '<button type="button" class="sw' + (i ? '' : ' sel') + '" data-c="' + c + '"><i style="background:' + c + '"></i></button>'; }).join('') +
+        '<span class="sep"></span>' +
+        '<button type="button" data-m="pen" class="sel" title="قلم">✏️<span class="t"> قلم</span></button>' +
+        '<button type="button" data-m="hl" title="تظليل">🖍️<span class="t"> تظليل</span></button>' +
+        '<button type="button" data-m="er" title="ممحاة">🧽<span class="t"> ممحاة</span></button>' +
+        '<span class="sep"></span>' +
+        '<button type="button" id="moeInkSmart" class="sel" title="تحويل الخط والسهم والدائرة لشكل مرتب">✨<span class="t"> ذكي</span></button>' +
+        '<button type="button" id="moeInkUndo" title="تراجع">↩️<span class="t"> تراجع</span></button>' +
+        '<button type="button" id="moeInkClear" title="مسح الكل">🗑️<span class="t"> مسح الكل</span></button>';
+      d.body.appendChild(bar);
+
+      var btn = d.createElement('button');
+      btn.type = 'button'; btn.id = 'moeInkBtn'; btn.title = 'قلم للكتابة والتأشير'; btn.textContent = '✏️';
+      var zb = d.querySelector('.zb');
+      if (zb) zb.appendChild(btn); else { btn.className = 'moe-float'; d.body.appendChild(btn); }
+
+      var S = { on: false, color: COLORS[0], mode: 'pen', smart: true, strokes: [], cur: null };
+      var dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+      var plen = function (p) { var L = 0; for (var i = 1; i < p.length; i++) L += dist(p[i - 1], p[i]); return L; };
+      function devFromLine(p, a, b) {
+        var L = dist(a, b) || 1, m = 0;
+        for (var i = 0; i < p.length; i++) { var v = Math.abs((b[0] - a[0]) * (a[1] - p[i][1]) - (a[0] - p[i][0]) * (b[1] - a[1])) / L; if (v > m) m = v; }
+        return m;
+      }
+      function straight(p) {
+        if (p.length < 2) return false;
+        var a = p[0], b = p[p.length - 1], c = dist(a, b);
+        return c >= 30 && devFromLine(p, a, b) < Math.max(7, 0.07 * c) && plen(p) < c * 1.2;
+      }
+      function nearEnd(p, E, r) { for (var i = 0; i < p.length; i++) if (dist(p[i], E) > r) return false; return true; }
+
+      /* تعرّف ذكي: خط مستقيم، سهم، دائرة */
+      function recognize(s) {
+        var p = s.pts;
+        if (p.length < 3 || plen(p) < 25) return;
+        if (s.mode === 'pen') {
+          var ti = 0, best = 0;
+          for (var i = 0; i < p.length; i++) { var v = dist(p[0], p[i]); if (v > best) { best = v; ti = i; } }
+          if (best > 50 && ti < p.length - 2) {
+            var shaft = p.slice(0, ti + 1), head = p.slice(ti), hl = plen(head);
+            var hx = 0; head.forEach(function (q) { hx = Math.max(hx, dist(q, p[ti])); });
+            if (straight(shaft) && hl > 0.12 * best && hx > Math.max(12, 0.05 * best) && hl < 0.9 * best && nearEnd(head, p[ti], 0.5 * best)) {
+              s.type = 'arrow'; s.pts = [p[0], p[ti]]; return;
+            }
+          }
+          var prev = S.strokes[S.strokes.length - 2];
+          if (prev && prev.mode === 'pen' && (prev.type === 'line' || prev.type === 'arrow') && !straight(p)) {
+            var a = prev.pts[0], b = prev.pts[1], L = dist(a, b);
+            if (plen(p) < 0.8 * L) {
+              if (nearEnd(p, b, 0.45 * L)) { prev.type = 'arrow'; s.drop = true; return; }
+              if (nearEnd(p, a, 0.45 * L)) { prev.type = 'arrow'; prev.pts = [b, a]; s.drop = true; return; }
+            }
+          }
+          var L2 = plen(p);
+          if (dist(p[0], p[p.length - 1]) < 0.22 * L2 && L2 > 90) {
+            var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+            p.forEach(function (q) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); });
+            var cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = (x1 - x0) / 2, ry = (y1 - y0) / 2;
+            if (rx > 12 && ry > 12) {
+              var dev = 0;
+              p.forEach(function (q) { dev += Math.abs(Math.hypot((q[0] - cx) / rx, (q[1] - cy) / ry) - 1); });
+              if (dev / p.length < 0.17) {
+                var k = rx / ry; if (k > 0.82 && k < 1.22) rx = ry = (rx + ry) / 2;
+                s.type = 'ellipse'; s.e = [cx, cy, rx, ry]; return;
+              }
+            }
+          }
+        }
+        if (s.mode !== 'er' && straight(p)) { s.type = 'line'; s.pts = [p[0], p[p.length - 1]]; }
+      }
+
+      function style(s) {
+        var r = w.devicePixelRatio || 1;
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.globalCompositeOperation = s.mode === 'er' ? 'destination-out' : 'source-over';
+        ctx.globalAlpha = s.mode === 'hl' ? 0.35 : 1;
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = (s.mode === 'hl' ? 22 : s.mode === 'er' ? 34 : 4) * r;
+      }
+      function paint(s) {
+        var r = w.devicePixelRatio || 1, p = s.pts;
+        style(s); ctx.beginPath();
+        if (s.type === 'ellipse') {
+          ctx.ellipse(s.e[0] * r, s.e[1] * r, s.e[2] * r, s.e[3] * r, 0, 0, Math.PI * 2);
+        } else {
+          ctx.moveTo(p[0][0] * r, p[0][1] * r);
+          if (p.length === 1) ctx.lineTo(p[0][0] * r + 0.1, p[0][1] * r);
+          for (var i = 1; i < p.length; i++) ctx.lineTo(p[i][0] * r, p[i][1] * r);
+          if (s.type === 'arrow') {
+            var a = p[0], b = p[1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+            var h = Math.max(14, Math.min(36, 0.22 * dist(a, b)));
+            [ang + 2.65, ang - 2.65].forEach(function (t) {
+              ctx.moveTo(b[0] * r, b[1] * r);
+              ctx.lineTo((b[0] + h * Math.cos(t)) * r, (b[1] + h * Math.sin(t)) * r);
+            });
+          }
+        }
+        ctx.stroke();
+      }
+      function redraw() {
+        ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        S.strokes.forEach(paint);
+        ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      }
+      function resize() {
+        var r = w.devicePixelRatio || 1;
+        cv.width = Math.round(w.innerWidth * r); cv.height = Math.round(w.innerHeight * r);
+        redraw();
+      }
+      function setOn(v) {
+        S.on = v; cv.classList.toggle('on', v); bar.classList.toggle('show', v); btn.classList.toggle('on', v);
+        btn.textContent = v ? '🖐️' : '✏️';
+        btn.title = v ? 'رجوع للتحكم بالمحاكاة' : 'قلم للكتابة والتأشير';
+        if (v) resize();
+      }
+      btn.addEventListener('click', function (e) { e.stopPropagation(); setOn(!S.on); });
+      btn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+      bar.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+      var pos = function (e) { return [e.clientX, e.clientY]; };
+      cv.addEventListener('pointerdown', function (e) {
+        if (!S.on || S.cur) return; e.preventDefault(); e.stopPropagation(); cv.setPointerCapture(e.pointerId);
+        S.cur = { color: S.color, mode: S.mode, type: 'free', pts: [pos(e)], id: e.pointerId };
+        S.strokes.push(S.cur); redraw();
       });
-      cv.addEventListener('pointermove', e => {
-        if (!ink.cur || ink.cur.id !== e.pointerId) return;
-        const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-        evs.forEach(ev => ink.cur.pts.push(pos(ev)));
-        inkRedraw();
+      cv.addEventListener('pointermove', function (e) {
+        if (!S.cur || S.cur.id !== e.pointerId) return;
+        var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+        evs.forEach(function (ev) { S.cur.pts.push(pos(ev)); });
+        redraw();
       });
-      const end = e => { if (ink.cur && ink.cur.id === e.pointerId) ink.cur = null; };
+      function end(e) {
+        if (!S.cur || S.cur.id !== e.pointerId) return;
+        var s = S.cur; S.cur = null;
+        if (S.smart) { recognize(s); if (s.drop) S.strokes.pop(); }
+        redraw();
+      }
       cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
-      tools.querySelectorAll('[data-c]').forEach(b => b.addEventListener('click', () => {
-        ink.color = b.dataset.c;
-        tools.querySelectorAll('[data-c]').forEach(x => x.classList.toggle('sel', x === b));
-        if (ink.mode === 'er') tools.querySelector('[data-m="pen"]').click();
-      }));
-      tools.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
-        ink.mode = b.dataset.m;
-        tools.querySelectorAll('[data-m]').forEach(x => x.classList.toggle('sel', x === b));
-      }));
-      document.getElementById('inkUndo').addEventListener('click', () => { ink.strokes.pop(); inkRedraw(); });
-      document.getElementById('inkClear').addEventListener('click', inkClearAll);
-      window.addEventListener('resize', inkResize);
-      document.addEventListener('fullscreenchange', () => setTimeout(inkResize, 150));
-      document.addEventListener('webkitfullscreenchange', () => setTimeout(inkResize, 150));
-    })();
+      bar.querySelectorAll('[data-c]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          S.color = b.dataset.c;
+          bar.querySelectorAll('[data-c]').forEach(function (x) { x.classList.toggle('sel', x === b); });
+          if (S.mode === 'er') bar.querySelector('[data-m="pen"]').click();
+        });
+      });
+      bar.querySelectorAll('[data-m]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          S.mode = b.dataset.m;
+          bar.querySelectorAll('[data-m]').forEach(function (x) { x.classList.toggle('sel', x === b); });
+        });
+      });
+      d.getElementById('moeInkSmart').addEventListener('click', function () { S.smart = !S.smart; this.classList.toggle('sel', S.smart); });
+      d.getElementById('moeInkUndo').addEventListener('click', function () { S.strokes.pop(); redraw(); });
+      d.getElementById('moeInkClear').addEventListener('click', function () { S.strokes = []; redraw(); });
+      w.addEventListener('resize', resize);
+      ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { d.addEventListener(ev, function () { setTimeout(resize, 150); }); });
+      w.__moeInk = S;
+      resize();
+    }
+    function injectInk() {
+      try {
+        const f = document.getElementById('expFrame'), fd = f.contentDocument;
+        if (!fd || !fd.body || f.src.indexOf('about:blank') === 0 || fd.getElementById('moeInkCv')) return;
+        const sc = fd.createElement('script');
+        sc.textContent = '(' + moeInkMain.toString() + ')();';
+        fd.body.appendChild(sc);
+      } catch (e) {}
+    }
+    document.getElementById('expFrame').addEventListener('load', injectInk);
 
     function closeExp() {
-      toggleInk(false); inkClearAll();
       const viewer = document.getElementById('viewerScreen');
       viewer.style.display = 'none';
       document.getElementById('expFrame').src = "about:blank";
