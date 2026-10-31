@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>نشاط يبين كيفية تقليل تأثير التيارات الدوامة المتولدة في الموصلات</title>
+<meta name="theme-color" content="#081429">
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#081429;overscroll-behavior:none}
+canvas{display:block;width:100%;height:100%;touch-action:none;outline:none;-webkit-tap-highlight-color:transparent}
+.view-tools{position:fixed;left:max(14px,env(safe-area-inset-left,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:10}
+.view-tools button{width:42px;height:42px;display:grid;place-items:center;padding:0;border:1px solid #dbe9fa25;border-radius:11px;background:#0b1c2de8;color:#d9edf2;box-shadow:0 4px 16px #0002;backdrop-filter:blur(15px);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.view-tools button:hover{background:#244454;border-color:#8bc8dd99}
+.view-tools button:focus-visible,.info-bar button:focus-visible,.sheet button:focus-visible{outline:2px solid #9bd2e6;outline-offset:3px}
+.view-tools svg{width:20px;height:20px;fill:none;stroke:#9bd2e6;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+.info-bar{position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:12;direction:rtl}
+.info-bar button{min-width:96px;height:40px;padding:0 16px;border:1px solid #dbe9fa25;border-radius:20px;background:#0b1c2de8;color:#d9edf2;font:15px Tahoma,Arial,sans-serif;backdrop-filter:blur(15px);box-shadow:0 4px 16px #0002;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.info-bar button:hover{background:#244454;border-color:#8bc8dd99}
+.info-bar button[aria-expanded="true"]{background:#e3c18e2a;border-color:#e3c18e99;color:#e3c18e}
+
+.sheet{position:fixed;top:calc(max(12px,env(safe-area-inset-top,0px)) + 52px);left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 32px));max-height:calc(100% - 140px);overflow:auto;z-index:11;direction:rtl;
+  background:#0b1c2df2;border:1px solid #dbe9fa25;border-radius:16px;box-shadow:0 18px 50px #0007;backdrop-filter:blur(18px);color:#e5edf0;font:16px/1.95 Tahoma,Arial,sans-serif;padding:18px 22px 20px}
+.sheet h2{margin:0 0 8px;font-size:18px;color:#e3c18e;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sheet h2 button{width:34px;height:34px;flex:none;border:1px solid #dbe9fa25;border-radius:10px;background:#122a3d;color:#9bd2e6;font-size:18px;cursor:pointer}
+.sheet p{margin:0 0 10px}
+.sheet ul,.sheet ol{margin:0 0 10px;padding-inline-start:22px}
+.sheet li{margin-bottom:6px}
+.sheet b{color:#90c9ed;font-weight:normal}
+.sheet .q{color:#c4a8f2}
+@media(pointer:coarse){.view-tools button{width:44px;height:44px}.info-bar button{height:44px}}
+@media(max-width:380px){.info-bar button{min-width:84px;padding:0 10px;font-size:14px}}
+</style>
+</head>
+<body>
+
+<canvas id="scene" tabindex="0" aria-label="بندولان من الألمنيوم يهتزان بين قطبي مغناطيس: صفيحة كاملة وصفيحة مقطعة. اسحب أي صفيحة ثم اتركها، أو اضغط حركة تلقائية."></canvas>
+
+<nav class="info-bar" aria-label="معلومات النشاط">
+  <button type="button" data-sheet="tools" aria-expanded="false">الأدوات</button>
+  <button type="button" data-sheet="method" aria-expanded="false">الطريقة</button>
+  <button type="button" data-sheet="result" aria-expanded="false">الاستنتاج</button>
+</nav>
+
+<section class="sheet" id="sheet-tools" hidden>
+  <h2>أدوات النشاط <button type="button" class="close" aria-label="إغلاق">×</button></h2>
+  <ul>
+    <li>بندولان متماثلان، كل منهما صفيحة مصنوعة من مادة موصلة ضعيفة التمغنط (ليست فيرومغناطيسية) مثل <b>الألمنيوم</b>، مثبتة بطرف ساق خفيفة من المادة نفسها.</li>
+    <li>إحدى الصفيحتين <b>مقطعة</b> بشكل شرائح معزولة عن بعضها مثل أسنان المشط، والأخرى <b>كاملة</b> غير مقطعة.</li>
+    <li>مغناطيس دائم قوي (كثافة فيضه عالية).</li>
+    <li>حامل.</li>
+  </ul>
+</section>
+
+<section class="sheet" id="sheet-method" hidden>
+  <h2>خطوات النشاط <button type="button" class="close" aria-label="إغلاق">×</button></h2>
+  <ol>
+    <li>نزيح الصفيحتين بإزاحة متساوية إلى أحد جانبي موقع استقرارهما.</li>
+    <li>نترك الصفيحتين في آن واحد لتهتز كل منهما بحرية بين قطبي المغناطيس.</li>
+  </ol>
+  <p class="q">ماذا تتوقع؟ أيهتز البندولان بالسعة نفسها؟ أم يختلفان؟ وما سبب ذلك؟</p>
+  <p>نلاحظ أن البندول ذا الصفيحة الكاملة (غير المقطعة) يتوقف عن الحركة في أثناء مروره خلال الفجوة بين القطبين المغناطيسيين، في حين تمر الصفيحة المقطعة بشكل أسنان المشط بين القطبين وتعبر إلى الجانب الآخر، وتستمر بالاهتزاز على جانبي منطقة المجال المغناطيسي ذهاباً وإياباً، ولكن بتباطؤ قليل.</p>
+  <p>في المحاكاة: اسحب أي صفيحة إلى أحد الجانبين ثم اتركها، فتنزاح الصفيحتان معاً وتُتركان في آن واحد. أو اضغط <b>حركة تلقائية</b>.</p>
+</section>
+
+<section class="sheet" id="sheet-result" hidden>
+  <h2>نستنتج من النشاط <button type="button" class="close" aria-label="إغلاق">×</button></h2>
+  <p>تتولد تيارات دوامة كبيرة المقدار في الصفيحة غير المقطعة في أثناء دخولها المجال المغناطيسي بين القطبين، فتكون باتجاه معين نتيجة حصول تزايد في الفيض المغناطيسي الذي يخترقها لوحدة الزمن (ΔΦ<sub>B</sub>/Δt) على وفق قانون فراداي.</p>
+  <p>وتكون باتجاه معاكس في أثناء خروجها من المجال، نتيجة حصول تناقص في الفيض المغناطيسي.</p>
+  <p>فتتولد في الحالتين قوة مغناطيسية <b>F<sub>B</sub></b> تعرقل حركة الصفيحة (على وفق قانون لنز)، وبالنتيجة تتلاشى سعة اهتزاز الصفيحة وتتوقف عن الاهتزاز.</p>
+  <p>في حين أن التيارات الدوامة المتولدة في الصفيحة المقطعة بشكل شرائح تكون صغيرة المقدار جداً، فيكون تأثيرها في اهتزاز الصفيحة ضعيفاً جداً.</p>
+</section>
+
+<div class="view-tools" role="group" aria-label="عرض المحاكاة">
+  <button type="button" id="zoomIn" aria-label="تكبير" title="تكبير"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+  <button type="button" id="zoomOut" aria-label="تصغير" title="تصغير"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+  <button type="button" id="fullscreen" aria-label="ملء الشاشة" title="ملء الشاشة" aria-pressed="false"><svg viewBox="0 0 24 24"><path id="fullscreenIcon" d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></button>
+</div>
+
+<script>
+'use strict';
+
+const cv=document.querySelector('#scene');
+const c=cv.getContext('2d');
+
+/* Physical model — scene units: 1000 px = 1 m */
+const PXM=1000;
+const LEN=300;                 // pivot → plate centre (0.30 m)
+const PW=100, PH=110;          // plate 10 cm × 11 cm
+const FW=96, FH=118;           // pole face (field region)
+const SPAN=170;                // pivots at x = ±SPAN
+const GL=9.8/(LEN/PXM);        // g/L
+const K_EDDY=2.4;              // braking strength for the solid plate
+const SLOT_FACTOR=.008;         // slotted plate: currents confined to narrow strips
+const AIR=.02;
+
+const S={B:1,auto:false,autoT:0,held:false,magnet:true};
+const AUTO_ANGLE=35, AUTO_PERIOD=8;
+const pend=[
+  {x:-SPAN,type:'solid',th:0,w:0,flux:0,emf:0,amp:0},
+  {x: SPAN,type:'slot', th:0,w:0,flux:0,emf:0,amp:0}
+];
+
+const camera={x:0,y:0,z:1};
+const colors={ink:'#e5edf0',muted:'#99b2c3',blue:'#90c9ed',red:'#f18b7f',green:'#93d6b2',gold:'#e3c18e',violet:'#c4a8f2',teal:'#6fd6dc'};
+
+let W=innerWidth,H=innerHeight,DPR=1,portrait=W<850;
+let worldW=1250,worldH=660,G={},targets=[],gesture=null,TS=1;
+const coarse=matchMedia('(pointer:coarse)').matches;
+const TAP=new Set(['auto']);
+
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+
+/* Layout */
+function layout(){
+  portrait=W<850;
+  if(portrait){
+    worldW=430;worldH=410;
+    G={title:[[215,20,'نشاط يبين كيفية تقليل تأثير'],[215,44,'التيارات الدوامة المتولدة في الموصلات']],ts:16,
+       sx:215,sy:80,ss:.5,pill:[215,378,220]};
+  } else {
+    worldW=1040;worldH=720;
+    G={title:[[520,20,'نشاط يبين كيفية تقليل تأثير التيارات الدوامة المتولدة في الموصلات']],ts:22,
+       sx:520,sy:74,ss:1.2,pill:[520,694,250]};
+  }
+}
+function fit(){
+  const left=portrait?8:76,margin=portrait?8:20,top=64;
+  camera.z=Math.min((W-left-margin)/worldW,(H-top-margin)/worldH);
+  camera.x=left+(W-left-margin-worldW*camera.z)/2;
+  camera.y=top+(H-top-margin-worldH*camera.z)/2;
+}
+function resize(){
+  W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);
+  cv.width=W*DPR;cv.height=H*DPR;layout();fit();
+}
+resize();addEventListener('resize',resize);
+
+/* Geometry: plate overlap with the pole face */
+
+function platePoly(p,th){
+  const s=Math.sin(th),co=Math.cos(th);
+  return [[-PW/2,LEN-PH/2],[PW/2,LEN-PH/2],[PW/2,LEN+PH/2],[-PW/2,LEN+PH/2]]
+    .map(([x,y])=>[p.x+x*co+y*s, -x*s+y*co]);
+}
+function clipPoly(poly,edge){
+  const out=[];
+  for(let i=0;i<poly.length;i++){
+    const a=poly[i],b=poly[(i+1)%poly.length];
+    const ia=edge.inside(a),ib=edge.inside(b);
+    if(ia) out.push(a);
+    if(ia!==ib) out.push(edge.cut(a,b));
+  }
+  return out;
+}
+function overlapArea(p,th){
+  const x0=p.x-FW/2,x1=p.x+FW/2,y0=LEN-FH/2,y1=LEN+FH/2;
+  const ex=(k,v,ge)=>({inside:q=>ge?q[k]>=v:q[k]<=v,
+    cut:(a,b)=>{const t=(v-a[k])/(b[k]-a[k]);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]}});
+  let poly=platePoly(p,th);
+  for(const e of [ex(0,x0,true),ex(0,x1,false),ex(1,y0,true),ex(1,y1,false)]){
+    poly=clipPoly(poly,e);if(!poly.length) return 0;
+  }
+  let A=0;
+  for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];A+=a[0]*b[1]-b[0]*a[1]}
+  return Math.abs(A)/2;
+}
+function dAdth(p,th){const h=1e-3;return (overlapArea(p,th+h)-overlapArea(p,th-h))/(2*h)}
+
+/* Dynamics */
+
+function setAll(th){for(const p of pend){p.th=th;p.w=0}}
+setAll(0);
+
+function step(dt){
+  const fieldB=S.magnet?S.B:0;
+  for(const p of pend){
+    const n=10,h=dt/n;
+    for(let i=0;i<n;i++){
+      const g=dAdth(p,p.th)/(PW*PH);
+      const k=K_EDDY*fieldB*fieldB*g*g*(p.type==='solid'?1:SLOT_FACTOR);
+      p.w+=(-GL*Math.sin(p.th)-(k+AIR)*p.w)*h;
+      p.th+=p.w*h;
+    }
+    const g=dAdth(p,p.th)/(PW*PH);
+    p.emf=fieldB*g*p.w;
+    p.cur=p.emf*(p.type==='solid'?1:SLOT_FACTOR*12);
+  }
+}
+
+function update(dt){
+  if(S.auto&&!S.held){
+    S.autoT+=dt;
+    // lift both plates equally (ease), then release and let them swing
+    if(S.autoT<.9){
+      const f=.5-.5*Math.cos(Math.PI*S.autoT/.9);
+      for(const p of pend){p.th=p.th0+(rad(-AUTO_ANGLE)-p.th0)*f;p.w=0;p.emf=0;p.cur=0}
+      return;
+    }
+    if(S.autoT>AUTO_PERIOD){S.autoT=0;for(const p of pend)p.th0=p.th}
+  }
+  if(S.held){for(const p of pend){p.w=0;p.emf=0;p.cur=0}return}
+  step(dt);
+}
+
+/* Drawing helpers */
+
+function rr(x,y,w,h,r=8){c.beginPath();c.roundRect(x,y,w,h,r)}
+function rect(x,y,w,h,color,r=8){rr(x,y,w,h,r);c.fillStyle=color;c.fill()}
+function line(pts,color,width=1.5){
+  c.beginPath();pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));
+  c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.lineJoin='round';c.stroke();
+}
+function circle(x,y,r,color){c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=color;c.fill()}
+function text(s,x,y,size=16,color=colors.ink,rtl=false,bold=false){
+  const fs=Math.max(size,10.5/(camera.z*TS));
+  c.font=(bold?'bold ':'')+`${fs}px `+(rtl?'Tahoma,Arial':'Georgia,serif');
+  c.direction=rtl?'rtl':'ltr';c.textAlign='center';c.textBaseline='middle';c.fillStyle=color;c.fillText(s,x,y);
+}
+function math(s,x,y,size=20,color=colors.ink){
+  const fs=Math.max(size,10.5/(camera.z*TS));
+  const parts=s.split(/(F_B|B_in|θ_0)/);
+  const sub={'F_B':['F','B',1],'B_in':['B','in',1],'θ_0':['θ','0',0]};
+  c.direction='ltr';c.textBaseline='middle';
+  const widths=parts.map(p=>{
+    c.font=`${fs}px Georgia,serif`;
+    if(sub[p]){const w=c.measureText(sub[p][0]).width;c.font=`${fs*.62}px Georgia,serif`;return w+c.measureText(sub[p][1]).width+fs*.08}
+    return c.measureText(p).width;
+  });
+  let px=x-widths.reduce((a,b)=>a+b,0)/2;
+  c.textAlign='left';c.fillStyle=color;
+  parts.forEach((p,i)=>{
+    c.font=`${fs}px Georgia,serif`;
+    if(sub[p]){
+      c.fillText(sub[p][0],px,y);
+      const o=c.measureText(sub[p][0]).width;
+      if(sub[p][2]) arrow(px+fs*.05,y-fs*.62,o*.95,0,color,1,3);
+      c.font=`${fs*.62}px Georgia,serif`;c.fillText(sub[p][1],px+o,y+fs*.28);
+    } else c.fillText(p,px,y);
+    px+=widths[i];
+  });
+}
+function arrow(x,y,dx,dy,color,width=2,head=8){
+  const a=Math.atan2(dy,dx);
+  line([[x,y],[x+dx,y+dy]],color,width);
+  c.beginPath();c.moveTo(x+dx,y+dy);
+  c.lineTo(x+dx-head*Math.cos(a-.42),y+dy-head*Math.sin(a-.42));
+  c.lineTo(x+dx-head*Math.cos(a+.42),y+dy-head*Math.sin(a+.42));
+  c.closePath();c.fillStyle=color;c.fill();
+}
+function vecLetter(s,x,y,color,size){text(s,x,y,size,color);arrow(x-size*.3,y-size*.78,size*.6,0,color,1.1,3.2)}
+function handle(x,y,color,r=6){
+  const radius=Math.max(r,5.5/(camera.z*TS));
+  circle(x,y,radius+4,'#081b2a99');circle(x,y,radius,color);circle(x-1.2,y-1.2,radius*.35,'#ffffff66');
+}
+
+/* Scene */
+
+function stand(){
+  for(const p of pend){
+    rect(p.x-26,-22,52,14,'#6f7d89',4);
+    rect(p.x-9,-12,18,14,'#55636f',3);
+    circle(p.x,0,7,'#c9d3da');circle(p.x,0,3,'#3a4752');
+  }
+}
+
+function magnetBack(p){
+  const x=p.x-FW/2,y=LEN-FH/2;
+  // support block from pole down to base
+  const sg=c.createLinearGradient(x,0,x+FW,0);
+  sg.addColorStop(0,'#6e2622');sg.addColorStop(.4,'#c9473d');sg.addColorStop(1,'#7c2a25');
+  rect(x-8,y+FH+6,FW+16,46,sg,4);
+  // rear pole face
+  const fg=c.createLinearGradient(x,y,x+FW,y+FH);
+  fg.addColorStop(0,'#5d6c78');fg.addColorStop(.5,'#8392a0');fg.addColorStop(1,'#4b5965');
+  rect(x-8,y-8,FW+16,FH+16,'#2b3640',6);
+  rect(x,y,FW,FH,fg,4);
+  // B into the page
+  c.save();c.globalAlpha=.35+S.B/1.5*.6;
+  const n=4;
+  for(let i=0;i<n;i++)for(let j=0;j<5;j++){
+    const cx=x+FW*(i+.5)/n, cy=y+FH*(j+.5)/5, r=6.5;
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.strokeStyle=colors.blue;c.lineWidth=1.3;c.stroke();
+    line([[cx-r*.62,cy-r*.62],[cx+r*.62,cy+r*.62]],colors.blue,1.3);
+    line([[cx+r*.62,cy-r*.62],[cx-r*.62,cy+r*.62]],colors.blue,1.3);
+  }
+  c.restore();
+}
+
+function magnetFront(p){
+  const x=p.x-FW/2,y=LEN-FH/2;
+  rr(x-8,y-8,FW+16,FH+16,6);
+  c.fillStyle='rgba(201,71,61,.13)';c.fill();
+  c.setLineDash([5,5]);c.strokeStyle='#e8685c99';c.lineWidth=1.5;c.stroke();c.setLineDash([]);
+}
+
+function plate(p){
+  c.save();
+  c.translate(p.x,0);c.rotate(-p.th);
+  // rod
+  const rg=c.createLinearGradient(-3,0,3,0);
+  rg.addColorStop(0,'#8e9aa3');rg.addColorStop(.5,'#eef3f6');rg.addColorStop(1,'#7d8992');
+  rect(-3,0,6,LEN-PH/2+4,rg,2);
+  const x0=-PW/2,y0=LEN-PH/2;
+  const pg=c.createLinearGradient(x0,y0,x0+PW,y0+PH);
+  pg.addColorStop(0,'#aeb9c2');pg.addColorStop(.35,'#eef2f5');pg.addColorStop(.7,'#c3ccd3');pg.addColorStop(1,'#8f9ba4');
+  c.save();c.shadowColor='#0008';c.shadowBlur=10;c.shadowOffsetY=4;
+  if(p.type==='solid'){
+    rect(x0,y0,PW,PH,pg,3);
+  } else {
+    rect(x0,y0,PW,24,pg,3);
+    const teeth=8,gap=4.5,tw=(PW-gap*(teeth-1))/teeth;
+    for(let i=0;i<teeth;i++) rect(x0+i*(tw+gap),y0+20,tw,PH-20,pg,1.5);
+  }
+  c.restore();
+  if(p.type==='slot'){
+    // insulating strips at the root of each slot
+    const teeth=8,gap=4.5,tw=(PW-gap*(teeth-1))/teeth;
+    for(let i=1;i<teeth;i++){const sx=x0+i*(tw+gap)-gap/2;line([[sx,y0+6],[sx,y0+24]],'#4e7f9a',2.2)}
+  }
+  rr(x0,y0,PW,PH,3);c.strokeStyle='#ffffff30';c.lineWidth=1;c.stroke();
+  eddy(p,x0,y0);
+  c.restore();
+}
+
+function loopArrow(cx,cy,r,ccw,color,width,alpha){
+  c.save();c.globalAlpha=alpha;
+  const a0=ccw?-.35:Math.PI+.35, a1=ccw?Math.PI*1.55:Math.PI*2.55+.35-Math.PI*.0;
+  c.beginPath();
+  if(ccw) c.arc(cx,cy,r,-.4,-.4-Math.PI*1.65,true);
+  else c.arc(cx,cy,r,Math.PI+.4,Math.PI+.4+Math.PI*1.65,false);
+  c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.stroke();
+  const end=ccw?-.4-Math.PI*1.65:Math.PI+.4+Math.PI*1.65;
+  const ex=cx+r*Math.cos(end),ey=cy+r*Math.sin(end);
+  const tang=end+(ccw?-Math.PI/2:Math.PI/2);
+  const hs=Math.max(6,r*.42);
+  c.beginPath();
+  c.moveTo(ex+Math.cos(tang)*hs*.6,ey+Math.sin(tang)*hs*.6);
+  c.lineTo(ex-hs*Math.cos(tang-.5),ey-hs*Math.sin(tang-.5));
+  c.lineTo(ex-hs*Math.cos(tang+.5),ey-hs*Math.sin(tang+.5));
+  c.closePath();c.fillStyle=color;c.fill();
+  c.restore();
+}
+
+function eddy(p,x0,y0){
+  const m=Math.abs(p.cur||0);
+  if(m<.02) return;
+  // flux growing (into page) → induced field out of page → counter-clockwise
+  const ccw=p.emf>0;
+  if(p.type==='solid'){
+    const s=clamp(m/2.2,0,1);
+    loopArrow(0,LEN,24+12*s,ccw,colors.gold,2+3*s,.45+.55*s);
+  } else {
+    const s=clamp(m/2.2,0,1);
+    const teeth=8,gap=4.5,tw=(PW-gap*(teeth-1))/teeth;
+    for(let i=0;i<teeth;i++) loopArrow(x0+i*(tw+gap)+tw/2,LEN+12,3.4,ccw,colors.gold,1.1,.25+.6*s);
+  }
+}
+
+function forceArrows(p){
+  const m=Math.abs(p.cur||0);
+  const px=p.x+LEN*Math.sin(p.th), py=LEN*Math.cos(p.th);
+  const vx=Math.cos(p.th)*p.w, vy=-Math.sin(p.th)*p.w;
+  const sp=Math.hypot(vx,vy);
+  if(sp>.05){
+    const L=clamp(sp*14,14,62);
+    arrow(px,py-PH/2-20,vx/sp*L,vy/sp*L,colors.green,3,10);
+    vecLetter('v',px+vx/sp*(L+14),py-PH/2-28,colors.green,18);
+  }
+  if(m>.02 && sp>.05){
+    const L=clamp(18+m*30,20,95)*(p.type==='solid'?1:.6);
+    const sx=px-vx/sp*(PW/2+6), sy=py+12-vy/sp*(PW/2+6);
+    arrow(sx,sy,-vx/sp*L,-vy/sp*L,colors.teal,3.5,11);
+    math('F_B',sx-vx/sp*(L+18),sy+18,17,colors.teal);
+  }
+}
+
+function scene(){
+  c.save();
+  c.translate(G.sx,G.sy);c.scale(G.ss,G.ss);TS=G.ss;
+  stand();
+  pend.forEach((p,i)=>{
+    if(S.magnet) magnetBack(p);
+    plate(p);
+    forceArrows(p);
+    const hx=p.x+(LEN+PH/2+14)*Math.sin(p.th), hy=(LEN+PH/2+14)*Math.cos(p.th);
+    handle(hx,hy,colors.gold,6);
+    const cx=G.sx+G.ss*(p.x+LEN*Math.sin(p.th)), cy=G.sy+G.ss*LEN*Math.cos(p.th);
+    targets.push({kind:'plate',idx:i,x:cx,y:cy,r:G.ss*Math.max(PW,PH)*.8+(coarse?14:6)/camera.z});
+  });
+  TS=1;
+  c.restore();
+}
+
+function pill(){
+  const [x,y,w]=G.pill,h=40,on=S.auto;
+  if(gesture?.target?.kind==='auto'){rr(x-w/2-3,y-h/2-3,w+6,h+6,h/2+3);c.fillStyle='#e3c18e22';c.fill()}
+  rr(x-w/2,y-h/2,w,h,h/2);
+  c.fillStyle=on?'#e3c18e2a':'#0b1c2dd0';c.fill();
+  c.strokeStyle=on?'#e3c18e99':'#dbe9fa30';c.lineWidth=1;c.stroke();
+  text(on?'إيقاف الحركة التلقائية':'حركة تلقائية',x,y+1,portrait?14:15,on?colors.gold:colors.ink,true);
+  const pad=coarse?12:6;
+  targets.push({kind:'auto',x:x-w/2-pad,y:y-h/2-pad,w:w+2*pad,h:h+2*pad});
+}
+
+/* Rendering */
+
+function draw(){
+  c.setTransform(DPR,0,0,DPR,0,0);
+  const bg=c.createRadialGradient(W*.53,H*.4,0,W*.5,H*.5,Math.max(W,H)*.8);
+  bg.addColorStop(0,'#25445e');bg.addColorStop(.6,'#10263e');bg.addColorStop(1,'#081429');
+  c.fillStyle=bg;c.fillRect(0,0,W,H);
+  c.translate(camera.x,camera.y);c.scale(camera.z,camera.z);
+  targets=[];
+  for(const [x,y,s] of G.title) text(s,x,y,G.ts,colors.ink,true,true);
+  scene();
+  pill();
+}
+
+/* Hit testing */
+
+function point(x,y){return {x:(x-camera.x)/camera.z,y:(y-camera.y)/camera.z}}
+function hit(x,y){
+  const p=point(x,y);
+  for(const t of [...targets].reverse()){
+    if(t.kind==='slider'){
+      const tol=(coarse?30:18)/camera.z;
+      if(p.x>t.x-tol&&p.x<t.x+t.w+tol&&Math.abs(p.y-t.y)<tol) return t;
+    } else if(t.kind==='plate'){
+      if(Math.hypot(p.x-t.x,p.y-t.y)<t.r) return t;
+    } else if(p.x>=t.x&&p.x<=t.x+t.w&&p.y>=t.y&&p.y<=t.y+t.h) return t;
+  }
+  return {kind:'pan'};
+}
+
+function apply(t,p){
+  if(t.kind==='plate'){
+    const pv=pend[t.idx];
+    const lx=(p.x-G.sx)/G.ss-pv.x, ly=(p.y-G.sy)/G.ss;
+    const a=clamp(Math.atan2(lx,Math.max(ly,1)),rad(-40),rad(40));
+    // both plates are held at the same displacement, as in the activity
+    setAll(a);
+  }
+}
+
+function tap(kind){
+  if(kind==='auto'){
+    S.auto=!S.auto;
+    if(S.auto){S.autoT=0;for(const p of pend)p.th0=p.th}
+  }
+}
+
+/* View controls */
+
+function zoomAt(z,x=W/2,y=H/2){
+  const p=point(x,y);camera.z=clamp(z,.25,5);
+  camera.x=x-p.x*camera.z;camera.y=y-p.y*camera.z;
+}
+document.querySelector('#zoomIn').onclick=()=>zoomAt(camera.z*1.2);
+document.querySelector('#zoomOut').onclick=()=>zoomAt(camera.z/1.2);
+document.querySelector('#fullscreen').onclick=async()=>{
+  try{document.fullscreenElement?await document.exitFullscreen():await document.documentElement.requestFullscreen()}catch{}
+};
+document.addEventListener('fullscreenchange',()=>{
+  const on=!!document.fullscreenElement,b=document.querySelector('#fullscreen');
+  b.setAttribute('aria-pressed',String(on));
+  b.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');
+  b.title=on?'الخروج من ملء الشاشة':'ملء الشاشة';
+  document.querySelector('#fullscreenIcon').setAttribute('d',on
+    ?'M3 8h5V3M21 8h-5V3M8 21v-5H3M16 21v-5h5'
+    :'M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5');
+});
+
+/* Info sheets */
+
+const sheetButtons=[...document.querySelectorAll('.info-bar button')];
+function openSheet(name){
+  for(const b of sheetButtons){
+    const on=b.dataset.sheet===name;
+    b.setAttribute('aria-expanded',String(on));
+    document.querySelector('#sheet-'+b.dataset.sheet).hidden=!on;
+  }
+}
+sheetButtons.forEach(b=>b.onclick=()=>openSheet(b.getAttribute('aria-expanded')==='true'?null:b.dataset.sheet));
+document.querySelectorAll('.sheet .close').forEach(b=>b.onclick=()=>openSheet(null));
+addEventListener('keydown',e=>{if(e.key==='Escape')openSheet(null)});
+
+/* Mouse and touch */
+
+const pointers=new Map();
+
+cv.onpointerdown=e=>{
+  openSheet(null);
+  cv.setPointerCapture(e.pointerId);cv.focus({preventScroll:true});
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===1){
+    const target=e.altKey?{kind:'pan'}:hit(e.clientX,e.clientY);
+    const p=point(e.clientX,e.clientY);
+    if(TAP.has(target.kind)){gesture={target,tap:true};return}
+    gesture={target,x:e.clientX,y:e.clientY,cx:camera.x,cy:camera.y};
+    if(target.kind==='plate'){S.held=true;S.auto=false;apply(target,p)}
+  } else {
+    S.held=false;
+    const [a,b]=[...pointers.values()];
+    gesture={target:{kind:'pinch'},d:Math.hypot(a.x-b.x,a.y-b.y),z:camera.z,world:point((a.x+b.x)/2,(a.y+b.y)/2)};
+  }
+};
+
+cv.onpointermove=e=>{
+  if(!pointers.has(e.pointerId)){
+    const t=hit(e.clientX,e.clientY);
+    cv.style.cursor=t.kind==='pan'?'grab':t.kind==='slider'?'ew-resize':t.kind==='plate'?'grab':'pointer';
+    return;
+  }
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===2&&gesture?.target.kind==='pinch'){
+    const [a,b]=[...pointers.values()];
+    const z=clamp(gesture.z*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,gesture.d),.25,5);
+    camera.z=z;camera.x=(a.x+b.x)/2-gesture.world.x*z;camera.y=(a.y+b.y)/2-gesture.world.y*z;
+  } else if(gesture?.tap){
+    return;
+  } else if(gesture){
+    if(gesture.target.kind==='pan'){
+      camera.x=gesture.cx+e.clientX-gesture.x;camera.y=gesture.cy+e.clientY-gesture.y;
+    } else apply(gesture.target,point(e.clientX,e.clientY));
+  }
+};
+
+function release(e){
+  if(gesture?.tap&&pointers.size===1&&e.type==='pointerup') tap(gesture.target.kind);
+  if(gesture?.target?.kind==='plate') S.held=false;
+  pointers.delete(e.pointerId);
+  if(pointers.size===1){
+    const p=[...pointers.values()][0];
+    gesture={target:{kind:'pan'},x:p.x,y:p.y,cx:camera.x,cy:camera.y};
+  } else gesture=null;
+}
+cv.onpointerup=release;cv.onpointercancel=release;
+
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(camera.z*Math.exp(-e.deltaY*.001),e.clientX,e.clientY)},{passive:false});
+cv.ondblclick=e=>{if(hit(e.clientX,e.clientY).kind==='pan')fit()};
+
+cv.onkeydown=e=>{
+  if([' ','Home'].includes(e.key)) e.preventDefault();
+  if(e.key===' ') tap('auto');
+  if(e.key==='Home') fit();
+};
+
+let last=performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=clamp((now-last)/1000,1/240,.04);last=now;
+  update(dt);draw();
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
