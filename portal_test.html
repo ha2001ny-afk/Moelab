@@ -252,6 +252,43 @@
       gap: 6px;
     }
 
+    /* قائمة الفصول */
+    .chapter-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .chapter-tile {
+      background: #0b1526;
+      border: 2px solid #1a2942;
+      border-radius: 16px;
+      padding: 18px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: right;
+      color: inherit;
+      font: inherit;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .chapter-tile:hover { border-color: #38bdf8; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(56,189,248,.12); }
+    .chapter-tile .ct-icon {
+      flex: none; width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; background: rgba(56,189,248,.08); border: 1px solid #1a2942;
+    }
+    .chapter-tile .ct-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .chapter-tile .ct-num { font-size: 0.78rem; font-weight: 900; color: #38bdf8; }
+    .chapter-tile .ct-name { font-size: 1.02rem; font-weight: 900; color: #f8fafc; line-height: 1.5; }
+    .chapter-tile .ct-count { font-size: 0.78rem; color: #94a3b8; font-weight: bold; }
+    .chapter-tile.locked { opacity: .5; }
+    .chapter-tile.locked .ct-count::after { content: "  •  🔒 غير مفعّل"; color: #f87171; }
+    .chapter-tile:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
+    .top-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .chapter-section.solo .chapter-title { font-size: 1.1rem; border-bottom-color: #334155; padding-bottom: 8px; }
+
     .chapter-section {
       display: flex;
       flex-direction: column;
@@ -512,7 +549,10 @@
     <div id="chaptersView">
       <div class="chapters-top-bar">
         <div class="current-subj-title" id="currentSubjectTitle">⚡ مختبر الفيزياء</div>
-        <button class="btn-back-subjects" onclick="showSubjectsView()">🔙 تغيير المادة</button>
+        <div class="top-bar-actions">
+          <button class="btn-back-subjects" id="btnBackChapters" onclick="showChapterMenu()" style="display:none">📚 الفصول</button>
+          <button class="btn-back-subjects" onclick="showSubjectsView()">🔙 تغيير المادة</button>
+        </div>
       </div>
 
       <!-- مادة الفيزياء -->
@@ -1668,6 +1708,7 @@
           }
         });
       });
+      showChapterMenu(subj);
     }
 
     /* ملء الشاشة للموقع كله (لا يغير أي شيء في التجارب) */
@@ -1710,6 +1751,62 @@
     }
     document.addEventListener('fullscreenchange', syncSiteFsBtn);
     document.addEventListener('webkitfullscreenchange', syncSiteFsBtn);
+
+    /* ---------- قائمة الفصول: المادة ← الفصول ← محاكيات الفصل ---------- */
+    let currentMenuSubj = null;
+    function showChapterMenu(subj) {
+      subj = subj || currentMenuSubj;
+      if (!subj) return;
+      currentMenuSubj = subj;
+      const box = document.getElementById(`container_${subj}`);
+      if (!box) return;
+      let menu = box.querySelector('.chapter-menu');
+      if (!menu) {
+        menu = document.createElement('div');
+        menu.className = 'chapter-menu';
+        box.insertBefore(menu, box.firstChild);
+      }
+      menu.innerHTML = '';
+      box.querySelectorAll('.chapter-section').forEach(sec => {
+        const ch = sec.getAttribute('data-chapter');
+        const raw = (sec.querySelector('.chapter-title') || {}).textContent || '';
+        const t = raw.trim();
+        const sp = t.indexOf(' ');
+        const icon = sp > 0 ? t.slice(0, sp) : '📘';
+        const rest = sp > 0 ? t.slice(sp + 1) : t;
+        const ci = rest.indexOf(':');
+        const num = ci > 0 ? rest.slice(0, ci).trim() : '';
+        const name = ci > 0 ? rest.slice(ci + 1).trim() : rest;
+        const n = sec.querySelectorAll('.exp-card').length;
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'chapter-tile' + (isChapterAllowed(subj, ch) ? '' : ' locked');
+        tile.innerHTML = '<span class="ct-icon"></span><span class="ct-text"><span class="ct-num"></span><span class="ct-name"></span><span class="ct-count"></span></span>';
+        tile.querySelector('.ct-icon').textContent = icon;
+        tile.querySelector('.ct-num').textContent = num;
+        tile.querySelector('.ct-name').textContent = name;
+        tile.querySelector('.ct-count').textContent = n + (n === 1 ? ' محاكاة' : (n === 2 ? ' محاكاتان' : (n <= 10 ? ' محاكيات' : ' محاكاة')));
+        tile.onclick = () => openChapter(subj, ch);
+        menu.appendChild(tile);
+        sec.style.display = 'none';
+        sec.classList.remove('solo');
+      });
+      menu.style.display = '';
+      document.getElementById('btnBackChapters').style.display = 'none';
+      window.scrollTo({ top: 0 });
+    }
+    function openChapter(subj, ch) {
+      const box = document.getElementById(`container_${subj}`);
+      const menu = box.querySelector('.chapter-menu');
+      if (menu) menu.style.display = 'none';
+      box.querySelectorAll('.chapter-section').forEach(sec => {
+        const on = sec.getAttribute('data-chapter') === ch;
+        sec.style.display = on ? 'flex' : 'none';
+        sec.classList.toggle('solo', on);
+      });
+      document.getElementById('btnBackChapters').style.display = '';
+      window.scrollTo({ top: 0 });
+    }
 
     function showSubjectsView() {
       document.getElementById('chaptersView').style.display = 'none';
