@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>أسئلة الفصل الثاني</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;--ok:#1b7a3a;--okbg:#eef9f0;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  *,*:before,*:after{box-sizing:inherit}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:rtl}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 8px}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px;overflow:hidden;touch-action:none;cursor:grab}
+  #board{position:absolute;left:0;top:0;width:1000px;height:720px;transform-origin:0 0}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:clamp(6px,2vw,14px);padding:0 6px env(safe-area-inset-bottom,0px)}
+  #go,#prev,#ans{min-width:clamp(92px,28vw,150px);height:56px;padding:0 clamp(10px,3vw,22px);border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold clamp(15px,4vw,21px) Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);white-space:nowrap}
+  #ans{border-color:var(--hint);color:#fff;background:var(--hint)}
+  #ans.hide{background:var(--paper);color:var(--hint)}
+  #prev:disabled,#ans:disabled,#go:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible,#ans:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  #ans:active{filter:brightness(.9)}
+  body.paused *{animation-play-state:paused!important}
+
+  /* ---------- screens ---------- */
+  .scr{position:absolute;inset:0;display:none;flex-direction:column;align-items:center}
+  .scr.on{display:flex}
+  .in{animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+  /* menu */
+  #menu{justify-content:center;gap:22px}
+  .mtitle{font-size:52px;font-weight:bold;color:var(--ink)}
+  .msub{font-size:24px;font-weight:bold;color:#6b7a8c;margin-top:-10px;margin-bottom:10px}
+  #mlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 26px;width:920px}
+  .mc{display:flex;align-items:center;gap:20px;padding:18px 22px;border-radius:30px;border:3px solid var(--navy);background:#fff;box-shadow:0 5px 14px rgba(31,58,82,.18);cursor:pointer;transition:transform .2s,box-shadow .2s}
+  .mc:hover{transform:translateY(-4px);box-shadow:0 10px 22px rgba(31,58,82,.25)}
+  .mc:active{background:#d9ebf7}
+  .mc .mn{flex:none;width:80px;height:80px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:bold}
+  .mc .mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .mc .mt b{font-size:32px;color:var(--ink)}
+  .mc .mt i{font-style:normal;font-size:19px;font-weight:bold;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar{height:10px;border-radius:5px;background:#e3eaf1;overflow:hidden}
+  .bar s{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+  .mc .go{flex:none;font-size:32px;color:var(--hint)}
+
+  /* intro */
+  #intro{justify-content:center;gap:26px}
+  .bigQ{width:190px;height:190px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:110px;font-weight:bold;box-shadow:0 10px 30px rgba(31,58,82,.35);animation:bob 2.6s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-12px)}}
+  .h1{font-size:58px;font-weight:bold;color:var(--ink)}
+  .h2{font-size:30px;font-weight:bold;color:var(--sub);text-align:center;line-height:1.6;max-width:860px}
+  .h3{font-size:24px;color:#6b7a8c;font-weight:bold}
+
+  /* question */
+  .qhead{margin-top:14px;font-size:26px;font-weight:bold;color:var(--sub);border-bottom:3px solid #f0d9b8;padding:0 18px 6px}
+  .dots{display:flex;gap:10px;margin-top:14px;direction:rtl}
+  .dot{width:34px;height:34px;border-radius:50%;border:2.5px solid #c3d0dd;background:#fff;color:#8a96a8;font-size:15px;font-weight:bold;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s}
+  .dot.done{background:var(--ok);border-color:var(--ok);color:#fff}
+  .dot.cur{border-color:var(--hint);color:var(--hint);transform:scale(1.22);box-shadow:0 0 0 4px #f6dccf}
+  .dot.cur.done{color:#fff}
+  .badge{position:relative;width:116px;height:116px;margin-top:14px;cursor:pointer}
+  .badge svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+  .badge .num{position:absolute;inset:16px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:bold}
+  .badge.late .num{background:#c62828}
+  .badge.late{animation:shake .5s ease 2}
+  @keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+  .tleft{height:30px;margin-top:4px;font-size:21px;font-weight:bold;color:#6b7a8c}
+  .tleft.late{color:#c62828}
+  .stmt{margin-top:8px;width:900px;min-height:190px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:42px;line-height:1.7;font-weight:bold;color:var(--ink);padding:10px 20px;border-radius:24px;background:#f7fafc;border:2px solid #e3eaf1}
+  .stmt.long{font-size:34px;min-height:130px}
+  .ansWrap{position:relative;margin-top:22px}
+  .ans{position:relative;z-index:1;min-width:560px;height:112px;padding:0 40px;border-radius:24px;border:4px dashed var(--hint);display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:bold;color:#d6b7a6;background:#fff;letter-spacing:6px;cursor:pointer;transition:background .3s,border-color .3s}
+  .ans.open{border-style:solid;border-color:var(--ok);background:var(--okbg);color:var(--ok);letter-spacing:0}
+  .ans.long{width:900px;min-width:0;height:auto;min-height:112px;padding:14px 28px}
+  .ans.long.open{justify-content:flex-start;text-align:right;font-size:30px;line-height:1.7}
+  .ans.long.open em{font-style:normal;color:var(--hint);margin-left:8px}
+  .ans.open span{animation:popIn .6s cubic-bezier(.3,1.6,.5,1) both}
+  @keyframes popIn{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+  /* multiple choice */
+  .opts{position:relative;z-index:1;display:none;grid-template-columns:1fr 1fr;gap:16px 22px;width:900px}
+  .op{display:flex;align-items:center;gap:16px;min-height:86px;padding:10px 18px;border-radius:22px;border:3px solid #c3d0dd;background:#fff;font-size:30px;font-weight:bold;color:var(--ink);cursor:pointer;transition:opacity .3s,background .3s,border-color .3s,transform .2s;box-shadow:0 3px 8px rgba(31,58,82,.08)}
+  .op:hover{transform:translateY(-3px)}
+  .op b{flex:none;width:54px;height:54px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;transition:background .3s}
+  .op.ok{border-color:var(--ok);background:var(--okbg);color:var(--ok);animation:popIn .6s cubic-bezier(.3,1.6,.5,1) both}
+  .op.ok b{background:var(--ok)}
+  .op.bad{border-color:#c62828;background:#fdecea;color:#c62828}
+  .op.bad b{background:#c62828}
+  .op.dim:not(.bad){opacity:.4}
+  .op.shk{animation:shake .45s ease}
+  .par{display:inline-block;min-width:90px;text-align:center;color:#8a96a8;margin-left:12px}
+  .par:before{content:'( '}.par:after{content:' )'}
+  .par b{display:inline-block;color:var(--ok);animation:popIn .6s cubic-bezier(.3,1.6,.5,1) both}
+  /* fill in the blanks */
+  .stmt.fill{display:block;text-align:right;font-size:34px;line-height:2.3;min-height:300px;margin-top:18px;padding:22px 34px}
+  .bl{display:inline-block;min-width:170px;min-height:1.5em;vertical-align:middle;margin:0 6px;padding:0 12px;border-bottom:4px dashed var(--hint);background:#fff6f1;border-radius:10px 10px 0 0;cursor:pointer;line-height:1.5em;text-align:center;transition:background .3s}
+  .bl:hover{background:#fde6da}
+  .bl.on{min-width:0;border-bottom-style:solid;border-bottom-color:var(--ok);background:var(--okbg);color:var(--ok)}
+  .bl.on i{font-style:normal;display:inline-block;animation:popIn .6s cubic-bezier(.3,1.6,.5,1) both}
+  /* table / compare columns */
+  .stmt.cols{display:block;text-align:right;font-size:22px;line-height:1.65;min-height:0;margin-top:8px;padding:14px 18px}
+  .ctitle{text-align:center;font-size:32px;color:var(--ink);margin-bottom:10px}
+  .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .chead{background:var(--navy);color:#fff;text-align:center;border-radius:14px 14px 0 0;padding:6px 10px;font-size:23px;line-height:1.4}
+  .bl.cb{display:block;width:100%;margin:0;min-height:120px;border:3px dashed var(--hint);border-top:none;border-radius:0 0 14px 14px;text-align:right;padding:10px 14px;line-height:1.6;font-size:25px}
+  .bl.cb.on{border-style:solid;border-color:var(--ok);border-top:none}
+  .bl.cb.on i{display:block}
+  .cgrid.tight{grid-template-columns:1fr 2fr}
+  .cgrid.tight .bl.cb{font-size:22px;line-height:1.55}
+  .ctitle.tight{font-size:28px;margin-bottom:6px}
+  .badge{flex:none}
+  .chips{display:block;text-align:center;font-size:24px;color:var(--sub);background:#fff8ec;border:2px dashed #e6c58f;border-radius:16px;padding:4px 12px;margin-bottom:6px;line-height:1.7}
+  #qs.compact .badge{width:84px;height:84px;margin-top:8px}
+  #qs.compact .badge .num{inset:12px;font-size:32px}
+  #qs.compact .tleft{height:24px;font-size:17px;margin-top:2px}
+  #qs.compact .qhead{font-size:23px}
+  .grid.mcq{gap:12px 30px}
+  .grid.mcq .it{height:56px;font-size:23px}
+  .grid.mcq .it b{width:38px;height:38px;font-size:18px}
+  .glow{position:absolute;left:50%;top:50%;width:760px;height:260px;margin:-130px 0 0 -380px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,210,58,.95),rgba(255,176,0,0));opacity:0;pointer-events:none}
+  .glow.go{animation:glow 1.6s ease-out both}
+  @keyframes glow{0%{opacity:0;transform:scale(.6)}35%{opacity:.9}100%{opacity:0;transform:scale(1.15)}}
+  .cf{position:absolute;left:50%;top:50%;width:14px;height:20px;border-radius:3px;z-index:2;pointer-events:none;animation:cf 1.3s cubic-bezier(.15,.7,.4,1) forwards}
+  @keyframes cf{0%{opacity:1;transform:translate(-50%,-50%) rotate(0)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r))}}
+
+  /* review */
+  #rev{padding-top:20px}
+  .grid{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;width:920px}
+  .it{display:flex;align-items:center;gap:14px;height:66px;padding:0 16px;border-radius:18px;border:2.5px solid #e3eaf1;background:#f7fafc;font-size:27px;font-weight:bold;color:#b0bccb;cursor:pointer;min-width:0}
+  .it b{flex:none;width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px}
+  .it span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid.long .it{font-size:21px;color:#8a96a8}
+  .it.done{border-color:var(--ok);background:var(--okbg);color:var(--ok)!important}
+  .it.done span{animation:popIn .5s cubic-bezier(.3,1.6,.5,1) both}
+</style></head><body>
+
+<div id="top"><div id="title">أسئلة الفصل الثاني</div></div>
+<div id="stage">
+  <div class="zb"><button id="home" aria-label="القائمة الرئيسية">⌂</button><button id="zin" aria-label="تكبير">+</button><button id="zout" aria-label="تصغير">−</button><button id="zreset" aria-label="إعادة الضبط">⟲</button><button id="pause" aria-label="إيقاف مؤقت">⏸</button><button id="fs" aria-label="ملء الشاشة">⛶</button></div>
+  <div id="cv">
+    <div id="board">
+      <!-- menu -->
+      <div class="scr" id="menu">
+        <div class="mtitle">أسئلة الفصل الثاني</div>
+        <div class="msub">اختر السؤال المطلوب</div>
+        <div id="mlist"></div>
+      </div>
+      <!-- intro -->
+      <div class="scr" id="intro">
+        <div class="bigQ" id="iNum">١</div>
+        <div class="h1" id="iName"></div>
+        <div class="h2" id="iHead"></div>
+        <div class="h3" id="iNote"></div>
+      </div>
+      <!-- question -->
+      <div class="scr" id="qs">
+        <div class="qhead" id="qhead"></div>
+        <div class="dots" id="dots"></div>
+        <div class="badge" id="badge" title="إعادة المؤقت">
+          <svg viewBox="0 0 130 130"><circle cx="65" cy="65" r="58" fill="none" stroke="#e3eaf1" stroke-width="10"/><circle id="ring" cx="65" cy="65" r="58" fill="none" stroke="#c4623a" stroke-width="10" stroke-linecap="round"/></svg>
+          <div class="num" id="num">١</div>
+        </div>
+        <div class="tleft" id="tleft"></div>
+        <div class="stmt" id="stmt"></div>
+        <div class="ansWrap"><div class="glow" id="glow"></div><div class="ans" id="ansBox"></div><div class="opts" id="opts"></div></div>
+      </div>
+      <!-- review -->
+      <div class="scr" id="rev">
+        <div class="h1" id="rTitle" style="font-size:44px"></div>
+        <div class="h3" id="score" style="margin-top:8px"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>السابق ▶</button><button id="ans" disabled>إظهار الحل 💡</button><button id="go">ابدأ</button></div>
+</div>
+
+<script>
+(function(){
+/* ================= الأسئلة ================= */
+const SECS=[
+ {name:'السؤال الأول',short:'س١',type:'term',time:30,
+  head:'اكتب المصطلح العلمي الذي يدل على كل عبارة مما يأتي :',
+  sub:'المصطلحات العلمية',
+  items:[
+   ['الأنسجة المرستيمية التي تتواجد في القمم النامية للساق والجذر في النباتات الراقية .','الأنسجة المرستيمية القمية'],
+   ['أنسجة مرستيمية تتواجد في الجزء القاعدي من نصل الورقة .','الأنسجة المرستيمية البينية'],
+   ['النسيج الذي تتمايز خلاياه لتكون الأنسجة المستديمة في جسم النبات .','النسيج الأساس'],
+   ['الخلايا البرنكيمية التي تحتوي على البلاستيدات .','الخلايا الكلورنكيمية'],
+   ['أحد نوعي الخلايا السكلرنكيمية التي توجد في بعض الثمار مثل الكمثرى .','الخلايا الصخرية (الحجرية)'],
+   ['إحدى خلايا النسيج الضام ، شكلها أميبي ونواتها ليست مركزية الموقع .','البلعم الكبير'],
+   ['نوع من أنواع ألياف النسيج الضام ، يوجد بصورة مفردة ويكون مرن سهل التمدد .','الألياف الصفر أو المرنة (المطاطة)'],
+   ['خلايا مغزلية الشكل توجد في دم الطيور والبرمائيات تقابل الصفيحات الدموية في دم الثدييات .','الخلايا الخثرية'],
+   ['إنزيم تحرره الصفيحات الدموية ، ويؤدي دوراً مهماً في عملية تخثر الدم .','إنزيم الثرومبوبلاستين'],
+   ['خلايا تشكل القسم الأعظم من النسيج العصبي وتشغل أكثر من نصف حجم الدماغ .','الخلايا الدبقية (الدبق العصبي)']
+  ]},
+ {name:'السؤال الثاني',short:'س٢',type:'why',time:60,
+  head:'فسّر الحقائق العلمية الآتية ( علّل ) :',
+  sub:'فسّر الحقائق العلمية ( علّل )',
+  items:[
+   ['غالباً ما تكون خلايا النسيج البرنكيمي كروية الشكل أو مضلعة .','نتيجة للضغط الواقع عليها من الخلايا المجاورة .'],
+   ['سبب تسمية النسيج الظهاري العمودي المطبق الكاذب بهذا الاسم .','لأنه يتكون من أكثر من نوع من الخلايا التي تقع أنويتها في مستويات مختلفة ، مما يوحي أن النسيج مكوّن من عدة طبقات من الخلايا .'],
+   ['النسيج الظهاري المتحول يوجد في الأعضاء القابلة للتمدد والانكماش .','بسبب قابلية خلايا هذا النسيج على تغيير شكلها ، مما يجعله مناسباً جداً للأعضاء القابلة للتمدد والانكماش والتي يبطنها هذا النسيج .'],
+   ['وجود الهستامين في الخلية البدينة في النسيج الضام .','لأنه يلعب دوراً مهماً في تقلص العضلات الملساء ضمن القصيبات الرئوية ، كما يقوم بتوسيع الشعيرات الدموية من أجل زيادة قابليتها النضوحية .'],
+   ['توصف الأنسجة الضامة بأنها أنسجة ساندة .','لأنها تربط أجزاء الجسم المختلفة وتسندها .'],
+   ['يمثل العظم نسيجاً ضاماً أكثر صلابة من النسيج الغضروفي .','وذلك لاحتواء المادة بين الخلوية على نسبة كبيرة من أملاح الكالسيوم مثل فوسفات الكالسيوم وكاربونات الكالسيوم (أملاح لاعضوية) ، إضافة إلى الألياف البيض .'],
+   ['يطلق على العضلات الهيكلية تسمية العضلات المخططة .','لأن الليف العضلي مخطط بخطوط عرضية وتظهر فيه مناطق غامقة وأخرى فاتحة ، مما يعطي الليف ككل مظهراً مخططاً .']
+  ]},
+ /* اختيار من متعدد: [العبارة , [أ , ب , ج , د] , رقم الجواب الصحيح 0=أ 1=ب 2=ج 3=د] */
+ {name:'السؤال الثالث',short:'س٣',type:'mcq',time:30,
+  head:'اكتب داخل القوسين الحرف الذي يشير إلى الجواب الصحيح :',
+  sub:'الاختيار من متعدد',
+  items:[
+   ['الأنسجة المرستيمية التي تتواجد في قواعد وقمم السلاميات هي :',['القمية','البينية','الجانبية','الطرفية'],1],
+   ['النسيج الذي تكون خلاياه ميتة وذات جدران مغلظة هو النسيج :',['الكولنكيمي','البرنكيمي','السكلرنكيمي','الميزنكيمي'],2],
+   ['النسيج الذي يوجد في بطانة الرغامي هو :',['النسيج الظهاري الحرشفي البسيط','النسيج الظهاري العمودي المطبق الكاذب','النسيج الظهاري العمودي البسيط','النسيج الظهاري المكعبي البسيط'],1],
+   ['يقع النسيج الظهاري المكعبي البسيط في بطانة :',['الأوعية الدموية','الحويصلات الرئوية','نبيبات الكلية','الغدد'],2],
+   ['الخلية المسؤولة عن تكوين جميع أنواع الألياف في النسيج الضام هي :',['الخلية البلازمية','البلعم الكبير','الخلية الحشوية المتوسطة','الأرومة الليفية'],3],
+   ['الخلية البلازمية إحدى أنواع خلايا النسيج الضام ، حُددت وظيفتها بالآتي :',['التهام الجزيئات الغريبة','تكوين الأجسام المضادة','حماية الفرد من فقدان الحرارة','تتمايز إلى أي نوع من خلايا النسيج الضام'],1],
+   ['نوع النسيج الضام الرخو الذي يقع في الكبد هو :',['الشبكي','المتوسط','المخاطاني','الشحمي'],0],
+   ['الغضروف الموجود في صيوان الأذن هو من نوع :',['الشفاف','الليفي الأبيض','المطاط','المخاطاني'],2],
+   ['يزداد عدد خلايا الدم الحمر عن الحد الطبيعي في :',['حالات فقر الدم','حالات الصعود إلى مرتفعات عالية','التعرض إلى غاز ثنائي أوكسيد الكاربون','حالات التعرض للإشعاع'],1],
+   ['يقدر عمر خلايا الدم الحمر في الإنسان بـ :',['130 يوماً','120 يوماً','112 يوماً','140 يوماً'],1],
+   ['تبلغ نسبة البلازما في الدم :',['55 %','50 %','90 %','95 %'],0],
+   ['العضلات التي يكون شكل خلاياها مغزلياً بنهايتين مستدقتين وتغلظ في الوسط هي :',['الملساء','الهيكلية','القلبية','المخططة'],0]
+  ]},
+ /* أكمل الفراغات: كل __ في العبارة فراغ، وإجاباتها بالترتيب */
+ {name:'السؤال الرابع',short:'س٤',type:'fill',time:60,
+  head:'أكمل العبارات التالية :',
+  sub:'أكمل الفراغات',
+  items:[
+   ['يتكون نسيج الخشب من عناصر مختلفة في التركيب والوظيفة هي :<br>أ- __ &nbsp;&nbsp; ب- __<br>ج- __ &nbsp;&nbsp; د- __',['القصيبات','الأوعية','الألياف','برنكيما الخشب']],
+   ['النسيج الذي يبطن الإحليل هو __ .',['النسيج الظهاري المطبق العمودي']],
+   ['توجد خلايا النسيج الظهاري المطبق المكعبي في __ .',['بطانة قنوات الغدد العرقية والنبيبات المنوية']],
+   ['تتكون الأنسجة الضامة من :<br>أ- __ &nbsp;&nbsp; ب- __ &nbsp;&nbsp; ج- __',['خلايا','ألياف','مادة بين خلوية']],
+   ['يصنف النسيج الضام الأصيل حسب كثافة محتوياته إلى __ و __ .',['رخو مفكك','كثيف']],
+   ['تشكل الصفائح العظمية متحدة المركز و __ جهازاً يعرف بجهاز __ .',['قناة هافرس','هافرس']],
+   ['يتحد الأوكسجين مع صبغة الهيموكلوبين مكوناً مركب __ .',['أوكسي هيموكلوبين']],
+   ['تكون خلايا الدم البيض الحبيبية على أنواع ثلاثة هي :<br>أ- __ &nbsp;&nbsp; ب- __ &nbsp;&nbsp; ج- __',['العدلة','الحمضة','القعدة']]
+  ]},
+ /* مقارنات: k:'cols' عمودان */
+ {name:'السؤال الخامس',short:'س٥',type:'mixed',time:90,
+  head:'قارن بين :',
+  sub:'المقارنات',
+  items:[
+   {k:'cols',t:'قارن : المرستيمي والوعائي',h:'قارن بين النسيج المرستيمي والنسيج الوعائي من حيث الموقع والوظيفة :',q:'',heads:['النسيج المرستيمي','النسيج الوعائي'],
+    a:['١- الموقع : في أجزاء النبات ذات النشاط الانقسامي الخلوي العالي .<br>٢- الوظيفة : انقسام الخلايا والنمو واستطالة قمم الجذور والسيقان ونمو البراعم وتثخن بعض الجذور والسيقان .',
+       '١- الموقع : في أجزاء النبات المختلفة التي تحوي خشباً ولحاءً .<br>٢- الوظيفة : أ- نقل الماء والمواد المذابة والمواد الغذائية .<br>ب- الخزن . &nbsp; ج- الإسناد .']},
+   {k:'cols',t:'قارن : الأساس والبشرة',h:'قارن بين النسيج الأساس ونسيج البشرة من حيث الموقع والوظيفة :',q:'',heads:['النسيج الأساس','نسيج البشرة'],
+    a:['١- الموقع : في الجذور والسيقان والأوراق ممثلاً بالقشرة واللب والأشعة اللبية .<br>٢- الوظيفة : يشكل كتلاً نسيجية داخلية في الجذور والسيقان والأوراق .',
+       '١- الموقع : في الطبقة الخارجية لأجزاء النبات المختلفة .<br>٢- الوظيفة : حماية النبات والسيطرة على تبادل الغازات وامتصاص الماء .']},
+   {k:'cols',t:'قارن : الخشب واللحاء',h:'قارن بين نسيج الخشب ونسيج اللحاء من حيث المكونات والوظيفة :',q:'',heads:['نسيج الخشب','نسيج اللحاء'],
+    a:['١- يتكون من : أوعية الخشب ، القصيبات ، ألياف الخشب ، برنكيما الخشب .<br>٢- وظيفته : نقل الماء والأملاح المذابة فيه ، والخزن والدعم والإسناد .',
+       '١- يتكون من : الأنابيب المنخلية ، الخلايا المرافقة ، ألياف اللحاء ، برنكيما اللحاء .<br>٢- وظيفته : نقل المواد الغذائية ، والخزن والإسناد والدعم .']},
+   {k:'cols',t:'قارن : المصمت والإسفنجي',h:'قارن بين العظم المصمت والعظم الإسفنجي :',q:'',tight:1,heads:['العظم المصمت','العظم الإسفنجي'],
+    a:['١- الصفائح العظمية فيه تترتب بشكل ( صفائح محيطية وصفائح متحدة المركز وصفائح بينية ) .<br>٢- يحوي قنوات هافرس وفولكمان .<br>٣- يبدو صلباً .<br>٤- يحوي جهاز هافرس .',
+       '١- لا تترتب المادة البينية بشكل صفائح بل تتخذ شكل حواجز أو عوارض غير منتظمة تتفرع وتلتقي تفرعاتها فتنحصر بينها فسح يشغلها نقي العظم .<br>٢- لا توجد فيه قنوات هافرس وفولكمان .<br>٣- أقل صلابة .<br>٤- لا يحوي جهاز هافرس .']}
+  ]},
+ /* مزاوجة: k:'fill' والمجموعة الثانية في الأعلى */
+ {name:'السؤال السادس',short:'س٦',type:'mixed',time:60,
+  head:'ضع داخل القوسين أمام كل مفردة من مفردات المجموعة الأولى ، رقم المفردة المناسبة من المجموعة الثانية :',
+  sub:'المزاوجة بين المجموعتين',
+  items:[
+   {k:'fill',t:'المزاوجة : الجزء الأول',h:'ضع أمام كل مفردة رقم المفردة المناسبة من المجموعة الثانية :',
+    q:'<span class="chips">١- الإسناد ، ٢- الانتشار والإفراز ، ٣- الحماية والإفراز ، ٤- الإسناد والامتصاص ،<br>٥- الانتشار والترشيح ، ٦- الحماية ، ٧- الإفراز والامتصاص ، ٨- الحماية والإفراز والامتصاص</span>النسيج الظهاري الحرشفي البسيط ( __ )<br>النسيج الضام الشبكي ( __ )<br>النسيج الظهاري العمودي البسيط ( __ )',
+    a:['٥','١','٨']},
+   {k:'fill',t:'المزاوجة : الجزء الثاني',h:'ضع أمام كل مفردة رقم المفردة المناسبة من المجموعة الثانية :',
+    q:'<span class="chips">١- الإسناد ، ٢- الانتشار والإفراز ، ٣- الحماية والإفراز ، ٤- الإسناد والامتصاص ،<br>٥- الانتشار والترشيح ، ٦- الحماية ، ٧- الإفراز والامتصاص ، ٨- الحماية والإفراز والامتصاص</span>النسيج الظهاري المكعبي البسيط ( __ )<br>النسيج الظهاري المطبق الحرشفي ( __ )<br>النسيج الظهاري العمودي المطبق الكاذب ( __ )',
+    a:['٧','٦','٣']}
+  ]}
+];
+const L=['أ','ب','ج','د'];
+/* ========================================== */
+
+const ar=n=>n.toLocaleString('ar-EG'),$=id=>document.getElementById(id),plain=h=>h.replace(/<[^>]+>/g,'');
+const scr={menu:$('menu'),intro:$('intro'),qs:$('qs'),rev:$('rev')};
+const btn=$('go'),pbtn=$('prev'),abtn=$('ans'),ring=$('ring'),badge=$('badge'),tleft=$('tleft'),ansBox=$('ansBox'),stmt=$('stmt');
+const RL=2*Math.PI*58;ring.style.strokeDasharray=RL;
+const REV=SECS.map(s=>Array(s.items.length).fill(false)),PICK=SECS.map(s=>s.items.map(()=>new Set())),opts=$('opts');
+const FILL=SECS.map(s=>s.items.map(it=>s.type==='fill'?it[1].map(()=>false):s.type==='mixed'?it.a.map(()=>false):null));
+const MIX=()=>S().type==='mixed',LR=()=>S().type==='why'||MIX(),K=i=>MIX()?S().items[i].k:S().type,
+  Qt=i=>MIX()?S().items[i].q:S().items[i][0],Ans=i=>MIX()?S().items[i].a:S().items[i][1];
+function setDone(i,v){rev()[i]=v;const f=FILL[sec][i];if(f)f.fill(v);if(!v)PICK[sec][i].clear();}
+function blank(k){if(idx<0||idx>=N())return;const f=FILL[sec][idx];f[k]=!f[k];const was=rev()[idx];rev()[idx]=f.every(Boolean);
+  if(was&&!rev()[idx]){rem=S().time;running=true;}paintAns(rev()[idx]&&!was);}
+let sec=-1,idx=-1,rem=30,running=false,paused=false,dots=[],items=[];
+const S=()=>SECS[sec],N=()=>S().items.length,rev=()=>REV[sec];
+
+/* menu cards */
+const cards=SECS.map((s,k)=>{const c=document.createElement('div');c.className='mc';
+  c.innerHTML=`<div class="mn">${ar(k+1)}</div><div class="mt"><b>${s.name}</b><i>${s.sub} — ${ar(s.items.length)} فقرة</i><div class="bar"><s></s></div></div><div class="go">◀</div>`;
+  c.onclick=()=>open(k,-1);$('mlist').appendChild(c);return c;});
+function paintMenu(){cards.forEach((c,k)=>{const r=REV[k];c.querySelector('s').style.width=(100*r.filter(Boolean).length/r.length)+'%';});}
+
+function build(){const s=S();
+  $('dots').innerHTML='';dots=s.items.map((q,i)=>{const d=document.createElement('div');d.className='dot';d.textContent=ar(i+1);d.onclick=()=>show(i);$('dots').appendChild(d);return d;});
+  const g=$('grid');g.innerHTML='';g.classList.toggle('long',LR());
+  items=s.items.map((q,i)=>{const d=document.createElement('div');d.className='it';d.innerHTML=`<b>${ar(i+1)}</b><span></span>`;
+    d.onclick=()=>{if(LR())show(i);else{setDone(i,!rev()[i]);paintRev();}};g.appendChild(d);return d;});
+  $('qhead').textContent=s.short+' / '+s.head;
+  $('iNum').textContent=ar(sec+1);$('iName').textContent=s.name;$('iHead').textContent=s.head;
+  $('iNote').textContent=`${ar(s.items.length)} فقرة — فكّر جيداً قبل ظهور الحل`;
+  $('rTitle').textContent='مراجعة إجابات '+s.name;
+  stmt.classList.toggle('long',s.type!=='term');ansBox.classList.toggle('long',s.type==='why');
+  const mcq=s.type==='mcq',fill=s.type==='fill',mix=s.type==='mixed';ansBox.style.display=mcq||fill||mix?'none':'';opts.style.display=mcq?'grid':'none';
+  g.classList.toggle('mcq',mcq||fill||mix);stmt.classList.toggle('fill',fill);stmt.classList.remove('cols');scr.qs.classList.toggle('compact',mix);}
+function pick(k){if(idx<0||idx>=N()||rev()[idx])return;const it=S().items[idx];
+  if(k===it[2]){rev()[idx]=true;paintAns(true);return;}
+  PICK[sec][idx].add(k);const o=opts.children[k];o.classList.add('bad');o.classList.remove('shk');void o.offsetWidth;o.classList.add('shk');}
+
+function anim(e){e.classList.remove('in');void e.offsetWidth;e.classList.add('in');}
+function setTimer(v){rem=v;const T=S().time,late=rem<=0,done=idx>=0&&idx<N()&&rev()[idx];
+  ring.style.strokeDashoffset=done?0:RL*(1-Math.max(0,rem)/T);
+  ring.setAttribute('stroke',done?'#1b7a3a':late?'#c62828':rem<=T/3?'#e0a020':'#c4623a');
+  tleft.textContent=done?'✔ تم الحل':late?'⏰ انتهى الوقت':ar(Math.ceil(rem))+' ثانية';
+  tleft.classList.toggle('late',late&&!done);}
+function paintAns(burst){const o=rev()[idx],it=S().items[idx],a=it[1];
+  if(S().type==='mcq'){[...opts.children].forEach((e,k)=>{e.classList.toggle('ok',o&&k===it[2]);e.classList.toggle('dim',o&&k!==it[2]);e.classList.toggle('bad',PICK[sec][idx].has(k));});
+    const p=$('par');if(p)p.innerHTML=o?`<b>${L[it[2]]}</b>`:'&nbsp;&nbsp;';}
+  else if(FILL[sec][idx]){const f=FILL[sec][idx],A=Ans(idx);stmt.querySelectorAll('.bl').forEach((b,k)=>{const on=f[k];
+    if(on&&!b.classList.contains('on')){b.classList.add('on');b.innerHTML=`<i>${A[k]}</i>`;}
+    else if(!on&&b.classList.contains('on')){b.classList.remove('on');b.innerHTML='';}});}
+  else{ansBox.classList.toggle('open',o);
+  ansBox.innerHTML=o?(S().type==='why'?`<span><em>ج /</em>${a}</span>`:`<span>${a}</span>`):'؟ ؟ ؟';}
+  dots.forEach((d,i)=>{d.classList.toggle('done',rev()[i]);d.classList.toggle('cur',i===idx);});
+  if(o){running=false;badge.classList.remove('late');if(burst)celebrate();}
+  setTimer(rem);ui();}
+function paintRev(){let c=0;const why=LR();
+  items.forEach((d,i)=>{const o=rev()[i];if(o)c++;d.classList.toggle('done',o);
+    const it=S().items[i],mcq=S().type==='mcq';
+    d.querySelector('span').textContent=why?(o?'✔ ':'')+(MIX()?it.t:plain(it[0])):!o?'؟ ؟ ؟':mcq?`${L[it[2]]} ) ${it[1][it[2]]}`:Array.isArray(it[1])?it[1].join(' ، '):it[1];});
+  $('score').textContent=`تم حل ${ar(c)} من ${ar(N())} فقرة`+(why?' — اضغط على أي فقرة لفتحها':'');ui();}
+
+function screen(n){for(const k in scr)scr[k].classList.toggle('on',k===n);}
+function open(k,i){if(k!==sec){sec=k;build();}show(i);}
+function home(){sec=-1;idx=-1;running=false;screen('menu');anim(scr.menu);paintMenu();ui();}
+function show(i){idx=i;
+  if(i<0){screen('intro');anim(scr.intro);}
+  else if(i<N()){screen('qs');$('num').textContent=ar(i+1);const it=S().items[i];
+    if(S().type==='mcq'){stmt.innerHTML=`<div><span class="par" id="par"></span>${it[0]}</div>`;opts.innerHTML='';
+      it[1].forEach((t,k)=>{const e=document.createElement('div');e.className='op';e.innerHTML=`<b>${L[k]}</b><span>${t}</span>`;e.onclick=()=>pick(k);opts.appendChild(e);});}
+    else if(K(i)==='fill'||K(i)==='cols'){
+      if(MIX()){stmt.classList.toggle('fill',K(i)==='fill');stmt.classList.toggle('cols',K(i)==='cols');$('qhead').textContent=S().short+' / '+it.h;}
+      if(K(i)==='fill'){let k=0;stmt.innerHTML=Qt(i).replace(/__/g,()=>`<span class="bl" data-k="${k++}"></span>`);}
+      else stmt.innerHTML=(it.q?`<div class="ctitle ${it.tight?'tight':''}">${it.q}</div>`:'')+`<div class="cgrid ${it.tight?'tight':''}">${it.heads.map((h,k)=>`<div><div class="chead">${h}</div><span class="bl cb" data-k="${k}"></span></div>`).join('')}</div>`;
+      stmt.querySelectorAll('.bl').forEach(b=>b.onclick=()=>blank(+b.dataset.k));}
+    else stmt.innerHTML=it[0];anim(stmt);anim(badge);anim(ansBox.parentNode);
+    badge.classList.remove('late');rem=S().time;running=!rev()[i];paintAns(false);}
+  else{screen('rev');anim(scr.rev);paintRev();}
+  ui();}
+
+function ui(){
+  if(sec<0){btn.textContent='ابدأ';btn.disabled=false;pbtn.disabled=true;abtn.disabled=true;abtn.textContent='إظهار الحل 💡';abtn.classList.remove('hide');return;}
+  const n=N();btn.disabled=false;
+  btn.textContent=idx<0?'ابدأ':idx<n-1?'التالي ◀':idx===n-1?'المراجعة ◀':'القائمة ⌂';
+  pbtn.disabled=false;
+  if(idx<0){abtn.disabled=true;abtn.textContent='إظهار الحل 💡';abtn.classList.remove('hide');}
+  else if(idx<n){abtn.disabled=false;const f=FILL[sec][idx];
+    abtn.textContent=rev()[idx]?'إخفاء الحل':f&&f.length>1?`إظهار ${ar(f.filter(Boolean).length+1)}/${ar(f.length)} 💡`:'إظهار الحل 💡';
+    abtn.classList.toggle('hide',rev()[idx]);}
+  else if(LR()){abtn.disabled=true;abtn.textContent='إظهار الحل 💡';abtn.classList.remove('hide');}
+  else{const all=rev().every(Boolean);abtn.disabled=false;abtn.textContent=all?'إخفاء الكل':'إظهار الكل 💡';abtn.classList.toggle('hide',all);}
+}
+function toggleAns(){if(sec<0||idx<0)return;const r=rev();
+  if(idx<N()){const f=FILL[sec][idx];
+    if(f&&!r[idx]){blank(f.indexOf(false));return;}
+    setDone(idx,!r[idx]);if(!r[idx]){rem=S().time;running=true;}paintAns(r[idx]);}
+  else if(!LR()){const all=r.every(Boolean);r.forEach((v,i)=>setDone(i,!all));paintRev();}}
+
+function celebrate(){const g=$('glow');g.classList.remove('go');void g.offsetWidth;g.classList.add('go');
+  const C=['#c4623a','#1b7a3a','#ffb000','#1f3a52','#c62828','#7a64c8'],w=ansBox.parentNode;
+  for(let k=0;k<26;k++){const s=document.createElement('i');s.className='cf';const a=Math.random()*2*Math.PI,r=180+Math.random()*220;
+    s.style.background=C[k%C.length];s.style.setProperty('--dx',(Math.cos(a)*r*1.4).toFixed(0)+'px');s.style.setProperty('--dy',(Math.sin(a)*r*.7-60).toFixed(0)+'px');
+    s.style.setProperty('--r',(Math.random()*720-360).toFixed(0)+'deg');w.appendChild(s);setTimeout(()=>s.remove(),1400);}}
+
+btn.onclick=()=>{if(sec<0){open(0,-1);return;}
+  if(idx>=N())home();else show(idx+1);};
+pbtn.onclick=()=>{if(sec<0)return;if(idx<0)home();else show(idx-1);};
+abtn.onclick=toggleAns;
+ansBox.onclick=toggleAns;
+$('home').onclick=home;
+badge.onclick=()=>{if(idx<0||idx>=N()||rev()[idx])return;badge.classList.remove('late');rem=S().time;running=true;setTimer(rem);};
+
+/* timer loop */
+let last=performance.now();
+function frame(ms){const dt=Math.min(.1,(ms-last)/1000);last=ms;
+  if(running&&!paused&&sec>=0&&idx>=0&&idx<N()){rem-=dt;if(rem<=0){rem=0;running=false;badge.classList.add('late');}setTimer(rem);}
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+const cv=$('cv'),board=$('board'),BW=1000,BH=720,MIN=.6,MAX=8,NOPAN='.dot,.it,.ans,.badge,.mc,.op,.bl';
+let fit=1,SC=1,tx=0,ty=0;
+const apply=()=>board.style.transform=`translate(${tx}px,${ty}px) scale(${SC})`;
+function reset(){const w=cv.clientWidth,h=cv.clientHeight;fit=Math.min(w/BW,h/BH);SC=fit;tx=(w-BW*SC)/2;ty=(h-BH*SC)/2;apply();}
+function pt(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function zoomAt(k,p){const ns=Math.min(fit*MAX,Math.max(fit*MIN,SC*k));k=ns/SC;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;SC=ns;apply();}
+const mid=()=>({x:cv.clientWidth/2,y:cv.clientHeight/2});
+const ptrs=new Map();
+cv.addEventListener('pointerdown',e=>{if(e.target.closest(NOPAN))return;cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,pt(e));});
+cv.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=pt(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,pt(e));},{passive:false});
+cv.addEventListener('dblclick',e=>{if(!e.target.closest(NOPAN))reset();});
+$('zin').onclick=()=>zoomAt(1.3,mid());
+$('zout').onclick=()=>zoomAt(1/1.3,mid());
+$('zreset').onclick=reset;
+$('pause').onclick=function(){paused=!paused;document.body.classList.toggle('paused',paused);this.textContent=paused?'▶':'⏸';};
+addEventListener('resize',reset);
+const fsBtn=$('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');requestAnimationFrame(reset);}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.target.tagName==='BUTTON'&&(e.key===' '||e.key==='Enter'))return;
+  if(e.key==='ArrowLeft'||e.key===' '){e.preventDefault();btn.click();}
+  else if(e.key==='ArrowRight')pbtn.click();
+  else if(e.key==='Home'||e.key==='Escape'&&!fsEl())home();
+  else if('1234'.includes(e.key)&&e.key.length===1&&sec>=0&&S().type==='mcq')pick(+e.key-1);
+  else if(e.key==='Enter'||e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!abtn.disabled)toggleAns();}});
+reset();home();requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
