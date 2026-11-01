@@ -186,7 +186,12 @@
 
   $('goBtn').onclick = function () { check($('code').value); };
   $('code').onkeydown = function (e) { if (e.key === 'Enter' || e.keyCode === 13) check($('code').value); };
-  $('openBtn').onclick = function () { go(homeFor(savedKey), savedKey); };
+  $('openBtn').onclick = function () {
+    var lic = storedLicense();
+    var known = lsGet('moe_home') || (lic && lic.key && String(lic.key).toLowerCase() === savedKey.toLowerCase());
+    if (known) go(homeFor(savedKey), savedKey);
+    else { showMsg('جاري التحقق من الكود...', true); check(savedKey); }
+  };
   $('changeBtn').onclick = function () { lsDel('moe_home'); showLogin(''); };
 
   // ---- زر التثبيت ----
