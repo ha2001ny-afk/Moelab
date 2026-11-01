@@ -218,6 +218,39 @@
       border: 1px solid #ef4444;
     }
 
+    /* ---------- واجهة اختيار الصف ---------- */
+    #gradesView { display: flex; flex-direction: column; gap: 18px; align-items: center; }
+    #gradesView .portal-heading { width: 100%; }
+    .grades-list { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 620px; }
+    .grade-card {
+      display: flex; align-items: center; gap: 18px; width: 100%;
+      background: radial-gradient(circle at right, rgba(56, 189, 248, 0.14), #0b1526 70%);
+      border: 2px solid #1a2942; border-radius: 18px; padding: 22px 22px;
+      cursor: pointer; font-family: inherit; color: inherit; text-align: right;
+      transition: all 0.25s ease;
+    }
+    .grade-card[data-grade="m3"] { background: radial-gradient(circle at right, rgba(16, 185, 129, 0.14), #0b1526 70%); }
+    .grade-card:hover:not(.locked) { transform: translateY(-3px); border-color: #38bdf8; box-shadow: 0 10px 25px rgba(56, 189, 248, 0.15); }
+    .grade-card[data-grade="m3"]:hover:not(.locked) { border-color: #10b981; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15); }
+    .grade-icon { font-size: 2.8rem; line-height: 1; flex-shrink: 0; }
+    .grade-text { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+    .grade-name { font-size: 1.4rem; font-weight: 900; color: #f8fafc; }
+    .grade-desc { font-size: 0.85rem; color: #94a3b8; }
+    .grade-card .subject-status-pill { align-self: center; margin-top: 0; white-space: nowrap; }
+    .grade-card.active-sub .subject-status-pill { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #10b981; }
+    .grade-card.locked { opacity: 0.55; border-color: #1e293b; cursor: not-allowed; filter: grayscale(0.6); }
+    .grade-card.locked .subject-status-pill { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid #ef4444; }
+    @media (max-width: 520px) {
+      .grade-card { flex-wrap: wrap; padding: 18px; gap: 12px; }
+      .grade-name { font-size: 1.2rem; }
+      .grade-card .subject-status-pill { align-self: flex-start; }
+    }
+    .subjects-head-row { display: flex; justify-content: center; }
+    .subjects-grid.single { grid-template-columns: minmax(0, 360px); justify-content: center; }
+    .subject-portal-card[data-subj="m3_biology"] { background: radial-gradient(circle at top, rgba(16, 185, 129, 0.15), #0b1526); }
+    .subject-portal-card[data-subj="m3_biology"]:hover:not(.locked) { border-color: #10b981; }
+    .m3-empty { grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 16px; color: #94a3b8; border: 2px dashed #1e3a5f; border-radius: 16px; font-size: 1rem; line-height: 1.9; }
+
     #chaptersView {
       display: none;
       flex-direction: column;
@@ -519,33 +552,69 @@
   <div id="siteFsHint" role="status"></div>
 
   <div class="main-wrapper">
+    <!-- واجهة اختيار الصف -->
+    <div id="gradesView">
+      <div class="portal-heading">
+        <h2>اختر الصف الدراسي</h2>
+        <p>المختبرات التفاعلية المنهجية</p>
+      </div>
+      <div class="grades-list">
+        <button type="button" class="grade-card" data-grade="g6" onclick="selectGrade('g6')">
+          <span class="grade-icon">🎓</span>
+          <span class="grade-text">
+            <span class="grade-name">الصف السادس العلمي</span>
+            <span class="grade-desc">الأحياء • الفيزياء • الكيمياء</span>
+          </span>
+          <span class="subject-status-pill" id="gstatus_g6">فحص الصلاحية...</span>
+        </button>
+        <button type="button" class="grade-card" data-grade="m3" onclick="selectGrade('m3')">
+          <span class="grade-icon">📘</span>
+          <span class="grade-text">
+            <span class="grade-name">الصف الثالث المتوسط</span>
+            <span class="grade-desc">الأحياء</span>
+          </span>
+          <span class="subject-status-pill" id="gstatus_m3">فحص الصلاحية...</span>
+        </button>
+      </div>
+    </div>
+
     <!-- واجهة اختيار المادة -->
-    <div id="subjectsView">
+    <div id="subjectsView" style="display:none">
       <div class="portal-heading">
         <h2>اختر المادة التعليمية</h2>
-        <p>المختبرات التفاعلية المنهجية لمرحلة السادس العلمي</p>
+        <p id="subjectsGradeLabel">المختبرات التفاعلية المنهجية لمرحلة السادس العلمي</p>
+      </div>
+      <div class="subjects-head-row" id="gradesBackRow">
+        <button class="btn-back-subjects" onclick="showGradesView()">🔙 تغيير الصف</button>
       </div>
 
-      <div class="subjects-grid">
-        <div class="subject-portal-card" data-subj="biology" onclick="selectSubject('biology')">
+      <div class="subjects-grid" id="subjectsGrid">
+        <div class="subject-portal-card" data-subj="biology" data-grade="g6" onclick="selectSubject('biology')">
           <div class="subject-icon-box">🧬</div>
           <div class="subject-name">علم الأحياء</div>
           <div class="subject-desc">الغشاء البلازمي، أنسجة النبات والحيوان، والأنشطة الخلوية المنهجية</div>
           <div class="subject-status-pill" id="status_biology">فحص الصلاحية...</div>
         </div>
 
-        <div class="subject-portal-card" data-subj="physics" onclick="selectSubject('physics')">
+        <div class="subject-portal-card" data-subj="physics" data-grade="g6" onclick="selectSubject('physics')">
           <div class="subject-icon-box">⚡</div>
           <div class="subject-name">الفيزياء</div>
           <div class="subject-desc">أنشطة المتسعات، الحث الكهرومغناطيسي، وقوانين فراداي ولنز</div>
           <div class="subject-status-pill" id="status_physics">فحص الصلاحية...</div>
         </div>
 
-        <div class="subject-portal-card" data-subj="chemistry" onclick="selectSubject('chemistry')">
+        <div class="subject-portal-card" data-subj="chemistry" data-grade="g6" onclick="selectSubject('chemistry')">
           <div class="subject-icon-box">🧪</div>
           <div class="subject-name">الكيمياء</div>
           <div class="subject-desc">الاتزان الكيميائي، المسعر الحراري، والتفاعلات الكيميائية</div>
           <div class="subject-status-pill" id="status_chemistry">فحص الصلاحية...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="m3_biology" data-grade="m3" onclick="selectSubject('m3_biology')" style="display:none">
+          <div class="subject-icon-box">🧬</div>
+          <div class="subject-name">علم الأحياء</div>
+          <div class="subject-desc">منهج الأحياء للصف الثالث المتوسط</div>
+          <div class="subject-status-pill" id="status_m3_biology">فحص الصلاحية...</div>
         </div>
       </div>
     </div>
@@ -1270,6 +1339,11 @@
       </div>
 
       <!-- مادة الكيمياء -->
+      <!-- أحياء الثالث المتوسط -->
+      <div id="container_m3_biology" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <!-- فصول الثالث المتوسط تضاف هنا: <div class="chapter-section" data-chapter="m3_bio_ch1"> -->
+      </div>
+
       <div id="container_chemistry" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
         <div class="chapter-section" data-chapter="chem_ch1">
           <div class="chapter-title">🔥 الفصل الأول: علم الثرموداينمك</div>
@@ -1638,6 +1712,9 @@
 
       if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
 
+      // الثالث المتوسط: m3_biology أو فصول m3_bio_chN
+      if (subj === 'm3_biology') return perms.includes('m3_biology') || perms.some(p => p.startsWith('m3_bio_ch'));
+
       if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
       if (subj === 'biology' && (perms.includes('biology') || perms.includes('احياء') || perms.includes('أحياء') || perms.includes('bio'))) return true;
       if (subj === 'chemistry' && (perms.includes('chemistry') || perms.includes('كيمياء') || perms.includes('chem'))) return true;
@@ -1656,7 +1733,7 @@
       if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
 
       if (isSubjectAllowed(subj)) {
-        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_' }[subj];
+        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_', m3_biology: 'm3_bio_ch' }[subj];
         const hasSpecificChapter = perms.some(p => p.startsWith(prefix));
         if (hasSpecificChapter) {
           return perms.includes(chapter.toLowerCase());
@@ -1666,8 +1743,63 @@
       return false;
     }
 
+    const GRADE_SUBJECTS = { g6: ['biology', 'physics', 'chemistry'], m3: ['m3_biology'] };
+    const GRADE_LABELS = { g6: 'المختبرات التفاعلية المنهجية لمرحلة السادس العلمي', m3: 'المختبرات التفاعلية المنهجية للصف الثالث المتوسط' };
+    let currentGrade = null;
+    let gradeAutoDone = false;
+
+    function isGradeAllowed(g) {
+      return (GRADE_SUBJECTS[g] || []).some(isSubjectAllowed);
+    }
+
+    function selectGrade(g) {
+      if (!isGradeAllowed(g)) {
+        alert("⚠️ هذا الصف غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع الإدارة لتفعيله.");
+        return;
+      }
+      currentGrade = g;
+      document.querySelectorAll('.subject-portal-card').forEach(c => {
+        c.style.display = c.getAttribute('data-grade') === g ? '' : 'none';
+      });
+      document.getElementById('subjectsGrid').classList.toggle('single', GRADE_SUBJECTS[g].length === 1);
+      document.getElementById('subjectsGradeLabel').innerText = GRADE_LABELS[g];
+      const both = isGradeAllowed('g6') && isGradeAllowed('m3');
+      document.getElementById('gradesBackRow').style.display = both ? '' : 'none';
+      document.getElementById('gradesView').style.display = 'none';
+      document.getElementById('chaptersView').style.display = 'none';
+      document.getElementById('subjectsView').style.display = 'flex';
+      window.scrollTo({ top: 0 });
+    }
+
+    function showGradesView() {
+      document.getElementById('subjectsView').style.display = 'none';
+      document.getElementById('chaptersView').style.display = 'none';
+      document.getElementById('gradesView').style.display = 'flex';
+      window.scrollTo({ top: 0 });
+    }
+
+    function renderGrades() {
+      ['g6', 'm3'].forEach(g => {
+        const card = document.querySelector(`.grade-card[data-grade="${g}"]`);
+        const pill = document.getElementById(`gstatus_${g}`);
+        const ok = isGradeAllowed(g);
+        card.classList.toggle('locked', !ok);
+        card.classList.toggle('active-sub', ok);
+        pill.innerText = ok ? "🟢 مفعّل بالاشتراك" : "🔒 غير مفعّل";
+      });
+      const a6 = isGradeAllowed('g6'), a3 = isGradeAllowed('m3');
+      // المشترك بصف واحد فقط: يدخل على صفه مباشرة بدون شاشة الصفوف
+      if (!gradeAutoDone && (a6 !== a3) && document.getElementById('gradesView').style.display !== 'none') {
+        gradeAutoDone = true;
+        selectGrade(a6 ? 'g6' : 'm3');
+      } else if (currentGrade) {
+        document.getElementById('gradesBackRow').style.display = (a6 && a3) ? '' : 'none';
+      }
+    }
+
     function renderPortals() {
-      const subjects = ['physics', 'chemistry', 'biology'];
+      renderGrades();
+      const subjects = ['physics', 'chemistry', 'biology', 'm3_biology'];
 
       subjects.forEach(subj => {
         const card = document.querySelector(`.subject-portal-card[data-subj="${subj}"]`);
@@ -1704,6 +1836,7 @@
       if (subj === 'physics') titleElem.innerHTML = "⚡ مختبر الفيزياء المنهجي";
       if (subj === 'biology') titleElem.innerHTML = "🧬 مختبر علم الأحياء المنهجي";
       if (subj === 'chemistry') titleElem.innerHTML = "🧪 مختبر الكيمياء المنهجي";
+      if (subj === 'm3_biology') titleElem.innerHTML = "🧬 مختبر أحياء الثالث المتوسط";
 
       targetContainer.querySelectorAll('.chapter-section').forEach(sec => {
         const ch = sec.getAttribute('data-chapter');
@@ -1771,7 +1904,7 @@
     document.addEventListener('webkitfullscreenchange', syncSiteFsBtn);
 
     /* ---------- قائمة الفصول: المادة ← الفصول ← محاكيات الفصل ---------- */
-    const CHAPTER_MENU_SUBJECTS = ['biology'];
+    const CHAPTER_MENU_SUBJECTS = ['biology', 'm3_biology'];
     let currentMenuSubj = null;
     function showChapterMenu(subj) {
       subj = subj || currentMenuSubj;
@@ -1793,6 +1926,9 @@
         box.insertBefore(menu, box.firstChild);
       }
       menu.innerHTML = '';
+      if (!box.querySelector('.chapter-section')) {
+        menu.innerHTML = '<div class="m3-empty">🚧 محاكيات هذا المنهج قيد الإعداد<br>ستظهر الفصول هنا قريباً</div>';
+      }
       box.querySelectorAll('.chapter-section').forEach(sec => {
         const ch = sec.getAttribute('data-chapter');
         const raw = (sec.querySelector('.chapter-title') || {}).textContent || '';
@@ -1840,7 +1976,7 @@
     }
 
     function openExp(chapter, fileName, expTitle) {
-      const subj = chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
+      const subj = chapter.startsWith('m3_bio') ? 'm3_biology' : chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
       if (!isChapterAllowed(subj, chapter)) {
         alert("⚠️ هذا الفصل غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع الإدارة لتفعيله.");
         return;
