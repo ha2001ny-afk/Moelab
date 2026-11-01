@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>التفاعل الباعث والماص للحرارة</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  #stage{position:relative;flex:1;min-height:0;padding-top:env(safe-area-inset-top,0px);box-sizing:border-box;background:radial-gradient(circle at 55% 45%,#f6fcff 0%,#cfe8f3 100%);padding-bottom:env(safe-area-inset-bottom,0px)}
+  #svgWrap{position:absolute;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);right:0;left:calc(var(--bw) + 22px + env(safe-area-inset-left,0px))}
+  svg#svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab;transition:opacity .3s}
+  :root{--bw:126px;--zb:42px}
+
+  #side{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));bottom:8px;width:var(--bw);z-index:5;
+        display:flex;flex-direction:column;align-items:flex-start;gap:14px;overflow-y:auto;direction:ltr}
+  .zb{display:flex;flex-direction:column;gap:8px;direction:ltr}
+  .zb button{width:var(--zb);height:var(--zb);border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;
+             box-shadow:0 2px 6px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;padding:0}
+  .zb svg{width:20px;height:20px;pointer-events:none}
+  .sysList{display:flex;flex-direction:column;gap:7px;width:100%;direction:rtl}
+  .sys{width:100%;padding:6px 8px;border-radius:8px;border:1.5px solid rgba(31,58,82,.45);background:transparent;color:#1f3a52;
+       font:bold 14px Tahoma,"Segoe UI",Arial,sans-serif;line-height:1.3;text-align:center;cursor:pointer;
+       transition:background .25s,color .25s,border-color .25s,transform .15s}
+  .sys:hover{background:rgba(255,255,255,.35)}
+  .sys:active{transform:scale(.97)}
+  .sys.on{background:rgba(196,98,58,.14);border-color:#c4623a;color:#a8431b}
+  .sys.all{border-style:dashed}
+  .sys:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  @media (max-width:560px),(max-height:440px){
+    :root{--bw:92px;--zb:34px}
+    #side{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));gap:10px}
+    .zb{gap:6px}.zb button{font-size:18px}.zb svg{width:16px;height:16px}
+    .sys{padding:4px 5px;font-size:11.5px;border-radius:7px}
+    .sysList{gap:5px}
+  }
+  @media (max-height:400px){:root{--zb:30px}#side{gap:6px}.zb{gap:4px}}
+
+  .pill{fill:#fff;stroke:#c4623a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#c4623a;stroke-width:2.2;fill:none}
+  .td{fill:#c4623a;stroke:#fff;stroke-width:1.5}
+  .hd,.fade{transition:opacity .35s}
+  .hName{fill:#1f3a52;font-size:30px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hEn{fill:#3f6f93;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .capBox{fill:#1f3a52}
+  .capTxt{fill:#fff;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ax{stroke:#1f3a52;stroke-width:3;fill:none}
+  .axT{fill:#1f3a52;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lvT{fill:#1f3a52;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .tick{fill:#3f6f93;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .noteBox{fill:rgba(255,255,255,.72);stroke:#9cc3d8;stroke-width:1.5}
+  .noteTxt{fill:#1f3a52;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .fBox{fill:#fde3ef;stroke:#e48bb5;stroke-width:2}
+  .fTxt{fill:#1f3a52;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .fAr{fill:#1f3a52;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .tName{fill:#1f3a52;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .tEn{fill:#3f6f93;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .tCap{fill:#fff;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .tExp{fill:#1f3a52;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="side">
+    <div class="zb">
+      <button id="zin" title="تكبير">+</button><button id="zout" title="تصغير">−</button><button id="zreset" title="إرجاع">⟲</button>
+      <button id="fs" title="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="fsI" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+    <div class="sysList">
+      <button class="sys" data-i="1">التفاعل الباعث للحرارة</button>
+      <button class="sys" data-i="2">التفاعل الماص للحرارة</button>
+      <button class="sys all" data-i="3">التفاعلان معاً</button>
+    </div>
+  </div>
+  <div id="svgWrap">
+  <svg id="svg" viewBox="0 0 900 680" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="gGlass" x1="0" x2="1"><stop offset="0" stop-color="#cfe9f6" stop-opacity=".9"/><stop offset=".35" stop-color="#f4fbff" stop-opacity=".7"/><stop offset="1" stop-color="#c3e2f2" stop-opacity=".9"/></linearGradient>
+      <radialGradient id="gWarm"><stop offset="0" stop-color="#ffb35c" stop-opacity=".95"/><stop offset=".55" stop-color="#ff8a3d" stop-opacity=".35"/><stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/></radialGradient>
+      <radialGradient id="gCold"><stop offset="0" stop-color="#7cc8ff" stop-opacity=".95"/><stop offset=".55" stop-color="#5ab0f0" stop-opacity=".35"/><stop offset="1" stop-color="#5ab0f0" stop-opacity="0"/></radialGradient>
+      <clipPath id="cBeaker"><path d="M112,250 L112,480 Q112,493 125,493 L315,493 Q328,493 328,480 L328,250 Z"/></clipPath>
+      <marker id="mR" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#e0452f"/></marker>
+      <marker id="mB" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2f86d6"/></marker>
+      <marker id="mAx" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1f3a52"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg", PI=Math.PI;
+const svg=document.getElementById('svg'), view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const L=s=>'‪'+s+'‬';   // keep math (ΔHr < 0) left-to-right inside Arabic lines
+
+/* ---------- stages: 0 تمهيد، 1 باعث، 2 ماص (3 = التفاعلان معاً) ---------- */
+const S=[
+ {hr:50,hp:50,warm:0,cold:0,temp:.45,out:0,inn:0,ice:.55,frz:0,mlt:0},
+ {hr:75,hp:25,warm:1,cold:0,temp:.9, out:1,inn:0,ice:1,frz:1,mlt:0},
+ {hr:25,hp:75,warm:0,cold:1,temp:.1, out:0,inn:1,ice:0,frz:0,mlt:1}
+];
+const ALL=3;
+const TX=[
+ {n:'التغير في انثالبي التفاعل',e:'Enthalpy change of reaction',c:'نواتج − متفاعلات',
+  note:['التغير في انثالبي التفاعل يساوي انثالبي النواتج','مطروحاً منه انثالبي المتفاعلات'],
+  exp:''},
+ {n:'التفاعل الباعث للحرارة',e:'Exothermic reaction',c:'قيمة '+L('ΔHr')+' سالبة '+L('( ΔHr < 0 )'),
+  note:['اذا كانت '+L('ΔHr')+' اصغر من صفر '+L('( ΔHr < 0 )')+' اي قيم '+L('ΔHr')+' سالبة '+L('( ΔHr = − )'),
+        'فالتفاعل يكون باعثاً للحرارة '+L('( Exothermic reaction )')],
+  exp:'يتجمد الماء فيطرد حرارته الى المحيط'},
+ {n:'التفاعل الماص للحرارة',e:'Endothermic reaction',c:'قيمة '+L('ΔHr')+' موجبة '+L('( ΔHr > 0 )'),
+  note:['اذا كانت '+L('ΔHr')+' اكبر من صفر '+L('( ΔHr > 0 )')+' اي قيم '+L('ΔHr')+' موجبة '+L('( ΔHr = + )'),
+        'فالتفاعل يكون ماصاً للحرارة '+L('( Endothermic reaction )')],
+  exp:'يذوب الثلج فيمتص الحرارة من المحيط'}
+];
+const lerp=(a,b,e)=>{if(typeof a==='number')return a+(b-a)*e;if(Array.isArray(a))return a.map((v,i)=>lerp(v,b[i],e));const o={};for(const k in a)o[k]=lerp(a[k],b[k],e);return o;};
+const DUR=2400, MDUR=750, ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2, cl=x=>Math.min(1,Math.max(0,x));
+const mix=(a,b,f)=>a.map((v,i)=>Math.round(v+(b[i]-v)*f));
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+const WATER=[150,206,236], ICEC=[214,238,250];
+const fmt=v=>(v<0?'−':'')+Math.abs(Math.round(v));
+const Y=H=>470-H*3.2;
+const EQ=['','H₂O(l)  →  H₂O(s)      ΔHr = −6.01 kJ/mol','H₂O(s)  →  H₂O(l)      ΔHr = +6.01 kJ/mol'];                         // enthalpy → y on the diagram
+
+/* ---------- one scene: beaker + thermometer + enthalpy diagram ---------- */
+function makeScene(parent,seed){
+  const root=el('g',{},parent);
+  const C=[220,372];
+
+  /* glow behind the beaker */
+  const warmG=el('ellipse',{cx:C[0],cy:C[1],rx:190,ry:175,fill:'url(#gWarm)'},root);
+  const coldG=el('ellipse',{cx:C[0],cy:C[1],rx:190,ry:175,fill:'url(#gCold)'},root);
+
+  /* heat arrows (wavy) */
+  const ANG=[205,180,155,-25,0,25].map(a=>a*PI/180);
+  const outG=el('g',{},root), inG=el('g',{},root);
+  const outA=ANG.map(()=>el('polyline',{fill:'none',stroke:'#e0452f','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round','marker-end':'url(#mR)'},outG));
+  const inA=ANG.map(()=>el('polyline',{fill:'none',stroke:'#2f86d6','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round','marker-end':'url(#mB)'},inG));
+  function wave(p,a,inward,t,k){
+    const c=Math.cos(a),s=Math.sin(a),r1=132,r2=205,pts=[];
+    for(let i=0;i<=18;i++){const u=i/18,r=inward?r2-(r2-r1)*u:r1+(r2-r1)*u,w=6*Math.sin(u*4*PI+(inward?1:-1)*t*6+k);
+      pts.push((C[0]+c*r-s*w).toFixed(1)+','+(C[1]+s*r+c*w).toFixed(1));}
+    p.setAttribute('points',pts.join(' '));
+  }
+
+  /* beaker */
+  el('path',{d:'M112,250 L112,480 Q112,493 125,493 L315,493 Q328,493 328,480 L328,250 Z',fill:'url(#gGlass)'},root);
+  const liqG=el('g',{'clip-path':'url(#cBeaker)'},root);
+  const liq=el('path',{},liqG);
+  /* ice: a floating cube that melts (exo) or grows, with the water surface freezing (endo) */
+  const crust=el('path',{d:'M110,322 L135,318 L150,326 L172,317 L196,325 L222,316 L246,326 L268,318 L292,325 L312,317 L330,322 L330,342 L310,346 L286,338 L262,347 L236,339 L210,348 L186,339 L160,347 L136,339 L110,345 Z',
+    fill:'#eaf7ff',stroke:'#9fd0ea','stroke-width':2},liqG);
+  const crys=el('g',{},liqG);
+  [[112,360,1],[112,420,1],[112,470,1],[328,380,-1],[328,440,-1],[200,493,0],[150,493,0],[250,493,0]].forEach(([x,y,dir])=>{
+    const pts=dir?[[x,y-12],[x+dir*26,y-4],[x+dir*12,y],[x+dir*30,y+8],[x,y+12]]:[[x-12,y],[x-6,y-24],[x,y-8],[x+6,y-30],[x+12,y]];
+    el('polygon',{points:pts.map(q=>q.join(',')).join(' '),fill:'#eef9ff',stroke:'#8cc7e6','stroke-width':1.5,'fill-opacity':.9},crys);});
+  const cube=el('g',{},liqG);
+  el('rect',{x:-20,y:-20,width:40,height:40,rx:7,fill:'#e4f5ff','fill-opacity':.92,stroke:'#86c3e3','stroke-width':2.5},cube);
+  el('path',{d:'M-13,-12 L4,-12 M-13,-12 L-13,4',stroke:'#fff','stroke-width':4,'stroke-linecap':'round'},cube);
+  el('path',{d:'M-20,-20 L-12,-27 L28,-27 L20,-20 M20,-20 L28,-27 L28,13 L20,20',fill:'#cdeafa',stroke:'#86c3e3','stroke-width':2,'stroke-linejoin':'round'},cube);
+  const rip=[0,1].map(()=>el('ellipse',{fill:'none',stroke:'#fff','stroke-width':2},liqG));
+  const mol=[...Array(16)].map((_,k)=>({x:130+((k*47)%180),y:350+((k*29)%125),p:k*1.7+seed,e:el('circle',{r:k%3?5:7,fill:k%2?'#ffffff':'#2a5a78','fill-opacity':k%2?.75:.45},liqG)}));
+  el('path',{d:'M112,250 L112,480 Q112,493 125,493 L315,493 Q328,493 328,480 L328,250',fill:'none',stroke:'#7fb0cc','stroke-width':4,'stroke-linejoin':'round'},root);
+  el('path',{d:'M104,246 L120,250 M336,246 L320,250',stroke:'#7fb0cc','stroke-width':4,'stroke-linecap':'round'},root);
+  el('path',{d:'M128,290 L128,470',stroke:'#fff','stroke-width':5,'stroke-linecap':'round','stroke-opacity':.6},root);
+  [300,340,380,420,460].forEach(y=>el('line',{x1:300,y1:y,x2:316,y2:y,stroke:'#7fb0cc','stroke-width':2},root));
+
+  /* thermometer */
+  el('rect',{x:452,y:176,width:24,height:290,rx:12,fill:'#f7fbfe',stroke:'#8aa9bb','stroke-width':2.5},root);
+  for(let k=0;k<9;k++)el('line',{x1:452,y1:200+k*28,x2:462,y2:200+k*28,stroke:'#8aa9bb','stroke-width':2},root);
+  el('circle',{cx:464,cy:462,r:15,fill:'#d93025',stroke:'#8aa9bb','stroke-width':2.5},root);
+  const merc=el('rect',{x:459,width:10,rx:5,fill:'#d93025'},root);
+
+  /* enthalpy diagram */
+  el('line',{class:'ax',x1:505,y1:478,x2:505,y2:190,'marker-end':'url(#mAx)'},root);
+  el('line',{class:'ax',x1:497,y1:470,x2:880,y2:470,'marker-end':'url(#mAx)'},root);
+  el('text',{class:'axT',x:505,y:172},root).textContent='H';
+  el('text',{class:'axT',x:552,y:172},root).textContent='الانثالبي';
+  el('text',{class:'axT',x:700,y:495},root).textContent='سير التفاعل';
+  const ext=el('line',{x1:645,x2:860,stroke:'#1f3a52','stroke-width':2,'stroke-dasharray':'5 6','stroke-opacity':.5},root);
+  const lvR=el('line',{x1:525,x2:645,stroke:'#1f3a52','stroke-width':6,'stroke-linecap':'round'},root);
+  const lvP=el('line',{x1:735,x2:855,stroke:'#c4623a','stroke-width':6,'stroke-linecap':'round'},root);
+  const tR=el('text',{class:'lvT',x:585},root);tR.textContent='المتفاعلات';
+  const tP=el('text',{class:'lvT',x:815},root);tP.textContent='النواتج';
+  const vR=el('text',{class:'tick',x:478},root), vP=el('text',{class:'tick',x:478},root);
+  const dArr=el('line',{x1:752,x2:752,'stroke-width':5,'stroke-linecap':'round'},root);
+  const dPill=el('g',{},root);
+  const dRect=el('rect',{x:622,width:112,height:36,rx:18,fill:'#fff','stroke-width':2.5},dPill);
+  const dTxt=el('text',{x:678,'font-size':18,'font-weight':'bold','text-anchor':'middle','dominant-baseline':'central',direction:'ltr'},dPill);
+
+  /* labels */
+  const LB=[
+   {cx:92,cy:200,w:150,t:'حرارة منبعثة',k:'out'},
+   {cx:92,cy:200,w:150,t:'حرارة ممتصة',k:'inn'},
+   {cx:335,cy:200,w:140,t:'محرار المحيط',k:'th'},
+   {cx:175,cy:140,w:120,t:'قطعة ثلج',k:'ice0'},
+   {cx:175,cy:140,w:130,t:'الثلج يذوب',k:'ice1'},
+   {cx:175,cy:140,w:140,t:'الماء يتجمد',k:'ice2'},
+   {cx:220,cy:540,w:0,t:'',k:'x'}
+  ].slice(0,6);
+  const lg=el('g',{'pointer-events':'none'},root);
+  LB.forEach(l=>{l.g=el('g',{},lg);l.ln=el('line',{class:'ln',x1:l.cx,y1:l.cy},l.g);l.dt=el('circle',{class:'td',r:5},l.g);
+    el('rect',{class:'pill',x:l.cx-l.w/2,y:l.cy-18,width:l.w,height:36,rx:18},l.g);
+    el('text',{class:'lbl',x:l.cx,y:l.cy},l.g).textContent=l.t;});
+  const setLn=(l,p,o)=>{l.ln.setAttribute('x2',p[0]);l.ln.setAttribute('y2',p[1]);l.dt.setAttribute('cx',p[0]);l.dt.setAttribute('cy',p[1]);l.g.setAttribute('opacity',o.toFixed(2));l.g.setAttribute('display',o<.02?'none':'');};
+  const vis=(g,o)=>{g.setAttribute('opacity',o.toFixed(2));g.setAttribute('display',o<.01?'none':'');};
+
+  function render(s,t,lab){
+    t+=seed*1.3;
+    /* ice */
+    const sz=.25+.9*s.ice, bob=2*Math.sin(t*1.6);
+    cube.setAttribute('transform',`translate(185 ${(328-6*sz+bob).toFixed(1)}) rotate(${(-8+3*Math.sin(t*.9)).toFixed(1)}) scale(${sz.toFixed(3)})`);
+    vis(cube,cl(s.ice*6));
+    vis(crust,s.frz);vis(crys,s.frz);
+    rip.forEach((r,k)=>{const u=(t*.7+k*.5)%1;r.setAttribute('cx',185);r.setAttribute('cy',332);r.setAttribute('rx',(18+40*u).toFixed(1));r.setAttribute('ry',(4+8*u).toFixed(1));
+      r.setAttribute('opacity',(s.mlt*(1-u)*.8).toFixed(2));});
+    /* glow & liquid colour */
+    vis(warmG,s.warm*(.75+.25*Math.sin(t*3)));vis(coldG,s.cold*(.75+.25*Math.sin(t*2.2)));
+    const col=mix(WATER,ICEC,s.frz*.7);
+    const pts=[];for(let x=110;x<=330;x+=10)pts.push(x+','+(330+2.5*Math.sin(x*.05+t*2.4)).toFixed(1));
+    liq.setAttribute('d','M'+pts.join(' L')+' L330,500 L110,500 Z');liq.setAttribute('fill',rgb(col));
+    /* molecules: faster when hotter */
+    const sp=1.2+1.4*s.mlt-1*s.frz;
+    mol.forEach((m,k)=>{const x=m.x+16*Math.sin(t*sp*.9+m.p)+8*Math.sin(t*sp*1.7+k),y=m.y+12*Math.cos(t*sp*1.1+m.p*1.3);
+      m.e.setAttribute('cx',Math.min(315,Math.max(125,x)).toFixed(1));m.e.setAttribute('cy',Math.min(485,Math.max(345,y)).toFixed(1));});
+    /* thermometer */
+    const top=440-s.temp*230+3*Math.sin(t*2)*(s.warm+s.cold);
+    merc.setAttribute('y',top.toFixed(1));merc.setAttribute('height',(462-top).toFixed(1));
+    /* heat arrows */
+    vis(outG,s.out);vis(inG,s.inn);
+    if(s.out>.01)outA.forEach((p,k)=>wave(p,ANG[k],false,t,k));
+    if(s.inn>.01)inA.forEach((p,k)=>wave(p,ANG[k],true,t,k));
+    /* diagram */
+    const yr=Y(s.hr),yp=Y(s.hp),d=s.hp-s.hr;
+    [lvR].forEach(l=>{l.setAttribute('y1',yr);l.setAttribute('y2',yr);});
+    [lvP].forEach(l=>{l.setAttribute('y1',yp);l.setAttribute('y2',yp);});
+    ext.setAttribute('y1',yr);ext.setAttribute('y2',yr);
+    tR.setAttribute('y',yr-20);tP.setAttribute('y',yp+(d<0?24:-20));
+    vR.setAttribute('y',yr);vP.setAttribute('y',yp);vR.textContent=Math.round(s.hr);vP.textContent=Math.round(s.hp);
+    vis(vP,0);vis(vR,0);
+    const c=d<0?'#e0452f':'#2f86d6', show=cl((Math.abs(d)-6)/14);
+    dArr.setAttribute('y1',yr);dArr.setAttribute('y2',yp+(d<0?-8:8));dArr.setAttribute('stroke',c);dArr.setAttribute('marker-end',d<0?'url(#mR)':'url(#mB)');vis(dArr,show);
+    const my=(yr+yp)/2;dRect.setAttribute('y',my-18);dRect.setAttribute('stroke',c);dTxt.setAttribute('y',my);dTxt.setAttribute('fill',c);
+    dTxt.textContent=d<0?'ΔHr < 0':'ΔHr > 0';vis(dPill,show);
+    /* labels */
+    vis(lg,lab);
+    if(lab>.01){
+      setLn(LB[0],[C[0]+Math.cos(ANG[0])*168,C[1]+Math.sin(ANG[0])*168],s.out);
+      setLn(LB[1],[C[0]+Math.cos(ANG[0])*168,C[1]+Math.sin(ANG[0])*168],s.inn);
+      setLn(LB[2],[464,215],1);
+      const ip=s.ice>.12?[185,325-14*s.ice]:[200,332];
+      setLn(LB[3],ip,cl(1-s.frz-s.mlt));setLn(LB[4],ip,s.mlt);setLn(LB[5],[205,330],s.frz);
+    }
+  }
+  return {root,render};
+}
+
+/* ---------- single view ---------- */
+const singleG=el('g',{},view);
+const single=makeScene(singleG,0);
+const hd=el('g',{class:'hd'},singleG);
+const hName=el('text',{class:'hName',x:700,y:40},hd), hEn=el('text',{class:'hEn',x:700,y:76},hd);
+const capBox=el('rect',{class:'capBox',y:98,height:40,rx:20},hd), capTxt=el('text',{class:'capTxt',x:700,y:118},hd);
+function setHead(i){hName.textContent=TX[i].n;hEn.textContent=TX[i].e;capTxt.textContent=TX[i].c;
+  let w=260;try{w=capTxt.getComputedTextLength()+44;}catch(e){}w=Math.max(w,160);
+  const cx=Math.min(700,880-w/2);capTxt.setAttribute('x',cx);capBox.setAttribute('x',cx-w/2);capBox.setAttribute('width',w);}
+
+/* note (the green-dot notes of the book) + law */
+const noteG=el('g',{class:'fade'},singleG);
+el('rect',{class:'noteBox',x:30,y:518,width:840,height:80,rx:14},noteG);
+const dot=el('circle',{cx:850,cy:540,r:8,fill:'#3fae49'},noteG);
+const n1=el('text',{class:'noteTxt',x:440,y:540},noteG), n2=el('text',{class:'noteTxt',x:440,y:575},noteG);
+const lawG=el('g',{},singleG);
+el('rect',{class:'fBox',x:180,y:608,width:540,height:66,rx:12},lawG);
+el('text',{class:'fTxt',x:450,y:627},lawG).textContent='ΔHr = ΔH (Products) − ΔH (Reactants)';
+const lawNum=el('text',{class:'fTxt',x:450,y:656},lawG);
+const lawAr=el('text',{class:'fAr',x:450,y:656},lawG);
+lawAr.textContent='حيث '+L('Products')+' تعني النواتج و '+L('Reactants')+' تعني المتفاعلات';
+function setNote(i){n1.textContent=TX[i].note[0];n2.textContent=TX[i].note[1];dot.setAttribute('display',i?'':'none');}
+
+/* ---------- both together ---------- */
+const bothG=el('g',{},view);
+const K=.52, CX=[675,225];                  // exothermic on the right (RTL reading order)
+el('line',{x1:450,y1:95,x2:450,y2:560,stroke:'#1f3a52','stroke-opacity':.25,'stroke-width':2,'stroke-dasharray':'6 8'},bothG);
+const both=[0,1].map(j=>{
+  const g=el('g',{},bothG), sc=makeScene(g,j+1);
+  sc.root.setAttribute('transform',`translate(${(CX[j]-447*K).toFixed(1)} ${(110-170*K).toFixed(1)}) scale(${K})`);
+  const cap=el('g',{},g), d=TX[j+1];
+  el('text',{class:'tName',x:CX[j],y:340},cap).textContent=d.n;
+  el('text',{class:'tEn',x:CX[j],y:372},cap).textContent=d.e;
+  const r=el('rect',{class:'capBox',y:392,height:34,rx:17},cap), tt=el('text',{class:'tCap',x:CX[j],y:409},cap);tt.textContent=d.c;
+  el('text',{class:'tExp',x:CX[j],y:456},cap).textContent=d.exp;
+  el('rect',{class:'fBox',x:CX[j]-170,y:480,width:340,height:44,rx:10},cap);
+  el('text',{class:'fTxt',x:CX[j],y:502,'font-size':17},cap).textContent=EQ[j+1];
+  return {sc,cap,r,tt,cx:CX[j]};
+});
+both.forEach(q=>{let w=230;try{w=q.tt.getComputedTextLength()+32;}catch(e){}q.r.setAttribute('x',q.cx-w/2);q.r.setAttribute('width',w);});
+
+/* ---------- state ---------- */
+let cur=lerp(S[0],S[0],0),from=cur,to=S[0],t0=-1e9,idx=0;
+let mFrom=0,mTo=0,m0=-1e9,tAll=-1e9;
+function frame(ms){
+  const t=ms/1000;
+  cur=lerp(from,to,ease(cl((ms-t0)/DUR)));
+  const mk=lerp(mFrom,mTo,ease(cl((ms-m0)/MDUR)));
+  if(mk<.99){
+    single.render(cur,t,1);
+    const d=cur.hp-cur.hr, num=idx>0&&idx<ALL;
+    lawNum.textContent=EQ[idx]||'';
+    lawNum.setAttribute('fill',d<-.5?'#c8321f':d>.5?'#1f6fb8':'#1f3a52');
+    lawNum.setAttribute('display',num?'':'none');lawAr.setAttribute('display',num?'none':'');
+  }
+  singleG.setAttribute('opacity',(1-mk).toFixed(2));singleG.setAttribute('display',mk>.99?'none':'');
+  bothG.setAttribute('opacity',mk.toFixed(2));bothG.setAttribute('display',mk<.01?'none':'');
+  if(mk>.01)both.forEach((q,j)=>{
+    const e=ease(cl((ms-tAll-300-j*350)/DUR));
+    q.sc.render(lerp(S[0],S[j+1],e),t,0);
+    const c=cl((ms-tAll-j*200)/600);q.cap.setAttribute('opacity',c.toFixed(2));
+    q.cap.setAttribute('transform',`translate(0 ${(14*(1-ease(c))).toFixed(1)})`);
+  });
+  requestAnimationFrame(frame);
+}
+
+/* ---------- navigation ---------- */
+const btns=[...document.querySelectorAll('.sys')];
+function setUI(i){
+  if(i<ALL){hd.style.opacity=0;noteG.style.opacity=0;
+    setTimeout(()=>{setHead(i);setNote(i);hd.style.opacity=1;noteG.style.opacity=1;},200);}
+  btns.forEach(b=>b.classList.toggle('on',+b.dataset.i===i));}
+function go(i){
+  if(i===idx)return;
+  const now=performance.now();
+  if(i===ALL){mFrom=mTo===1?1:0;mTo=1;m0=now;tAll=now;}
+  else{
+    if(idx===ALL){mFrom=1;mTo=0;m0=now;}
+    from=cur;to=S[i];t0=now;
+  }
+  idx=i;setUI(i);
+}
+btns.forEach(b=>b.onclick=()=>go(+b.dataset.i));
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown')go(idx>=ALL?1:idx+1);
+  if(e.key==='ArrowRight'||e.key==='ArrowUp')go(idx<=1?ALL:idx-1);
+});
+setHead(0);setNote(0);setUI(0);requestAnimationFrame(frame);
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prev=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prev.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prev.get(ids[0]),b0=prev.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:340});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:340});
+document.getElementById('zreset').onclick=reset;
+apply();
+
+/* ---------- fullscreen ---------- */
+const D=document,R=D.documentElement,fsI=document.getElementById('fsI');
+const isFs=()=>!!(D.fullscreenElement||D.webkitFullscreenElement);
+document.getElementById('fs').onclick=()=>{
+  try{
+    if(isFs()){(D.exitFullscreen||D.webkitExitFullscreen).call(D);}
+    else{const f=R.requestFullscreen||R.webkitRequestFullscreen;if(f){const p=f.call(R);if(p&&p.catch)p.catch(()=>{});}}
+  }catch(e){}
+};
+const fsIcon=()=>fsI.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+D.addEventListener('fullscreenchange',fsIcon);D.addEventListener('webkitfullscreenchange',fsIcon);
+})();
+</script>
+</body>
+</html>
