@@ -9,8 +9,23 @@ function stripUrl(url) {
   return u.href;
 }
 
-self.addEventListener('install', () => {
+// الصفحات الأساسية تُحفظ فور تثبيت ملف الخدمة، حتى تفتح المنصة والتطبيق بدون إنترنت
+// (أول صفحة يُفتح منها الموقع لا تمر على ملف الخدمة، فلا تُحفظ تلقائياً)
+const CORE_FILES = ['./', './index.html', './app.html', './portal.html', './biology.html',
+  './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+
+self.addEventListener('install', (event) => {
   self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.all(CORE_FILES.map(async (f) => {
+      try {
+        const url = new URL(f, self.location).href;
+        const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+        if (res && res.ok) await cache.put(stripUrl(url), res);
+      } catch (e) {}
+    }));
+  })());
 });
 
 // ينقل الملفات المحفوظة من الذاكرات القديمة إلى الذاكرة الحالية قبل حذفها، حتى لا يفقد أحد تجاربه المحفوظة
