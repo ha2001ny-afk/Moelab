@@ -3,7 +3,7 @@
 <head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>النسيج الظهاري العمودي المطبق الكاذب</title>
+<title>النسيج الظهاري المطبق العمودي</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
   #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
@@ -12,22 +12,23 @@
   svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
   .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  #go{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:5;background:#1f3a52;color:#fff;border:none;border-radius:26px;padding:11px 24px;font-family:inherit;font-size:clamp(13px,3.2vw,18px);font-weight:bold;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.28);white-space:nowrap}
+  #go:active{transform:translateX(-50%) scale(.97)}
   body.fs #top{display:none}
   body.fs #stage{top:0}
   .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
   .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
-  .zone{fill:#e0693a;font-size:23px;font-weight:bold;text-anchor:middle}
   .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
 </style>
 </head>
 <body>
-<div id="top"><div id="title">النسيج الظهاري العمودي المطبق الكاذب</div></div>
+<div id="top"><div id="title">النسيج الظهاري المطبق العمودي</div></div>
 <div id="stage">
   <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
-  <svg id="svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet">
+  <svg id="svg" viewBox="60 110 820 520" preserveAspectRatio="xMidYMid meet">
     <defs>
-      <radialGradient id="gNuc" cx="0.35" cy="0.35" r="0.75"><stop offset="0" stop-color="#6fc0e3"/><stop offset="0.6" stop-color="#2f86b5"/><stop offset="1" stop-color="#1d5f86"/></radialGradient>
-      <linearGradient id="gCT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8d56e"/><stop offset="1" stop-color="#d9c45a"/></linearGradient>
+      <linearGradient id="gCT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9e4a2"/><stop offset="1" stop-color="#d9d184"/></linearGradient>
+      <radialGradient id="gNuc" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#9cc6d0"/><stop offset=".6" stop-color="#4f8b9c"/><stop offset="1" stop-color="#2f6273"/></radialGradient>
       <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
     </defs>
     <g id="view"></g>
@@ -36,104 +37,107 @@
 
 <script>
 (function(){
-const NS="http://www.w3.org/2000/svg";
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
 const svg=document.getElementById('svg'),view=document.getElementById('view');
 const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
 const G=(p,a)=>el('g',a||{},p);
-let rs=13;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+let rs=17;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const lerp=(a,b,u)=>a+(b-a)*u,clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+const easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const dk=(hex,f)=>{const n=parseInt(hex.slice(1),16);const r=Math.round((n>>16)*f),g=Math.round(((n>>8)&255)*f),b=Math.round((n&255)*f);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);};
+const f1=n=>n.toFixed(1);
 
-/* ---------- constants ---------- */
-const X0=150,NC=7,CW=76,X1=X0+NC*CW,TY=235,BY=440,CTB=565,CL=40;
-
-/* ---------- connective tissue ---------- */
-el('rect',{x:X0-6,y:BY,width:X1-X0+12,height:CTB-BY,fill:'url(#gCT)'});
-const fibres=[];
-for(let i=0;i<9;i++){fibres.push({y:BY+20+i*12+rnd()*6,ph:rnd()*6.28,a:2+rnd()*3,w:.8+rnd()*.5,
-  e:el('polyline',{fill:'none',stroke:i%2?'#f6efc2':'#b9a244','stroke-width':i%2?1.6:1.3,'stroke-linecap':'round',opacity:.85})});}
-const fibro=[{x:260,y:498,s:1},{x:420,y:522,s:.9},{x:560,y:495,s:1.1}].map((f,i)=>{
-  const g=G(view);el('ellipse',{rx:34*f.s,ry:11*f.s,fill:'#c9ae4a',stroke:'#9b8330','stroke-width':1.5},g);
-  el('ellipse',{rx:14*f.s,ry:6.5*f.s,fill:'#7c6a2c'},g);f.g=g;f.ph=i*2.1;return f;});
-
-/* ---------- epithelium background ---------- */
-el('rect',{x:X0,y:TY,width:X1-X0,height:BY-TY,fill:'#e49ca3'});
-const cellG=G(view),basG=G(view),nucG=G(view);
-
-/* ---------- basal (short) cells ---------- */
-const bas=[];
-for(let k=0;k<NC-1;k++){const bx=X0+20.5+41+82*k;
-  const g=G(basG);
-  const p=el('path',{d:`M${bx-19},${BY} Q${bx-20},${BY-46} ${bx},${BY-50} Q${bx+20},${BY-46} ${bx+19},${BY} Z`,fill:'#f7cdcf',stroke:'#7a3040','stroke-width':1.4},g);
-  const ng=G(nucG);el('ellipse',{rx:14,ry:10,fill:'url(#gNuc)',stroke:'#17506f','stroke-width':1.6},ng);
-  bas.push({bx,ng,ph:rnd()*6.28});}
-
-/* ---------- columnar cells ---------- */
-const NY=[300,342,366,315,355,295,350];
-const cells=[];
-for(let i=0;i<NC;i++){
-  const tx=X0+CW/2+i*CW,bx=X0+20.5+82*i,ny=NY[i];
-  const f=(ny-TY)/(BY-TY),nx0=tx+(bx-tx)*f*.85;
-  const path=el('path',{fill:i%2?'#f1b3b7':'#f4c0c3',stroke:'#7a3040','stroke-width':1.5,'stroke-linejoin':'round'},cellG);
-  el('rect',{x:tx-CW/2,y:TY,width:CW,height:6,fill:'#5a3b4a'},cellG);
-  const ng=G(nucG);el('ellipse',{rx:17,ry:24,fill:'url(#gNuc)',stroke:'#17506f','stroke-width':1.8},ng);
-  el('ellipse',{cx:-4,cy:-5,rx:4.5,ry:5,fill:'#1a4d70',opacity:.75},ng);
-  cells.push({tx,bx,ny,nx0,path,ng,ph:rnd()*6.28,nx:nx0,nyy:ny});
+/* generic jittered mesh whose vertices wobble (edges stay fixed) */
+function mk(parent,map,R,C,fills,stroke,sw,ju,jv,wa,brick){
+  const V=[],cells=[];
+  for(let r=0;r<=R;r++){V[r]=[];for(let c=0;c<=C;c++){
+    const e=(r===0||r===R||c===0||c===C);
+    V[r][c]={u:c/C+(e?0:(rnd()-.5)*ju/C+(r%2?brick:0)/C),v:r/R+(e?0:(rnd()-.5)*jv/R),ph:rnd()*6.28,mov:!e};}}
+  for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+    cells.push({r,c,cx:0,cy:0,v:[V[r][c],V[r][c+1],V[r+1][c+1],V[r+1][c]],
+      p:el('polygon',{fill:fills[Math.floor(rnd()*fills.length)],stroke,'stroke-width':sw,'stroke-linejoin':'round'},parent)});}
+  return{cells,update(t){cells.forEach(q=>{let sx=0,sy=0;
+    const pts=q.v.map(v=>{const m=map(v.u,v.v);let x=m[0],y=m[1];
+      if(v.mov){x+=wa*Math.sin(t*.8+v.ph);y+=wa*.75*Math.cos(t*.7+v.ph);}sx+=x;sy+=y;return f1(x)+','+f1(y);});
+    q.p.setAttribute('points',pts.join(' '));q.cx=sx/4;q.cy=sy/4;});}};
 }
+function cr(pts){let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    d+=` C${f1(p1[0]+(p2[0]-p0[0])/6)},${f1(p1[1]+(p2[1]-p0[1])/6)} ${f1(p2[0]-(p3[0]-p1[0])/6)},${f1(p2[1]-(p3[1]-p1[1])/6)} ${f1(p2[0])},${f1(p2[1])}`;}
+  return d;}
 
-/* ---------- basement membrane ---------- */
-const bm=el('polyline',{fill:'none',stroke:'#3a2a2a','stroke-width':4.5,'stroke-linejoin':'round'});
-const bmPts=[];for(let x=X0-6;x<=X1+6;x+=10)bmPts.push(x);
 
-/* ---------- cilia ---------- */
-const cilia=[];
-for(let i=0;i<NC;i++)for(let j=0;j<7;j++){const x=X0+i*CW+6+j*(CW-12)/6;
-  cilia.push({x,i,j,rp:rnd()*.6,e:el('polyline',{fill:'none',stroke:'#5b4452','stroke-width':1.9,'stroke-linecap':'round'}),mid:[x,TY-20]});}
+/* =========================================================
+   النسيج الظهاري المطبق العمودي (كما في رسم الكتاب)
+   طبقة سطحية من خلايا مسطحة متعددة الأضلاع، تحتها صفّان من الخلايا العمودية،
+   ثم الغشاء القاعدي والنسيج الضام
+   ========================================================= */
+const g=G(view),L=G(view,{'pointer-events':'none'});
+const F0=200,F1=560,DX=105,DY=-62;
+const YT=232,YS=262,YM=370,YB=478,YE=572;           // أعلى، نهاية الطبقة السطحية، منتصف، الغشاء القاعدي، النهاية
+const mS=(d,y)=>[F1+d*DX,y+d*DY];
+const P=(pts,a)=>poly(pts,a,g);
+const poly=(pts,a,p)=>el('polygon',{points:pts.map(q=>f1(q[0])+','+f1(q[1])).join(' '),...a},p);
 
-/* ---------- particles carried by cilia ---------- */
-const parts=[];
-for(let i=0;i<9;i++)parts.push({x:X0+rnd()*(X1-X0),y:TY-CL-12+rnd()*8,sp:14+rnd()*8,ph:rnd()*6.28,r:3+rnd()*2.5,e:el('circle',{fill:i%3?'#9a8a60':'#6a7a5a',opacity:.9})});
-parts.forEach(p=>p.e.setAttribute('r',p.r.toFixed(1)));
+/* النسيج الضام */
+P([[F0,YB],[F1,YB],[F1,YE],[F0,YE]],{fill:'url(#gCT)'});
+P([mS(0,YB),mS(1,YB),mS(1,YE),mS(0,YE)],{fill:'#cbc274'});
+const ctF=[];for(let i=0;i<8;i++){const lt=i%2;ctF.push({y:YB+13+i*9.6+rnd()*3,ph:rnd()*6.28,a:2+rnd()*2.5,w:.8+rnd()*.6,
+  f:el('polyline',{fill:'none',stroke:lt?'#f6f2c8':'#b5ab55','stroke-width':lt?1.6:1.3,'stroke-linecap':'round',opacity:.9},g),
+  s:el('polyline',{fill:'none',stroke:lt?'#e7e0a8':'#a39948','stroke-width':1.2,'stroke-linecap':'round',opacity:.85},g)});}
 
-/* ---------- labels ---------- */
+/* الخلايا العمودية: صفّان */
+const CF=['#e2b3b0','#dcaaa8','#e8bcb8'];
+const rowF=(y0,y1)=>(u,v)=>[F0+u*(F1-F0),y0+v*(y1-y0)];
+const rowS=(y0,y1)=>(u,v)=>mS(u,y0+v*(y1-y0));
+const r1=mk(g,rowF(YS,YM),1,6,CF,'#5d6b66',1.8,.12,0,.5,0);
+const r2=mk(g,rowF(YM,YB),1,6,CF,'#5d6b66',1.8,.12,0,.5,0);
+const s1=mk(g,rowS(YS,YM),1,3,CF.map(c=>dk(c,.84)),'#4f5c58',1.6,.15,0,.5,0);
+const s2=mk(g,rowS(YM,YB),1,3,CF.map(c=>dk(c,.84)),'#4f5c58',1.6,.15,0,.5,0);
+/* أنوية (بعض الخلايا لا تظهر نواتها في المقطع، كما في رسم الكتاب) */
+const skip1=[2,5],skip2=[1,3];
+function nuclei(row,skip,dy,r){return row.cells.map((q,i)=>{if(skip.indexOf(i)>=0)return null;
+  const n=el('ellipse',{rx:r,ry:r*1.25,fill:'url(#gNuc)',stroke:'#2a5566','stroke-width':1.4},g);return {n,q,dy,ph:rnd()*6.28};}).filter(Boolean);}
+const nu=nuclei(r1,skip1,10,10).concat(nuclei(r2,skip2,4,12));
+
+/* الطبقة السطحية: خلايا مسطحة متعددة الأضلاع (رمادية) */
+const GF=['#a9a9ad','#b3b3b7','#9fa0a5'];
+const sF=mk(g,rowF(YT,YS),2,8,GF,'#6f7075',1.4,.6,.35,.5,.5);
+const sS=mk(g,rowS(YT,YS),2,3,GF.map(c=>dk(c,.85)),'#606166',1.3,.5,.35,.5,.5);
+const sT=mk(g,(u,v)=>[F0+u*(F1-F0)+v*DX,YT+v*DY],3,8,['#b9b9bd','#c2c2c6','#adaeb3'],'#727378',1.4,.65,.55,.7,.5);
+
+/* الغشاء القاعدي */
+const bmF=el('polyline',{fill:'none',stroke:'#4c5a55','stroke-width':4,'stroke-linejoin':'round'},g),bmS=el('polyline',{fill:'none',stroke:'#3f4b47','stroke-width':4,'stroke-linejoin':'round'},g);
+
+/* الحدود الخارجية */
+const ol=pts=>el('polyline',{points:pts.map(q=>f1(q[0])+','+f1(q[1])).join(' '),fill:'none',stroke:'#4a3d40','stroke-width':1.8,'stroke-linejoin':'round'},g);
+ol([[F0,YT],[F0,YE],[F1,YE],mS(1,YE),mS(1,YT),[F0+DX,YT+DY],[F0,YT],[F1,YT],mS(1,YT)]);ol([[F1,YT],[F1,YE]]);
+
+/* ---------- التسميات (مصطلحات الكتاب) ---------- */
 const labs=[];
-function label(txt,cx,py,w,tfs){const h=34,g=G(view,{'pointer-events':'none'}),
-  lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},g));
-  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:17},g);el('text',{class:'lbl',x:cx,y:py},g).textContent=txt;
-  labs.push(()=>tfs.forEach((f,i)=>{const p=f(),a=lns[i];a.setAttribute('x1',cx);a.setAttribute('y1',py);a.setAttribute('x2',p[0].toFixed(1));a.setAttribute('y2',p[1].toFixed(1));}));}
-el('text',{class:'zone',x:75,y:190},view).textContent='السطح الحر';
-el('text',{class:'zone',x:75,y:520},view).textContent='جهة القاعدة';
-const cN=cells[5],bN=bas[5];
-label('أهداب',812,140,110,[()=>cilia[(NC-1)*7+3].mid,()=>cilia[3*7+2].mid]);
-label('خلية عمودية',812,262,150,[()=>[X1-6,262]]);
-label('نواة',812,360,90,[()=>[cN.nx+17,cN.nyy-2],()=>[bN.bx+14+bN.dx,BY-18+bN.dy]]);
-label('غشاء قاعدي',812,452,150,[()=>[X1-25,BY+2]]);
-label('نسيج ضام',812,515,130,[()=>[X1-45,500]]);
+function label(txt,cx,py,w,tfs){const h=34,gg=G(L),lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},gg));
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:17},gg);el('text',{class:'lbl',x:cx,y:py},gg).textContent=txt;
+  labs.push(()=>tfs.forEach((f,i)=>{const p=f(),a=lns[i];a.setAttribute('x1',cx);a.setAttribute('y1',py);a.setAttribute('x2',f1(p[0]));a.setAttribute('y2',f1(p[1]));}));}
+const nAt=(row,i)=>{const o=nu.find(k=>k.q===row.cells[i]);return ()=>[o.q.cx-11,o.q.cy+o.dy];};
+label('خلية عمودية',800,300,150,[()=>[r1.cells[5].cx+18,r1.cells[5].cy-22]]);
+label('نواة',800,392,90,[nAt(r1,4),nAt(r2,4)]);
+label('غشاء قاعدي',800,470,150,[()=>mS(.55,YB+2)]);
+label('نسيج ضام',800,545,140,[()=>mS(.45,YB+50)]);
 
-/* ---------- animation ---------- */
+/* ---------- الحركة ---------- */
 let T=0,last=performance.now(),paused=false;
 function frame(ms){
-  const dt=Math.min(.05,(ms-last)/1000);last=ms;const de=paused?0:dt;T+=de;const t=T;
-  cilia.forEach(c=>{
-    const w=t*5.2-c.x*.028+c.rp;
-    const a=.62*Math.sin(w)+.28*Math.sin(2*w+.9);
-    let x=c.x,y=TY;const pts=[x.toFixed(1)+','+y.toFixed(1)];
-    for(let k=1;k<=8;k++){const th=a*Math.pow(k/8,1.1);x+=Math.sin(th)*CL/8;y-=Math.cos(th)*CL/8;pts.push(x.toFixed(1)+','+y.toFixed(1));if(k===4)c.mid=[x,y];}
-    c.e.setAttribute('points',pts.join(' '));
-  });
-  parts.forEach(p=>{p.x+=p.sp*de;if(p.x>X1+10)p.x=X0-10;
-    p.e.setAttribute('cx',p.x.toFixed(1));p.e.setAttribute('cy',(p.y+3*Math.sin(t*2.3+p.ph)).toFixed(1));});
-  /* columnar cells (body follows the moving nucleus) */
-  cells.forEach(c=>{
-    const nx=c.nx0+2.5*Math.sin(t*.6+c.ph),ny=c.ny+3*Math.sin(t*.8+c.ph*1.7),
-      tx=c.tx,bx=c.bx+1.5*Math.sin(t*.5+c.ph),h=CW/2;
-    c.nx=nx;c.nyy=ny;
-    c.path.setAttribute('d',`M${tx-h},${TY} L${tx+h},${TY} C${tx+h},${ny-30} ${nx+23},${ny-50} ${nx+23},${ny} C${nx+23},${ny+40} ${bx+8},${BY-40} ${bx+8},${BY} L${bx-8},${BY} C${bx-8},${BY-40} ${nx-23},${ny+40} ${nx-23},${ny} C${nx-23},${ny-50} ${tx-h},${ny-30} ${tx-h},${TY} Z`);
-    c.ng.setAttribute('transform',`translate(${nx.toFixed(1)} ${ny.toFixed(1)})`);
-  });
-  bas.forEach(b=>{b.dx=1.8*Math.sin(t*.7+b.ph);b.dy=1.5*Math.sin(t*.9+b.ph*1.3);
-    b.ng.setAttribute('transform',`translate(${(b.bx+b.dx).toFixed(1)} ${(BY-18+b.dy).toFixed(1)})`);});
-  bm.setAttribute('points',bmPts.map(x=>x+','+(BY+1.2*Math.sin(x*.05+t*.8)).toFixed(1)).join(' '));
-  fibres.forEach(f=>{const p=[];for(let x=X0;x<=X1;x+=12)p.push(x+','+(f.y+f.a*Math.sin(x*.03*f.w+f.ph+t*.7)).toFixed(1));f.e.setAttribute('points',p.join(' '));});
-  fibro.forEach(f=>f.g.setAttribute('transform',`translate(${(f.x+6*Math.sin(t*.35+f.ph)).toFixed(1)} ${(f.y+3*Math.sin(t*.5+f.ph)).toFixed(1)}) rotate(${(4*Math.sin(t*.4+f.ph)).toFixed(1)})`));
+  const dt=Math.min(.05,(ms-last)/1000);last=ms;if(!paused)T+=dt;const t=T;
+  [r1,r2,s1,s2,sF,sS,sT].forEach(m=>m.update(t));
+  nu.forEach(k=>{k.n.setAttribute('cx',f1(k.q.cx));k.n.setAttribute('cy',f1(k.q.cy+k.dy));
+    k.n.setAttribute('transform',`rotate(${f1(4*Math.sin(t*.7+k.ph))} ${f1(k.q.cx)} ${f1(k.q.cy+k.dy)})`);});
+  const pf=[],ps=[];for(let s=0;s<=1.001;s+=.05){pf.push(f1(F0+s*(F1-F0))+','+f1(YB+.9*Math.sin(s*14+t*.8)));const m=mS(s,YB+.9*Math.sin(s*14+t*.8+1));ps.push(f1(m[0])+','+f1(m[1]));}
+  bmF.setAttribute('points',pf.join(' '));bmS.setAttribute('points',ps.join(' '));
+  ctF.forEach(f=>{const p=[],q=[];
+    for(let x=F0;x<=F1;x+=12)p.push(x+','+f1(f.y+f.a*Math.sin(x*.03*f.w+f.ph+t*.7)));
+    for(let d=0;d<=1.001;d+=.1){const m=mS(d,f.y+f.a*Math.sin(d*5*f.w+f.ph+t*.7));q.push(f1(m[0])+','+f1(m[1]));}
+    f.f.setAttribute('points',p.join(' '));f.s.setAttribute('points',q.join(' '));});
   labs.forEach(f=>f());
   requestAnimationFrame(frame);
 }
@@ -158,8 +162,8 @@ const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.ad
 svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
 const reset=()=>{sc=1;tx=0;ty=0;apply();};
 svg.addEventListener('dblclick',reset);
-document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:350});
-document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:350});
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:470,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:470,y:370});
 document.getElementById('zreset').onclick=reset;
 
 /* ---------- fullscreen ---------- */
