@@ -615,6 +615,7 @@
       <div class="teacher-badge" id="teacherDisplay">@DESNEOO</div>
       <!-- زر التحديث السريع والآمن -->
       <button class="btn-key-change" onclick="forceSyncPermissions()" title="تحديث الصلاحيات والفصول" style="border-color:#10b981; color:#34d399;">🔄 تحديث الصلاحيات</button>
+      <button class="btn-key-change" onclick="lockPlatform()" title="قفل المختبر حتى لا يستخدمه غيرك" style="border-color:#f59e0b; color:#d97706;">🔒 قفل</button>
       <button class="btn-key-change" onclick="openKeyModal()" title="تغيير كود الاشتراك">🔑 الكود</button>
     </div>
   </header>
@@ -1315,6 +1316,7 @@
       const urlKey = urlParams.get('key');
       if (urlKey) {
         localStorage.setItem('moe_teacher_key', urlKey.trim());
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
         return urlKey.trim();
       }
       return localStorage.getItem('moe_teacher_key') || "";
@@ -1816,7 +1818,10 @@
       const input = document.getElementById('inputTeacherKey');
       const status = document.getElementById('modalStatus');
 
-      input.value = currentKey || localStorage.getItem('moe_teacher_key') || "";
+      // لا نعرض الكود المحفوظ حتى لا يراه غير صاحبه؛ نكتفي بآخر حرفين
+      const kk = currentKey || localStorage.getItem('moe_teacher_key') || "";
+      input.value = "";
+      input.placeholder = kk ? ("الكود الحالي: \u2066••••" + kk.slice(-2) + "\u2069") : "مثال: ALI2026";
       status.innerText = errorMsg;
       status.style.color = "#ef4444";
       modal.style.display = 'flex';
@@ -1940,6 +1945,83 @@
     }
 
     window.addEventListener('load', startAutoSync);
+  </script>
+  <!-- ===== قفل المختبر: يعمل بدون إنترنت (يقارن بالكود المحفوظ على الجهاز) ===== -->
+  <style>
+    #lockScreen{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:16px;
+      background:#050b14 radial-gradient(circle at top,rgba(245,158,11,.14),#050b14 65%);font-family:'Tajawal',Tahoma,sans-serif;direction:rtl}
+    #lockScreen .lk-card{width:100%;max-width:420px;background:#0b1526;border:1px solid #1e3a5f;border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    #lockScreen .lk-ico{font-size:52px;line-height:1}
+    #lockScreen h2{margin:10px 0 4px;color:#fff;font-size:1.4rem}
+    #lockScreen p{margin:0 0 16px;color:#94a3b8;font-size:.92rem}
+    #lockScreen input[type=password]{width:100%;box-sizing:border-box;font-size:22px;letter-spacing:3px;text-align:center;padding:13px;border-radius:14px;border:2px solid #1e3a5f;background:#050b14;color:#fff;font-family:inherit;direction:ltr}
+    #lockScreen input[type=password]:focus{outline:none;border-color:#f59e0b}
+    #lockScreen .lk-btn{display:block;width:100%;margin-top:12px;padding:14px;font-size:18px;font-weight:900;border:0;border-radius:14px;background:#f59e0b;color:#1f1300;cursor:pointer;font-family:inherit}
+    #lockScreen .lk-msg{min-height:22px;margin-top:10px;font-size:.9rem;color:#f87171;font-weight:bold}
+    #lockScreen .lk-opt{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:12px;color:#cbd5e1;font-size:.88rem;cursor:pointer}
+    #lockScreen .lk-opt input{width:18px;height:18px;accent-color:#f59e0b}
+    #lockScreen .lk-note{margin-top:14px;font-size:.75rem;color:#64748b}
+    #lockScreen.shake .lk-card{animation:lkShake .45s}
+    @keyframes lkShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  </style>
+  <div id="lockScreen" role="dialog" aria-modal="true">
+    <div class="lk-card">
+      <div class="lk-ico">🔒</div>
+      <h2>المختبر مقفل</h2>
+      <p>اكتب كود الاشتراك لفتح المختبر</p>
+      <input type="password" id="lockInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="كود الاشتراك">
+      <button type="button" class="lk-btn" id="lockBtn">فتح المختبر 🔓</button>
+      <div class="lk-msg" id="lockMsg"></div>
+      <label class="lk-opt"><input type="checkbox" id="lockAuto"> اطلب الكود في كل مرة يُفتح فيها المختبر</label>
+      <div class="lk-note">يعمل بدون إنترنت • لنسيان الكود تواصل مع إدارة المنصة</div>
+    </div>
+  </div>
+  <script>
+  (function () {
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+    function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+    function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+    function ssDel(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+    var ov = document.getElementById('lockScreen'), inp = document.getElementById('lockInput'),
+        msg = document.getElementById('lockMsg'), auto = document.getElementById('lockAuto');
+
+    // الكود المسجّل على هذا الجهاز (من الرخصة المحفوظة)
+    function savedKey() {
+      try { var l = JSON.parse(lsGet('moe_offline_license') || 'null'); if (l && l.key) return String(l.key); } catch (e) {}
+      return lsGet('moe_teacher_key') || '';
+    }
+    function show() {
+      ov.style.display = 'flex'; inp.value = ''; msg.textContent = '';
+      auto.checked = lsGet('moe_autolock') === '1';
+      setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50);
+    }
+    window.lockPlatform = function () {
+      if (!savedKey()) { alert('لا يوجد اشتراك مفعّل على هذا الجهاز بعد.'); return; }
+      lsSet('moe_locked', '1'); ssDel('moe_unlocked');
+      try { closeExp(); } catch (e) {}
+      show();
+    };
+    function unlock() {
+      var v = inp.value.replace(/\s+/g, ''), k = savedKey();
+      if (!v) { msg.textContent = 'اكتب الكود أولاً.'; return; }
+      if (k && v.toLowerCase() === k.toLowerCase()) {
+        lsDel('moe_locked'); ssSet('moe_unlocked', '1');
+        if (auto.checked) lsSet('moe_autolock', '1'); else lsDel('moe_autolock');
+        ov.style.display = 'none'; inp.value = '';
+      } else {
+        msg.textContent = 'الكود غير صحيح';
+        ov.classList.remove('shake'); void ov.offsetWidth; ov.classList.add('shake');
+        inp.value = '';
+      }
+    }
+    document.getElementById('lockBtn').onclick = unlock;
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.keyCode === 13) unlock(); });
+
+    // عند الفتح: مقفل سابقاً، أو مفعّل عليه «اطلب الكود في كل مرة»
+    if (savedKey() && (lsGet('moe_locked') === '1' || (lsGet('moe_autolock') === '1' && ssGet('moe_unlocked') !== '1'))) show();
+  })();
   </script>
 </body>
 </html>
