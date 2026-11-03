@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en" dir="ltr"><head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Identical Twins</title>
+<style>
+  :root{--navy:#1f3a52;--paper:#fff;--ink:#1f3a52;--sub:#8a5a1a;--hint:#c4623a;color-scheme:light}
+  html{height:100%;box-sizing:border-box}
+  html,body{margin:0;overflow:hidden;background:var(--paper);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{height:100%;position:relative;direction:ltr}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(14px,3.4vw,24px);line-height:1.3;font-weight:bold;text-align:center}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:var(--paper)}
+  #cv{position:absolute;top:0;left:0;right:0;bottom:84px}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #ctrl{position:absolute;bottom:0;left:0;right:0;height:84px;display:flex;align-items:center;justify-content:center;gap:14px;padding-bottom:env(safe-area-inset-bottom,0px)}
+  #go,#prev{min-width:150px;height:56px;padding:0 22px;border-radius:28px;border:3px solid var(--navy);background:var(--paper);color:var(--navy);font:bold 21px Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+  #prev:disabled{opacity:.35;cursor:default;box-shadow:none}
+  .zb{position:absolute;top:10px;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--paper);color:var(--navy);font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .zb button:focus-visible,#go:focus-visible,#prev:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  #go:active,#prev:active{background:#d9ebf7}
+  .lb{fill:var(--ink);font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lr{fill:#c62828;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+  .lt{fill:#7b3fa0;font-size:24px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px}
+  .ls{fill:var(--sub);font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+</style></head><body>
+
+<div id="top"><div id="title">Identical Twins</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zreset" aria-label="Reset view">⟲</button><button id="pause" aria-label="Pause">⏸</button><button id="fs" aria-label="Fullscreen">⛶</button></div>
+  <div id="cv">
+    <svg id="svg" viewBox="0 0 1000 810" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd23a" stop-opacity=".95"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gNuc" cx=".35" cy=".6" r=".8"><stop offset="0" stop-color="#d9c2ee"/><stop offset=".7" stop-color="#a77fcf"/><stop offset="1" stop-color="#7d55a8"/></radialGradient>
+        <radialGradient id="gNcl" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#7a64c8"/><stop offset="1" stop-color="#3d2a7a"/></radialGradient>
+        <marker id="arw" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#1f3a52"/></marker>
+        <radialGradient id="gRib" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff1a0"/><stop offset=".6" stop-color="#e8c13a"/><stop offset="1" stop-color="#a98411"/></radialGradient>
+      </defs>
+      <g id="view"></g>
+    </svg>
+  </div>
+  <div id="ctrl"><button id="prev" disabled>◀ Previous</button><button id="go">Start</button></div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,lerp=(a,b,u)=>a+(b-a)*u,f1=v=>v.toFixed(1),f2=v=>v.toFixed(2);
+const sm=(u,a,b)=>ease(clamp((u-a)/(b-a),0,1));
+const show=(e,op)=>{if(op<.01){e.style.display='none';return false;}e.style.display='';e.setAttribute('opacity',f2(op));return true;};
+const pop=v=>v*(1+.25*Math.sin(PI*v));
+
+const DUR=[4,4.5,5,7];
+const world=G(view);
+const Lglow=G(world),Lobj0=G(world),Lobj=G(world);
+
+/* ---------------- building blocks ---------------- */
+function Txt(x,y,s,par,cls){const t=el('text',{class:cls||'lb',x,y},par||Lobj);t.textContent=s;return t;}
+const path=(d,a,p)=>el('path',Object.assign({d,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},a),p);
+function popAt(g,cx,cy,v){if(!show(g,v>.01?1:0))return;g.setAttribute('transform',`translate(${cx} ${cy}) scale(${f2(pop(v))}) translate(${-cx} ${-cy})`);}
+function Dash(p,v){const L=p.__L||(p.__L=p.getTotalLength());if(!show(p,v>.005?1:0))return;p.setAttribute('stroke-dasharray',`${f1(v*L)} ${f1(L+10)}`);}
+const lead=(d,p)=>path(d,{stroke:'#1f3a52','stroke-width':1.6},p);
+const Glow=(cx,cy,rx,ry)=>el('ellipse',{cx,cy,rx,ry,fill:'url(#gGlow)'},Lglow);
+function Lab(x,y,name,alt,d){const g=G(Lobj);(Array.isArray(d)?d:[d]).forEach(q=>lead(q,g));Txt(x,y,name,g);if(alt)Txt(x,y+26,alt,g,'ls');return g;}
+const arrow=(d,dash)=>path(d,Object.assign({stroke:'#1f3a52','stroke-width':5,'marker-end':'url(#arw)'},dash?{'stroke-dasharray':'10 7'}:{}),Lobj0);
+
+/* three ways one zygote can give identical twins: (أ) split at two cells, (ب) two inner cell masses, (ج) one inner cell mass splits later */
+const COL=[170,500,830],A2=[105,235];
+
+/* ================= 1) one two-cell stage, three possible paths ================= */
+const Y1=75;
+const ZY=G(Lobj0);
+el('circle',{cx:500,cy:Y1,r:50,fill:'#e4e4e4',stroke:'#7a7a7a','stroke-width':3},ZY);
+[-1,1].forEach(s=>{el('ellipse',{cx:500+s*21,cy:Y1,rx:20,ry:39,fill:'#f4f4f4',stroke:'#8a8a8a','stroke-width':2},ZY);el('circle',{cx:500+s*21,cy:Y1,r:8,fill:'#9a9a9a',stroke:'#555','stroke-width':1.5},ZY);});
+const lZ=Lab(700,62,'2-Cell stage zygote','(one fertilized egg)','M630,68 L552,72');
+const ar1=[arrow('M458,104 L200,170',1),arrow('M500,128 L500,170',1),arrow('M542,104 L800,170',1)];
+const LET=[['A',300,118],['B',548,152],['C',700,118]].map(([s,x,y])=>{const g=G(Lobj);Txt(x,y,s,g,'lt');return g;});
+
+/* ================= 2) blastocysts ================= */
+const Y2=255;
+function blast(cx,r,icms){const g=G(Lobj0);
+  el('circle',{cx,cy:Y2,r,fill:'#fff',stroke:'#4a2418','stroke-width':3.5},g);
+  for(let a=0;a<360;a+=22){const q=a*PI/180,x=cx+r*Math.cos(q),y=Y2+r*Math.sin(q);el('ellipse',{cx:f1(x),cy:f1(y),rx:8,ry:3.5,fill:'#7a3a28',transform:`rotate(${a+90} ${f1(x)} ${f1(y)})`},g);}
+  icms.forEach(a=>{const q=a*PI/180,c=[cx+(r-20)*Math.cos(q),Y2+(r-20)*Math.sin(q)];
+    [[-12,-6],[0,-9],[12,-6],[-17,4],[-5,4],[7,4],[17,4],[-8,13],[6,13]].forEach(([x,y])=>{const rx=x*Math.cos(q+PI/2)-y*Math.sin(q+PI/2),ry=x*Math.sin(q+PI/2)+y*Math.cos(q+PI/2);
+      el('circle',{cx:f1(c[0]+rx*.8),cy:f1(c[1]+ry*.8),r:6,fill:'#2f6fb0',stroke:'#173f6b','stroke-width':1.2},g);});});
+  return {g,cx,cy:Y2};}
+const BL=[blast(A2[0],52,[-90]),blast(A2[1],52,[-90]),blast(COL[1],62,[-128,-52]),blast(COL[2],62,[-90])];
+const gl2=Glow(500,255,470,90);
+const lICM=Lab(365,196,'Inner cell','mass',`M418,202 L${COL[1]-36},${Y2-30}`);
+const lBC=Lab(665,196,'Blastocyst','cavity',`M620,212 L${COL[2]-10},${Y2+18}`);
+
+/* ================= 3) amnion, yolk sac and chorion ================= */
+const Y3=455;
+function chorion(cx,r,kind){const g=G(Lobj0);
+  for(let a=192;a<=348;a+=10){const q=a*PI/180,x0=cx+(r+3)*Math.cos(q),y0=Y3+(r+3)*Math.sin(q),x1=cx+(r+14)*Math.cos(q),y1=Y3+(r+14)*Math.sin(q);
+    path(`M${f1(x0)},${f1(y0)} L${f1(x1)},${f1(y1)}`,{stroke:'#c0392b','stroke-width':2.6},g);el('circle',{cx:f1(x1),cy:f1(y1),r:2.6,fill:'#c0392b'},g);}
+  el('circle',{cx,cy:Y3,r,fill:'#fff',stroke:'#d24a2a','stroke-width':7},g);
+  const amn=(x,w,y)=>{el('path',{d:`M${f1(x-w)},${f1(y)} Q${f1(x)},${f1(y-w*1.1)} ${f1(x+w)},${f1(y)}Z`,fill:'#cfe7f8',stroke:'#2f6fb0','stroke-width':2.2},g);
+    el('rect',{x:f1(x-w-2),y:f1(y-2),width:f1(2*w+4),height:7,rx:3,fill:'#2f6fb0'},g);};
+  const yolk=(x,y,rr)=>el('circle',{cx:f1(x),cy:f1(y),r:rr,fill:'#fff',stroke:'#2f6fb0','stroke-width':2.2},g);
+  if(kind==='one'){amn(cx,r*.42,Y3-r*.45);yolk(cx,Y3-r*.45+5+r*.3,r*.3);}
+  if(kind==='two'){[-1,1].forEach(s=>{amn(cx+s*r*.4,r*.3,Y3-r*.3);yolk(cx+s*r*.4,Y3-r*.3+5+r*.22,r*.22);});}
+  if(kind==='shared'){amn(cx,r*.66,Y3-r*.2);yolk(cx,Y3-r*.2+5+r*.3,r*.3);}
+  return {g,cx,cy:Y3};}
+const CH=[chorion(A2[0],56,'one'),chorion(A2[1],56,'one'),chorion(COL[1],80,'two'),chorion(COL[2],80,'shared')];
+const ar2=[[A2[0],320,370],[A2[1],320,370],[COL[1],328,360],[COL[2],328,360]].map(([x,a,b])=>arrow(`M${x},${a} L${x},${b}`));
+const gl3=Glow(500,455,480,100);
+const lAm=Lab(358,372,'Amniotic cavity','',`M310,380 L${A2[1]+8},${Y3-40}`);
+const lYk=Lab(358,470,'Yolk sac','',`M318,470 L${A2[1]+16},${Y3-12}`);
+const lCC=Lab(665,512,'Common chorionic','cavity',`M610,515 L${COL[1]+48},${Y3+42}`);
+const lSA=Lab(665,380,'Common amniotic cavity','cavity',`M712,386 L${COL[2]-30},${Y3-38}`);
+
+/* ================= 4) inside the uterus ================= */
+const UY=610,K=.62;
+const ar3=COL.map(x=>arrow(`M${x},${545} L${x},${590}`));
+function uterusPath(i){const k=i;return `M${-130+k},60 C${-130+k},${15+k} -95,${k} 0,${k} C95,${k} ${130-k},${15+k} ${130-k},60 L${124-k},120 C${112-k},170 ${60-k},190 ${30-k*.6},205 L${24-k*.6},235 L${-24+k*.6},235 L${-30+k*.6},205 C${-60+k},190 ${-112+k},170 ${-124+k},120Z`;}
+const FET=[];
+function fetus(par,x,y,flip,amn){const g=G(par);const s=flip?-1:1;
+  if(amn)el('ellipse',{cx:x,cy:y+4,rx:30,ry:44,fill:'#6fb6ea',stroke:'#fff','stroke-width':4},g);
+  const f=G(g);
+  path(`M${x+s*8},${y-14} C${x+s*24},${y+2} ${x+s*18},${y+30} ${x},${y+32} C${x-s*14},${y+30} ${x-s*14},${y+14} ${x-s*4},${y+8}`,{stroke:'#1f5fa0','stroke-width':15},f);
+  el('circle',{cx:x+s*2,cy:y-20,r:14,fill:'#1f5fa0'},f);
+  path(`M${x-s*4},${y+10} q${-s*10},-6 ${-s*14},-26`,{stroke:'#1f5fa0','stroke-width':5},f);
+  path(`M${x},${y+30} q${s*-14},4 ${s*-10},18`,{stroke:'#1f5fa0','stroke-width':6},f);
+  FET.push({f,x,y,ph:x*.03+(flip?1:0)});return g;}
+const UT=COL.map((cx,i)=>{const o=G(Lobj0),g=G(o,{transform:`translate(${cx} ${UY}) scale(${K})`});
+  el('path',{d:uterusPath(0),fill:'#d9d9d9',stroke:'#8a8a8a','stroke-width':4},g);
+  el('path',{d:uterusPath(14),fill:'#f6ece8',stroke:'#b9a9a2','stroke-width':3},g);
+  if(i===0){[-55,55].forEach(dx=>{el('ellipse',{cx:dx,cy:85,rx:52,ry:72,fill:'#c62828'},g);
+      el('ellipse',{cx:dx+(dx<0?6:-6),cy:88,rx:40,ry:58,fill:'#fff',stroke:'#e0b4b4','stroke-width':2},g);fetus(g,dx+(dx<0?6:-6),88,dx>0,true);});}
+  else{el('ellipse',{cx:0,cy:88,rx:110,ry:78,fill:'#c62828'},g);
+    el('ellipse',{cx:0,cy:94,rx:92,ry:62,fill:'#fff',stroke:'#e0b4b4','stroke-width':2},g);
+    if(i===1){fetus(g,-44,94,false,true);fetus(g,44,94,true,true);}
+    else{el('ellipse',{cx:0,cy:96,rx:80,ry:52,fill:'#6fb6ea',stroke:'#fff','stroke-width':4},g);fetus(g,-34,94,false,false);fetus(g,34,94,true,false);}}
+  return {o,cx};});
+const gl4=Glow(500,690,480,110);
+const CAP=[['Separate placenta for each embryo',COL[0]],['Common placenta, separate amnion',COL[1]],['Common placenta, common amnion',COL[2]]].map(([s,x])=>{const g=G(Lobj);Txt(x,UY+235*K+28,s,g,'lr');return g;});
+const lPl=Lab(345,620,'Common placenta','',`M392,628 L${COL[1]-40},${UY+30}`);
+
+/* ---------------- state / timeline ---------------- */
+const S={entry:0,tgt:0,dur:1};
+let stage=-1,T=0,t0=0,last=performance.now(),P=0;
+function step(){P=lerp(S.entry,S.tgt,clamp((T-t0)/S.dur,0,1));}
+
+function render(t){
+  const N=DUR.length,s=[0];for(let i=1;i<=N;i++)s.push(clamp(P-(i-1),0,1));
+  /* 1 one fertilised egg reaches the two-cell stage; three possible routes branch off */
+  popAt(ZY,500,Y1,sm(s[1],0,.35));show(lZ,sm(s[1],.3,.5));
+  ar1.forEach((a,i)=>Dash(a,sm(s[1],.4+i*.1,.6+i*.1)));
+  LET.forEach((g,i)=>show(g,sm(s[1],.6+i*.1,.75+i*.1)));
+  /* 2 (أ) two blastocysts, (ب) one with two inner cell masses, (ج) one with a single inner cell mass */
+  BL.forEach((b,i)=>popAt(b.g,b.cx,b.cy,sm(s[2],i*.1,.35+i*.1)));
+  show(gl2,.5*Math.sin(PI*sm(s[2],.2,1)));show(lICM,sm(s[2],.6,.78));show(lBC,sm(s[2],.75,.93));
+  /* 3 amnion, yolk sac and chorion form */
+  ar2.forEach((a,i)=>Dash(a,sm(s[3],i*.04,.15+i*.04)));
+  CH.forEach((c,i)=>popAt(c.g,c.cx,c.cy,sm(s[3],.15+i*.08,.45+i*.08)));
+  show(gl3,.5*Math.sin(PI*sm(s[3],.3,1)));
+  show(lAm,sm(s[3],.55,.68));show(lYk,sm(s[3],.64,.77));show(lCC,sm(s[3],.73,.86));show(lSA,sm(s[3],.82,.95));
+  /* 4 in the uterus: separate placentas, a shared placenta with separate amnions, or a shared placenta and amnion */
+  ar3.forEach((a,i)=>Dash(a,sm(s[4],i*.05,.15+i*.05)));
+  UT.forEach((u,i)=>popAt(u.o,u.cx,UY+70,sm(s[4],.15+i*.12,.4+i*.12)));
+  FET.forEach(o=>o.f.setAttribute('transform',`rotate(${f2(4*Math.sin(1.6*t+o.ph))} ${o.x} ${o.y})`));
+  show(gl4,.5*Math.sin(PI*sm(s[4],.4,1)));
+  CAP.forEach((g,i)=>show(g,sm(s[4],.55+i*.08,.68+i*.08)));show(lPl,sm(s[4],.82,.95));
+}
+
+/* ---------------- next / previous buttons ---------------- */
+const btn=document.getElementById('go'),pbtn=document.getElementById('prev');
+function go(i){const tgt=i+1;let d=0;for(let k=Math.floor(P);k<tgt;k++)d+=DUR[k]*(k+1-Math.max(P,k));
+  S.entry=P;S.tgt=tgt;stage=i;t0=T;S.dur=Math.max(1,d);}
+function back(){if(stage<0)return;const tgt=stage;stage--;S.entry=P;S.tgt=tgt;t0=T;S.dur=.9;}
+btn.onclick=()=>{if(stage>=DUR.length-1){P=0;stage=-1;S.entry=0;S.tgt=0;}go(stage+1);};
+pbtn.onclick=back;
+let lbl='',paused=false;
+function frame(ms){const dt=paused?0:Math.min(.05,(ms-last)/1000);last=ms;T+=dt;step();render(T);
+  const nl=stage<0?'Start':(stage>=DUR.length-1&&P>DUR.length-.001)?'Restart ⟲':'Next ▶';
+  if(nl!==lbl){btn.textContent=nl;lbl=nl;}
+  pbtn.disabled=stage<0;
+  requestAnimationFrame(frame);}
+
+/* ---------------- zoom & pan (gestures) ---------------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function reset(){sc=1;tx=0;ty=0;apply();}
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:500,y:410});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:500,y:410});
+document.getElementById('zreset').onclick=reset;
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+const fsBtn=document.getElementById('fs'),de=document.documentElement,fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';fsBtn.setAttribute('aria-label',on?'Exit fullscreen':'Fullscreen');reset();}
+fsBtn.onclick=()=>{const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}setFs(true);}
+  else{if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}setFs(false);}};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();else if(e.key==='ArrowRight')back();});
+apply();render(0);requestAnimationFrame(frame);
+})();
+</script>
+<script>(function(){function fit(){document.querySelectorAll("svg text").forEach(function(t){var r=t.previousElementSibling;if(!r||r.tagName.toLowerCase()!=="rect")return;var w=parseFloat(r.getAttribute("width"));if(!w)return;var tw=0;try{tw=t.getBBox().width;}catch(e){return;}var need=tw+22;if(tw&&need>w){var x=parseFloat(r.getAttribute("x"))||0;var cx=x+w/2;r.setAttribute("x",(cx-need/2).toFixed(1));r.setAttribute("width",need.toFixed(1));}});}setTimeout(fit,60);setInterval(fit,400);})();</script>
+</body></html>
