@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Stratified Columnar Epithelial Tissue</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  #top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:#1f3a52;padding:0 8px;box-sizing:border-box}
+  #title{color:#fff;font-size:clamp(13px,3.4vw,22px);font-weight:bold;text-align:center;line-height:1.3}
+  #stage{position:absolute;top:56px;bottom:0;left:0;right:0;background:#fff}
+  svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .zb{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zb button{width:42px;height:42px;border-radius:50%;border:2px solid #1f3a52;background:#fff;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  #go{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:5;background:#1f3a52;color:#fff;border:none;border-radius:26px;padding:11px 24px;font-family:inherit;font-size:clamp(13px,3.2vw,18px);font-weight:bold;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.28);white-space:nowrap}
+  #go:active{transform:translateX(-50%) scale(.97)}
+  body.fs #top{display:none}
+  body.fs #stage{top:0}
+  .pill{fill:#fff;stroke:#e0552a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#e0552a;stroke-width:2.4;fill:none}
+</style>
+</head>
+<body>
+<div id="top"><div id="title">Stratified Columnar Epithelial Tissue</div></div>
+<div id="stage">
+  <div class="zb"><button id="zin">+</button><button id="zout">−</button><button id="zreset">⟲</button><button id="pause">⏸</button><button id="fs">⛶</button></div>
+  <svg id="svg" viewBox="60 110 820 520" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="gCT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9e4a2"/><stop offset="1" stop-color="#d9d184"/></linearGradient>
+      <radialGradient id="gNuc" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#9cc6d0"/><stop offset=".6" stop-color="#4f8b9c"/><stop offset="1" stop-color="#2f6273"/></radialGradient>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10Z" fill="#e0552a"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg",PI=Math.PI;
+const svg=document.getElementById('svg'),view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||view).appendChild(e);return e;};
+const G=(p,a)=>el('g',a||{},p);
+let rs=17;const rnd=()=>{rs=(rs*9301+49297)%233280;return rs/233280;};
+const lerp=(a,b,u)=>a+(b-a)*u,clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+const easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const dk=(hex,f)=>{const n=parseInt(hex.slice(1),16);const r=Math.round((n>>16)*f),g=Math.round(((n>>8)&255)*f),b=Math.round((n&255)*f);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);};
+const f1=n=>n.toFixed(1);
+
+/* generic jittered mesh whose vertices wobble (edges stay fixed) */
+function mk(parent,map,R,C,fills,stroke,sw,ju,jv,wa,brick){
+  const V=[],cells=[];
+  for(let r=0;r<=R;r++){V[r]=[];for(let c=0;c<=C;c++){
+    const e=(r===0||r===R||c===0||c===C);
+    V[r][c]={u:c/C+(e?0:(rnd()-.5)*ju/C+(r%2?brick:0)/C),v:r/R+(e?0:(rnd()-.5)*jv/R),ph:rnd()*6.28,mov:!e};}}
+  for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+    cells.push({r,c,cx:0,cy:0,v:[V[r][c],V[r][c+1],V[r+1][c+1],V[r+1][c]],
+      p:el('polygon',{fill:fills[Math.floor(rnd()*fills.length)],stroke,'stroke-width':sw,'stroke-linejoin':'round'},parent)});}
+  return{cells,update(t){cells.forEach(q=>{let sx=0,sy=0;
+    const pts=q.v.map(v=>{const m=map(v.u,v.v);let x=m[0],y=m[1];
+      if(v.mov){x+=wa*Math.sin(t*.8+v.ph);y+=wa*.75*Math.cos(t*.7+v.ph);}sx+=x;sy+=y;return f1(x)+','+f1(y);});
+    q.p.setAttribute('points',pts.join(' '));q.cx=sx/4;q.cy=sy/4;});}};
+}
+function cr(pts){let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    d+=` C${f1(p1[0]+(p2[0]-p0[0])/6)},${f1(p1[1]+(p2[1]-p0[1])/6)} ${f1(p2[0]-(p3[0]-p1[0])/6)},${f1(p2[1]-(p3[1]-p1[1])/6)} ${f1(p2[0])},${f1(p2[1])}`;}
+  return d;}
+
+
+/* =========================================================
+   النسيج الظهاري المطبق العمودي (كما في رسم الكتاب)
+   طبقة سطحية من خلايا مسطحة متعددة الأضلاع، تحتها صفّان من الخلايا العمودية،
+   ثم الغشاء القاعدي والنسيج الضام
+   ========================================================= */
+const g=G(view),L=G(view,{'pointer-events':'none'});
+const F0=200,F1=560,DX=105,DY=-62;
+const YT=232,YS=262,YM=370,YB=478,YE=572;           // أعلى، نهاية الطبقة السطحية، منتصف، الغشاء القاعدي، النهاية
+const mS=(d,y)=>[F1+d*DX,y+d*DY];
+const P=(pts,a)=>poly(pts,a,g);
+const poly=(pts,a,p)=>el('polygon',{points:pts.map(q=>f1(q[0])+','+f1(q[1])).join(' '),...a},p);
+
+/* النسيج الضام */
+P([[F0,YB],[F1,YB],[F1,YE],[F0,YE]],{fill:'url(#gCT)'});
+P([mS(0,YB),mS(1,YB),mS(1,YE),mS(0,YE)],{fill:'#cbc274'});
+const ctF=[];for(let i=0;i<8;i++){const lt=i%2;ctF.push({y:YB+13+i*9.6+rnd()*3,ph:rnd()*6.28,a:2+rnd()*2.5,w:.8+rnd()*.6,
+  f:el('polyline',{fill:'none',stroke:lt?'#f6f2c8':'#b5ab55','stroke-width':lt?1.6:1.3,'stroke-linecap':'round',opacity:.9},g),
+  s:el('polyline',{fill:'none',stroke:lt?'#e7e0a8':'#a39948','stroke-width':1.2,'stroke-linecap':'round',opacity:.85},g)});}
+
+/* الخلايا العمودية: صفّان */
+const CF=['#e2b3b0','#dcaaa8','#e8bcb8'];
+const rowF=(y0,y1)=>(u,v)=>[F0+u*(F1-F0),y0+v*(y1-y0)];
+const rowS=(y0,y1)=>(u,v)=>mS(u,y0+v*(y1-y0));
+const r1=mk(g,rowF(YS,YM),1,6,CF,'#5d6b66',1.8,.12,0,.5,0);
+const r2=mk(g,rowF(YM,YB),1,6,CF,'#5d6b66',1.8,.12,0,.5,0);
+const s1=mk(g,rowS(YS,YM),1,3,CF.map(c=>dk(c,.84)),'#4f5c58',1.6,.15,0,.5,0);
+const s2=mk(g,rowS(YM,YB),1,3,CF.map(c=>dk(c,.84)),'#4f5c58',1.6,.15,0,.5,0);
+/* أنوية (بعض الخلايا لا تظهر نواتها في المقطع، كما في رسم الكتاب) */
+const skip1=[2,5],skip2=[1,3];
+function nuclei(row,skip,dy,r){return row.cells.map((q,i)=>{if(skip.indexOf(i)>=0)return null;
+  const n=el('ellipse',{rx:r,ry:r*1.25,fill:'url(#gNuc)',stroke:'#2a5566','stroke-width':1.4},g);return {n,q,dy,ph:rnd()*6.28};}).filter(Boolean);}
+const nu=nuclei(r1,skip1,10,10).concat(nuclei(r2,skip2,4,12));
+
+/* الطبقة السطحية: خلايا مسطحة متعددة الأضلاع (رمادية) */
+const GF=['#a9a9ad','#b3b3b7','#9fa0a5'];
+const sF=mk(g,rowF(YT,YS),2,8,GF,'#6f7075',1.4,.6,.35,.5,.5);
+const sS=mk(g,rowS(YT,YS),2,3,GF.map(c=>dk(c,.85)),'#606166',1.3,.5,.35,.5,.5);
+const sT=mk(g,(u,v)=>[F0+u*(F1-F0)+v*DX,YT+v*DY],3,8,['#b9b9bd','#c2c2c6','#adaeb3'],'#727378',1.4,.65,.55,.7,.5);
+
+/* الغشاء القاعدي */
+const bmF=el('polyline',{fill:'none',stroke:'#4c5a55','stroke-width':4,'stroke-linejoin':'round'},g),bmS=el('polyline',{fill:'none',stroke:'#3f4b47','stroke-width':4,'stroke-linejoin':'round'},g);
+
+/* الحدود الخارجية */
+const ol=pts=>el('polyline',{points:pts.map(q=>f1(q[0])+','+f1(q[1])).join(' '),fill:'none',stroke:'#4a3d40','stroke-width':1.8,'stroke-linejoin':'round'},g);
+ol([[F0,YT],[F0,YE],[F1,YE],mS(1,YE),mS(1,YT),[F0+DX,YT+DY],[F0,YT],[F1,YT],mS(1,YT)]);ol([[F1,YT],[F1,YE]]);
+
+/* ---------- التسميات (مصطلحات الكتاب) ---------- */
+const labs=[];
+function label(txt,cx,py,w,tfs){const h=34,gg=G(L),lns=tfs.map(()=>el('line',{class:'ln','marker-end':'url(#ah)'},gg));
+  el('rect',{class:'pill',x:cx-w/2,y:py-h/2,width:w,height:h,rx:17},gg);el('text',{class:'lbl',x:cx,y:py},gg).textContent=txt;
+  labs.push(()=>tfs.forEach((f,i)=>{const p=f(),a=lns[i];a.setAttribute('x1',cx);a.setAttribute('y1',py);a.setAttribute('x2',f1(p[0]));a.setAttribute('y2',f1(p[1]));}));}
+const nAt=(row,i)=>{const o=nu.find(k=>k.q===row.cells[i]);return ()=>[o.q.cx-11,o.q.cy+o.dy];};
+label('Columnar cell',800,300,150,[()=>[r1.cells[5].cx+18,r1.cells[5].cy-22]]);
+label('Nucleus',800,392,90,[nAt(r1,4),nAt(r2,4)]);
+label('Basement membrane',800,470,150,[()=>mS(.55,YB+2)]);
+label('Connective tissue',800,545,140,[()=>mS(.45,YB+50)]);
+
+/* ---------- الحركة ---------- */
+let T=0,last=performance.now(),paused=false;
+function frame(ms){
+  const dt=Math.min(.05,(ms-last)/1000);last=ms;if(!paused)T+=dt;const t=T;
+  [r1,r2,s1,s2,sF,sS,sT].forEach(m=>m.update(t));
+  nu.forEach(k=>{k.n.setAttribute('cx',f1(k.q.cx));k.n.setAttribute('cy',f1(k.q.cy+k.dy));
+    k.n.setAttribute('transform',`rotate(${f1(4*Math.sin(t*.7+k.ph))} ${f1(k.q.cx)} ${f1(k.q.cy+k.dy)})`);});
+  const pf=[],ps=[];for(let s=0;s<=1.001;s+=.05){pf.push(f1(F0+s*(F1-F0))+','+f1(YB+.9*Math.sin(s*14+t*.8)));const m=mS(s,YB+.9*Math.sin(s*14+t*.8+1));ps.push(f1(m[0])+','+f1(m[1]));}
+  bmF.setAttribute('points',pf.join(' '));bmS.setAttribute('points',ps.join(' '));
+  ctF.forEach(f=>{const p=[],q=[];
+    for(let x=F0;x<=F1;x+=12)p.push(x+','+f1(f.y+f.a*Math.sin(x*.03*f.w+f.ph+t*.7)));
+    for(let d=0;d<=1.001;d+=.1){const m=mS(d,f.y+f.a*Math.sin(d*5*f.w+f.ph+t*.7));q.push(f1(m[0])+','+f1(m[1]));}
+    f.f.setAttribute('points',p.join(' '));f.s.setAttribute('points',q.join(' '));});
+  labs.forEach(f=>f());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById('pause').onclick=function(){paused=!paused;this.textContent=paused?'▶':'⏸';};
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prv=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prv.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prv.get(ids[0]),b0=prv.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,d1=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(d1/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:470,y:370});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:470,y:370});
+document.getElementById('zreset').onclick=reset;
+
+/* ---------- fullscreen ---------- */
+const fsBtn=document.getElementById('fs'),de=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function setFs(on){document.body.classList.toggle('fs',on);fsBtn.textContent=on?'✕':'⛶';reset();}
+fsBtn.onclick=()=>{
+  const on=!document.body.classList.contains('fs');
+  if(on){const r=de.requestFullscreen||de.webkitRequestFullscreen;
+    if(r){try{const p=r.call(de);if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+    setFs(true);
+  }else{
+    if(fsEl()){const x=document.exitFullscreen||document.webkitExitFullscreen;try{x.call(document);}catch(e){}}
+    setFs(false);
+  }
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!fsEl()&&document.body.classList.contains('fs'))setFs(false);}));
+apply();
+})();
+</script>
+<script>(function(){function fit(){document.querySelectorAll("svg text").forEach(function(t){var r=t.previousElementSibling;if(!r||r.tagName.toLowerCase()!=="rect")return;var w=parseFloat(r.getAttribute("width"));if(!w)return;var tw=0;try{tw=t.getBBox().width;}catch(e){return;}var need=tw+22;if(tw&&need>w){var x=parseFloat(r.getAttribute("x"))||0;var cx=x+w/2;r.setAttribute("x",(cx-need/2).toFixed(1));r.setAttribute("width",need.toFixed(1));}});}setTimeout(fit,60);setInterval(fit,400);})();</script>
+</body>
+</html>
