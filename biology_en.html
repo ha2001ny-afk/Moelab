@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Interactive Biology Lab</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b1526">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Biology Lab">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Tajawal', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: #050b14;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      height: 56px;
+      background: #0b1526;
+      border-bottom: 1px solid #1a2942;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 18px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .teacher-badge {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid #38bdf8;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: #38bdf8;
+      transition: all 0.3s;
+    }
+
+    .btn-key-change {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .main-wrapper {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    #subjectsView {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .portal-heading {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .portal-heading h2 {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+
+    .portal-heading p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .subjects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .subject-portal-card {
+      background: #0b1526;
+      border: 2px solid #1a2942;
+      border-radius: 16px;
+      padding: 22px 18px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subject-portal-card:hover:not(.locked) {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+    }
+
+    .subject-portal-card[data-subj="physics"] {
+      background: radial-gradient(circle at top, rgba(14, 165, 233, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="physics"]:hover:not(.locked) {
+      border-color: #0ea5e9;
+    }
+
+    .subject-portal-card[data-subj="chemistry"] {
+      background: radial-gradient(circle at top, rgba(168, 85, 247, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="chemistry"]:hover:not(.locked) {
+      border-color: #a855f7;
+    }
+
+    .subject-portal-card[data-subj="biology"] {
+      background: radial-gradient(circle at top, rgba(16, 185, 129, 0.15), #0b1526);
+    }
+    .subject-portal-card[data-subj="biology"]:hover:not(.locked) {
+      border-color: #10b981;
+    }
+
+    .subject-icon-box {
+      font-size: 3rem;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    .subject-name {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #f8fafc;
+    }
+
+    .subject-desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .subject-status-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+
+    .subject-portal-card.active-sub .subject-status-pill {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+
+    .subject-portal-card.locked {
+      opacity: 0.55;
+      border-color: #1e293b;
+      cursor: not-allowed;
+      filter: grayscale(0.6);
+    }
+
+    .subject-portal-card.locked .subject-status-pill {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid #ef4444;
+    }
+
+    #chaptersView {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chapters-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b1526;
+      border: 1px solid #1a2942;
+      padding: 10px 16px;
+      border-radius: 12px;
+    }
+
+    .current-subj-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back-subjects {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* قائمة الفصول */
+    .chapter-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .chapter-tile {
+      background: #0b1526;
+      border: 2px solid #1a2942;
+      border-radius: 16px;
+      padding: 18px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .chapter-tile:hover { border-color: #38bdf8; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(56,189,248,.12); }
+    .chapter-tile .ct-icon {
+      flex: none; width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; background: rgba(56,189,248,.08); border: 1px solid #1a2942;
+    }
+    .chapter-tile .ct-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .chapter-tile .ct-num { font-size: 0.78rem; font-weight: 900; color: #38bdf8; }
+    .chapter-tile .ct-name { font-size: 1.02rem; font-weight: 900; color: #f8fafc; line-height: 1.5; }
+    .chapter-tile .ct-count { font-size: 0.78rem; color: #94a3b8; font-weight: bold; }
+    .chapter-tile.locked { opacity: .5; }
+    .chapter-tile.locked .ct-count::after { content: "  •  🔒 Not active"; color: #f87171; }
+    .chapter-tile:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
+    .top-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .chapter-section.solo .chapter-title { font-size: 1.1rem; border-bottom-color: #334155; padding-bottom: 8px; }
+
+    .chapter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chapter-title {
+      font-size: 0.98rem;
+      font-weight: 900;
+      color: #fef08a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #1a2942;
+      padding-bottom: 5px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .exp-card {
+      background: #0b1526;
+      border: 1px solid #1a2942;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .exp-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    .exp-card.locked {
+      opacity: 0.45;
+      border-color: #1e293b;
+    }
+
+    .exp-icon {
+      font-size: 1.8rem;
+    }
+
+    .exp-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .exp-tag {
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 7, 18, 0.94);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #0b1526;
+      border: 2px solid #0284c7;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-card h2 {
+      font-size: 1.25rem;
+      color: #38bdf8;
+      font-weight: 900;
+    }
+
+    .modal-card p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #050b14;
+      border: 1.5px solid #334155;
+      color: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      text-align: center;
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .modal-btn {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .modal-status {
+      font-size: 0.82rem;
+      min-height: 18px;
+      font-weight: bold;
+    }
+
+    #viewerScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+    }
+
+    .viewer-bar {
+      height: 44px;
+      background: #0b1526;
+      border-bottom: 1px solid #1a2942;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 14px;
+    }
+
+    .btn-back {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+  <style id="theme">
+    /* ===== ألوان المنصة: غيّر هذه القيم فقط ===== */
+    :root {
+      --bg: #FFF8EE;          /* الخلفية */
+      --surface: #FFFFFF;     /* البطاقات والشريط العلوي */
+      --border: #F1E2C8;      /* الحدود */
+      --text: #2B2622;        /* الكتابة الرئيسية */
+      --muted: #7A6E61;       /* الكتابة الثانوية */
+      --accent: #FFA500;      /* اللون الرئيسي */
+      --accent-dark: #B86E00; /* لون الكتابة البرتقالية */
+      --accent-soft: #FFF1D6; /* خلفية برتقالية فاتحة */
+      --ok: #1F9D63;
+      --danger: #D64545;
+      --bio: #1F9D63;
+      --phy: #2F7FD1;
+      --chem: #8A5CD1;
+    }
+
+    body { background: var(--bg); color: var(--text); }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(184, 110, 0, 0.06);
+    }
+    .brand { color: var(--accent-dark); }
+
+    .teacher-badge {
+      background: var(--accent-soft) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent-dark) !important;
+    }
+    .btn-key-change {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--muted) !important;
+    }
+    .btn-key-change:first-of-type { border-color: var(--ok) !important; color: var(--ok) !important; }
+
+    .portal-heading h2 { color: var(--text); }
+    .portal-heading p { color: var(--muted); }
+
+    .subject-portal-card {
+      background: var(--surface) !important;
+      border: 2px solid var(--border);
+      box-shadow: 0 6px 18px rgba(43, 38, 34, 0.05);
+    }
+    .subject-portal-card[data-subj="biology"] { border-top: 6px solid var(--bio); }
+    .subject-portal-card[data-subj="physics"] { border-top: 6px solid var(--phy); }
+    .subject-portal-card[data-subj="chemistry"] { border-top: 6px solid var(--chem); }
+    .subject-portal-card:hover:not(.locked) {
+      border-color: var(--accent) !important;
+      box-shadow: 0 12px 26px rgba(255, 165, 0, 0.22);
+    }
+    .subject-name { color: var(--text); }
+    .subject-desc { color: var(--muted); }
+    .subject-portal-card.active-sub .subject-status-pill {
+      background: #E6F6EE; color: var(--ok); border: 1px solid #A8DEC3;
+    }
+    .subject-portal-card.locked { opacity: 0.6; filter: grayscale(0.7); border-color: var(--border) !important; }
+    .subject-portal-card.locked .subject-status-pill {
+      background: #FBE9E9; color: var(--danger); border: 1px solid #F0BDBD;
+    }
+
+    .chapters-top-bar { background: var(--surface); border: 1px solid var(--border); }
+    .current-subj-title { color: var(--accent-dark); }
+    .btn-back-subjects {
+      background: var(--accent); border: none; color: #2B2622;
+    }
+
+    .chapter-title { color: var(--accent-dark); border-bottom: 2px solid var(--accent-soft); }
+
+    .exp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 3px 10px rgba(43, 38, 34, 0.04);
+    }
+    .exp-card:hover { border-color: var(--accent); box-shadow: 0 8px 18px rgba(255, 165, 0, 0.18); }
+    .exp-card.locked { opacity: 0.5; border-color: var(--border); }
+    .exp-title { color: var(--text); }
+    .exp-tag { color: var(--muted); }
+    .lock-overlay { background: var(--danger); }
+    /* قائمة الفصول بألوان صفحة الأحياء */
+    .chapter-tile { background: var(--surface); border-color: var(--border); box-shadow: 0 3px 10px rgba(43, 38, 34, 0.04); }
+    .chapter-tile:hover { border-color: var(--accent); box-shadow: 0 10px 22px rgba(255, 165, 0, 0.2); }
+    .chapter-tile .ct-icon { background: var(--accent-soft); border-color: var(--border); }
+    .chapter-tile .ct-num { color: var(--accent-dark); }
+    .chapter-tile .ct-name { color: var(--text); }
+    .chapter-tile .ct-count { color: var(--muted); }
+    .chapter-tile.locked .ct-count::after { color: var(--danger); }
+    .chapter-section.solo .chapter-title { border-bottom-color: var(--accent); }
+
+
+    .modal-overlay { background: rgba(43, 38, 34, 0.55); }
+    .modal-card { background: var(--surface); border: 2px solid var(--accent); box-shadow: 0 16px 40px rgba(0,0,0,0.18); }
+    .modal-card h2 { color: var(--accent-dark); }
+    .modal-card p { color: var(--muted); }
+    .modal-input { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
+    .modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .modal-btn { background: var(--accent); color: #2B2622; }
+
+    .viewer-bar { background: var(--surface); border-bottom: 1px solid var(--border); }
+    #activeExpName { color: var(--accent-dark) !important; }
+
+    /* شريط الحفظ الأوفلاين */
+    #offlineManagerBar {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-bottom: 2px solid var(--accent) !important;
+      border-top: 1px solid var(--border);
+    }
+    #offlineManagerBar button { background: var(--accent) !important; color: #2B2622 !important; }
+    #offlineManagerBar div[style*="background:#334155"] { background: var(--accent-soft) !important; }
+    #downloadProgressBar { background: var(--accent) !important; }
+  
+    /* اسم الأستاذ كاملاً على الشاشات الصغيرة */
+    .teacher-badge{white-space:nowrap}
+    @media (max-width: 640px){
+      header{height:auto;min-height:56px;flex-wrap:wrap;gap:8px;padding:8px 12px}
+      .brand{font-size:.95rem}
+      .header-left{flex-wrap:wrap;gap:6px;margin-inline-start:auto}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">🧪 Interactive Biology Lab</div>
+    <div class="header-left">
+      <div class="teacher-badge" id="teacherDisplay">@DESNEOO</div>
+      <!-- زر التحديث السريع والآمن -->
+      <button class="btn-key-change" onclick="forceSyncPermissions()" title="Update permissions and chapters" style="border-color:#10b981; color:#34d399;">🔄 Update</button>
+      <button class="btn-key-change" onclick="lockPlatform()" title="Lock the lab so no one else can use it" style="border-color:#f59e0b; color:#d97706;">🔒 Lock</button>
+      <button class="btn-key-change" onclick="openKeyModal()" title="Change subscription code">🔑 Code</button>
+    </div>
+  </header>
+
+  <div class="main-wrapper">
+    <!-- واجهة اختيار المادة -->
+    <div id="subjectsView">
+      <div class="portal-heading">
+        <h2>Choose a subject</h2>
+        <p>Interactive curriculum labs for the 6th scientific grade</p>
+      </div>
+
+      <div class="subjects-grid" style="grid-template-columns:minmax(0,360px);justify-content:center">
+        <div class="subject-portal-card" data-subj="biology" onclick="selectSubject('biology')">
+          <div class="subject-icon-box">🧬</div>
+          <div class="subject-name">Biology</div>
+          <div class="subject-desc">The cell, tissues, reproduction, embryonic development and genetics</div>
+          <div class="subject-status-pill" id="status_biology">Checking...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="physics" style="display:none" onclick="selectSubject('physics')">
+          <div class="subject-icon-box">⚡</div>
+          <div class="subject-name">Physics</div>
+          <div class="subject-desc"></div>
+          <div class="subject-status-pill" id="status_physics">Checking...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="chemistry" style="display:none" onclick="selectSubject('chemistry')">
+          <div class="subject-icon-box">🧪</div>
+          <div class="subject-name">Chemistry</div>
+          <div class="subject-desc"></div>
+          <div class="subject-status-pill" id="status_chemistry">Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- واجهة الفصول والتجارب -->
+    <div id="chaptersView">
+      <div class="chapters-top-bar">
+        <div class="current-subj-title" id="currentSubjectTitle">🧬 Biology Lab</div>
+        <div class="top-bar-actions">
+          <button class="btn-back-subjects" id="btnBackChapters" onclick="showChapterMenu()" style="display:none">📚 Chapters</button>
+          <button class="btn-back-subjects" onclick="showSubjectsView()" style="display:none">🔙 Subjects</button>
+        </div>
+      </div>
+
+      <!-- مادة الفيزياء -->
+      <div id="container_physics" class="subject-content-container" style="display:none"></div>
+
+      <!-- مادة علم الأحياء -->
+            <div id="container_biology" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
+        <div class="chapter-section" data-chapter="bio_ch1">
+          <div class="chapter-title">🔬 Chapter 1: The Cell</div>
+          <div class="cards-grid">
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_prokaryotic_cell.html', 'Prokaryotic Cell')">
+              <span class="exp-icon">🦠</span>
+              <div class="exp-title">Prokaryotic Cell</div>
+              <div class="exp-tag">Structure of bacteria: nucleoid, cell wall and capsule</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_cells_structure.html', 'Structure of Plant and Animal Cells')">
+              <span class="exp-icon">🔬</span>
+              <div class="exp-title">Structure of Plant and Animal Cells</div>
+              <div class="exp-tag">Comparing organelles: cell wall, central vacuole and centrioles</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_plasma_membrane.html', 'Structure of Plasma Membrane')">
+              <span class="exp-icon">🧬</span>
+              <div class="exp-title">Structure of Plasma Membrane</div>
+              <div class="exp-tag">Phospholipid bilayer, protein channel and carrier proteins</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_endoplasmic_reticulum.html', 'Endoplasmic Reticulum (Rough and Smooth)')">
+              <span class="exp-icon">🧫</span>
+              <div class="exp-title">Endoplasmic Reticulum (Rough and Smooth)</div>
+              <div class="exp-tag">Nuclear envelope, membranous sacs and ribosomes on the rough ER</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_golgi_apparatus.html', 'Golgi Apparatus')">
+              <span class="exp-icon">📦</span>
+              <div class="exp-title">Golgi Apparatus</div>
+              <div class="exp-tag">Cisternae, vesicles, and transport of proteins out of the cell</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_lysosomes.html', 'Lysosomes')">
+              <span class="exp-icon">🟣</span>
+              <div class="exp-title">Lysosomes</div>
+              <div class="exp-tag">Origin from Golgi apparatus, digestion of food and damaged organelles, autolysis</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_centrosomes.html', 'Centrosomes')">
+              <span class="exp-icon">✳️</span>
+              <div class="exp-title">Centrosomes</div>
+              <div class="exp-tag">Nine triple-groups of microtubules, two perpendicular centrioles, role in animal cell division</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_nucleus_structure.html', 'Structure of Nucleus')">
+              <span class="exp-icon">🟪</span>
+              <div class="exp-title">Structure of Nucleus</div>
+              <div class="exp-tag">Nucleoplasm, chromatin network, nucleolus and double nuclear envelope with pores</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_organelles.html', 'Mitochondria, Chloroplast and Chromosome')">
+              <span class="exp-icon">⚡</span>
+              <div class="exp-title">Mitochondria, Chloroplast and Chromosome</div>
+              <div class="exp-tag">Cristae and matrix, granum and stroma, sister chromatids</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_diffusion.html', 'Cell Activities: Diffusion')">
+              <span class="exp-icon">💧</span>
+              <div class="exp-title">Cell Activities: Diffusion</div>
+              <div class="exp-tag">Movement of particles from high to low concentration, Figure 1.17</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_osmosis.html', 'Cell Activities: Osmosis')">
+              <span class="exp-icon">🧪</span>
+              <div class="exp-title">Cell Activities: Osmosis</div>
+              <div class="exp-tag">Movement of water through a semi-permeable membrane, hydrostatic pressure</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_active_transport.html', 'Cell Activities: Active Transport')">
+              <span class="exp-icon">🔋</span>
+              <div class="exp-title">Cell Activities: Active Transport</div>
+              <div class="exp-tag">Movement against the concentration gradient using carrier proteins and ATP</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_endocytosis.html', 'Cell Activities: Phagocytosis, Pinocytosis and Exocytosis')">
+              <span class="exp-icon">🍽️</span>
+              <div class="exp-title">Cell Activities: Phagocytosis, Pinocytosis and Exocytosis</div>
+              <div class="exp-tag">Food vacuole, pinocytic vesicle, and releasing materials outside the cell</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_respiration.html', 'Anaerobic Respiration (Alcoholic and Lactic Acid Fermentation)')">
+              <span class="exp-icon">🫁</span>
+              <div class="exp-title">Anaerobic Respiration (Alcoholic and Lactic Acid Fermentation)</div>
+              <div class="exp-tag">Glycolysis, ethyl alcohol or lactic acid, and ATP produced</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_aerobic_respiration.html', 'Cell Activities: Aerobic Respiration')">
+              <span class="exp-icon">⚡</span>
+              <div class="exp-title">Cell Activities: Aerobic Respiration</div>
+              <div class="exp-tag">Glycolysis, Krebs cycle and energy production (38 ATP) in mitochondria</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_glycolysis.html', 'Cellular Respiration: Glycolysis')">
+              <span class="exp-icon">🍬</span>
+              <div class="exp-title">Cellular Respiration: Glycolysis</div>
+              <div class="exp-tag">Glucose splits in the cytoplasm into two pyruvic acid molecules: 2 ATP consumed, 4 ATP produced</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_krebs_cycle.html', 'Cellular Respiration: Krebs Cycle')">
+              <span class="exp-icon">🔄</span>
+              <div class="exp-title">Cellular Respiration: Krebs Cycle</div>
+              <div class="exp-tag">Series of reactions inside the mitochondrion releasing energy (ATP) and CO₂</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_mitosis.html', 'Cell Division: Stages of Mitosis')">
+              <span class="exp-icon">🧬</span>
+              <div class="exp-title">Cell Division: Stages of Mitosis</div>
+              <div class="exp-tag">Centrosome duplication, spindle fibres and cytokinesis</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_meiosis.html', 'Cell Division: Stages of Meiosis (1 and 2)')">
+              <span class="exp-icon">➗</span>
+              <div class="exp-title">Cell Division: Stages of Meiosis (1 and 2)</div>
+              <div class="exp-tag">Both divisions and the formation of 4 haploid cells</div>
+            </div>
+            <div class="exp-card" onclick="openExp('bio_ch1', 'en_bio_ch1_questions.html', 'Chapter 1 Review Questions and Answers')">
+              <span class="exp-icon">📝</span>
+              <div class="exp-title">Chapter 1 Review Questions and Answers</div>
+              <div class="exp-tag">Scientific terms, explanations, multiple choice, completion and comparisons</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- مادة الكيمياء -->
+      <div id="container_chemistry" class="subject-content-container" style="display:none"></div>
+
+    </div>
+  </div>
+
+  <!-- نافذة تفعيل الكود -->
+  <div class="modal-overlay" id="keyModal">
+    <div class="modal-card">
+      <h2>🔐 Activate your subscription</h2>
+      <p>Please enter your subscription code to access your labs:</p>
+      
+      <input type="text" id="inputTeacherKey" class="modal-input" placeholder="e.g. ALI2026" autocomplete="off" autocapitalize="characters">
+      
+      <button class="modal-btn" onclick="submitKey()">Activate and start</button>
+      <div class="modal-status" id="modalStatus"></div>
+
+      <div style="font-size: 0.72rem; color: #64748b;">
+        Platform supervisor: Eng. Mohammed Hassan
+      </div>
+    </div>
+  </div>
+
+  <!-- مشغل المحاكاة الداخلي -->
+  <div id="viewerScreen">
+    <div class="viewer-bar">
+      <span style="font-size:0.85rem; font-weight:bold; color:#38bdf8;" id="activeExpName">Interactive simulation</span>
+      <button class="btn-back" onclick="closeExp()">🔙 Back to the lab</button>
+    </div>
+    <iframe id="expFrame" src=""></iframe>
+  </div>
+
+  <script>
+    const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1iYfqiK-IKHPhLClPO_P3GMQBSprkemJ10QKB6W4_TwA/gviz/tq";
+    const OFFLINE_GRACE_DAYS = 30;
+    // بعد نشر Google Apps Script ضع رابطه هنا. ما دام فارغاً تبقى المنصة تقرأ من الشيت بالطريقة القديمة.
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1tNTorBhGtfvleAdpXxoA4JtGs7p1JYqfg8Z6c0-Z393XYkQbj0MqjgYam7cZBX5DCQ/exec";
+
+    let rawPermissions = "";
+    let currentKey = "";
+    let manualSync = false;
+
+    function getStoredKey() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlKey = urlParams.get('key');
+      if (urlKey) {
+        localStorage.setItem('moe_teacher_key', urlKey.trim());
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        return urlKey.trim();
+      }
+      return localStorage.getItem('moe_teacher_key') || "";
+    }
+
+    function parseGvizDate(cell) {
+      if (!cell) return null;
+      if (typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+        const nums = cell.v.match(/\d+/g);
+        if (nums && nums.length >= 3) {
+          return new Date(parseInt(nums[0]), parseInt(nums[1]), parseInt(nums[2]), 23, 59, 59);
+        }
+      }
+      if (cell.f) {
+        const d = new Date(cell.f + 'T23:59:59');
+        if (!isNaN(d.getTime())) return d;
+      }
+      if (cell.v) {
+        const d = new Date(cell.v);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return null;
+    }
+
+    function checkOfflineLicense(keyToTest) {
+      const stored = localStorage.getItem('moe_offline_license');
+      if (!stored) return false;
+
+      try {
+        const lic = JSON.parse(stored);
+        const now = Date.now();
+
+        if (String(lic.key).toUpperCase() === 'ADMIN2026') {
+          localStorage.removeItem('moe_offline_license');
+          return false;
+        }
+
+        if (lic.key.toLowerCase() !== keyToTest.trim().toLowerCase()) return false;
+
+        const lifetime = hasFlag(lic.permissions, 'lifetime');
+        const lastSeen = Math.max(lic.lastSeen || 0, lic.lastVerified);
+        if (!lifetime && now < lastSeen - (2 * 60 * 1000)) {
+          openKeyModal("⚠️ The device date/time has changed. Please set the correct time and connect to the internet.");
+          return true;
+        }
+
+        if (!lifetime && now > lic.offlineExpiry) {
+          openKeyModal("⚠️ The offline period (30 days) has ended. Please connect to the internet for a few seconds to renew the licence.");
+          return true;
+        }
+
+        if (!lifetime && lic.officialExpiry && now > lic.officialExpiry) {
+          openKeyModal("⚠️ Your subscription has ended. Please contact us to renew.");
+          return true;
+        }
+
+        lic.lastSeen = now;
+        if (lifetime) { lic.offlineExpiry = 4102444800000; lic.officialExpiry = null; }
+        localStorage.setItem('moe_offline_license', JSON.stringify(lic));
+
+        currentKey = lic.key;
+        rawPermissions = lic.permissions;
+
+        const badge = document.getElementById('teacherDisplay');
+        if (isAdminPerms(rawPermissions)) {
+          setAdminBadge();
+        } else {
+          badge.innerText = lic.teacher || "@DESNEOO";
+          badge.style.color = "#38bdf8";
+          badge.style.borderColor = "#38bdf8";
+          badge.style.background = "rgba(56, 189, 248, 0.1)";
+        }
+
+        document.getElementById('keyModal').style.display = 'none';
+        renderPortals();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function hasFlag(p, flag) {
+      return String(p || '').split(',').map(s => s.trim().toLowerCase()).includes(flag);
+    }
+
+    function isAdminPerms(p) {
+      const perms = String(p || '').split(',').map(s => s.trim().toLowerCase());
+      return perms.includes('all') || perms.includes('*') || perms.includes('admin');
+    }
+
+    function setAdminBadge() {
+      const badge = document.getElementById('teacherDisplay');
+      badge.innerText = "👑 Administrator";
+      badge.style.color = "#f59e0b";
+      badge.style.borderColor = "#f59e0b";
+      badge.style.background = "rgba(245, 158, 11, 0.15)";
+    }
+
+    function verifySubscription(keyToTest) {
+      if (!keyToTest) {
+        openKeyModal();
+        return;
+      }
+
+      if (!navigator.onLine) {
+        const ok = checkOfflineLicense(keyToTest);
+        if (!ok) openKeyModal("An internet connection is needed once to activate this device.");
+        return;
+      }
+
+      let responded = false;
+      const callbackName = 'gvizCallback_' + Date.now();
+
+      const timeoutId = setTimeout(() => {
+        if (!responded) {
+          responded = true;
+          delete window[callbackName];
+          const oldTag = document.getElementById('gvizScriptTag');
+          if (oldTag) oldTag.remove();
+          if (!checkOfflineLicense(keyToTest)) {
+            openKeyModal("Could not connect to the database. Check your internet connection.");
+          }
+        }
+      }, 8000);
+
+      window[callbackName] = function(response) {
+        if (responded) return;
+        responded = true;
+        clearTimeout(timeoutId);
+        delete window[callbackName];
+        const oldTag = document.getElementById('gvizScriptTag');
+        if (oldTag) oldTag.remove();
+
+        processSheetData(response, keyToTest);
+      };
+
+      const script = document.createElement('script');
+      script.id = 'gvizScriptTag';
+      if (APPS_SCRIPT_URL) {
+        script.src = `${APPS_SCRIPT_URL}?key=${encodeURIComponent(keyToTest.trim())}&callback=${callbackName}&_t=${Date.now()}`;
+      } else {
+        script.src = `${SHEET_BASE_URL}?tqx=responseHandler:${callbackName}&_t=${Date.now()}`;
+      }
+
+      script.onerror = function() {
+        if (responded) return;
+        responded = true;
+        clearTimeout(timeoutId);
+        delete window[callbackName];
+        if (!checkOfflineLicense(keyToTest)) {
+          openKeyModal("Could not connect to the database. Internet is needed the first time to register the licence.");
+        }
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function processSheetData(response, keyToTest) {
+      if (response && typeof response.found !== 'undefined') {
+        processApiData(response, keyToTest);
+        return;
+      }
+
+      if (!response || !response.table || !response.table.rows) {
+        if (!checkOfflineLicense(keyToTest)) {
+          openKeyModal("Could not read the subscription data.");
+        }
+        return;
+      }
+
+      const rows = response.table.rows;
+      const today = new Date();
+      let found = false;
+      let userData = null;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i].c;
+        if (!row) continue;
+
+        const teacherName = row[0]?.v ? String(row[0].v).trim() : "";
+        const teacherKey = row[1]?.v ? String(row[1].v).trim() : "";
+        const expiryCell = row[2];
+        const status = row[3]?.v ? String(row[3].v).trim().toLowerCase() : "";
+        const permissions = row[4]?.v ? String(row[4].v).trim().toLowerCase() : "";
+
+        if (teacherKey.toLowerCase() === keyToTest.trim().toLowerCase()) {
+          found = true;
+          const expiryDate = parseGvizDate(expiryCell);
+
+          if (status !== 'active') {
+            localStorage.removeItem('moe_offline_license');
+            openKeyModal("This subscription has been stopped. Please contact the administrator.");
+            rawPermissions = "";
+            renderPortals();
+            return;
+          }
+
+          if (expiryDate && today > expiryDate) {
+            localStorage.removeItem('moe_offline_license');
+            openKeyModal("Your subscription has ended. Please contact us to renew.");
+            rawPermissions = "";
+            renderPortals();
+            return;
+          }
+
+          userData = {
+            teacher: teacherName,
+            permissions: permissions,
+            officialExpiry: expiryDate ? expiryDate.getTime() : null
+          };
+          break;
+        }
+      }
+
+      if (!found) {
+        localStorage.removeItem('moe_offline_license');
+        openKeyModal("Incorrect subscription code. Please check the code given to you.");
+        rawPermissions = "";
+        renderPortals();
+        return;
+      }
+
+      applyLicense(userData, keyToTest);
+    }
+
+    function processApiData(res, keyToTest) {
+      const fail = (msg) => {
+        localStorage.removeItem('moe_offline_license');
+        rawPermissions = "";
+        renderPortals();
+        openKeyModal(msg);
+      };
+      if (!res.found) return fail("Incorrect subscription code. Please check the code given to you.");
+      if (res.status !== 'active') return fail("This subscription has been stopped. Please contact the administrator.");
+      if (res.expiry && Date.now() > res.expiry) return fail("Your subscription has ended. Please contact us to renew.");
+      applyLicense({
+        teacher: res.teacher || "",
+        permissions: String(res.permissions || "").toLowerCase(),
+        officialExpiry: res.expiry || null
+      }, keyToTest);
+    }
+
+    function applyLicense(userData, keyToTest) {
+      const nowMs = Date.now();
+      const lifetime = hasFlag(userData.permissions, 'lifetime');
+      const offlineLicense = {
+        key: keyToTest.trim(),
+        permissions: userData.permissions,
+        teacher: userData.teacher,
+        lastVerified: nowMs,
+        lastSeen: nowMs,
+        // اشتراك مدى الحياة: لا يحتاج تجديداً بالإنترنت
+        offlineExpiry: lifetime ? 4102444800000 : nowMs + (OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000),
+        officialExpiry: lifetime ? null : userData.officialExpiry
+      };
+      localStorage.setItem('moe_offline_license', JSON.stringify(offlineLicense));
+
+      currentKey = keyToTest.trim();
+      localStorage.setItem('moe_teacher_key', currentKey);
+      document.getElementById('keyModal').style.display = 'none';
+
+      rawPermissions = userData.permissions;
+      const badge = document.getElementById('teacherDisplay');
+      if (isAdminPerms(rawPermissions)) {
+        setAdminBadge();
+      } else {
+        badge.innerText = userData.teacher || "@DESNEOO";
+        badge.style.color = "#38bdf8";
+        badge.style.borderColor = "#38bdf8";
+        badge.style.background = "rgba(56, 189, 248, 0.1)";
+      }
+
+      renderPortals();
+
+      if (manualSync) {
+        manualSync = false;
+        alert("✅ Permissions updated and offline licence renewed!");
+      }
+    }
+
+    // الدالة الآمنة لتحديث الصلاحيات بدون كسر وضع الأوفلاين
+    function forceSyncPermissions() {
+      if (!navigator.onLine) {
+        alert("⚠️ You are offline. Your current licence is valid; updating is only needed when new chapters are activated and internet is available.");
+        return;
+      }
+
+      const key = getStoredKey();
+      if (!key) {
+        openKeyModal("Please enter the code first.");
+        return;
+      }
+
+      const badge = document.getElementById('teacherDisplay');
+      badge.innerText = "⏳ Updating...";
+      badge.style.color = "#fef08a";
+
+      manualSync = true;
+      verifySubscription(key);
+    }
+
+    // المنصة الإنكليزية: biology_en للأحياء كاملة، و en_bio_chN للفصول. صلاحيات العربي لا تفتحها
+    function enPerms(raw) {
+      return String(raw || '').split(',').map(p => p.trim().toLowerCase()).map(p =>
+        p === 'biology_en' ? 'biology' : (/^en_bio_ch\d+$/.test(p) ? p.slice(3) : (['all', '*', 'admin'].includes(p) ? p : 'x_' + p)));
+    }
+
+    function isSubjectAllowed(subj) {
+      if (!rawPermissions) return false;
+      const perms = enPerms(rawPermissions);
+
+      if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
+
+      if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
+      if (subj === 'biology' && (perms.includes('biology') || perms.includes('احياء') || perms.includes('أحياء') || perms.includes('bio'))) return true;
+      if (subj === 'chemistry' && (perms.includes('chemistry') || perms.includes('كيمياء') || perms.includes('chem'))) return true;
+
+      if (subj === 'physics' && perms.some(p => p.startsWith('phy_'))) return true;
+      if (subj === 'biology' && perms.some(p => p.startsWith('bio_'))) return true;
+      if (subj === 'chemistry' && perms.some(p => p.startsWith('chem_'))) return true;
+
+      return false;
+    }
+
+    function isChapterAllowed(subj, chapter) {
+      if (!rawPermissions) return false;
+      const perms = enPerms(rawPermissions);
+
+      if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
+
+      if (isSubjectAllowed(subj)) {
+        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_' }[subj];
+        const hasSpecificChapter = perms.some(p => p.startsWith(prefix));
+        if (hasSpecificChapter) {
+          return perms.includes(chapter.toLowerCase());
+        }
+        return true;
+      }
+      return false;
+    }
+
+    function renderPortals() {
+      const subjects = ['physics', 'chemistry', 'biology'];
+
+      subjects.forEach(subj => {
+        const card = document.querySelector(`.subject-portal-card[data-subj="${subj}"]`);
+        const statusPill = document.getElementById(`status_${subj}`);
+        const allowed = isSubjectAllowed(subj);
+
+        if (allowed) {
+          card.classList.remove('locked');
+          card.classList.add('active-sub');
+          statusPill.innerText = "🟢 Active";
+        } else {
+          card.classList.add('locked');
+          card.classList.remove('active-sub');
+          statusPill.innerText = "🔒 Not active";
+        }
+
+        // only: إخفاء المواد غير المشترك بها
+        card.style.display = (subj !== 'biology' || (hasFlag(rawPermissions, 'only') && !allowed)) ? 'none' : '';
+      });
+
+      // only + مادة واحدة: فتحها مباشرة وإخفاء زر تغيير المادة
+      const visible = subjects.filter(s => isSubjectAllowed(s));
+      const single = hasFlag(rawPermissions, 'only') && visible.length === 1;
+      document.querySelector('.btn-back-subjects').style.display = single ? 'none' : '';
+      if (single) selectSubject(visible[0]);
+    }
+
+    function selectSubject(subj) {
+      if (!isSubjectAllowed(subj)) {
+        alert("⚠️ This subject is not included in your subscription. Please contact us to activate it.");
+        return;
+      }
+
+      document.getElementById('subjectsView').style.display = 'none';
+      document.getElementById('chaptersView').style.display = 'flex';
+
+      document.querySelectorAll('.subject-content-container').forEach(c => c.style.display = 'none');
+
+      const targetContainer = document.getElementById(`container_${subj}`);
+      if (targetContainer) targetContainer.style.display = 'flex';
+
+      const titleElem = document.getElementById('currentSubjectTitle');
+      if (subj === 'physics') titleElem.innerHTML = "⚡ Physics Lab";
+      if (subj === 'biology') titleElem.innerHTML = "🧬 Biology Lab";
+      if (subj === 'chemistry') titleElem.innerHTML = "🧪 Chemistry Lab";
+
+      targetContainer.querySelectorAll('.chapter-section').forEach(sec => {
+        const ch = sec.getAttribute('data-chapter');
+        const cards = sec.querySelectorAll('.exp-card');
+        const chAllowed = isChapterAllowed(subj, ch);
+
+        cards.forEach(card => {
+          if (chAllowed) {
+            card.classList.remove('locked');
+            const badge = card.querySelector('.lock-overlay');
+            if (badge) badge.remove();
+          } else {
+            card.classList.add('locked');
+            if (!card.querySelector('.lock-overlay')) {
+              const badge = document.createElement('div');
+              badge.className = 'lock-overlay';
+              badge.innerText = '🔒 Not active';
+              card.appendChild(badge);
+            }
+          }
+        });
+      });
+      showChapterMenu(subj);
+    }
+
+    /* ---------- قائمة الفصول: المادة ← الفصول ← محاكيات الفصل ---------- */
+    const CHAPTER_MENU_SUBJECTS = ['biology'];
+    let currentMenuSubj = null;
+    function showChapterMenu(subj) {
+      subj = subj || currentMenuSubj;
+      if (!subj) return;
+      currentMenuSubj = subj;
+      const box = document.getElementById(`container_${subj}`);
+      if (!box) return;
+      if (!CHAPTER_MENU_SUBJECTS.includes(subj)) {
+        const m0 = box.querySelector('.chapter-menu');
+        if (m0) m0.style.display = 'none';
+        box.querySelectorAll('.chapter-section').forEach(sec => { sec.style.display = 'flex'; sec.classList.remove('solo'); });
+        document.getElementById('btnBackChapters').style.display = 'none';
+        return;
+      }
+      let menu = box.querySelector('.chapter-menu');
+      if (!menu) {
+        menu = document.createElement('div');
+        menu.className = 'chapter-menu';
+        box.insertBefore(menu, box.firstChild);
+      }
+      menu.innerHTML = '';
+      box.querySelectorAll('.chapter-section').forEach(sec => {
+        const ch = sec.getAttribute('data-chapter');
+        const raw = (sec.querySelector('.chapter-title') || {}).textContent || '';
+        const t = raw.trim();
+        const sp = t.indexOf(' ');
+        const icon = sp > 0 ? t.slice(0, sp) : '📘';
+        const rest = sp > 0 ? t.slice(sp + 1) : t;
+        const ci = rest.indexOf(':');
+        const num = ci > 0 ? rest.slice(0, ci).trim() : '';
+        const name = ci > 0 ? rest.slice(ci + 1).trim() : rest;
+        const n = sec.querySelectorAll('.exp-card').length;
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'chapter-tile' + (isChapterAllowed(subj, ch) ? '' : ' locked');
+        tile.innerHTML = '<span class="ct-icon"></span><span class="ct-text"><span class="ct-num"></span><span class="ct-name"></span><span class="ct-count"></span></span>';
+        tile.querySelector('.ct-icon').textContent = icon;
+        tile.querySelector('.ct-num').textContent = num;
+        tile.querySelector('.ct-name').textContent = name;
+        tile.querySelector('.ct-count').textContent = n + (n === 1 ? ' simulation' : ' simulations');
+        tile.onclick = () => openChapter(subj, ch);
+        menu.appendChild(tile);
+        sec.style.display = 'none';
+        sec.classList.remove('solo');
+      });
+      menu.style.display = '';
+      document.getElementById('btnBackChapters').style.display = 'none';
+      window.scrollTo({ top: 0 });
+    }
+    function openChapter(subj, ch) {
+      const box = document.getElementById(`container_${subj}`);
+      const menu = box.querySelector('.chapter-menu');
+      if (menu) menu.style.display = 'none';
+      box.querySelectorAll('.chapter-section').forEach(sec => {
+        const on = sec.getAttribute('data-chapter') === ch;
+        sec.style.display = on ? 'flex' : 'none';
+        sec.classList.toggle('solo', on);
+      });
+      document.getElementById('btnBackChapters').style.display = '';
+      window.scrollTo({ top: 0 });
+    }
+
+    function showSubjectsView() {
+      document.getElementById('chaptersView').style.display = 'none';
+      document.getElementById('subjectsView').style.display = 'flex';
+    }
+
+    function openExp(chapter, fileName, expTitle) {
+      const subj = chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
+      if (!isChapterAllowed(subj, chapter)) {
+        alert("⚠️ This chapter is not included in your subscription. Please contact us to activate it.");
+        return;
+      }
+      document.getElementById('activeExpName').innerText = expTitle || "Interactive simulation";
+      const viewer = document.getElementById('viewerScreen');
+      viewer.style.zIndex = "999999";
+      viewer.style.display = 'flex';
+      document.getElementById('expFrame').src = './' + fileName;
+    }
+
+    function closeExp() {
+      const viewer = document.getElementById('viewerScreen');
+      viewer.style.display = 'none';
+      document.getElementById('expFrame').src = "about:blank";
+    }
+
+    function openKeyModal(errorMsg = "") {
+      manualSync = false;
+      const modal = document.getElementById('keyModal');
+      const input = document.getElementById('inputTeacherKey');
+      const status = document.getElementById('modalStatus');
+
+      // لا نعرض الكود المحفوظ حتى لا يراه غير صاحبه؛ نكتفي بآخر حرفين
+      const kk = currentKey || localStorage.getItem('moe_teacher_key') || "";
+      input.value = "";
+      input.placeholder = kk ? ("Current code: \u2066••••" + kk.slice(-2) + "\u2069") : "e.g. ALI2026";
+      status.innerText = errorMsg;
+      status.style.color = "#ef4444";
+      modal.style.display = 'flex';
+    }
+
+    function submitKey() {
+      const input = document.getElementById('inputTeacherKey');
+      const status = document.getElementById('modalStatus');
+      const keyVal = input.value.trim();
+
+      if (!keyVal) {
+        status.innerText = "Please type your subscription code first!";
+        status.style.color = "#ef4444";
+        return;
+      }
+
+      status.innerText = "Checking the code...";
+      status.style.color = "#38bdf8";
+      verifySubscription(keyVal);
+    }
+
+    // الأحياء هي المادة الوحيدة: تفتح مباشرة بعد التحقق من الاشتراك
+    (function () {
+      const _render = renderPortals;
+      renderPortals = function () {
+        _render();
+        try {
+          if (isSubjectAllowed('biology') && document.getElementById('subjectsView').style.display !== 'none') selectSubject('biology');
+        } catch (e) {}
+      };
+    })();
+
+    window.onload = () => {
+      const key = getStoredKey();
+      verifySubscription(key);
+    };
+  </script>
+
+  <!-- شريط التأمين الأوفلاين الذكي -->
+  <div id="offlineManagerBar" style="background:#0f172a; color:#f8fafc; padding:12px 16px; border-bottom:2px solid #3b82f6; font-family:system-ui, sans-serif; direction:ltr;">
+    <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="downloadStatusIcon" style="font-size:18px;">⏳</span>
+        <div>
+          <div id="downloadStatusText" style="font-size:14px; font-weight:bold;">Checking and saving the simulations for offline use...</div>
+          <div id="downloadErrors" style="font-size:12px; color:#f87171; margin-top:2px;"></div>
+        </div>
+      </div>
+      
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:140px; height:8px; background:#334155; border-radius:4px; overflow:hidden;">
+          <div id="downloadProgressBar" style="width:0%; height:100%; background:#3b82f6; transition:width 0.2s;"></div>
+        </div>
+        <span id="downloadPercent" style="font-size:13px; font-weight:bold;">0%</span>
+        <button onclick="startAutoSync()" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer;">Check again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+        .then(reg => reg.update());
+    }
+
+    async function startAutoSync() {
+      const icon = document.getElementById('downloadStatusIcon');
+      const text = document.getElementById('downloadStatusText');
+      const errBox = document.getElementById('downloadErrors');
+      const bar = document.getElementById('downloadProgressBar');
+      const percent = document.getElementById('downloadPercent');
+
+      if (!navigator.onLine) {
+        icon.innerText = '📶';
+        text.innerText = 'You are offline - saved simulations are ready';
+        bar.style.width = '100%';
+        percent.innerText = '100%';
+        return;
+      }
+
+      try {
+        const fileSet = new Set(['./' + (location.pathname.split('/').pop() || 'portal.html')]);
+        document.querySelectorAll('[onclick]').forEach(el => {
+          const attr = el.getAttribute('onclick') || '';
+          const match = attr.match(/['"]([^'"]+\.html)['"]/);
+          if (match && match[1]) {
+            fileSet.add(match[1].startsWith('./') ? match[1] : './' + match[1]);
+          }
+        });
+
+        const files = Array.from(fileSet);
+        const total = files.length;
+        let cachedCount = 0;
+        let failedFiles = [];
+
+        const cache = await caches.open('moelab-v2026-final');
+
+        for (let i = 0; i < total; i++) {
+          const file = files[i];
+          try {
+            const res = await fetch(file, { cache: 'reload' });
+            if (res.ok) {
+              await cache.put(file, res);
+              cachedCount++;
+            } else {
+              failedFiles.push(file.replace('./', ''));
+            }
+          } catch (e) {
+            failedFiles.push(file.replace('./', ''));
+          }
+
+          const p = Math.round(((i + 1) / total) * 100);
+          bar.style.width = p + '%';
+          percent.innerText = p + '%';
+        }
+
+        if (failedFiles.length === 0) {
+          icon.innerText = '✅';
+          text.innerHTML = `<span style="color:#10b981;">All simulations saved (${cachedCount}/${total}) - the platform is 100% ready offline</span>`;
+          errBox.innerText = '';
+          bar.style.background = '#10b981';
+        } else {
+          icon.innerText = '⚠️';
+          text.innerHTML = `<span style="color:#f59e0b;">${cachedCount} simulations saved, but ${failedFiles.length} files are missing on GitHub!</span>`;
+          errBox.innerHTML = `Missing files: <b>${failedFiles.join(', ')}</b>`;
+          bar.style.background = '#f59e0b';
+        }
+      } catch (err) {
+        console.error(err);
+        text.innerText = 'Saving could not finish, please refresh the page';
+      }
+    }
+
+    window.addEventListener('load', startAutoSync);
+  </script>
+  <!-- ===== قفل المختبر: يعمل بدون إنترنت (يقارن بالكود المحفوظ على الجهاز) ===== -->
+  <style>
+    #lockScreen{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:16px;
+      background:#050b14 radial-gradient(circle at top,rgba(245,158,11,.14),#050b14 65%);font-family:'Tajawal',Tahoma,sans-serif;direction:ltr}
+    #lockScreen .lk-card{width:100%;max-width:420px;background:#0b1526;border:1px solid #1e3a5f;border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    #lockScreen .lk-ico{font-size:52px;line-height:1}
+    #lockScreen h2{margin:10px 0 4px;color:#fff;font-size:1.4rem}
+    #lockScreen p{margin:0 0 16px;color:#94a3b8;font-size:.92rem}
+    #lockScreen input[type=password]{width:100%;box-sizing:border-box;font-size:22px;letter-spacing:3px;text-align:center;padding:13px;border-radius:14px;border:2px solid #1e3a5f;background:#050b14;color:#fff;font-family:inherit;direction:ltr}
+    #lockScreen input[type=password]:focus{outline:none;border-color:#f59e0b}
+    #lockScreen .lk-btn{display:block;width:100%;margin-top:12px;padding:14px;font-size:18px;font-weight:900;border:0;border-radius:14px;background:#f59e0b;color:#1f1300;cursor:pointer;font-family:inherit}
+    #lockScreen .lk-msg{min-height:22px;margin-top:10px;font-size:.9rem;color:#f87171;font-weight:bold}
+    #lockScreen .lk-opt{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:12px;color:#cbd5e1;font-size:.88rem;cursor:pointer}
+    #lockScreen .lk-opt input{width:18px;height:18px;accent-color:#f59e0b}
+    #lockScreen .lk-note{margin-top:14px;font-size:.75rem;color:#64748b}
+    #lockScreen.shake .lk-card{animation:lkShake .45s}
+    @keyframes lkShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  </style>
+  <div id="lockScreen" role="dialog" aria-modal="true">
+    <div class="lk-card">
+      <div class="lk-ico">🔒</div>
+      <h2>The lab is locked</h2>
+      <p>Type your subscription code to open the lab</p>
+      <input type="password" id="lockInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Subscription code">
+      <button type="button" class="lk-btn" id="lockBtn">Open the lab 🔓</button>
+      <div class="lk-msg" id="lockMsg"></div>
+      <label class="lk-opt"><input type="checkbox" id="lockAuto"> Ask for the code every time the lab opens</label>
+      <div class="lk-note">Works offline • If you forget the code, contact the platform administrator</div>
+    </div>
+  </div>
+  <script>
+  (function () {
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+    function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+    function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+    function ssDel(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+    var ov = document.getElementById('lockScreen'), inp = document.getElementById('lockInput'),
+        msg = document.getElementById('lockMsg'), auto = document.getElementById('lockAuto');
+
+    // الكود المسجّل على هذا الجهاز (من الرخصة المحفوظة)
+    function savedKey() {
+      try { var l = JSON.parse(lsGet('moe_offline_license') || 'null'); if (l && l.key) return String(l.key); } catch (e) {}
+      return lsGet('moe_teacher_key') || '';
+    }
+    function show() {
+      ov.style.display = 'flex'; inp.value = ''; msg.textContent = '';
+      auto.checked = lsGet('moe_autolock') === '1';
+      setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50);
+    }
+    window.lockPlatform = function () {
+      if (!savedKey()) { alert('There is no active subscription on this device yet.'); return; }
+      lsSet('moe_locked', '1'); ssDel('moe_unlocked');
+      try { closeExp(); } catch (e) {}
+      show();
+    };
+    function unlock() {
+      var v = inp.value.replace(/\s+/g, ''), k = savedKey();
+      if (!v) { msg.textContent = 'Type the code first.'; return; }
+      if (k && v.toLowerCase() === k.toLowerCase()) {
+        lsDel('moe_locked'); ssSet('moe_unlocked', '1');
+        if (auto.checked) lsSet('moe_autolock', '1'); else lsDel('moe_autolock');
+        ov.style.display = 'none'; inp.value = '';
+      } else {
+        msg.textContent = 'Incorrect code';
+        ov.classList.remove('shake'); void ov.offsetWidth; ov.classList.add('shake');
+        inp.value = '';
+      }
+    }
+    document.getElementById('lockBtn').onclick = unlock;
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.keyCode === 13) unlock(); });
+
+    // عند الفتح: مقفل سابقاً، أو مفعّل عليه «اطلب الكود في كل مرة»
+    if (savedKey() && (lsGet('moe_locked') === '1' || (lsGet('moe_autolock') === '1' && ssGet('moe_unlocked') !== '1'))) show();
+  })();
+  </script>
+</body>
+</html>
