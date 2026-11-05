@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="theme-color" content="#1f3a52"><title>أقسام العمود الفقري</title><style>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="theme-color" content="#1f3a52"><title>أقسام العمود الفقري</title><style>
 :root{--navy:#1f3a52;--orange:#e0552a}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:white;color:var(--navy);font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
 #top{position:absolute;top:0;left:0;right:0;height:56px;background:var(--navy);display:flex;justify-content:center;align-items:center;color:white;font-size:clamp(17px,3.8vw,24px);font-weight:700;letter-spacing:1px;z-index:9;padding:0 10px;text-align:center}
@@ -23,7 +23,7 @@ body.fs #top{display:none}body.fs #stage{top:0}
 <body>
 <div id="top"></div>
 <div id="stage">
-<div id="controls"><button id="zin" title="تكبير" aria-label="تكبير">+</button><button id="zout" title="تصغير" aria-label="تصغير">−</button><button id="zreset" title="إعادة الضبط" aria-label="إعادة الضبط">⟲</button><button id="replay" title="إعادة التأشيرات" aria-label="إعادة التأشيرات">▶</button><button id="labelsToggle" title="إخفاء التأشيرات" aria-label="إخفاء التأشيرات">🏷</button><button id="fs" title="ملء الشاشة" aria-label="ملء الشاشة">⛶</button></div>
+<div id="controls"><button id="zin" title="تكبير" aria-label="تكبير">+</button><button id="zout" title="تصغير" aria-label="تصغير">−</button><button id="zreset" title="إعادة التأشيرات من البداية" aria-label="إعادة التأشيرات من البداية">⟲</button><button id="replay" title="إيقاف مؤقت" aria-label="إيقاف مؤقت">⏸&#xFE0E;</button><button id="labelsToggle" title="إخفاء التأشيرات" aria-label="إخفاء التأشيرات">🏷</button><button id="fs" title="ملء الشاشة" aria-label="ملء الشاشة">⛶</button></div>
 <svg id="sv" preserveAspectRatio="xMidYMid meet"><g id="view"></g></svg>
 </div><script>
 /* ============ بيانات المحاكاة (هذا الجزء الوحيد الذي يتغيّر) ============
@@ -62,7 +62,13 @@ let timers=[],layers=[],labelsVisible=true;
 function clearTimers(){timers.forEach(clearTimeout);timers=[];}
 function mk(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs){if(k==='href')e.setAttributeNS(XL,'href',attrs[k]);e.setAttribute(k,attrs[k]);}parent.appendChild(e);return e;}
 function applyLabelVisibility(){document.body.classList.toggle('labels-hidden',!labelsVisible);const b=$('labelsToggle');b.textContent=labelsVisible?'🏷':'🙈';b.title=labelsVisible?'إخفاء التأشيرات':'إظهار التأشيرات';b.setAttribute('aria-label',b.title);}
-function intro(){clearTimers();layers.forEach(l=>l.classList.remove('show'));layers.forEach((l,i)=>timers.push(setTimeout(()=>l.classList.add('show'),SIM.firstDelay+i*SIM.step)));}
+let next=0,running=false;
+function setPlayBtn(){const b=$('replay');b.textContent=running?'\u23F8\uFE0E':'\u25B6\uFE0E';b.title=running?'إيقاف مؤقت':'متابعة التأشيرات';b.setAttribute('aria-label',b.title);}
+function schedule(delay){clearTimers();if(next>=layers.length){running=false;setPlayBtn();return}running=true;setPlayBtn();
+  const tick=()=>{layers[next].classList.add('show');next++;if(next<layers.length)timers.push(setTimeout(tick,SIM.step));else{running=false;setPlayBtn()}};
+  timers.push(setTimeout(tick,delay));}
+function pause(){clearTimers();running=false;setPlayBtn();}
+function intro(){clearTimers();layers.forEach(l=>l.classList.remove('show'));next=0;schedule(SIM.firstDelay);}
 $('top').textContent=SIM.title;document.title=SIM.title;
 svg.setAttribute('viewBox','0 0 '+W+' '+H);
 if(SIM.motion){
@@ -76,14 +82,15 @@ if(SIM.motion){
   }
 }else mk('image',{'class':'base',href:SIM.image,x:0,y:0,width:W,height:H,preserveAspectRatio:'none'},view);
 layers=SIM.layers.map(l=>mk('image',{'class':'ly',href:l.src,x:l.x||0,y:l.y||0,width:l.w||W,height:l.h||H,preserveAspectRatio:'none'},view));
-$('replay').onclick=()=>{labelsVisible=true;applyLabelVisibility();intro()};
+$('replay').onclick=()=>{if(running){pause();return}labelsVisible=true;applyLabelVisibility();if(next>=layers.length)intro();else schedule(700)};
+$('zreset').onclick=()=>{labelsVisible=true;applyLabelVisibility();intro()};
 $('labelsToggle').onclick=()=>{labelsVisible=!labelsVisible;applyLabelVisibility()};
 let sc=1,tx=0,ty=0;
 function apply(){view.setAttribute('transform','translate('+tx+' '+ty+') scale('+sc+')')}
 function zoom(factor,point){let next=Math.max(.6,Math.min(5,sc*factor));let k=next/sc;tx=point.x-(point.x-tx)*k;ty=point.y-(point.y-ty)*k;sc=next;apply()}
 function center(){return {x:W/2,y:H/2}}
 function reset(){sc=1;tx=0;ty=0;apply()}
-$('zin').onclick=()=>zoom(1.3,center());$('zout').onclick=()=>zoom(1/1.3,center());$('zreset').onclick=reset;
+$('zin').onclick=()=>zoom(1.3,center());$('zout').onclick=()=>zoom(1/1.3,center());
 function setFs(on){document.body.classList.toggle('fs',on);$('fs').textContent=on?'✕':'⛶';$('fs').title=on?'إنهاء ملء الشاشة':'ملء الشاشة'}
 $('fs').onclick=()=>{
   const d=document.documentElement,inFs=!!(document.fullscreenElement||document.webkitFullscreenElement);
