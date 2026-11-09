@@ -64,6 +64,8 @@
   .zb button svg{width:20px;height:20px;cursor:pointer}
   #tt.on{background:var(--navy);color:#fff}
   button:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+  body.pf #top{display:none}
+  body.pf #stage{top:0}
   @media (prefers-reduced-motion:reduce){#draw,#txt,.w,.num{transition:none!important}}
 </style>
 </head>
@@ -75,7 +77,7 @@
   </div>
   <div id="txt" title="انقر لإظهار النص كاملاً"><div id="txtIn"></div></div>
   <div class="zb">
-    <button id="tt" class="on" aria-label="إخفاء النص" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 11h16M8 16h12M11 21h9"/></svg></button>
+    <button id="tt" aria-label="إظهار النص" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 11h16M8 16h12M11 21h9"/></svg></button>
     <button id="zin" aria-label="تكبير">+</button>
     <button id="zout" aria-label="تصغير">−</button>
     <button id="zreset" aria-label="إعادة الضبط">⟲</button>
@@ -163,7 +165,7 @@ function showAll(){typeTok++;typed=true;seq.forEach(it=>it.classList&&it.classLi
 txt.addEventListener('click',showAll);
 
 /* ---------- show / hide text ---------- */
-let textOn=true,ready=false;
+let textOn=false,ready=false;
 const tt=$('tt');
 function layout(){stage.classList.toggle('shifted',textOn&&ready);if(textOn&&ready)setTimeout(()=>{if(textOn&&ready)startTyping();},RM?0:1200);}
 tt.onclick=()=>{textOn=!textOn;tt.classList.toggle('on',textOn);tt.setAttribute('aria-pressed',textOn);tt.setAttribute('aria-label',textOn?'إخفاء النص':'إظهار النص');layout();};
@@ -227,11 +229,16 @@ $('zreset').onclick=reset;
 /* ---------- fullscreen ---------- */
 const root=document.documentElement,fsIco=$('fsIco');
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
-$('fs').onclick=()=>{try{
-  if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}
-  else{const r=(root.requestFullscreen||root.webkitRequestFullscreen).call(root);if(r&&r.catch)r.catch(()=>{});}
-}catch(e){}};
-const fsUpd=()=>{const on=!!fsEl();fsIco.setAttribute('d',on?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');$('fs').setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');};
+let pseudo=false;
+const setPseudo=v=>{pseudo=v;document.body.classList.toggle('pf',v);fsUpd();};
+$('fs').onclick=()=>{
+  if(fsEl()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}return;}
+  if(pseudo){setPseudo(false);return;}
+  const req=root.requestFullscreen||root.webkitRequestFullscreen;
+  if(!req||(document.fullscreenEnabled===false&&document.webkitFullscreenEnabled!==true)){setPseudo(true);return;}
+  try{const r=req.call(root);if(r&&r.then)r.catch(()=>setPseudo(true));else setTimeout(()=>{if(!fsEl())setPseudo(true);},350);}catch(e){setPseudo(true);}
+};
+const fsUpd=()=>{const on=!!fsEl()||pseudo;fsIco.setAttribute('d',on?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');$('fs').setAttribute('aria-label',on?'الخروج من ملء الشاشة':'ملء الشاشة');};
 document.addEventListener('fullscreenchange',fsUpd);document.addEventListener('webkitfullscreenchange',fsUpd);
 
 apply();requestAnimationFrame(frame);go(0);
