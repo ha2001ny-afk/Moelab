@@ -12,6 +12,7 @@
   :root{--navy:#1f3a52;--rust:#c4623a;--ink:#26384a;--paper:#eef6fb;--white:#ffffff;--muted:#5f7387;
         --glass:rgba(255,255,255,.34);--glass-b:rgba(255,255,255,.78);
         --c-chol:#2f63b3;--c-typh:#3c9a3c;--c-ulc:#c23b2e;color-scheme:light}
+  [hidden]{display:none!important}
   html{height:100%;overflow:hidden;background:var(--paper)}
   body{position:relative;height:100%;margin:0;overflow:hidden;background:var(--paper);color:var(--ink);direction:rtl;
        font-family:"Cairo",Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
@@ -28,7 +29,8 @@
   #field i:nth-child(4){width:24vmax;height:24vmax;background:#ffe08a;bottom:8%;right:16%;opacity:.45}
   #field::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(31,58,82,.08) 1px,transparent 1px);background-size:22px 22px}
   .view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-        padding:24px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px));box-sizing:border-box}
+        padding:24px max(16px,env(safe-area-inset-right,0px)) 32px calc(68px + env(safe-area-inset-left,0px));box-sizing:border-box}
+  .view>*{zoom:var(--z,1)}
   .glass{background:var(--glass);border:1.5px solid var(--glass-b);border-radius:26px;
          -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
          box-shadow:0 18px 40px rgba(31,58,82,.16),inset 0 1px 0 rgba(255,255,255,.9)}
@@ -101,13 +103,15 @@
   .zb{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;z-index:8}
   .zb button{width:42px;height:42px;border-radius:50%;border:2px solid var(--navy);background:var(--white);color:var(--navy);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}
   .zb button svg{width:20px;height:20px}
+  .zb .zt{font-size:26px;font-weight:700;line-height:1}
+  .zb button:disabled{opacity:.4;cursor:default}
   #home-btn{background:var(--rust);border-color:var(--rust);color:var(--white)}
   #play.on{background:var(--navy);color:var(--white)}
   button:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
   @media (max-width:720px),(max-aspect-ratio:4/5){
     .zb{flex-direction:row;gap:6px;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px))}
-    .zb button{width:34px;height:34px}.zb button svg{width:16px;height:16px}
-    .view{padding-top:56px}
+    .zb button{width:34px;height:34px}.zb .zt{font-size:21px}.zb button svg{width:16px;height:16px}
+    .view{padding-top:56px;padding-left:max(16px,env(safe-area-inset-left,0px))}
   }
   body.pf #top{display:none}
   body.pf #stage{top:0}
@@ -125,6 +129,8 @@
   <div class="zb">
     <button id="home-btn" hidden aria-label="العودة إلى قائمة الأمراض" title="القائمة الرئيسية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></svg></button>
     <button id="play" class="on" aria-label="إيقاف الحركة" aria-pressed="true" title="الحركة"><svg viewBox="0 0 24 24" fill="currentColor"><path id="playIco" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
+    <button id="zin" aria-label="تكبير" title="تكبير"><span class="zt">+</span></button>
+    <button id="zout" aria-label="تصغير" title="تصغير"><span class="zt">−</span></button>
     <button id="fs" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
 </div>
@@ -334,6 +340,12 @@ const playBtn=$('play'),playIco=$('playIco');
 function setPlay(v){playing=v;playBtn.classList.toggle('on',v);playBtn.setAttribute('aria-pressed',v);playBtn.setAttribute('aria-label',v?'إيقاف الحركة':'تشغيل الحركة');
   playIco.setAttribute('d',v?'M7 5h3.5v14H7zM13.5 5H17v14h-3.5z':'M8 5l11 7-11 7z');}
 playBtn.onclick=()=>setPlay(!playing);setPlay(playing);
+
+/* ===================== zoom + / − (scales the cards and lesson text) ===================== */
+let Z=1;try{const s=parseFloat(localStorage.getItem('dz-zoom'));if(s>=.6&&s<=1.8)Z=s;}catch(e){}
+function setZ(v){Z=Math.round(Math.min(1.8,Math.max(.6,v))*10)/10;document.documentElement.style.setProperty('--z',Z);
+  $('zin').disabled=Z>=1.8;$('zout').disabled=Z<=.6;try{localStorage.setItem('dz-zoom',Z);}catch(e){}}
+$('zin').onclick=()=>setZ(Z+.1);$('zout').onclick=()=>setZ(Z-.1);setZ(Z);
 
 /* ===================== fullscreen (same as reference) ===================== */
 const root=document.documentElement,fsIco=$('fsIco');
