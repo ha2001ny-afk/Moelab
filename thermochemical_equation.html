@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8">
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>المعادلة الكيميائية الحرارية</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  #stage{position:relative;flex:1;min-height:0;padding-top:env(safe-area-inset-top,0px);box-sizing:border-box;background:radial-gradient(circle at 55% 45%,#f6fcff 0%,#cfe8f3 100%);padding-bottom:env(safe-area-inset-bottom,0px)}
+  #svgWrap{position:absolute;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);right:0;left:calc(var(--bw) + 22px + env(safe-area-inset-left,0px))}
+  svg#svg{width:100%;height:100%;display:block;overflow:visible;touch-action:none;cursor:grab;transition:opacity .3s}
+  :root{--bw:126px;--zb:42px}
+  body.fsx #svgWrap{left:0}
+
+  /* ---- left controls: zoom group on top, stage buttons under it (transparent) ---- */
+  #side{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));bottom:8px;width:var(--bw);z-index:5;
+        display:flex;flex-direction:column;align-items:flex-start;gap:14px;overflow-y:auto;direction:ltr}
+  .zb{display:flex;flex-direction:column;gap:8px;direction:ltr}
+  .zb button{width:var(--zb);height:var(--zb);border-radius:50%;border:2px solid #1f3a52;background:transparent;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;
+             display:flex;align-items:center;justify-content:center;padding:0}
+  .zb svg{width:20px;height:20px;pointer-events:none}
+  .sysList{display:flex;flex-direction:column;gap:7px;width:100%;direction:rtl}
+  .sys{width:100%;padding:6px 8px;border-radius:8px;border:1.5px solid rgba(31,58,82,.45);background:transparent;color:#1f3a52;
+       font:bold 14px Tahoma,"Segoe UI",Arial,sans-serif;line-height:1.3;text-align:center;cursor:pointer;
+       transition:color .25s,border-color .25s,transform .15s}
+  .sys:active{transform:scale(.97)}
+  .sys.on{background:transparent;border-color:#c4623a;border-width:2.5px;color:#a8431b}
+  .sys.all{border-style:dashed}
+  .sys:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  @media (max-width:560px),(max-height:440px){
+    :root{--bw:92px;--zb:34px}
+    #side{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));gap:10px}
+    .zb{gap:6px}.zb button{font-size:18px}.zb svg{width:16px;height:16px}
+    .sys{padding:4px 5px;font-size:11.5px;border-radius:7px}
+    .sysList{gap:5px}
+  }
+  @media (max-height:400px){:root{--zb:30px}#side{gap:6px}.zb{gap:4px}}
+
+  svg text{direction:rtl}
+  .pill{fill:#fff;stroke:#c4623a;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#c4623a;stroke-width:2.2;fill:none}
+  .td{fill:#c4623a;stroke:#fff;stroke-width:1.5}
+  .hd{transition:opacity .35s}
+  .hName{fill:#1f3a52;font-size:32px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hEn{fill:#3f6f93;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .capBox{fill:#1f3a52}
+  .capTxt{fill:#fff;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ax{fill:#1f3a52;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .card{fill:#fff;stroke:#b9d3e2;stroke-width:1.5}
+  .cTitle{fill:#fff;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cRow{fill:#1f3a52;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .enS{fill:#3f6f93;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .frm{fill:#3f6f93;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .frmL{fill:#3f6f93;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .eqXL{fill:#1f3a52;font-size:25px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .eqL{fill:#1f3a52;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .eqM{fill:#1f3a52;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .eqS{fill:#1f3a52;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .eqXS{fill:#1f3a52;font-size:14.5px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .sg{font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .sgS{font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .sgA{font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .opT{fill:#fff;font-size:26px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .pT{fill:#1f3a52;font-size:21px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .pC{fill:#3f6f93;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .pC2{fill:#3f6f93;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="side">
+    <div class="zb">
+      <button id="zin" title="تكبير">+</button><button id="zout" title="تصغير">−</button><button id="zreset" title="إرجاع">⟲</button>
+      <button id="fs" title="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="fsI" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+    <div class="sysList">
+      <button class="sys" data-i="1">إشارة الانثالبي</button>
+      <button class="sys" data-i="2">الحالة الفيزيائية</button>
+      <button class="sys" data-i="3">عكس العملية</button>
+      <button class="sys" data-i="4">الضرب بمعامل</button>
+      <button class="sys all" data-i="5">النقاط الأربع</button>
+    </div>
+  </div>
+  <div id="svgWrap">
+  <svg id="svg" viewBox="0 0 900 670" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#d63a3a"/></marker>
+      <marker id="ahB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#2a7fb8"/></marker>
+      <marker id="ahO" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#c4623a"/></marker>
+      <marker id="ahD" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#1f3a52"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg", PI=Math.PI;
+const svg=document.getElementById('svg'), view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const txt=(cls,x,y,s,p,fill)=>{const e=el('text',{class:cls,x,y},p);e.textContent=s;if(fill)e.setAttribute('fill',fill);return e;};
+const htm=(cls,x,y,h,p,fill)=>{const e=el('text',{class:cls,x,y},p);e.innerHTML=h;if(fill)e.setAttribute('fill',fill);return e;};
+const cl=x=>Math.min(1,Math.max(0,x)), ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const vis=(g,o)=>{g.setAttribute('opacity',o.toFixed(2));g.setAttribute('display',o<.01?'none':'');};
+const NAVY='#1f3a52', RED='#d63a3a', BLU='#2a7fb8', ORG='#c4623a';
+const SP='   ', LRI='⁦', PDI='⁩';
+/* صيغة كيميائية: الرقم بعد _ يكتب أسفل السطر */
+const chem=s=>s.split(/_(\d+)/).map((x,i)=>i%2?`<tspan dy="5" font-size="72%">${x}</tspan>`:(i?`<tspan dy="-5">${x}</tspan>`:x)).join('');
+const col=(c,s)=>`<tspan fill="${c}">${s}</tspan>`;
+const line=(g,x1,y1,x2,y2,c,w,extra)=>el('line',Object.assign({x1,y1,x2,y2,stroke:c,'stroke-width':w,'stroke-linecap':'round'},extra||{}),g);
+const mk=c=>c===RED?'ah':c===BLU?'ahB':c===ORG?'ahO':'ahD';
+const arrow=(g,x1,y1,x2,y2,c,w)=>line(g,x1,y1,x2,y2,c,w||5,{'marker-end':`url(#${mk(c)})`});
+const box=(g,x,y,w,h,c,sw)=>el('rect',{x,y,width:w,height:h,rx:Math.min(21,h/2),fill:'#fff',stroke:c||NAVY,'stroke-width':sw||2.5},g);
+function pillT(g,cx,cy,w,s,c,cls){el('rect',{x:cx-w/2,y:cy-19,width:w,height:38,rx:19,fill:'#fff',stroke:c,'stroke-width':2.5},g);return htm(cls||'sgS',cx,cy,s,g,c);}
+function card(g,x,y,w,h,c,title){el('rect',{class:'card',x,y,width:w,height:h,rx:12},g);
+  el('path',{d:`M${x},${y+28} L${x},${y+12} Q${x},${y} ${x+12},${y} L${x+w-12},${y} Q${x+w},${y} ${x+w},${y+12} L${x+w},${y+28} Z`,fill:c},g);
+  return txt('cTitle',x+w/2,y+14,title,g);}
+const dotOf=(g,c)=>el('circle',{r:8,fill:c,stroke:'#fff','stroke-width':3},g);
+const mv=(d,x,y,o)=>{d.setAttribute('cx',x.toFixed(1));d.setAttribute('cy',y.toFixed(1));d.setAttribute('opacity',o.toFixed(2));};
+
+/* ---------- stages: 0 تمهيد، 1-4 النقاط الأربع، 5 الخلاصة ---------- */
+const TX=[
+ {n:'المعادلة الكيميائية الحرارية',e:'Thermochemical Equation',c:'ماذا يجب أن تبين المعادلة الحرارية؟'},
+ {n:'إشارة الانثالبي',e:'Sign of ΔH',c:'موجبة: ماص للحرارة — سالبة: باعث للحرارة'},
+ {n:'الحالة الفيزيائية',e:'Physical State',c:'الحرارة تتغير بتغير حالة المواد'},
+ {n:'عكس العملية',e:'Reversing the Process',c:'تنعكس إشارة الانثالبي'},
+ {n:'الضرب بمعامل عددي',e:'Multiplying by a Factor',c:'تجرى العملية نفسها على الانثالبي'},
+ {n:'النقاط الأربع',e:'Summary',c:'ما تبينه المعادلة الكيميائية الحرارية'}
+];
+const G=[0,1,2,3,4,5].map(()=>el('g',{},view));
+const METH_R='CH_4(g) + 2O_2(g)', METH_P='CO_2(g) + 2H_2O(l)';
+
+/* ================= 0: anatomy of a thermochemical equation ================= */
+const g0=G[0];
+box(g0,60,326,780,68,NAVY,3);
+const eq0=htm('eqXL',450,360,chem(METH_R)+' → '+chem(METH_P)+SP+'ΔH = '+col(RED,'−')+'890 kJ/mol',g0);
+const L0=[['المعاملات: عدد المولات',215,238,236,'2O',0,-1],['الحالة الفيزيائية',470,238,184,'(l)',1,-1],
+          ['إشارة الانثالبي',545,484,176,'−',0,1],['قيمة الانثالبي',748,484,164,'890',1,1]].map(([s,cx,cy,w,key,off,side])=>{
+  const g=el('g',{'pointer-events':'none'},g0), ln=el('line',{class:'ln',x1:cx,y1:cy},g), dt=el('circle',{class:'td',r:5},g);
+  el('rect',{class:'pill',x:cx-w/2,y:cy-19,width:w,height:38,rx:19},g);txt('lbl',cx,cy,s,g);return {ln,dt,key,off,side};});
+function layout0(){const s=eq0.textContent;L0.forEach(l=>{let x=450,y=l.side<0?334:388;
+  try{const b=eq0.getExtentOfChar(s.indexOf(l.key)+l.off);x=b.x+b.width/2;y=l.side<0?b.y-2:b.y+b.height+2;}catch(e){}
+  l.ln.setAttribute('x2',x);l.ln.setAttribute('y2',y);l.dt.setAttribute('cx',x);l.dt.setAttribute('cy',y);});}
+txt('pC2',450,566,'تعبر عن التفاعلات الكيميائية والتغيرات الفيزيائية',g0);
+txt('pC2',450,598,'وتختلف كتابتها عن المعادلات الكيميائية الأخرى',g0);
+
+/* ================= 1: sign of ΔH (the book's figure, page 20) ================= */
+const g1=G[1], s1=[];
+function panel(ox,endo){
+  const g=el('g',{},g1), c=endo?BLU:RED;
+  el('rect',{x:ox,y:166,width:410,height:486,rx:16,fill:'#fff',opacity:.6,stroke:'#b9d3e2','stroke-width':1.5},g);
+  txt('pT',ox+205,192,endo?'تغير فيزيائي ماص للحرارة':'تفاعل باعث للحرارة',g);
+  txt('pC',ox+205,218,endo?'انصهار الجليد':'احتراق غاز الميثان',g);
+  line(g,ox+36,512,ox+36,264,NAVY,3.5,{'marker-end':'url(#ahD)'});txt('pC',ox+36,244,'طاقة',g);
+  const yR=endo?470:296, yP=endo?296:470;
+  line(g,ox+66,yR,ox+216,yR,NAVY,6);line(g,ox+236,yP,ox+386,yP,NAVY,6);
+  htm('frm',ox+141,yR+(endo?26:-22),chem(endo?'H_2O(s)':METH_R),g);
+  htm('frm',ox+311,yP+(endo?-22:26),chem(endo?'H_2O(l)':METH_P),g);
+  arrow(g,ox+226,yR+(endo?-10:10),ox+226,yP+(endo?12:-12),c);
+  pillT(g,endo?ox+130:ox+318,383,endo?164:172,endo?'ΔH = +6 kJ/mol':'ΔH = −890 kJ/mol',c);
+  txt('sgA',ox+205,526,endo?'الإشارة موجبة: العملية ماصة للحرارة':'الإشارة سالبة: العملية باعثة للحرارة',g,c);
+  box(g,ox+10,544,390,98,c);
+  const A=el('g',{},g), B=el('g',{},g);
+  htm('eqS',ox+205,572,chem(endo?'H_2O(s)':METH_R)+' → '+chem(endo?'H_2O(l)':METH_P),A);
+  htm('eqM',ox+205,612,endo?'ΔH = +6 kJ/mol':'ΔH = −890 kJ/mol',A,c);
+  htm('eqXS',ox+205,576,endo?chem('H_2O(s)')+' + '+col(c,'6 kJ/mol')+' → '+chem('H_2O(l)'):chem(METH_R)+' → '+chem(METH_P)+' + '+col(c,'890 kJ/mol'),B);
+  txt('sgA',ox+205,614,endo?'الحرارة الممتصة تكتب مع المتفاعلات':'الحرارة المنبعثة تكتب مع النواتج',B,c);
+  s1.push({A,B,d:dotOf(g,c),x:ox+226,y0:yR,y1:yP});
+}
+panel(470,false);panel(30,true);
+
+/* ================= 2: physical states ================= */
+const g2=G[2];
+line(g2,80,522,80,198,NAVY,4,{'marker-end':'url(#ahD)'});txt('ax',80,174,'الانثالبي H',g2);
+line(g2,120,230,545,230,NAVY,6);htm('frmL',332,205,chem('H_2(g) + ½O_2(g)'),g2);
+line(g2,230,442,390,442,NAVY,6);htm('frmL',310,470,chem('H_2O(g)'),g2);
+line(g2,430,480,590,480,NAVY,6);htm('frmL',510,508,chem('H_2O(l)'),g2);
+arrow(g2,300,240,300,430,ORG);arrow(g2,505,240,505,468,RED);
+pillT(g2,200,335,180,'ΔH = −242 kJ/mol',ORG);pillT(g2,408,375,176,'ΔH = −286 kJ/mol',RED);
+const d2a=dotOf(g2,ORG), d2b=dotOf(g2,RED);
+box(g2,60,546,580,44,ORG);htm('eqM',350,568,chem('H_2(g) + ½O_2(g)')+' → '+chem('H_2O(')+col(ORG,'g')+')'+SP+col(ORG,'ΔH = −242 kJ/mol'),g2);
+box(g2,60,600,580,44,RED);htm('eqM',350,622,chem('H_2(g) + ½O_2(g)')+' → '+chem('H_2O(')+col(RED,'l')+')'+SP+col(RED,'ΔH = −286 kJ/mol'),g2);
+card(g2,672,166,212,150,NAVY,'رموز الحالة الفيزيائية');
+[['(s)','صلب','solid'],['(l)','سائل','liquid'],['(g)','غاز','gas'],['(aq)','محلول مائي','aqueous']].forEach(([a,b,c],j)=>{
+  const y=212+j*27;txt('frm',856,y,a,g2);txt('cRow',j===3?792:800,y,b,g2);txt('enS',712,y,c,g2);});
+card(g2,672,330,212,122,ORG,'لماذا تذكر الحالة؟');
+['كمية الحرارة تتغير','بتغير الحالة الفيزيائية','الفرق هنا '+LRI+'44 kJ/mol'+PDI].forEach((s,j)=>txt('cRow',778,376+j*27,s,g2));
+
+/* ================= 3: reversing the process ================= */
+const g3=G[3];
+line(g3,80,522,80,252,NAVY,4,{'marker-end':'url(#ahD)'});txt('ax',80,228,'الانثالبي H',g3);
+line(g3,110,470,260,470,NAVY,6);htm('frmL',185,498,chem('H_2O(s)'),g3);
+line(g3,300,290,450,290,NAVY,6);htm('frmL',360,264,chem('H_2O(l)'),g3);
+el('rect',{x:140,y:428,width:38,height:38,rx:6,fill:'#e6f6fd',stroke:'#8cc3de','stroke-width':2.5},g3);
+el('path',{d:'M425,242 C437,260 443,268 443,276 A18,18 0 0 1 407,276 C407,268 413,260 425,242 Z',fill:'#7cc0e2',stroke:'#4e9cc4','stroke-width':2},g3);
+arrow(g3,268,460,268,304,BLU);arrow(g3,292,300,292,456,RED);
+pillT(g3,170,372,170,'ΔH = +6 kJ/mol',BLU);txt('sgA',170,406,'انصهار: ماص للحرارة',g3,BLU);
+pillT(g3,390,372,170,'ΔH = −6 kJ/mol',RED);txt('sgA',390,406,'انجماد: باعث للحرارة',g3,RED);
+const d3=dotOf(g3,BLU);
+const b3a=box(g3,492,196,384,50,BLU), b3b=box(g3,492,300,384,50,RED);
+htm('eqM',684,221,chem('H_2O(s)')+' → '+chem('H_2O(l)')+SP+col(BLU,'ΔH = +6 kJ/mol'),g3);
+htm('eqM',684,325,chem('H_2O(l)')+' → '+chem('H_2O(s)')+SP+col(RED,'ΔH = −6 kJ/mol'),g3);
+arrow(g3,612,256,612,290,ORG,3.5);arrow(g3,628,290,628,256,ORG,3.5);txt('sgA',700,273,'عكس العملية',g3,ORG);
+card(g3,492,380,384,140,NAVY,'انتبه');
+['هذه الفقرة أحد تطبيقات قانون لابلاس','كمية الحرارة المنبعثة تساوي كمية الحرارة الممتصة','لأي تفاعل كيميائي أو تغير فيزيائي'].forEach((s,j)=>txt('cRow',684,430+j*30,s,g3));
+
+/* ================= 4: multiplying / dividing by a factor ================= */
+const g4=G[4];
+const PH=[{c1:170,w1:64,o2:0,H:6,op:'× 1',eq:'H_2O(s) → H_2O(l)',dh:'ΔH = 1 × 6 = 6 kJ/mol',mol:'1 mol'},
+          {c1:132,w1:64,o2:1,H:12,op:'× 2',eq:'2H_2O(s) → 2H_2O(l)',dh:'ΔH = 2 × 6 = 12 kJ/mol',mol:'2 mol'},
+          {c1:170,w1:32,o2:0,H:3,op:'÷ 2',eq:'½H_2O(s) → ½H_2O(l)',dh:'ΔH = 6 ÷ 2 = 3 kJ/mol',mol:'½ mol'}];
+txt('pT',170,300,'كمية الجليد',g4);
+const iceA=el('rect',{y:356,height:64,rx:8,fill:'#e6f6fd',stroke:'#8cc3de','stroke-width':3},g4);
+const iceB=el('rect',{x:176,y:356,width:64,height:64,rx:8,fill:'#e6f6fd',stroke:'#8cc3de','stroke-width':3},g4);
+const molT=txt('sg',170,452,'',g4,NAVY);
+txt('pT',380,214,'الحرارة الممتصة',g4);
+const BY=600, BS=27;                                       // قاعدة العمود ومقياسه (px لكل kJ)
+line(g4,320,BY,320,250,NAVY,3,{'marker-end':'url(#ahD)'});line(g4,320,BY,446,BY,NAVY,3);
+[0,3,6,9,12].forEach(v=>{line(g4,314,BY-v*BS,326,BY-v*BS,NAVY,2);txt('enS',296,BY-v*BS,String(v),g4);});
+txt('enS',296,246,'kJ',g4);
+const bar=el('rect',{x:352,width:62,rx:5,fill:BLU,opacity:.9},g4);
+const barT=txt('sgS',383,0,'',g4,BLU);
+box(g4,492,196,384,50,NAVY);htm('eqM',684,221,chem('H_2O(s)')+' → '+chem('H_2O(l)')+SP+col(BLU,'ΔH = 6 kJ/mol'),g4);
+box(g4,492,330,384,98,BLU,3);
+const dy4=el('g',{},g4);
+el('rect',{x:624,y:262,width:120,height:52,rx:26,fill:ORG},dy4);const opT=txt('opT',684,288,'',dy4);
+const eq4=el('text',{class:'eqL',x:684,y:362},dy4), dh4=el('text',{class:'eqM',x:684,y:402,fill:BLU},dy4);
+card(g4,492,450,384,140,NAVY,'القاعدة');
+['عند ضرب أو قسمة طرفي المعادلة بمعامل عددي','يجب أن تجرى العملية نفسها','على قيمة الانثالبي'].forEach((s,j)=>txt('cRow',684,500+j*30,s,g4));
+let ph4=-1;const s4={c1:170,w1:64,o2:0,H:6};
+
+/* ================= 5: summary ================= */
+const g5=G[5];
+[[460,166,'1','إشارة الانثالبي',['الموجبة: العملية ماصة للحرارة','السالبة: العملية باعثة للحرارة'],'ΔH = −890 kJ/mol',RED],
+ [30,166,'2','الحالة الفيزيائية للمواد',['تذكر حالة المواد المتفاعلة والناتجة','لأن كمية الحرارة تتغير بتغيرها'],'(s)   (l)   (g)   (aq)',ORG],
+ [460,412,'3','عكس العملية',['عند عكس التفاعل أو التغير','تنعكس إشارة الانثالبي'],'+6 kJ/mol  ⇄  −6 kJ/mol',BLU],
+ [30,412,'4','الضرب أو القسمة بمعامل',['تجرى العملية نفسها','على قيمة الانثالبي'],'2 × 6 = 12 kJ/mol',NAVY]].forEach(([x,y,n,t,rows,ex,c])=>{
+  el('rect',{class:'card',x,y,width:410,height:234,rx:14},g5);
+  el('circle',{cx:x+372,cy:y+38,r:22,fill:c},g5);txt('opT',x+372,y+39,n,g5);
+  txt('pT',x+180,y+38,t,g5);
+  rows.forEach((s,j)=>txt('pC2',x+205,y+92+j*32,s,g5));
+  el('rect',{x:x+50,y:y+166,width:310,height:44,rx:22,fill:'#fff',stroke:c,'stroke-width':2.5},g5);txt('eqM',x+205,y+188,ex,g5,c);
+});
+
+/* ================= header (top right) ================= */
+const hd=el('g',{class:'hd'},view);
+const hName=el('text',{class:'hName',x:765,y:44},hd), hEn=el('text',{class:'hEn',x:765,y:82},hd);
+const capBox=el('rect',{class:'capBox',y:106,height:40,rx:20},hd), capTxt=el('text',{class:'capTxt',x:765,y:126},hd);
+const fit=(t,pad,min)=>{let w=min;try{w=t.getComputedTextLength()+pad;}catch(e){}w=Math.max(w,min);const cx=Math.min(765,884-w/2);t.setAttribute('x',cx);return [cx,w];};
+function setHead(i){hName.textContent=TX[i].n;hEn.textContent=TX[i].e;capTxt.textContent=TX[i].c;
+  hName.setAttribute('x',765);hEn.setAttribute('x',765);capTxt.setAttribute('x',765);
+  fit(hName,0,100);fit(hEn,0,100);const [cx,w]=fit(capTxt,40,160);capBox.setAttribute('x',cx-w/2);capBox.setAttribute('width',w);}
+
+/* ================= state & animation loop ================= */
+let idx=0, t0=0, last=0;
+const op=[1,0,0,0,0,0];
+function frame(ms){
+  const dt=Math.min(.1,Math.max(0,(ms-last)/1000));last=ms;
+  const T=Math.max(0,(ms-t0)/1000), k=Math.min(1,dt*5);
+  G.forEach((g,j)=>{op[j]+=((idx===j?1:0)-op[j])*k;vis(g,op[j]);});
+  if(op[1]>.01){
+    const c=T%8, b=cl(c<4?(c-3.4)/.6:1-(c-7.4)/.6);       // تبادل بين صيغتي كتابة المعادلة
+    const u=(T%3.2)/3.2, q=ease(cl(u/.7)), o=Math.sin(PI*cl(u/.85));
+    s1.forEach(s=>{vis(s.A,1-b);vis(s.B,b);mv(s.d,s.x,s.y0+(s.y1-s.y0)*q,o);});
+  }
+  if(op[2]>.01){
+    const u=(T%3.6)/3.6, q=ease(cl(u/.7)), o=Math.sin(PI*cl(u/.85));
+    mv(d2a,300,230+212*q,o);mv(d2b,505,230+250*q,o);
+  }
+  if(op[3]>.01){
+    const c=T%7, upP=c<3.5, u=(upP?c:c-3.5)/3.5, q=ease(cl(u/.7)), o=Math.sin(PI*cl(u/.85));
+    d3.setAttribute('fill',upP?BLU:RED);
+    if(upP)mv(d3,268,470-180*q,o);else mv(d3,292,290+180*q,o);
+    b3a.setAttribute('stroke-width',upP?5:2);b3b.setAttribute('stroke-width',upP?2:5);
+    b3a.setAttribute('opacity',upP?1:.6);b3b.setAttribute('opacity',upP?.6:1);
+  }
+  if(op[4]>.01){
+    const c=T%13.5, p=Math.floor(c/4.5), tin=c-p*4.5, P=PH[p];
+    if(p!==ph4){ph4=p;opT.textContent=P.op;eq4.innerHTML=chem(P.eq);dh4.textContent=P.dh;molT.textContent=P.mol;}
+    vis(dy4,Math.min(1,tin*4,(4.5-tin)*4));molT.setAttribute('opacity',Math.min(1,tin*4,(4.5-tin)*4).toFixed(2));
+    for(const key in s4)s4[key]+=(P[key]-s4[key])*Math.min(1,dt*4);
+    iceA.setAttribute('x',(s4.c1-s4.w1/2).toFixed(1));iceA.setAttribute('width',s4.w1.toFixed(1));vis(iceB,s4.o2);
+    const h=s4.H*BS;bar.setAttribute('y',(BY-h).toFixed(1));bar.setAttribute('height',h.toFixed(1));
+    barT.setAttribute('y',(BY-h-18).toFixed(1));barT.textContent=(Math.round(s4.H*10)/10)+' kJ';
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- navigation ---------- */
+const btns=[...document.querySelectorAll('.sys')];
+function setUI(i){hd.style.opacity=0;setTimeout(()=>{setHead(i);hd.style.opacity=1;},200);
+  btns.forEach(b=>b.classList.toggle('on',+b.dataset.i===i));}
+function go(i){                                           // الضغط على الزر نفسه يعيد الحركة من البداية
+  const same=i===idx;idx=i;t0=performance.now();ph4=-1;
+  if(!same)setUI(i);
+}
+btns.forEach(b=>b.onclick=()=>go(+b.dataset.i));
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown')go(idx>=5?1:idx+1);
+  if(e.key==='ArrowRight'||e.key==='ArrowUp')go(idx<=1?5:idx-1);
+});
+setHead(0);layout0();requestAnimationFrame(frame);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{setHead(idx);layout0();}).catch(()=>{});
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{try{svg.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prev=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prev.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prev.get(ids[0]),b0=prev.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,dd=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(dd/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:335});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:335});
+document.getElementById('zreset').onclick=reset;
+apply();
+
+/* ---------- fullscreen ---------- */
+/* ملء شاشة حقيقي إن سمح المتصفح، وإلا وضع تكبير داخل الصفحة (الرسم يأخذ كامل المساحة) */
+const D=document,R=D.documentElement,fsI=document.getElementById('fsI');
+const isFs=()=>!!(D.fullscreenElement||D.webkitFullscreenElement);
+let fsx=false;
+const fsIcon=()=>fsI.setAttribute('d',(isFs()||fsx)?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+const setFsx=v=>{fsx=v;D.body.classList.toggle('fsx',v);fsIcon();};
+document.getElementById('fs').onclick=()=>{
+  if(fsx){setFsx(false);return;}
+  if(isFs()){try{(D.exitFullscreen||D.webkitExitFullscreen).call(D);}catch(e){}return;}
+  const f=R.requestFullscreen||R.webkitRequestFullscreen;
+  if(!f){setFsx(true);return;}
+  try{const p=f.call(R);if(p&&p.catch)p.catch(()=>setFsx(true));}catch(e){setFsx(true);return;}
+  setTimeout(()=>{if(!isFs()&&!fsx)setFsx(true);},400);
+};
+D.addEventListener('fullscreenchange',fsIcon);D.addEventListener('webkitfullscreenchange',fsIcon);
+})();
+</script>
+</body>
+</html>
