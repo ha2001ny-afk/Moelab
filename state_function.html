@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>دالة الحالة</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#eef6fb;font-family:Tahoma,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none}
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  #stage{position:relative;flex:1;min-height:0;padding-top:env(safe-area-inset-top,0px);box-sizing:border-box;background:radial-gradient(circle at 55% 45%,#f6fcff 0%,#cfe8f3 100%);padding-bottom:env(safe-area-inset-bottom,0px)}
+  #svgWrap{position:absolute;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);right:0;left:calc(var(--bw) + 22px + env(safe-area-inset-left,0px))}
+  svg#svg{width:100%;height:100%;display:block;overflow:visible;touch-action:none;cursor:grab;transition:opacity .3s}
+  :root{--bw:126px;--zb:42px}
+  body.fsx #svgWrap{left:0}
+
+  /* ---- left controls: zoom group on top, stage buttons under it ---- */
+  #side{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));bottom:8px;width:var(--bw);z-index:5;
+        display:flex;flex-direction:column;align-items:flex-start;gap:14px;overflow-y:auto;direction:ltr}
+  .zb{display:flex;flex-direction:column;gap:8px;direction:ltr}
+  .zb button{width:var(--zb);height:var(--zb);border-radius:50%;border:2px solid #1f3a52;background:transparent;color:#1f3a52;font-size:22px;line-height:1;cursor:pointer;
+             display:flex;align-items:center;justify-content:center;padding:0}
+  .zb svg{width:20px;height:20px;pointer-events:none}
+  .sysList{display:flex;flex-direction:column;gap:7px;width:100%;direction:rtl}
+  .sys{width:100%;padding:6px 8px;border-radius:8px;border:1.5px solid rgba(31,58,82,.45);background:transparent;color:#1f3a52;
+       font:bold 14px Tahoma,"Segoe UI",Arial,sans-serif;line-height:1.3;text-align:center;cursor:pointer;
+       transition:background .25s,color .25s,border-color .25s,transform .15s}
+  .sys:active{transform:scale(.97)}
+  .sys.on{background:transparent;border-color:#c4623a;border-width:2.5px;color:#a8431b}
+  .sys.all{border-style:dashed}
+  .sys:focus-visible,.zb button:focus-visible{outline:3px solid #c4623a;outline-offset:2px}
+  @media (max-width:560px),(max-height:440px){
+    :root{--bw:92px;--zb:34px}
+    #side{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));gap:10px}
+    .zb{gap:6px}.zb button{font-size:18px}.zb svg{width:16px;height:16px}
+    .sys{padding:4px 5px;font-size:11.5px;border-radius:7px}
+    .sysList{gap:5px}
+  }
+  @media (max-height:400px){:root{--zb:30px}#side{gap:6px}.zb{gap:4px}}
+
+  svg text{direction:rtl}
+  .ltr{direction:ltr !important}
+  .pill{fill:#fff;stroke:#c4623a;stroke-width:2.5}
+  .pillB{fill:#fff;stroke:#2a7fb8;stroke-width:2.5}
+  .lbl{fill:#a8431b;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lblB{fill:#1d5f8c;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .ln{stroke:#c4623a;stroke-width:2.2;fill:none}
+  .lnB{stroke:#2a7fb8;stroke-width:2.2;fill:none}
+  .td{fill:#c4623a;stroke:#fff;stroke-width:1.5}
+  .tdB{fill:#2a7fb8;stroke:#fff;stroke-width:1.5}
+  .hd{transition:opacity .35s}
+  .hName{fill:#1f3a52;font-size:32px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hEn{fill:#3f6f93;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .capBox{fill:#1f3a52}
+  .capTxt{fill:#fff;font-size:18px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .card{fill:#fff;stroke:#b9d3e2;stroke-width:1.5}
+  .cTitle{fill:#fff;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cLab{fill:#1f3a52;font-size:14px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cVal{fill:#1f3a52;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .cRow{fill:#1f3a52;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .cSm{fill:#1f3a52;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .trk{fill:#e3edf3}
+  .res{fill:#fff;font-size:15px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .note{fill:#fff;font-size:13px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .hTxt{fill:#d63a3a;font-size:16px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .ax{fill:#1f3a52;font-size:20px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lvA{fill:#1f3a52;font-size:17px;font-weight:bold;text-anchor:middle;dominant-baseline:central}
+  .lvE{fill:#3f6f93;font-size:22px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+  .dH{fill:#d63a3a;font-size:19px;font-weight:bold;text-anchor:middle;dominant-baseline:central;direction:ltr}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="side">
+    <div class="zb">
+      <button id="zin" title="تكبير">+</button><button id="zout" title="تصغير">−</button><button id="zreset" title="إرجاع">⟲</button>
+      <button id="fs" title="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path id="fsI" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+    <div class="sysList">
+      <button class="sys" data-i="1">المسار الأول</button>
+      <button class="sys" data-i="2">المسار الثاني</button>
+      <button class="sys" data-i="3">المساران معاً</button>
+      <button class="sys all" data-i="4">الانثالبي دالة حالة</button>
+    </div>
+  </div>
+  <div id="svgWrap">
+  <svg id="svg" viewBox="0 0 900 670" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="gMt" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#9aa9b3"/><stop offset=".55" stop-color="#7c8c97"/><stop offset="1" stop-color="#5f6f7a"/></linearGradient>
+      <linearGradient id="gMtB" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#c3d3dc"/><stop offset="1" stop-color="#a9bdc9"/></linearGradient>
+      <linearGradient id="gGr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9ccc86"/><stop offset="1" stop-color="#6ea85c"/></linearGradient>
+      <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#d63a3a"/></marker>
+      <marker id="ahO" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#c4623a"/></marker>
+      <marker id="ahB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#2a7fb8"/></marker>
+      <marker id="ahD" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#1f3a52"/></marker>
+    </defs>
+    <g id="view"></g>
+  </svg>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById('svg'), view=document.getElementById('view');
+const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const txt=(cls,x,y,s,p)=>{const e=el('text',{class:cls,x,y},p);e.textContent=s;return e;};
+const cl=x=>Math.min(1,Math.max(0,x));
+const vis=(g,o)=>{g.setAttribute('opacity',o.toFixed(2));g.setAttribute('display',o<.01?'none':'');};
+const CA='#c4623a', CB='#2a7fb8', NAVY='#1f3a52', RED='#d63a3a', GRN='#2e8b57';
+
+/* ---------- stages: 0 تمهيد، 1 المسار الأول، 2 المسار الثاني، 3 المساران معاً، 4 الانثالبي ---------- */
+const TX=[
+ {n:'دالة الحالة',e:'State Function',c:'تعتمد على الحالة الابتدائية والنهائية فقط'},
+ {n:'المسار الأول',e:'Direct Path',c:'طريق قصير ومباشر إلى القمة'},
+ {n:'المسار الثاني',e:'Winding Path',c:'طريق طويل ومتعرج إلى القمة'},
+ {n:'المساران معاً',e:'Two Paths, Same Change',c:'الطاقة الكامنة لا تعتمد على المسار'},
+ {n:'الانثالبي دالة حالة',e:'Enthalpy (H)',c:'التغير نفسه مهما اختلف المسار'}
+];
+/* per-stage targets: path opacity, climber, label, card */
+const TG=[
+ {pA:.6,pB:.6,cA:1,cB:1,lA:1,lB:1,kA:.5,kB:.5},
+ {pA:1,pB:.18,cA:1,cB:0,lA:1,lB:0,kA:1,kB:.3},
+ {pA:.18,pB:1,cA:0,cB:1,lA:0,lB:1,kA:.3,kB:1},
+ {pA:1,pB:1,cA:1,cB:1,lA:1,lB:1,kA:1,kB:1}
+];
+
+/* ---------- path geometry (own spline + arc-length table) ---------- */
+function spline(P,n){const o=[];for(let i=0;i<P.length-1;i++){const p0=P[Math.max(i-1,0)],p1=P[i],p2=P[i+1],p3=P[Math.min(i+2,P.length-1)];
+  for(let s=0;s<n;s++){const t=s/n,t2=t*t,t3=t2*t;o.push([0,1].map(k=>.5*(2*p1[k]+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3)));}}
+  o.push(P[P.length-1]);return o;}
+function mkPath(P,n){const pts=n?spline(P,n):P,cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  const L=cum[cum.length-1],d='M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+  const at=u=>{const s=cl(u)*L;let i=1;while(i<cum.length-1&&cum[i]<s)i++;const a=pts[i-1],b=pts[i],f=(s-cum[i-1])/((cum[i]-cum[i-1])||1);return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];};
+  return {L,d,at};}
+const YB=588, YT=160, HM=1000, MASS=70, G=9.8;          // قاعدة، قمة، ارتفاع الجبل (m)، كتلة المتسلق (kg)
+const MPP=HM/(YB-YT);                                    // متر لكل وحدة رسم
+const PA=mkPath([[200,588],[225,520],[262,440],[292,360],[318,270],[333,200],[336,160]],16);
+const PB=mkPath([[212,588],[300,570],[420,560],[520,520],[500,470],[400,455],[330,440],[300,410],[360,385],[430,370],[440,335],[385,300],[340,270],[318,235],[350,205],[346,160]],16);
+const SPEED=115;                                         // وحدة رسم بالثانية: السرعة نفسها للمتسلقَين
+const EMAX=MASS*G*HM/1000;                               // kJ
+const DMAX=Math.round(PB.L*MPP/10)*10;
+
+/* ================= mountain view ================= */
+const mtG=el('g',{},view);
+el('circle',{cx:498,cy:66,r:26,fill:'#ffd95a',opacity:.9},mtG);
+el('path',{d:'M330,600 L500,270 L545,335 L585,300 L662,600 Z',fill:'url(#gMtB)'},mtG);
+el('path',{d:'M30,600 L130,460 L175,490 L340,150 L410,310 L450,285 L560,440 L590,425 L655,600 Z',fill:'url(#gMt)',stroke:'#54636d','stroke-width':2.5,'stroke-linejoin':'round'},mtG);
+el('path',{d:'M340,150 L299,235 L313,224 L325,244 L340,226 L354,243 L366,227 L377,235 Z',fill:'#f7fbfd',stroke:'#d5e3ea','stroke-width':1.5,'stroke-linejoin':'round'},mtG);
+el('rect',{x:-1500,y:600,width:3900,height:500,fill:'url(#gGr)'},mtG);
+el('line',{x1:-1500,y1:600,x2:2400,y2:600,stroke:'#5b9349','stroke-width':3},mtG);
+/* flag on the summit */
+el('line',{x1:340,y1:150,x2:340,y2:116,stroke:NAVY,'stroke-width':3,'stroke-linecap':'round'},mtG);
+el('path',{d:'M340,117 L364,125 L340,134 Z',fill:RED},mtG);
+
+/* level lines of the two states + height arrow */
+el('line',{x1:346,y1:160,x2:656,y2:160,stroke:RED,'stroke-width':2,'stroke-dasharray':'7 6',opacity:.75},mtG);
+el('line',{x1:560,y1:588,x2:656,y2:588,stroke:RED,'stroke-width':2,'stroke-dasharray':'7 6',opacity:.75},mtG);
+el('line',{x1:646,y1:580,x2:646,y2:170,stroke:RED,'stroke-width':4,'stroke-linecap':'round','marker-end':'url(#ah)','marker-start':'url(#ah)'},mtG);
+const hT=txt('hTxt',628,330,'h = '+HM+' m',mtG);hT.setAttribute('transform','rotate(-90 628 330)');
+
+/* the two trails */
+function trail(P,col){const g=el('g',{},mtG);
+  el('path',{d:P.d,fill:'none',stroke:'#fff','stroke-width':7,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.55},g);
+  el('path',{d:P.d,fill:'none',stroke:col,'stroke-width':3,'stroke-dasharray':'3 8','stroke-linecap':'round'},g);
+  const done=el('path',{d:P.d,fill:'none',stroke:col,'stroke-width':5.5,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  return {g,done};}
+const trB=trail(PB,CB), trA=trail(PA,CA);
+
+/* labels (same pill + leader style as the reference) */
+function label(cx,cy,w,s,tip,blue){const g=el('g',{'pointer-events':'none'},mtG);
+  el('line',{class:blue?'lnB':'ln',x1:cx,y1:cy,x2:tip[0],y2:tip[1]},g);el('circle',{class:blue?'tdB':'td',r:5,cx:tip[0],cy:tip[1]},g);
+  el('rect',{class:blue?'pillB':'pill',x:cx-w/2,y:cy-19,width:w,height:38,rx:19},g);txt(blue?'lblB':'lbl',cx,cy,s,g);return g;}
+label(150,96,240,'الحالة النهائية (القمة)',[338,152]);
+label(150,636,256,'الحالة الابتدائية (القاعدة)',[204,592]);
+const lbA=label(92,318,136,'المسار الأول',PA.at(.52));
+const lbB=label(545,236,140,'المسار الثاني',PB.at(.66),true);
+
+/* climbers */
+function climber(col){const g=el('g',{},mtG);
+  el('circle',{r:14,fill:'#fff',stroke:col,'stroke-width':3.5},g);
+  el('circle',{cx:0,cy:-6.5,r:3,fill:col},g);
+  el('path',{d:'M0,-3 L0,3 M0,3 L-4,9 M0,3 L4,9 M-5.5,1 L0,-1.5 L5.5,-3',stroke:col,'stroke-width':2.4,'stroke-linecap':'round','stroke-linejoin':'round',fill:'none'},g);
+  return g;}
+const clB=climber(CB), clA=climber(CA);
+
+/* read-out cards (right column) */
+function card(y,col,title){const g=el('g',{},mtG);
+  el('rect',{class:'card',x:672,y,width:212,height:158,rx:12},g);
+  el('path',{d:`M672,${y+30} L672,${y+12} Q672,${y} 684,${y} L872,${y} Q884,${y} 884,${y+12} L884,${y+30} Z`,fill:col},g);
+  txt('cTitle',778,y+15,title,g);
+  txt('cLab',778,y+46,'الطاقة الكامنة المكتسبة',g);
+  el('rect',{class:'trk',x:684,y:y+58,width:188,height:12,rx:6},g);
+  const bE=el('rect',{x:872,y:y+58,width:0,height:12,rx:6,fill:GRN},g);
+  const vE=txt('cVal',778,y+85,'',g);
+  txt('cLab',778,y+108,'المسافة المقطوعة',g);
+  el('rect',{class:'trk',x:684,y:y+120,width:188,height:12,rx:6},g);
+  const bD=el('rect',{x:872,y:y+120,width:0,height:12,rx:6,fill:col},g);
+  const vD=txt('cVal',778,y+146,'',g);
+  const bar=(r,f)=>{const w=188*cl(f);r.setAttribute('x',(872-w).toFixed(1));r.setAttribute('width',w.toFixed(1));};
+  return {g,set(h,dist){bar(bE,h/HM);bar(bD,dist/DMAX);
+    vE.textContent='ΔEp = '+Math.round(MASS*G*h/1000)+' kJ';vD.textContent='d = '+(Math.round(dist/10)*10)+' m';}};}
+const cdA=card(166,CA,'المسار الأول'), cdB=card(334,CB,'المسار الثاني');
+
+/* conclusion (appears when both climbers arrive) */
+const conG=el('g',{},mtG);
+el('rect',{x:672,y:502,width:212,height:40,rx:20,fill:GRN},conG);txt('res',778,522,'الطاقة الكامنة متساوية ✓',conG);
+el('rect',{x:672,y:548,width:212,height:40,rx:20,fill:RED},conG);txt('res',778,568,'المسافة مختلفة ✗',conG);
+txt('note',778,625,'مثال توضيحي: كتلة المتسلق \u2066'+MASS+' kg\u2069',mtG);
+txt('note',778,646,'ارتفاع الجبل \u2066'+HM+' m\u2069',mtG);
+
+/* ================= enthalpy view ================= */
+const enG=el('g',{},view);
+el('line',{x1:95,y1:612,x2:95,y2:152,stroke:NAVY,'stroke-width':4,'stroke-linecap':'round','marker-end':'url(#ahD)'},enG);
+txt('ax',95,122,'الانثالبي H',enG);
+const lvl=(x1,x2,y,col)=>el('line',{x1,y1:y,x2,y2:y,stroke:col,'stroke-width':6,'stroke-linecap':'round'},enG);
+/* dashed guides for ΔH */
+el('line',{x1:290,y1:500,x2:626,y2:500,stroke:RED,'stroke-width':2,'stroke-dasharray':'7 6',opacity:.75},enG);
+el('line',{x1:580,y1:260,x2:626,y2:260,stroke:RED,'stroke-width':2,'stroke-dasharray':'7 6',opacity:.75},enG);
+el('line',{x1:614,y1:492,x2:614,y2:270,stroke:RED,'stroke-width':4,'stroke-linecap':'round','marker-end':'url(#ah)'},enG);
+lvl(140,290,500,NAVY);lvl(430,580,260,NAVY);lvl(290,430,170,'#7d93a3');
+txt('lvA',215,530,'الحالة الابتدائية (المتفاعلات)',enG);
+el('text',{class:'lvE',x:215,y:560},enG).innerHTML='H<tspan dy="6" font-size="15">i</tspan>';
+txt('lvA',505,298,'الحالة النهائية (النواتج)',enG);
+el('text',{class:'lvE',x:505,y:327},enG).innerHTML='H<tspan dy="6" font-size="15">f</tspan>';
+txt('lvA',360,144,'حالة وسطية',enG);
+/* the two routes */
+const E1=mkPath([[235,494],[485,266]]), E2=mkPath([[195,494],[338,176],[382,176],[525,254]]);
+const route=(d,col,mk)=>el('path',{d,fill:'none',stroke:col,'stroke-width':4.5,'stroke-linecap':'round','stroke-dasharray':'12 8','marker-end':`url(#${mk})`},enG);
+const r1=route('M235,494 L482,269',CA,'ahO'), r2a=route('M195,494 L336,181',CB,'ahB'), r2b=route('M382,176 L521,252',CB,'ahB');
+const pillAt=(cx,cy,w,s,blue)=>{el('rect',{class:blue?'pillB':'pill',x:cx-w/2,y:cy-19,width:w,height:38,rx:19},enG);txt(blue?'lblB':'lbl',cx,cy,s,enG);};
+pillAt(408,462,136,'المسار الأول');pillAt(170,322,140,'المسار الثاني',true);
+el('rect',{x:432,y:378,width:168,height:40,rx:20,fill:'#fff',stroke:RED,'stroke-width':2.5},enG);
+el('text',{class:'dH',x:516,y:398},enG).innerHTML='ΔH = H<tspan dy="5" font-size="14">f</tspan><tspan dy="-5"> − H</tspan><tspan dy="5" font-size="14">i</tspan>';
+const dot=col=>el('circle',{r:9,fill:col,stroke:'#fff','stroke-width':3},enG);
+const d2=dot(CB), d1=dot(CA);
+/* notes (right column) */
+function note(y,h,col,title,rows,cls){const g=el('g',{},enG);
+  el('rect',{class:'card',x:672,y,width:212,height:h,rx:12},g);
+  el('path',{d:`M672,${y+30} L672,${y+12} Q672,${y} 684,${y} L872,${y} Q884,${y} 884,${y+12} L884,${y+30} Z`,fill:col},g);
+  txt('cTitle',778,y+15,title,g);rows.forEach((s,k)=>txt(cls||'cRow',778,y+52+k*27,s,g));}
+note(166,122,GRN,'دوال حالة',['الانثالبي H','الانتروبي S','طاقة كبس الحرة G']);
+note(300,122,RED,'ليست دوال حالة',['الحرارة q','الشغل w','تعتمدان على المسار']);
+note(434,96,NAVY,'انتبه',['لا تقاس القيمة المطلقة لـ H','يقاس مقدار التغير ΔH فقط'],'cSm');
+
+/* ================= header (top right) ================= */
+const hd=el('g',{class:'hd'},view);
+const hName=el('text',{class:'hName',x:765,y:44},hd), hEn=el('text',{class:'hEn',x:765,y:82},hd);
+const capBox=el('rect',{class:'capBox',y:106,height:40,rx:20},hd), capTxt=el('text',{class:'capTxt',x:765,y:126},hd);
+const fit=(t,pad,min)=>{let w=min;try{w=t.getComputedTextLength()+pad;}catch(e){}w=Math.max(w,min);const cx=Math.min(765,884-w/2);t.setAttribute('x',cx);return [cx,w];};
+function setHead(i){hName.textContent=TX[i].n;hEn.textContent=TX[i].e;capTxt.textContent=TX[i].c;
+  hName.setAttribute('x',765);hEn.setAttribute('x',765);capTxt.setAttribute('x',765);
+  fit(hName,0,100);fit(hEn,0,100);const [cx,w]=fit(capTxt,40,160);capBox.setAttribute('x',cx-w/2);capBox.setAttribute('width',w);}
+
+/* ================= state & animation loop ================= */
+let idx=0, t0=-1e9, last=0, mixT=0;
+const sm={pA:.6,pB:.6,cA:1,cB:1,lA:1,lB:1,kA:.5,kB:.5,con:0,mix:0};
+let tg=Object.assign({},TG[0]);
+function place(g,P,u,pulse){const p=P.at(u);g.setAttribute('transform',`translate(${p[0].toFixed(1)} ${p[1].toFixed(1)}) scale(${pulse.toFixed(3)})`);return p;}
+function frame(ms){
+  const t=ms/1000, dt=Math.min(.1,Math.max(0,(ms-last)/1000));last=ms;
+  const run=(ms-t0)/1000-.7;                         // وقفة قصيرة قبل الانطلاق
+  const uA=(idx===1||idx===3)?cl(run*SPEED/PA.L):0, uB=(idx===2||idx===3)?cl(run*SPEED/PB.L):0;
+  const both=idx===3&&uA>=1&&uB>=1;
+  const k=Math.min(1,dt*5);
+  for(const key in tg)sm[key]+=(tg[key]-sm[key])*k;
+  sm.con+=((both?1:0)-sm.con)*k;sm.mix+=(mixT-sm.mix)*Math.min(1,dt*4.5);
+
+  vis(mtG,1-sm.mix);vis(enG,sm.mix);
+  if(sm.mix<.99){
+    trA.g.setAttribute('opacity',sm.pA.toFixed(2));trB.g.setAttribute('opacity',sm.pB.toFixed(2));
+    trA.done.setAttribute('stroke-dasharray',(PA.L*uA).toFixed(1)+' '+(PA.L+20).toFixed(1));vis(trA.done,uA>0?1:0);
+    trB.done.setAttribute('stroke-dasharray',(PB.L*uB).toFixed(1)+' '+(PB.L+20).toFixed(1));vis(trB.done,uB>0?1:0);
+    const wob=u=>(u>0&&u<1)?1+.06*Math.sin(t*9):1;
+    const a=place(clA,PA,uA,wob(uA)), b=place(clB,PB,uB,wob(uB));
+    vis(clA,sm.cA);vis(clB,sm.cB);vis(lbA,sm.lA);vis(lbB,sm.lB);
+    const hA=uA>=1?HM:cl((YB-a[1])/(YB-YT))*HM, hB=uB>=1?HM:cl((YB-b[1])/(YB-YT))*HM;
+    cdA.set(hA,uA*PA.L*MPP);cdB.set(hB,uB*PB.L*MPP);
+    cdA.g.setAttribute('opacity',sm.kA.toFixed(2));cdB.g.setAttribute('opacity',sm.kB.toFixed(2));
+    vis(conG,sm.con);
+  }
+  if(sm.mix>.01){
+    const off=(-t*30%20).toFixed(1);[r1,r2a,r2b].forEach(r=>r.setAttribute('stroke-dashoffset',off));
+    const c=(Math.max(0,(ms-t0)/1000-.5)%6.5)/6.5;      // دورة متكررة
+    const u1=cl(c/.38), u2=cl(c/.8), p1=E1.at(u1), p2=E2.at(u2);
+    d1.setAttribute('cx',p1[0].toFixed(1));d1.setAttribute('cy',p1[1].toFixed(1));
+    d2.setAttribute('cx',p2[0].toFixed(1));d2.setAttribute('cy',p2[1].toFixed(1));
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- navigation ---------- */
+const btns=[...document.querySelectorAll('.sys')];
+function setUI(i){hd.style.opacity=0;setTimeout(()=>{setHead(i);hd.style.opacity=1;},200);
+  btns.forEach(b=>b.classList.toggle('on',+b.dataset.i===i));}
+function go(i){                                        // الضغط على الزر نفسه يعيد الحركة من البداية
+  const same=i===idx;idx=i;t0=performance.now();
+  if(i===4)mixT=1;else{mixT=0;tg=Object.assign({},TG[i]);}
+  if(!same)setUI(i);
+}
+btns.forEach(b=>b.onclick=()=>go(+b.dataset.i));
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown')go(idx>=4?1:idx+1);
+  if(e.key==='ArrowRight'||e.key==='ArrowUp')go(idx<=1?4:idx-1);
+});
+setHead(0);requestAnimationFrame(frame);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>setHead(idx)).catch(()=>{});
+
+/* ---------- zoom & pan ---------- */
+let sc=1,tx=0,ty=0;const MIN=.6,MAX=8;
+const apply=()=>view.setAttribute('transform',`translate(${tx} ${ty}) scale(${sc})`);
+function toView(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoomAt(k,p){const ns=Math.min(MAX,Math.max(MIN,sc*k));k=ns/sc;tx=p.x-(p.x-tx)*k;ty=p.y-(p.y-ty)*k;sc=ns;apply();}
+const ptrs=new Map();
+svg.addEventListener('pointerdown',e=>{try{svg.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,toView(e));});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prev=new Map(ptrs),cu=toView(e);ptrs.set(e.pointerId,cu);
+  if(ptrs.size===1){const o=prev.get(e.pointerId);tx+=cu.x-o.x;ty+=cu.y-o.y;apply();}
+  else{const ids=[...ptrs.keys()].slice(0,2),a0=prev.get(ids[0]),b0=prev.get(ids[1]),a1=ptrs.get(ids[0]),b1=ptrs.get(ids[1]);
+    const d0=Math.hypot(a0.x-b0.x,a0.y-b0.y)||1,dd=Math.hypot(a1.x-b1.x,a1.y-b1.y),m0={x:(a0.x+b0.x)/2,y:(a0.y+b0.y)/2},m1={x:(a1.x+b1.x)/2,y:(a1.y+b1.y)/2};
+    tx+=m1.x-m0.x;ty+=m1.y-m0.y;zoomAt(dd/d0,m1);}
+});
+const up=e=>ptrs.delete(e.pointerId);svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,toView(e));},{passive:false});
+const reset=()=>{sc=1;tx=0;ty=0;apply();};
+svg.addEventListener('dblclick',reset);
+document.getElementById('zin').onclick=()=>zoomAt(1.3,{x:450,y:335});
+document.getElementById('zout').onclick=()=>zoomAt(1/1.3,{x:450,y:335});
+document.getElementById('zreset').onclick=reset;
+apply();
+
+/* ---------- fullscreen ---------- */
+/* ملء شاشة حقيقي إن سمح المتصفح، وإلا وضع تكبير داخل الصفحة (الرسم يأخذ كامل المساحة) */
+const D=document,R=D.documentElement,fsI=document.getElementById('fsI');
+const isFs=()=>!!(D.fullscreenElement||D.webkitFullscreenElement);
+let fsx=false;
+const fsIcon=()=>fsI.setAttribute('d',(isFs()||fsx)?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+const setFsx=v=>{fsx=v;D.body.classList.toggle('fsx',v);fsIcon();};
+document.getElementById('fs').onclick=()=>{
+  if(fsx){setFsx(false);return;}
+  if(isFs()){try{(D.exitFullscreen||D.webkitExitFullscreen).call(D);}catch(e){}return;}
+  const f=R.requestFullscreen||R.webkitRequestFullscreen;
+  if(!f){setFsx(true);return;}
+  try{const p=f.call(R);if(p&&p.catch)p.catch(()=>setFsx(true));}catch(e){setFsx(true);return;}
+  setTimeout(()=>{if(!isFs()&&!fsx)setFsx(true);},400);
+};
+D.addEventListener('fullscreenchange',fsIcon);D.addEventListener('webkitfullscreenchange',fsIcon);
+})();
+</script>
+</body>
+</html>
