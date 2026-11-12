@@ -43,9 +43,9 @@ public class MainActivity extends Activity {
         w.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         root = new FrameLayout(this);
-        root.setBackgroundColor(Color.parseColor("#050b14"));
+        root.setBackgroundColor(Color.parseColor("#FFFFFF"));
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#050b14"));
+        web.setBackgroundColor(Color.parseColor("#FFFFFF"));
         root.addView(web, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
 
@@ -129,8 +129,8 @@ public class MainActivity extends Activity {
         String html = "<!DOCTYPE html><html lang='ar' dir='rtl'><head><meta charset='utf-8'>"
                 + "<meta name='viewport' content='width=device-width,initial-scale=1'>"
                 + "<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;"
-                + "background:#050b14;color:#e2e8f0;font-family:Tahoma,Arial,sans-serif;text-align:center;padding:20px;box-sizing:border-box}"
-                + "button{margin-top:18px;padding:14px 30px;font-size:18px;font-weight:bold;border:0;border-radius:14px;background:#38bdf8;color:#04121f}</style></head>"
+                + "background:#ffffff;color:#3b1d00;font-family:Tahoma,Arial,sans-serif;text-align:center;padding:20px;box-sizing:border-box}"
+                + "button{margin-top:18px;padding:14px 30px;font-size:18px;font-weight:bold;border:0;border-radius:14px;background:#EE6200;color:#ffffff}</style></head>"
                 + "<body><div><div style='font-size:54px'>📡</div><h2>تعذّر فتح المختبر</h2>"
                 + "<p>يحتاج المختبر الاتصال بالإنترنت أول مرة.<br>بعدها يشتغل بدون إنترنت.</p>"
                 + "<button onclick=\"location.href='" + HOME + "'\">إعادة المحاولة ↻</button></div></body></html>";
