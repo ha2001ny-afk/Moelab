@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>نشاط استقطاب الموجات</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة استقطاب الموجات: حبل مثبت بجدار يمر عبر حاجز ذي شق، يحرّك الطالب طرف الحبل بيده ويدوّر الشق"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="إظهار أجزاء المحاكاة أو إخفاؤها">
+    <button data-p="front" aria-pressed="true"><i></i><span class="l">المنظر الأمامي</span><span class="s">الأمامي</span></button>
+    <button data-p="lab" aria-pressed="true"><i></i><span class="l">التسميات</span><span class="s">التسميات</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene'),ctx=cv.getContext('2d');
+/* ---------- rope model ----------
+   N nodes from the hand (x=0) to the wall (x=LR). Each node moves in y (up) and z (sideways).
+   Wave equation + a little bending stiffness, internal friction, air drag and gravity (slight sag). */
+const N=241,LR=10,XS=4,DX=LR/(N-1),C=3.2,C2=C*C/(DX*DX),DT=1/420;
+const K4=0.00035/Math.pow(DX,4),E2=0.0016/(DX*DX),GRAV=0.12;
+const uy=new Float32Array(N),uz=new Float32Array(N),vy=new Float32Array(N),vz=new Float32Array(N),damp=new Float32Array(N);
+for(let i=0;i<N;i++){const x=i*DX;damp[i]=0.08+(x>9?3.5*Math.pow((x-9),2):0);}
+const SLIT=[];for(let i=0;i<N;i++)if(Math.abs(i*DX-XS)<=0.1)SLIT.push(i);
+const SL=1.35,SW=0.07,FLOOR=-2.3,AMAX=1.5,BT=0.1,WT=0.35;
+const S={phi:0,phiT:0,showFront:true,showLab:true};
+const hand={y:0,z:0,vy:0,vz:0,ty:0,tz:0,held:false};
+const touched={hand:false,slit:false,orbit:false};
+let W=0,H=0,DPR=1,narrow=null,view={F:1,ox:0,oy:0},time=0,acc=0,drag=null,hover=null;
+const defYaw=()=>(narrow?62:35)*Math.PI/180;
+const cam={yaw:35*Math.PI/180,pitch:16*Math.PI/180,dist:15,T:[5,0,0]};
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const FS=()=>narrow?1.12:1;
+const F=(w,s,mono)=>w+' '+(s*FS()).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+
+/* motion statistics before and after the slit */
+const iB=Math.round((XS-0.45)/DX),iA=Math.round((XS+1.7)/DX),TAU=1.0;
+const st={b:{yy:0,zz:0,yz:0,my:0,mz:0},a:{yy:0,zz:0,yz:0,my:0,mz:0}};const trailB=[],trailA=[];
+function upd(o,y,z,k){o.my+=(y-o.my)*k*0.5;o.mz+=(z-o.mz)*k*0.5;y-=o.my;z-=o.mz;o.yy+=(y*y-o.yy)*k;o.zz+=(z*z-o.zz)*k;o.yz+=(y*z-o.yz)*k;}
+const amp=o=>Math.sqrt(2*Math.max(0,o.yy+o.zz));
+const axis=o=>0.5*Math.atan2(2*o.yz,o.yy-o.zz);
+let eqY=new Float32Array(N);   // static sag shape (rope at rest), used to measure the wave itself
+(function(){for(let i=0;i<N;i++){const x=i*DX;eqY[i]=-GRAV*x*(LR-x)/(2*C*C);}})();
+
+function step(){
+  // the hand follows the student's finger like a real hand: quick but smooth (spring-damper)
+  const k=1100,c=2*Math.sqrt(k);hand.vy+=(k*(hand.ty-hand.y)-c*hand.vy)*DT;hand.vz+=(k*(hand.tz-hand.z)-c*hand.vz)*DT;hand.y+=hand.vy*DT;hand.z+=hand.vz*DT;
+  uy[0]=hand.y;uz[0]=hand.z;uy[N-1]=uz[N-1]=0;
+  const g=(a,i)=>a[i<0?0:i>N-1?N-1:i];
+  for(let i=1;i<N-1;i++){
+    const ly=uy[i+1]-2*uy[i]+uy[i-1],lz=uz[i+1]-2*uz[i]+uz[i-1];
+    const by=g(uy,i+2)-4*uy[i+1]+6*uy[i]-4*uy[i-1]+g(uy,i-2),bz=g(uz,i+2)-4*uz[i+1]+6*uz[i]-4*uz[i-1]+g(uz,i-2);
+    vy[i]+=(C2*ly-K4*by+E2*(vy[i+1]-2*vy[i]+vy[i-1])-damp[i]*vy[i]-GRAV)*DT;
+    vz[i]+=(C2*lz-K4*bz+E2*(vz[i+1]-2*vz[i]+vz[i-1])-damp[i]*vz[i])*DT;}
+  for(let i=1;i<N-1;i++){uy[i]+=vy[i]*DT;uz[i]+=vz[i]*DT;}
+  // the slot: the rope can slide along it, the edges stop any motion across it (inelastic contact)
+  const sy=Math.cos(S.phi),sz=Math.sin(S.phi);
+  for(const i of SLIT){let a=uy[i]*sy+uz[i]*sz,p=-uy[i]*sz+uz[i]*sy;const ca=clamp(a,-SL+0.06,SL-0.06),cp=clamp(p,-SW,SW);
+    let va=vy[i]*sy+vz[i]*sz,vp=-vy[i]*sz+vz[i]*sy;if(cp!==p)vp=0;else vp*=0.6;if(ca!==a)va=0;
+    uy[i]=ca*sy-cp*sz;uz[i]=ca*sz+cp*sy;vy[i]=va*sy-vp*sz;vz[i]=va*sz+vp*sy;}}
+function update(dt){
+  if(!hand.held){const k=Math.min(1,dt*1.6);hand.ty-=hand.ty*k;hand.tz-=hand.tz*k;}
+  const d=S.phiT-S.phi;S.phi=Math.abs(d)>1e-4?S.phi+d*Math.min(1,dt*9):S.phiT;
+  acc+=dt;let n=0;while(acc>=DT&&n<60){step();acc-=DT;n++;}if(n>=60)acc=0;
+  const k=Math.min(1,dt/TAU);upd(st.b,uy[iB]-eqY[iB],uz[iB],k);upd(st.a,uy[iA]-eqY[iA],uz[iA],k);
+  trailB.push([uy[iB]-eqY[iB],uz[iB]]);trailA.push([uy[iA]-eqY[iA],uz[iA]]);if(trailB.length>70){trailB.shift();trailA.shift();}}
+
+/* ---------- 3D camera (free 360° orbit) ---------- */
+let B={};
+function camBasis(){const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const dir=[-sy*cp,sp,cy*cp],pos=[cam.T[0]+dir[0]*cam.dist,cam.T[1]+dir[1]*cam.dist,cam.T[2]+dir[2]*cam.dist],f=[-dir[0],-dir[1],-dir[2]];
+  const r=[-f[2],0,f[0]],rl=Math.hypot(r[0],r[2])||1;r[0]/=rl;r[2]/=rl;
+  const u=[r[1]*f[2]-r[2]*f[1],r[2]*f[0]-r[0]*f[2],r[0]*f[1]-r[1]*f[0]];B={pos,f,r,u};}
+function P(x,y,z){const d0=x-B.pos[0],d1=y-B.pos[1],d2=z-B.pos[2],dep=Math.max(0.3,d0*B.f[0]+d1*B.f[1]+d2*B.f[2]);
+  return{x:view.ox+view.F*(d0*B.r[0]+d1*B.r[1]+d2*B.r[2])/dep,y:view.oy-view.F*(d0*B.u[0]+d1*B.u[1]+d2*B.u[2])/dep,d:dep};}
+function fit(){const sv={yaw:cam.yaw,pitch:cam.pitch};cam.yaw=defYaw();cam.pitch=16*Math.PI/180;camBasis();view={F:1,ox:0,oy:0};
+  const pts=[[0,AMAX,-AMAX],[0,-AMAX,AMAX],[0,FLOOR,1.6],[0,FLOOR,-1.6],[XS,2.4,-2],[XS,2.4,2],[XS,FLOOR,2],[LR+0.3,2.6,-2],[LR+0.3,FLOOR,2],[LR+0.3,FLOOR,-2],[-0.9,0,0],[-0.9,FLOOR,1.6]];
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(p=>{const q=P(...p);x0=Math.min(x0,q.x);x1=Math.max(x1,q.x);y0=Math.min(y0,q.y);y1=Math.max(y1,q.y);});
+  const top=62,bot=narrow?(S.showFront?Math.min(W*0.44,190)+24:20):24,m=16,aw=W-2*m,ah=H-top-bot;
+  const F0=Math.min(aw/(x1-x0),ah/(y1-y0));view={F:F0,ox:m+aw/2-F0*(x0+x1)/2,oy:top+ah/2-F0*(y0+y1)/2};
+  cam.yaw=sv.yaw;cam.pitch=sv.pitch;}
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);const nn=W<H*0.95;if(nn!==narrow){narrow=nn;cam.yaw=defYaw();}fit();}
+
+/* ---------- drawing helpers ---------- */
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function poly(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function arrow3(a,b,color,lw,both){const p=P(...a),q=P(...b);ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+  const ang=Math.atan2(q.y-p.y,q.x-p.x);arrowHead(q.x,q.y,ang,lw*3,color);if(both)arrowHead(p.x,p.y,ang+Math.PI,lw*3,color);}
+function tag(s,x,y,c){ctx.font=F(600,12.5);const w=ctx.measureText(s).width+18,h=24*FS();rr(x-w/2,y-h/2,w,h,h/2);ctx.fillStyle='rgba(8,20,41,.85)';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=1.3;ctx.stroke();txt(s,x,y+0.5,{color:c,font:F(600,12.5)});}
+const sl=()=>({sy:Math.cos(S.phi),sz:Math.sin(S.phi)});
+const nearFaceX=()=>B.pos[0]<XS?XS-BT:XS+BT;
+
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);
+  const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function drawFloor(){const c=[P(-1.5,FLOOR,-2.8),P(LR+1.2,FLOOR,-2.8),P(LR+1.2,FLOOR,2.8),P(-1.5,FLOOR,2.8)];poly(c);ctx.fillStyle='rgba(127,170,230,.09)';ctx.fill();
+  ctx.strokeStyle='rgba(160,195,240,.10)';ctx.lineWidth=1;ctx.beginPath();
+  for(let x=-1;x<=LR+1;x+=1){const a=P(x,FLOOR,-2.8),b=P(x,FLOOR,2.8);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);}
+  for(let z=-2;z<=2;z+=1){const a=P(-1.5,FLOOR,z),b=P(LR+1.2,FLOOR,z);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);}ctx.stroke();
+  // soft shadow of the rope: shows the sideways motion clearly
+  ctx.beginPath();for(let i=0;i<N;i+=2){const q=P(i*DX,FLOOR,uz[i]);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);}
+  ctx.strokeStyle='rgba(0,0,0,.28)';ctx.lineWidth=Math.max(3,view.F*0.12/cam.dist);ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}
+
+/* realistic twisted rope: shaded tube, diagonal strand grooves fixed to the material, top highlight */
+const RW=0.085,GROOVE=0.1;
+function drawRope(i0,i1){
+  const pts=[];for(let i=i0;i<=i1;i++){const p=P(i*DX,uy[i],uz[i]);p.w=clamp(view.F*RW/p.d,2,46);pts.push(p);}
+  ctx.lineCap='round';ctx.lineJoin='round';
+  const chunk=6,stroke=(fn)=>{for(let a=0;a<pts.length-1;a+=chunk){const b=Math.min(pts.length-1,a+chunk);ctx.beginPath();ctx.moveTo(pts[a].x,pts[a].y);for(let j=a+1;j<=b;j++)ctx.lineTo(pts[j].x,pts[j].y);fn((pts[a].w+pts[b].w)/2);}};
+  stroke(w=>{ctx.strokeStyle='rgba(0,0,0,.32)';ctx.lineWidth=w+3;ctx.stroke();});
+  stroke(w=>{ctx.strokeStyle='#6b4f2c';ctx.lineWidth=w;ctx.stroke();});
+  stroke(w=>{ctx.strokeStyle='#b88f55';ctx.lineWidth=w*0.74;ctx.stroke();});
+  // strand grooves
+  ctx.strokeStyle='rgba(74,52,26,.75)';
+  for(let j=0;j<pts.length-1;j++){const a=pts[j],b=pts[j+1],m0=(i0+j)*DX,m1=m0+DX;let g=Math.ceil(m0/GROOVE)*GROOVE;
+    const dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy)||1,tx=dx/l,ty=dy/l,nx=-ty,ny=tx;
+    while(g<m1){const t=(g-m0)/DX,x=a.x+dx*t,y=a.y+dy*t,w=a.w+(b.w-a.w)*t,h=w*0.4;
+      ctx.lineWidth=Math.max(0.8,w*0.12);ctx.beginPath();ctx.moveTo(x-nx*h-tx*h*0.9,y-ny*h-ty*h*0.9);ctx.lineTo(x+nx*h+tx*h*0.9,y+ny*h+ty*h*0.9);ctx.stroke();g+=GROOVE;}}
+  // light from above: highlight shifted toward the top of the tube
+  for(let a=0;a<pts.length-1;a+=chunk){const b=Math.min(pts.length-1,a+chunk),w=(pts[a].w+pts[b].w)/2,o=-w*0.2;
+    ctx.beginPath();ctx.moveTo(pts[a].x,pts[a].y+o);for(let j=a+1;j<=b;j++)ctx.lineTo(pts[j].x,pts[j].y+o);ctx.strokeStyle='rgba(245,222,170,.55)';ctx.lineWidth=Math.max(1,w*0.22);ctx.stroke();}}
+
+function slitQuad(xf){const{sy,sz}=sl(),Wd=0.13;const p=(a,b)=>P(xf,a*sy-b*sz,a*sz+b*sy);return[p(-SL,-Wd),p(SL,-Wd),p(SL,Wd),p(-SL,Wd)];}
+function drawBarrier(){const{sy,sz}=sl(),E=1.9,lit=hover==='slit'||(drag&&drag.type==='slit');
+  const xn=nearFaceX(),xb=xn===XS-BT?XS+BT:XS-BT;
+  const face=x=>[P(x,-E,-E),P(x,E,-E),P(x,E,E),P(x,-E,E)];
+  const sp0=P(XS,-E,0),sp1=P(XS,FLOOR,0);ctx.strokeStyle='#5f6b80';ctx.lineWidth=Math.max(3,view.F*0.08/sp0.d);ctx.beginPath();ctx.moveTo(sp0.x,sp0.y);ctx.lineTo(sp1.x,sp1.y);ctx.stroke();
+  const fb=P(XS,FLOOR,0);ctx.beginPath();ctx.ellipse(fb.x,fb.y,Math.max(6,view.F*0.5/fb.d),Math.max(2,view.F*0.15/fb.d),0,0,7);ctx.fillStyle='#4a5468';ctx.fill();
+  const cut=(x)=>{const f=face(x);ctx.beginPath();f.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();slitQuad(x).forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();return f;};
+  cut(xb);ctx.fillStyle='rgba(28,66,112,.95)';ctx.fill('evenodd');
+  const fn=face(xn),fbk=face(xb);for(let i=0;i<4;i++){poly([fn[i],fn[(i+1)%4],fbk[(i+1)%4],fbk[i]]);ctx.fillStyle='rgba(38,86,145,.97)';ctx.fill();}
+  // inner walls of the slot
+  const qn=slitQuad(xn),qb=slitQuad(xb);for(let i=0;i<4;i++){poly([qn[i],qn[(i+1)%4],qb[(i+1)%4],qb[i]]);ctx.fillStyle='rgba(20,48,85,.95)';ctx.fill();}
+  cut(xn);const g=ctx.createLinearGradient(fn[0].x,fn[1].y,fn[2].x,fn[3].y);g.addColorStop(0,'rgba(92,156,220,.9)');g.addColorStop(1,'rgba(50,104,170,.9)');ctx.fillStyle=g;ctx.fill('evenodd');
+  ctx.strokeStyle='rgba(190,225,255,.5)';ctx.lineWidth=1.2;ctx.stroke();
+  const xo=xn+(xn<XS?-0.01:0.01);
+  ctx.beginPath();for(let k=0;k<=48;k++){const a=k/48*Math.PI*2,q=P(xo,1.62*Math.cos(a),1.62*Math.sin(a));k?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);}ctx.strokeStyle=lit?col.accent:'rgba(220,240,255,.55)';ctx.lineWidth=lit?2.5:1.5;ctx.stroke();
+  const hd=P(xo,1.62*sy,1.62*sz);if(!touched.slit&&!drag)pulseRing(hd.x,hd.y,14,'#ffd27a',1.2);
+  ctx.beginPath();ctx.arc(hd.x,hd.y,9,0,7);ctx.fillStyle=lit?col.accent:'#ffd27a';ctx.fill();ctx.strokeStyle='#10264a';ctx.lineWidth=1.5;ctx.stroke();
+  if(S.showLab){const o=0.5;arrow3([xo,-1.15*sy-sz*o,-1.15*sz+sy*o],[xo,1.15*sy-sz*o,1.15*sz+sy*o],'#ffd27a',2.2,true);
+    const lp=P(XS,2.55,0);txt('الحاجز ذو الشق',lp.x,lp.y,{font:F(600,13),color:'#cfe4ff'});
+    if(!narrow){const ap=P(xo,1.0*sy-sz*(o+0.95),1.0*sz+sy*(o+0.95));txt('الاتجاه المسموح',ap.x,ap.y,{font:F(600,11.5),color:'#ffd27a'});}}}
+function drawWall(){const near=B.pos[0]<LR+WT/2?LR:LR+WT,far=near===LR?LR+WT:LR,Y0=FLOOR,Y1=2.6,Z=2.1;
+  const face=x=>[P(x,Y0,-Z),P(x,Y1,-Z),P(x,Y1,Z),P(x,Y0,Z)];const fn=face(near),ff=face(far);
+  const ghost=B.pos[0]>LR+WT/2;ctx.save();if(ghost)ctx.globalAlpha=0.28;
+  poly(ff);ctx.fillStyle='#2c3444';ctx.fill();
+  for(let i=0;i<4;i++){poly([fn[i],fn[(i+1)%4],ff[(i+1)%4],ff[i]]);ctx.fillStyle='#343d50';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.08)';ctx.stroke();}
+  poly(fn);ctx.fillStyle='#3d4659';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.stroke();
+  ctx.save();poly(fn);ctx.clip();ctx.strokeStyle='rgba(0,0,0,.28)';ctx.beginPath();
+  for(let y=Y0;y<Y1;y+=0.45){const a=P(near,y,-Z),b=P(near,y,Z);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);const off=(Math.round((y-Y0)/0.45)%2)*0.45;
+    for(let z=-Z+off;z<Z;z+=0.9){const p=P(near,y,z),q=P(near,Math.min(Y1,y+0.45),z);ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);}}ctx.stroke();ctx.restore();
+  if(near===LR){const h=P(LR,0,0),r=Math.max(4,view.F*0.09/h.d);ctx.beginPath();ctx.arc(h.x,h.y,r,0,7);ctx.strokeStyle='#c9d1dc';ctx.lineWidth=Math.max(2,r*0.45);ctx.stroke();}
+  ctx.restore();
+  if(S.showLab){const t=P(LR+WT/2,2.95,0);txt('الجدار',t.x,t.y,{font:F(600,13),color:col.muted});}}
+function drawHand(){const h=P(0,hand.y,hand.z),lit=hover==='hand'||(drag&&drag.type==='hand'),r=Math.max(9,view.F*0.26/h.d);
+  const sl0=P(-1.1,hand.y*0.6,hand.z*0.6),sl1=P(-0.22,hand.y,hand.z);
+  ctx.lineCap='round';ctx.strokeStyle='#2f5f9e';ctx.lineWidth=r*1.5;ctx.beginPath();ctx.moveTo(sl0.x,sl0.y);ctx.lineTo(sl1.x,sl1.y);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=r*0.4;ctx.beginPath();ctx.moveTo(sl0.x,sl0.y-r*0.35);ctx.lineTo(sl1.x,sl1.y-r*0.35);ctx.stroke();
+  const fg=ctx.createRadialGradient(h.x-r*0.3,h.y-r*0.35,r*0.1,h.x,h.y,r*1.1);fg.addColorStop(0,'#f6d3b0');fg.addColorStop(1,'#c58b62');
+  ctx.beginPath();ctx.ellipse(h.x,h.y,r*1.05,r*0.92,0,0,7);ctx.fillStyle=lit?'#ffe1bf':fg;ctx.fill();ctx.strokeStyle='rgba(90,50,25,.5)';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.strokeStyle='rgba(110,65,35,.55)';ctx.lineWidth=Math.max(1,r*0.09);for(let k=-1;k<=2;k++){ctx.beginPath();ctx.arc(h.x+k*r*0.32-r*0.1,h.y+r*0.1,r*0.42,Math.PI*0.15,Math.PI*0.85);ctx.stroke();}
+  if(!touched.hand&&!drag){pulseRing(h.x,h.y,r+14,col.accent,0);txt('امسك طرف الحبل وحرّكه',narrow?h.x-14:h.x,h.y-r-30,{font:F(600,13),color:col.accent,align:narrow?'left':'center'});}}
+function drawLabels(){if(!S.showLab)return;
+  arrow3([0.6,-1.75,0],[2.8,-1.75,0],'rgba(234,240,250,.75)',2);const lp=P(1.7,-2.05,0);txt('اتجاه انتشار الموجة',lp.x,lp.y,{font:F(600,12.5),color:col.muted});
+  const Ab=amp(st.b);if(Ab>0.12){const a=axis(st.b),y=Math.cos(a),z=Math.sin(a),x=0.9;
+    arrow3([x,-0.9*y,-0.9*z],[x,0.9*y,0.9*z],'#ffb36b',2.2,true);const t=P(x,0.9*y,0.9*z),t2=P(x,-0.9*y,-0.9*z),tt=t.y<t2.y?t:t2;txt('اتجاه تذبذب الحبل',tt.x,tt.y-16,{font:F(600,11.5),color:'#ffb36b'});}}
+function status(){const Ab=amp(st.b),Aa=amp(st.a);if(Ab<0.08)return null;const r=clamp(Aa/Ab,0,1.2);
+  if(r>0.6)return{t:'الموجة تمرّ من خلال الشق',c:'#62d98a',r};if(r<0.25)return{t:'الشق يحجب الموجة',c:'#ff6b6b',r};return{t:`يمرّ جزء من الموجة (${Math.round(Math.min(1,r)*100)}%)`,c:'#ffc04d',r};}
+function drawStatus(){const s=status();if(!s)return;const p=P(XS,3.0,0);tag(s.t,p.x,p.y-18*FS(),s.c);}
+function frontRect(){const sz=narrow?Math.min(W*0.44,190):Math.min(250,H*0.36);return{x:14,y:H-sz-14,w:sz,h:sz};}
+function drawFront(){if(!S.showFront)return;const R=frontRect(),cx=R.x+R.w/2,cy=R.y+R.h/2+10,k=(R.w*0.36)/SL;
+  rr(R.x,R.y,R.w,R.h,16);ctx.fillStyle='rgba(6,14,30,.88)';ctx.fill();ctx.strokeStyle='rgba(234,240,250,.16)';ctx.lineWidth=1;ctx.stroke();
+  txt(R.w<235?'منظر أمامي':'منظر أمامي على امتداد الحبل',R.x+R.w-12,R.y+18,{align:'right',font:F(600,12)});
+  const{sy,sz}=sl(),Pt=(y,z)=>({x:cx+z*k,y:cy-y*k});
+  ctx.beginPath();ctx.arc(cx,cy,R.w*0.42,0,7);ctx.fillStyle='rgba(60,120,190,.35)';ctx.fill();
+  const q=[[-SL,-0.13],[SL,-0.13],[SL,0.13],[-SL,0.13]].map(([a,b])=>Pt(a*sy-b*sz,a*sz+b*sy));poly(q);ctx.fillStyle='#04070d';ctx.fill();
+  const tr=(arr,c)=>{ctx.beginPath();arr.forEach((p,i)=>{const s=Pt(p[0],p[1]);i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y);});ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();
+    const l=arr[arr.length-1];if(l){const s=Pt(l[0],l[1]);ctx.beginPath();ctx.arc(s.x,s.y,4.5,0,7);ctx.fillStyle=c;ctx.fill();}};
+  if(trailB.length>1){tr(trailB,'rgba(255,179,107,.9)');tr(trailA,'rgba(127,211,255,.95)');}
+  const ly=R.y+R.h-16;ctx.beginPath();ctx.arc(R.x+R.w-16,ly,4.5,0,7);ctx.fillStyle='#ffb36b';ctx.fill();txt('قبل الشق',R.x+R.w-26,ly,{align:'right',font:F(500,11),color:'#ffb36b'});
+  ctx.beginPath();ctx.arc(R.x+R.w*0.42,ly,4.5,0,7);ctx.fillStyle='#7fd3ff';ctx.fill();txt('بعد الشق',R.x+R.w*0.42-10,ly,{align:'right',font:F(500,11),color:'#7fd3ff'});}
+function drawOrbitHint(){if(touched.orbit)return;const a=0.55+0.25*Math.sin(time*2.5);txt('↻  اسحب الخلفية لتدوير المشهد 360°',W/2+(narrow?0:60),narrow&&S.showFront?frontRect().y-16:H-20,{font:F(600,12.5),color:`rgba(163,179,204,${a})`});}
+
+/* depth order from the camera position: things on the far side of the barrier or the wall are drawn first */
+function draw(){drawBg();camBasis();drawFloor();
+  const cx=B.pos[0],before=()=>{if(cx<0){drawRope(0,IS2);drawHand();}else{drawHand();drawRope(0,IS2);}},after=()=>drawRope(IS2,N-1);
+  if(cx<XS){drawWall();after();drawBarrier();before();}
+  else if(cx<LR+WT/2){before();drawBarrier();drawWall();after();}
+  else{before();drawBarrier();after();drawWall();}
+  drawLabels();drawStatus();drawFront();drawOrbitHint();}
+const IS2=Math.round(XS/DX);
+
+/* ---------- hands-on input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function hit(s){camBasis();const h=P(0,hand.y,hand.z);if(Math.hypot(s.x-h.x,s.y-h.y)<Math.max(34,view.F*0.3/h.d))return{type:'hand',key:'hand'};
+  const{sy,sz}=sl(),xn=nearFaceX(),hd=P(xn,1.62*sy,1.62*sz);if(Math.hypot(s.x-hd.x,s.y-hd.y)<24)return{type:'slit',key:'slit'};
+  const E=1.9,fr=[P(xn,-E,-E),P(xn,E,-E),P(xn,E,E),P(xn,-E,E)];ctx.setTransform(1,0,0,1,0,0);poly(fr);if(ctx.isPointInPath(s.x,s.y))return{type:'barrier',key:'slit'};
+  return null;}
+function toPlane(s,x0){const o=P(x0,0,0),py=P(x0,1,0),pz=P(x0,0,1);const a1=py.x-o.x,a2=py.y-o.y,b1=pz.x-o.x,b2=pz.y-o.y,det=a1*b2-a2*b1;
+  if(Math.abs(det)<1e-3)return null;const dx=s.x-o.x,dy=s.y-o.y;return{y:(dx*b2-dy*b1)/det,z:(a1*dy-a2*dx)/det};}
+function snapPhi(a){for(const v of[0,Math.PI/4,Math.PI/2,-Math.PI/4,-Math.PI/2])if(Math.abs(a-v)<0.09)return v;return a;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;hand.held=false;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},v0:{...view}};return;}
+  if(ptrs.size>2)return;const h=hit(s);
+  if(!h){const now=performance.now();if(now-lastTap<320){cam.yaw=defYaw();cam.pitch=16*Math.PI/180;fit();}lastTap=now;drag={type:'orbit',s0:s,y0:cam.yaw,p0:cam.pitch};cv.style.cursor='grabbing';return;}
+  if(h.type==='hand'){camBasis();const o=P(0,0,0),py=P(0,1,0),pz=P(0,0,1);drag={type:'hand',s0:s,y0:hand.ty,z0:hand.tz,ky:Math.hypot(py.x-o.x,py.y-o.y),kz:(pz.x-o.x)||1};hand.held=true;touched.hand=true;}
+  else if(h.type==='slit'){drag={type:'slit'};touched.slit=true;}
+  else if(h.type==='barrier'){drag={type:'barrier',s0:s,moved:false};}
+  cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},k=clamp(d/pinch.d0,0.4,4);
+    view={F:pinch.v0.F*k,ox:mid.x-(pinch.m0.x-pinch.v0.ox)*k,oy:mid.y-(pinch.m0.y-pinch.v0.oy)*k};return;}
+  if(!drag){const h=hit(s);hover=h?h.key:null;cv.style.cursor=h?(h.type==='hand'?'grab':'pointer'):'grab';return;}
+  camBasis();
+  switch(drag.type){
+    case'orbit':{const dx=s.x-drag.s0.x,dy=s.y-drag.s0.y;if(Math.hypot(dx,dy)>8)touched.orbit=true;cam.yaw=drag.y0+dx*0.006;cam.pitch=clamp(drag.p0+dy*0.005,-8*Math.PI/180,85*Math.PI/180);break;}
+    case'hand':{const kz=Math.sign(drag.kz)*Math.max(Math.abs(drag.kz),drag.ky*0.55);let y=drag.y0-(s.y-drag.s0.y)/drag.ky,z=drag.z0+(s.x-drag.s0.x)/kz;
+      const r=Math.hypot(y,z);if(r>AMAX){y*=AMAX/r;z*=AMAX/r;}hand.ty=y;hand.tz=z;break;}
+    case'slit':{const p=toPlane(s,nearFaceX());if(!p)break;let a=Math.atan2(p.z,p.y);if(a>Math.PI/2)a-=Math.PI;if(a<-Math.PI/2)a+=Math.PI;S.phiT=snapPhi(a);S.phi=S.phiT;break;}
+    case'barrier':if(Math.hypot(s.x-drag.s0.x,s.y-drag.s0.y)>6)drag.moved=true;break;}});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}
+  if(drag&&drag.type==='barrier'&&!drag.moved){S.phiT=Math.abs(S.phiT)<Math.PI/4?Math.PI/2:0;touched.slit=true;}
+  hand.held=false;drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);cv.addEventListener('pointerleave',()=>{if(!drag)hover=null;});
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),k=Math.exp(-e.deltaY*0.0015);view={F:view.F*k,ox:s.x-(s.x-view.ox)*k,oy:s.y-(s.y-view.oy)*k};},{passive:false});
+
+/* ---------- teacher hint (lamp button) ---------- */
+window.__explain=function(){
+  const deg=Math.round(Math.abs(S.phi)*180/Math.PI),Ab=amp(st.b),Aa=amp(st.a),sv=deg<5?'عمودي':deg>85?'أفقي':`مائل بزاوية ${deg}° عن العمودي`;
+  const a=axis(st.b),rel=Math.abs(((a-S.phi)%Math.PI+Math.PI*1.5)%Math.PI-Math.PI/2),relD=Math.round(rel*180/Math.PI);
+  const nums=`<div class="nums" style="direction:rtl;justify-content:flex-start"><span dir="rtl">الشق: ${sv}</span>${Ab>0.08?`<span dir="rtl">الزاوية بين التذبذب والشق ≈ ⁦${relD}°⁩</span><span dir="rtl">السعة بعد الشق ≈ ⁦${Math.round(clamp(Aa/Ab,0,1)*100)}%⁩</span>`:''}</div>`;
+  const light=`<p class="note">النتيجة نفسها تحدث مع الضوء لأنه موجة مستعرضة: شريحة التورمالين تسمح بمرور الضوء الذي يتذبذب مجاله الكهربائي باتجاه واحد، وتحجب الضوء الذي يتذبذب مجاله باتجاه عمودي عليه.</p>`;
+  const tryit=`<p class="note">جرّب: حرّك طرف الحبل للأعلى والأسفل ثم يميناً ويساراً، ودوّر الشق بسحب المقبض الأصفر، أو انقر على الحاجز ليتبدّل الشق بين عمودي وأفقي. اسحب الخلفية لتدور حول المشهد 360°، ولاحظ أن الموجة ترتد عن الجدار المثبت.</p>`;
+  if(Ab<0.08)return{t:'حرّك طرف الحبل بيدك',b:`<p>امسك يد الطالب عند طرف الحبل وحرّكها بسرعة إلى الأعلى والأسفل، فتتولد في الحبل <b>موجة مستعرضة</b>: يتذبذب الحبل عمودياً على اتجاه انتشار الموجة.</p><p>الشق الآن ${sv}. راقب هل تعبر الموجة الشق نحو الجدار أم لا.</p>${nums}${tryit}`};
+  if(rel<0.3)return{t:'لماذا مرّت الموجة من خلال الشق؟',b:`<p>اتجاه تذبذب الحبل <b>موازٍ لاتجاه الشق</b>، فيتحرك الحبل داخل الشق بحرية ولا يعيقه الحاجز، فتعبر الموجة المستعرضة إلى الجهة الأخرى.</p><p>هذا ما يحدث في الشكل (16-a) عندما يكون الشق عمودياً والحبل يتذبذب للأعلى والأسفل.</p>${nums}${light}${tryit}`};
+  if(rel>1.27)return{t:'لماذا لم تمرّ الموجة؟',b:`<p>اتجاه تذبذب الحبل <b>عمودي على اتجاه الشق</b>، فحافتا الشق تمنعان الحبل من الحركة بهذا الاتجاه، فتنعكس الموجة عند الحاجز ولا يصل منها شيء إلى الجهة الأخرى.</p><p>هذا ما يحدث في الشكل (16-b) عندما يصبح الشق أفقياً والحبل يتذبذب عمودياً. يقال إن الشق <b>يستقطب</b> الموجة: يسمح فقط بالتذبذب الموازي له.</p>${nums}${light}${tryit}`};
+  return{t:'لماذا مرّ جزء من الموجة فقط؟',b:`<p>اتجاه تذبذب الحبل يصنع زاوية ${relD}° مع الشق. يمكن تحليل هذا التذبذب إلى مركّبتين: مركّبة موازية للشق تمر، ومركّبة عمودية عليه يحجبها الحاجز.</p><p>لذلك تعبر الموجة بسعة أصغر (<b class="m">A cosθ</b>)، وبعد الشق يصبح تذبذبها <b>موازياً للشق تماماً</b>، لاحظ ذلك في المنظر الأمامي.</p>${nums}${light}${tryit}`};
+};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(W){update(dt);draw();}requestAnimationFrame(frame);}
+readColors();for(let i=0;i<N;i++)uy[i]=eqY[i];layout();
+document.querySelectorAll('#parts button').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.p;if(n==='front')S.showFront=!S.showFront;else S.showLab=!S.showLab;
+  b.setAttribute('aria-pressed',n==='front'?S.showFront:S.showLab);fit();}));
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
