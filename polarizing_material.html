@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>نشاط المادة المستقطبة وشدة الضوء المستقطب النافذ من خلالها</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة نشاط المادة المستقطبة وشدة الضوء المستقطب: مصدر أحادي اللون ولوحا تورمالين وخلية ضوئية تقيس شدة الضوء النافذ"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="إدخال اللوحين وإظهار أجزاء المحاكاة">
+    <button data-p="pol" aria-pressed="true"><i></i><span class="l">المستقطب</span><span class="s">مستقطب</span></button>
+    <button data-p="ana" aria-pressed="true"><i></i><span class="l">المحلل</span><span class="s">محلل</span></button>
+    <button data-p="front" aria-pressed="true"><i></i><span class="l">مخطط المتجهات</span><span class="s">متجهات</span></button>
+    <button data-p="lab" aria-pressed="true"><i></i><span class="l">التسميات</span><span class="s">تسميات</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene'),ctx=cv.getContext('2d');
+/* ---------- the bench: light travels along +x from the source to the eye ---------- */
+const XS=0,XP=5.0,XA=10.2,XE=15.0,R=1.35,PT=0.09,FLOOR=-2.3,E0=0.95;
+const K=2*Math.PI/1.5,OM=2*Math.PI*0.55;
+const LAMS=[[650,'أحمر'],[590,'أصفر'],[530,'أخضر'],[470,'أزرق']];
+const S={li:0,ap:0,apT:0,aa:40*Math.PI/180,aaT:40*Math.PI/180,inP:true,inA:true,showFront:true,showLab:true};
+const ins={P:1,A:1};
+const touched={pol:false,ana:false,orbit:false,lamp:false};
+function lamArr(l){let r=0,g=0,b=0;if(l<440){r=-(l-440)/60;b=1;}else if(l<490){g=(l-440)/50;b=1;}else if(l<510){g=1;b=-(l-510)/20;}else if(l<580){r=(l-510)/70;g=1;}else if(l<645){r=1;g=-(l-645)/65;}else r=1;return[r*255,g*255,b*255];}
+const AC=()=>{const c=lamArr(LAMS[S.li][0]).map(v=>Math.min(255,v*0.85+50));return`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;};
+const LC=()=>lamArr(LAMS[S.li][0]),LCs=a=>{const c=LC();return`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;},LCl=a=>{const c=LC().map(v=>Math.min(255,v*0.6+110));return`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;};
+let W=0,H=0,DPR=1,narrow=null,view={F:1,ox:0,oy:0},time=0,drag=null,hover=null;
+const defYaw=()=>(narrow?74:32)*Math.PI/180,defPitch=()=>(narrow?34:15)*Math.PI/180;
+const cam={yaw:32*Math.PI/180,pitch:15*Math.PI/180,dist:21,T:[7.2,0,0]};
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const FS=()=>narrow?1.12:1;
+const F=(w,s,mono)=>w+' '+(s*FS()).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+const wrapA=a=>{a=((a+Math.PI/2)%Math.PI+Math.PI)%Math.PI-Math.PI/2;return a;};   // axis angle in (-90°,90°]
+const deg=a=>Math.round(a*180/Math.PI);
+
+/* ---------- optics ---------- */
+function optics(){const P=S.inP&&ins.P>0.5,A=S.inA&&ins.A>0.5;let I1=1,pol1=null;
+  if(P){I1=0.5;pol1=S.ap;}
+  let I2=I1,pol2=pol1,th=null;
+  if(A){if(pol1===null){I2=I1*0.5;}else{th=wrapA(S.aa-S.ap);I2=I1*Math.cos(th)**2;}pol2=S.aa;}
+  return{P,A,I1,I2,pol1,pol2,th};}
+
+/* ---------- camera (360° orbit) ---------- */
+let B={};
+function camBasis(){cam.dist=narrow?32:21;const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+  const dir=[-sy*cp,sp,cy*cp],pos=[cam.T[0]+dir[0]*cam.dist,cam.T[1]+dir[1]*cam.dist,cam.T[2]+dir[2]*cam.dist],f=[-dir[0],-dir[1],-dir[2]];
+  const r=[-f[2],0,f[0]],rl=Math.hypot(r[0],r[2])||1;r[0]/=rl;r[2]/=rl;const u=[r[1]*f[2]-r[2]*f[1],r[2]*f[0]-r[0]*f[2],r[0]*f[1]-r[1]*f[0]];B={pos,f,r,u};}
+function P(x,y,z){const d0=x-B.pos[0],d1=y-B.pos[1],d2=z-B.pos[2],dep=Math.max(0.3,d0*B.f[0]+d1*B.f[1]+d2*B.f[2]);
+  return{x:view.ox+view.F*(d0*B.r[0]+d1*B.r[1]+d2*B.r[2])/dep,y:view.oy-view.F*(d0*B.u[0]+d1*B.u[1]+d2*B.u[2])/dep,d:dep};}
+function frontRect(){const sz=narrow?Math.min(W*0.44,190):Math.min(250,H*0.36);return{x:14,y:H-sz-14,w:sz,h:sz};}
+function fit(){const sv={yaw:cam.yaw,pitch:cam.pitch};cam.yaw=defYaw();cam.pitch=defPitch();camBasis();view={F:1,ox:0,oy:0};
+  const pts=[[-1.6,1.2,0],[-1.6,FLOOR,1.2],[-1.6,-0.5,-0.5],[XP,R+0.9,-R],[XP,FLOOR,R],[XA,R+0.9,R],[XA,FLOOR,-R],[XE+1.4,1.2,0],[XE+2.6,FLOOR,2.6],[-2.2,1.5,0],[XS,FLOOR,-1.5],[XE,FLOOR,-1.5]];
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(p=>{const q=P(...p);x0=Math.min(x0,q.x);x1=Math.max(x1,q.x);y0=Math.min(y0,q.y);y1=Math.max(y1,q.y);});
+  const top=62,bot=narrow?(S.showFront?frontRect().h+24:20):24,m=16,aw=W-2*m,ah=H-top-bot;
+  const F0=Math.min(aw/(x1-x0),ah/(y1-y0));view={F:F0,ox:m+aw/2-F0*(x0+x1)/2,oy:top+ah/2-F0*(y0+y1)/2};cam.yaw=sv.yaw;cam.pitch=sv.pitch;}
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);const nn=W<H*0.95;if(nn!==narrow){narrow=nn;cam.yaw=defYaw();cam.pitch=defPitch();}fit();}
+
+/* ---------- drawing helpers ---------- */
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function poly(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function vec3(a,b,color,lw,both){const p=P(...a),q=P(...b),l=Math.hypot(q.x-p.x,q.y-p.y);if(l<2)return;ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+  const ang=Math.atan2(q.y-p.y,q.x-p.x),hs=Math.min(lw*3.2,l*0.45);arrowHead(q.x,q.y,ang,hs,color);if(both)arrowHead(p.x,p.y,ang+Math.PI,hs,color);}
+function tag(s,x,y,c){ctx.font=F(600,12.5);const w=ctx.measureText(s).width+18,h=24*FS();rr(x-w/2,y-h/2,w,h,h/2);ctx.fillStyle='rgba(8,20,41,.86)';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=1.3;ctx.stroke();txt(s,x,y+0.5,{color:c,font:F(600,12.5)});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);
+  const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function drawFloor(){const c=[P(-2,FLOOR,-2.6),P(XE+1.6,FLOOR,-2.6),P(XE+1.6,FLOOR,2.6),P(-2,FLOOR,2.6)];poly(c);ctx.fillStyle='rgba(127,170,230,.09)';ctx.fill();
+  ctx.strokeStyle='rgba(160,195,240,.10)';ctx.lineWidth=1;ctx.beginPath();
+  for(let x=-2;x<=XE+1.6;x+=1){const a=P(x,FLOOR,-2.6),b=P(x,FLOOR,2.6);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);}
+  for(let z=-2;z<=2;z+=1){const a=P(-2,FLOOR,z),b=P(XE+1.6,FLOOR,z);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);}ctx.stroke();
+  // optical rail
+  const r0=P(-1,FLOOR+0.02,0),r1=P(XE,FLOOR+0.02,0);ctx.strokeStyle='rgba(150,165,190,.5)';ctx.lineWidth=Math.max(3,view.F*0.12/cam.dist);ctx.beginPath();ctx.moveTo(r0.x,r0.y);ctx.lineTo(r1.x,r1.y);ctx.stroke();}
+
+/* ---------- light beam and its electric field ---------- */
+function hull(pts){pts=pts.slice().sort((a,b)=>a.x-b.x||a.y-b.y);const cr=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x),lo=[],up=[];
+  for(const p of pts){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}up.pop();lo.pop();return lo.concat(up);}
+function ring(x,r,n=28,cy=0,cz=0){const a=[];for(let i=0;i<n;i++){const t=i/n*Math.PI*2;a.push(P(x,cy+r*Math.cos(t),cz+r*Math.sin(t)));}return a;}
+/* shaded cylinder along x (light from above) */
+function cyl(x0,x1,r,c1,c2,c3,cy=0){const A=ring(x0,r,28,cy),Bv=ring(x1,r,28,cy),h=hull(A.concat(Bv));poly(h);
+  const a=P(x0,cy,0),b=P(x1,cy,0);let nx=-(b.y-a.y),ny=b.x-a.x;const l=Math.hypot(nx,ny)||1;nx/=l;ny/=l;if(ny>0){nx=-nx;ny=-ny;}
+  const m={x:(a.x+b.x)/2,y:(a.y+b.y)/2},rr=Math.max(4,...h.map(p=>Math.abs((p.x-m.x)*nx+(p.y-m.y)*ny)));
+  const g=ctx.createLinearGradient(m.x+nx*rr,m.y+ny*rr,m.x-nx*rr,m.y-ny*rr);g.addColorStop(0,c1);g.addColorStop(0.42,c2);g.addColorStop(1,c3);ctx.fillStyle=g;ctx.fill();
+  return{A,B:Bv};}
+const BR=0.42,LAM=2*Math.PI/K;
+const MOTES=[];for(let i=0;i<70;i++)MOTES.push({u:Math.random(),r:Math.sqrt(Math.random())*BR*0.95,a:Math.random()*6.283,s:0.5+Math.random(),tw:Math.random()*6.283});
+/* soft volumetric beam: a glowing tube whose brightness follows the intensity */
+function beam(x0,x1,I){if(I<0.004)return;ctx.save();ctx.globalCompositeOperation='lighter';
+  const h=hull(ring(x0,BR,24).concat(ring(x1,BR,24)));poly(h);ctx.fillStyle=LCs(0.16*I);ctx.fill();
+  const h2=hull(ring(x0,BR*0.45,18).concat(ring(x1,BR*0.45,18)));poly(h2);ctx.fillStyle=LCl(0.22*I);ctx.fill();
+  // dust in the beam makes the light visible
+  const len=x1-x0;MOTES.forEach(m=>{const u=(m.u+time*0.012*m.s)%1,x=XS+u*(XE-XS);if(x<x0||x>x1)return;const q=P(x,m.r*Math.cos(m.a+time*0.2),m.r*Math.sin(m.a+time*0.2)),tw=0.4+0.6*Math.abs(Math.sin(time*2+m.tw));
+    ctx.beginPath();ctx.arc(q.x,q.y,Math.max(0.8,view.F*0.018/q.d),0,7);ctx.fillStyle=LCl(0.8*I*tw);ctx.fill();});
+  ctx.restore();}
+function rndAng(j){return 1.3*j+2.2*Math.sin(time*1.9+j*0.77)+1.4*Math.sin(time*3.1+j*1.91);}
+/* unpolarized: at every slice of the beam the field points in many random directions; polarized: one direction only */
+function dbl(x,a,e,color,lw){const p=[x,-e*Math.cos(a),-e*Math.sin(a)],q=[x,e*Math.cos(a),e*Math.sin(a)];vec3(p,q,color,lw,true);}
+/* like figures 17 and 18: planes perpendicular to the beam that travel with the light.
+   unpolarized: a star of double arrows (E in all directions); polarized: one double arrow along the axis */
+const PLD=1.25,PLV=0.9;
+/* fixed transparent planes (as in figure 20) showing the electric field of the light at three places */
+function fieldPlane(x,pol,amp,label,ghost,ph){const H=1.05,c=[P(x,-H,-H),P(x,H,-H),P(x,H,H),P(x,-H,H)];poly(c);
+  ctx.fillStyle='rgba(120,150,200,.28)';ctx.fill();ctx.strokeStyle='rgba(185,210,245,.65)';ctx.lineWidth=1.3;ctx.stroke();
+  const o=P(x,0,0);ctx.beginPath();ctx.arc(o.x,o.y,2.8,0,7);ctx.fillStyle=AC();ctx.fill();const w=Math.sin(K*x-OM*time*1.8);
+  if(amp>0.02){if(pol===null){for(let m=0;m<4;m++)dbl(x,m*Math.PI/4+(ph||0)+0.3*Math.sin(time*0.6),amp*0.85*w,AC(),2.2);}
+    else{if(ghost!=null){const a=ghost,p1=[x,-amp*0.95*Math.cos(a),-amp*0.95*Math.sin(a)],p2=[x,amp*0.95*Math.cos(a),amp*0.95*Math.sin(a)],q1=P(...p1),q2=P(...p2);
+        ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(q1.x,q1.y);ctx.lineTo(q2.x,q2.y);ctx.stroke();ctx.restore();}
+      dbl(x,pol,amp*0.95*w,AC(),2.8);}}
+  if(S.showLab&&label){const t=P(x,H+0.3,0);txt(label,t.x,t.y,{font:F(700,13,1),color:AC(),dir:'ltr'});}}
+const TPD=1.5,TPV=1.1;
+function travel(x0,x1,pol,amp,label,ghost){const L=x1-x0,n=Math.max(1,Math.floor(L/TPD));let best=null;
+  for(let k=0;k<n;k++){const u=((k*TPD+TPV*time)%(n*TPD))/(n*TPD),x=x0+u*L,fade=Math.min(1,u*5,(1-u)*5);if(fade<=0.02)continue;
+    ctx.save();ctx.globalAlpha=fade;fieldPlane(x,pol,amp,null,ghost,k*0.4);ctx.restore();}
+  if(S.showLab&&label){const t=P((x0+x1)/2,1.45,0);txt(label,t.x,t.y,{font:F(700,13,1),color:AC(),dir:'ltr'});}}
+/* thick propagation arrow (direction of travel) */
+function propArrow(xm,color){vec3([xm-0.55,0,0],[xm+0.55,0,0],color,5);}
+
+/* ---------- source, plates, eye ---------- */
+function drawSource(){const cx=B.pos[0],front=cx>0,back=cx<-1.5;
+  // stand and base
+  const s0=P(-0.9,-0.38,0),s1=P(-0.9,FLOOR,0);ctx.strokeStyle='#5f6b80';ctx.lineWidth=Math.max(3,view.F*0.1/s0.d);ctx.beginPath();ctx.moveTo(s0.x,s0.y);ctx.lineTo(s1.x,s1.y);ctx.stroke();
+  const fb=P(-0.9,FLOOR,0);ctx.beginPath();ctx.ellipse(fb.x,fb.y,Math.max(8,view.F*0.5/fb.d),Math.max(3,view.F*0.18/fb.d),0,0,7);ctx.fillStyle='#4a5468';ctx.fill();
+  // power cable
+  const c0=P(-1.5,-0.15,0),c1=P(-2.6,-0.6,0.3),c2=P(-2.4,FLOOR,0.9),c3=P(-1.9,FLOOR,1.4);ctx.strokeStyle='#14181f';ctx.lineWidth=Math.max(2,view.F*0.06/c0.d);ctx.beginPath();ctx.moveTo(c0.x,c0.y);ctx.bezierCurveTo(c1.x,c1.y,c2.x,c2.y,c3.x,c3.y);ctx.stroke();
+  // housing with cooling fins, front bezel and lens
+  const body=cyl(-1.5,-0.28,0.4,'#7a879f','#343e54','#141a26');
+  if(back){poly(body.A);ctx.fillStyle='#232b3b';ctx.fill();const bc=P(-1.51,-0.15,0);ctx.beginPath();ctx.arc(bc.x,bc.y,Math.max(3,view.F*0.08/bc.d),0,7);ctx.fillStyle='#0d1118';ctx.fill();}
+  const fins=[];for(let x=-1.38;x<=-0.62;x+=0.13)fins.push(x);(cx<-0.9?fins.slice().reverse():fins).forEach(x=>cyl(x,x+0.035,0.47,'#9aa6bb','#4d586e','#1d2433'));
+  const bz=cyl(-0.3,0.02,0.5,'#b9c2d0','#646f84','#2b3344');
+  if(front){poly(bz.B);ctx.fillStyle='#5b6578';ctx.fill();const lens=ring(0.03,0.38,32);poly(lens);const lc=P(0.03,0,0),lr=Math.max(6,view.F*0.38/lc.d);
+    const g=ctx.createRadialGradient(lc.x,lc.y,0,lc.x,lc.y,lr);g.addColorStop(0,'#ffffff');g.addColorStop(0.35,LCl(1));g.addColorStop(0.8,LCs(1));g.addColorStop(1,LCs(.8));ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1.5;ctx.stroke();}
+  // glow, stronger when the lamp faces the camera
+  const lc=P(0.03,0,0),dx=B.pos[0]-0.03,dl=Math.hypot(dx,B.pos[1],B.pos[2])||1,face=clamp(dx/dl,0,1),gr=Math.max(22,view.F*(0.9+1.3*face)/lc.d);
+  ctx.save();ctx.globalCompositeOperation='lighter';const g2=ctx.createRadialGradient(lc.x,lc.y,0,lc.x,lc.y,gr);g2.addColorStop(0,LCl(0.55+0.35*face));g2.addColorStop(0.3,LCs(0.25+0.2*face));g2.addColorStop(1,LCs(0));
+  ctx.fillStyle=g2;ctx.beginPath();ctx.arc(lc.x,lc.y,gr,0,7);ctx.fill();
+  if(face>0.5){const fl=gr*1.8*face;const g3=ctx.createLinearGradient(lc.x-fl,lc.y,lc.x+fl,lc.y);g3.addColorStop(0,'rgba(255,240,200,0)');g3.addColorStop(0.5,LCl(0.5*face));g3.addColorStop(1,'rgba(255,240,200,0)');ctx.fillStyle=g3;ctx.fillRect(lc.x-fl,lc.y-1.5,fl*2,3);}
+  ctx.restore();
+  // unpolarized field at the source: many directions at once (figure 18-b)
+  const lp=P(-0.9,0,0);if(!touched.lamp&&!drag)pulseRing(lp.x,lp.y,Math.max(26,view.F*0.7/lp.d),col.accent,0.4);
+  if(S.showLab){const t=P(-0.9,0.95,0);txt('مصدر أحادي اللون',t.x,t.y-14,{font:F(600,12.5),color:col.muted});txt(`${LAMS[S.li][1]}  \u2066${LAMS[S.li][0]} nm\u2069`,t.x,t.y+4,{font:F(600,12),color:LCl(1)});if(!touched.lamp&&!narrow)txt('انقر على المصدر لتغيير اللون',t.x,t.y-34,{font:F(500,11),color:col.accent});}}
+function plateKey(w){return w==='P'?{a:S.ap,inn:ins.P,x:XP,name:'مستقطب',hk:'pol'}:{a:S.aa,inn:ins.A,x:XA,name:'محلل',hk:'ana'};}
+function drawPlate(w){const k=plateKey(w);if(k.inn<0.01)return;const lift=(1-k.inn)*4.5,x=k.x,sy=Math.cos(k.a),sz=Math.sin(k.a),lit=hover===k.hk||(drag&&drag.w===w);
+  ctx.save();ctx.globalAlpha=k.inn;const front=B.pos[0]<x,xn=front?x-PT:x+PT;
+  // slim rod, fork and base
+  const s0=P(x,lift-R-0.05,0),s1=P(x,FLOOR,0);ctx.strokeStyle='#8d97a8';ctx.lineWidth=Math.max(2.5,view.F*0.06/s0.d);ctx.beginPath();ctx.moveTo(s0.x,s0.y);ctx.lineTo(s1.x,s1.y);ctx.stroke();
+  const fb=P(x,FLOOR,0);ctx.beginPath();ctx.ellipse(fb.x,fb.y,Math.max(6,view.F*0.4/fb.d),Math.max(2,view.F*0.12/fb.d),0,0,7);ctx.fillStyle='#4a5468';ctx.fill();
+  // rim: a short blue metal cylinder
+  const rim=cyl(x-PT,x+PT,R+0.07,'#f0b48a','#b5683e','#6a3519',lift);
+  // glass face
+  const gl=ring(xn,R-0.02,48,lift),gc=P(xn,lift,0),gr=Math.max(10,view.F*R/gc.d);poly(gl);
+  const gg=ctx.createRadialGradient(gc.x-gr*0.3,gc.y-gr*0.35,gr*0.1,gc.x,gc.y,gr*1.1);gg.addColorStop(0,'rgba(255,215,180,.5)');gg.addColorStop(0.6,'rgba(232,150,105,.42)');gg.addColorStop(1,'rgba(190,100,60,.5)');ctx.fillStyle=gg;ctx.fill();
+  poly(ring(xn,R+0.07,48,lift));ctx.strokeStyle=lit?col.accent:'rgba(255,215,185,.85)';ctx.lineWidth=lit?3:1.6;ctx.stroke();
+  poly(gl);ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.stroke();
+  // transmission axis
+  const xo=xn+(front?-0.01:0.01),a0=P(xo,lift-(R+0.3)*sy,-(R+0.3)*sz),a1=P(xo,lift+(R-0.05)*sy,(R-0.05)*sz);
+  ctx.save();ctx.setLineDash([7,5]);ctx.strokeStyle='rgba(30,20,20,.9)';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(a0.x,a0.y);ctx.lineTo(a1.x,a1.y);ctx.stroke();ctx.restore();
+  // knob on the rim, pointing along the axis
+  const hd=P(xo,lift+(R+0.22)*sy,(R+0.22)*sz);if(!touched[k.hk]&&!drag&&k.inn>0.99)pulseRing(hd.x,hd.y,14,'#ffd27a',w==='P'?0:1.6);
+  ctx.beginPath();ctx.arc(hd.x,hd.y,Math.max(7,view.F*0.12/hd.d),0,7);ctx.fillStyle=lit?col.accent:'#ffd27a';ctx.fill();ctx.strokeStyle='#10264a';ctx.lineWidth=1.5;ctx.stroke();
+  if(S.showLab){const t=P(x,lift+R+0.75,0);txt(`${k.name}   ⁦${deg(wrapA(k.a))}°⁩`,t.x,t.y,{font:F(600,13),color:'#ffc9a3'});
+    const ax=P(xo,lift-(R+0.55)*sy,-(R+0.55)*sz);if(!narrow)txt('محور النفاذ',ax.x,ax.y+8,{font:F(500,11),color:'rgba(234,240,250,.8)'});}
+  ctx.restore();}
+function drawTheta(o){if(!o.P||!o.A||!S.showLab)return;const x=(B.pos[0]<XA?XA-PT:XA+PT)+(B.pos[0]<XA?-0.02:0.02),r=1.0;
+  const sp=[Math.cos(S.ap),Math.sin(S.ap)];const pA=P(x,-r*0*sp[0],0);
+  // polarizer direction drawn on the analyzer (dashed orange) and the angle θ between the two axes
+  const a=P(x,-(R-0.1)*sp[0],-(R-0.1)*sp[1]),b=P(x,(R-0.1)*sp[0],(R-0.1)*sp[1]);ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(255,179,107,.9)';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore();
+  const th=o.th;ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<=24;i++){const t=S.ap+th*i/24,q=P(x,r*Math.cos(t),r*Math.sin(t));i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);}ctx.stroke();
+  const m=S.ap+th/2,q=P(x,(r+0.3)*Math.cos(m),(r+0.3)*Math.sin(m));txt(`⁦θ = ${Math.abs(deg(th))}°⁩`,q.x,q.y,{font:F(700,13,1),color:'#ffd27a',dir:'ltr'});}
+function drawCell(I){const x0=XE-0.35,x1=XE+0.75,front=B.pos[0]<x0;
+  const s0=P(XE+0.2,-0.45,0),s1=P(XE+0.2,FLOOR,0);ctx.strokeStyle='#5f6b80';ctx.lineWidth=Math.max(3,view.F*0.08/s0.d);ctx.beginPath();ctx.moveTo(s0.x,s0.y);ctx.lineTo(s1.x,s1.y);ctx.stroke();
+  const fb=P(XE+0.2,FLOOR,0);ctx.beginPath();ctx.ellipse(fb.x,fb.y,Math.max(6,view.F*0.4/fb.d),Math.max(2,view.F*0.12/fb.d),0,0,7);ctx.fillStyle='#4a5468';ctx.fill();
+  // wire to the meter
+  const mp=P(XE+1.0,FLOOR+0.05,1.9),w0=P(x1,-0.1,0),w1=P(x1+0.8,-0.6,0.4),w2=P(XE+1.3,FLOOR,1.0);ctx.strokeStyle='#14181f';ctx.lineWidth=Math.max(2,view.F*0.05/w0.d);ctx.beginPath();ctx.moveTo(w0.x,w0.y);ctx.bezierCurveTo(w1.x,w1.y,w2.x,w2.y,mp.x,mp.y);ctx.stroke();
+  const cy=cyl(x0,x1,0.48,'#e8d6a8','#9a8455','#4a3c22');
+  if(front){poly(cy.A);ctx.fillStyle='#3a3020';ctx.fill();const win=ring(x0-0.005,0.34,32);poly(win);const wc=P(x0,0,0),wr=Math.max(5,view.F*0.34/wc.d);
+    const g=ctx.createRadialGradient(wc.x,wc.y,0,wc.x,wc.y,wr);g.addColorStop(0,`rgba(40,50,70,1)`);g.addColorStop(1,'#0c0f16');ctx.fillStyle=g;ctx.fill();
+    if(I>0.004){ctx.save();ctx.globalCompositeOperation='lighter';const g2=ctx.createRadialGradient(wc.x,wc.y,0,wc.x,wc.y,wr*1.6);g2.addColorStop(0,LCl(0.8*I));g2.addColorStop(1,LCs(0));ctx.fillStyle=g2;ctx.beginPath();ctx.arc(wc.x,wc.y,wr*1.6,0,7);ctx.fill();ctx.restore();}}
+  if(S.showLab){const t=P(XE+0.2,0.95,0);txt('خلية ضوئية',t.x,t.y,{font:F(600,13)});}
+  // the current meter (photocurrent is proportional to the light intensity)
+  const mw=Math.max(92,view.F*1.9/mp.d)*FS(),mh=mw*0.56,mx=mp.x-mw/2,my=mp.y-mh-4;
+  rr(mx,my,mw,mh,8);ctx.fillStyle='#e9b92e';ctx.fill();rr(mx+5,my+5,mw-10,mh-10,6);ctx.fillStyle='#2b313e';ctx.fill();
+  rr(mx+10,my+10,mw-20,mh*0.48,4);ctx.fillStyle='#b9c7a2';ctx.fill();
+  txt(`${(I*60).toFixed(1)} μA`,mx+mw/2,my+10+mh*0.24+1,{font:F(700,Math.max(12,mw*0.15),1),color:'#1b2216',dir:'ltr'});
+  txt('شدة التيار',mx+mw/2,my+mh*0.8,{font:F(500,10),color:'#cfd6e0'});}
+function intensityTag(o){const e=narrow?{x:W/2,y:82}:P(XE,1.9,0);let s;
+  if(o.P&&o.A)s=`I = I₀ cos²θ = ${(o.I2/o.I1).toFixed(2)} I₀`;else if(o.P||o.A)s='الشدة = نصف شدة المصدر';else s='الشدة = شدة المصدر كاملة';
+  const c=o.I2<0.03?'#ff6b6b':o.I2>0.45?'#62d98a':'#ffc04d';tag(s,e.x,e.y,c);}
+
+/* ---------- front view: looking along the beam ---------- */
+function drawFront(o){if(!S.showFront)return;const Rr=frontRect(),cx=Rr.x+Rr.w/2,cy=Rr.y+Rr.h*0.62,k=Rr.w*0.36;
+  rr(Rr.x,Rr.y,Rr.w,Rr.h,16);ctx.fillStyle='rgba(6,14,30,.92)';ctx.fill();ctx.strokeStyle='rgba(234,240,250,.16)';ctx.lineWidth=1;ctx.stroke();
+  txt('مخطط المتجهات',Rr.x+Rr.w-12,Rr.y+18,{align:'right',font:F(600,12)});
+  ctx.beginPath();ctx.arc(cx,cy,Rr.w*0.4,0,7);ctx.strokeStyle='rgba(234,240,250,.25)';ctx.lineWidth=1.2;ctx.stroke();
+  const Pt=(y,z)=>({x:cx+z*k,y:cy-y*k}),O=Pt(0,0);
+  if(!o.P||!o.A){txt(!o.P&&!o.A?'أدخل المستقطب والمحلل':!o.P?'أدخل المستقطب':'أدخل المحلل',cx,cy,{font:F(600,12),color:col.muted});return;}
+  const ap=S.ap,aa=S.aa,th=o.th,Ev=Pt(Math.cos(ap),Math.sin(ap)),c=Math.cos(th),Fv=Pt(c*Math.cos(aa),c*Math.sin(aa));
+  const la=Pt(1.15*Math.cos(aa),1.15*Math.sin(aa)),lb=Pt(-1.15*Math.cos(aa),-1.15*Math.sin(aa));ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(234,240,250,.55)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(la.x,la.y);ctx.lineTo(lb.x,lb.y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(Ev.x,Ev.y);ctx.lineTo(Fv.x,Fv.y);ctx.stroke();ctx.restore();
+  const arr=(p,col2,lw)=>{ctx.strokeStyle=col2;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(O.x,O.y);ctx.lineTo(p.x,p.y);ctx.stroke();const an=Math.atan2(p.y-O.y,p.x-O.x);if(Math.hypot(p.x-O.x,p.y-O.y)>8)arrowHead(p.x,p.y,an,7,col2);};
+  arr(Ev,AC(),2.6);arr(Fv,'#f4f7fb',2.6);
+  // right angle at the foot of the projection
+  if(Math.abs(c)>0.12&&Math.abs(Math.sin(th))>0.12){const ux=(Fv.x-O.x),uy=(Fv.y-O.y),ul=Math.hypot(ux,uy),tx=ux/ul,ty=uy/ul,vx=(Ev.x-Fv.x),vy=(Ev.y-Fv.y),vl=Math.hypot(vx,vy),nx=vx/vl,ny=vy/vl,q=8;
+    ctx.strokeStyle='rgba(234,240,250,.8)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(Fv.x-tx*q,Fv.y-ty*q);ctx.lineTo(Fv.x-tx*q+nx*q,Fv.y-ty*q+ny*q);ctx.lineTo(Fv.x+nx*q,Fv.y+ny*q);ctx.stroke();
+    txt('90°',Fv.x+nx*20-tx*16,Fv.y+ny*20-ty*16,{font:F(600,10,1),color:col.muted,dir:'ltr'});}
+  ctx.strokeStyle='#ffd27a';ctx.lineWidth=1.6;ctx.beginPath();const a0=Math.atan2(Ev.y-O.y,Ev.x-O.x),a1=Math.atan2(la.y-O.y,la.x-O.x);let d=a1-a0;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+  const sgn=Math.cos(th)>=0?1:-1,a1b=sgn>0?a0+d:a0+d+(d>0?-Math.PI:Math.PI);ctx.arc(O.x,O.y,k*0.32,a0,a1b,a1b<a0);ctx.stroke();
+  const am=(a0+a1b)/2;txt('θ',O.x+Math.cos(am)*k*0.48,O.y+Math.sin(am)*k*0.48,{font:F(700,12,1),color:'#ffd27a',dir:'ltr'});
+  txt('E',Ev.x+(Ev.x-O.x)*0.12+8,Ev.y+(Ev.y-O.y)*0.12,{font:F(700,12,1),color:AC(),dir:'ltr'});
+  const fl=Math.hypot(Fv.x-O.x,Fv.y-O.y)||1;txt('E cosθ',Fv.x+(Fv.y-O.y)/fl*-30+(Fv.x-O.x)/fl*10,Fv.y+(Fv.x-O.x)/fl*30*0+ (Fv.y-O.y)/fl*10+16,{font:F(700,11,1),color:'#f4f7fb',dir:'ltr'});}
+function drawOrbitHint(){if(touched.orbit)return;const a=0.55+0.25*Math.sin(time*2.5);txt('↻  اسحب الخلفية لتدوير المشهد 360°',W/2+(narrow?0:60),narrow&&S.showFront?frontRect().y-16:H-20,{font:F(600,12.5),color:`rgba(163,179,204,${a})`});}
+
+/* painter's order along the beam: items farther from the camera (in x) first */
+function draw(){drawBg();camBasis();drawFloor();const o=optics(),cx=B.pos[0];
+  const X1=(XS+XP)/2+0.2,X2=(XP+XA)/2,X3=(XA+XE)/2-0.2;
+  const items=[
+    {x:XS-0.6,f:drawSource},
+    {x:(XS+XP)/2,f:()=>{beam(XS,XP,1);travel(XS+0.6,XP-0.35,null,E0,null,null);propArrow((XS+XP)/2,AC());}},
+    {x:XP,f:()=>drawPlate('P')},
+    {x:(XP+XA)/2,f:()=>{beam(XP,XA,o.I1);if(o.I1>0.004)travel(XP+0.4,XA-0.4,o.pol1,E0*Math.sqrt(o.I1*(o.pol1===null?1:2)),o.pol1===null?null:'E',null);if(o.I1>0.004)propArrow((XP+XA)/2,AC());
+      if(S.showLab){const t=P(X2,-1.6,0);txt(o.pol1===null?'ضوء غير مستقطب':'ضوء مستقطب استوائياً',t.x,t.y,{font:F(600,12.5),color:AC()});}}},
+    {x:XA,f:()=>{drawPlate('A');drawTheta(o);}},
+    {x:(XA+XE)/2,f:()=>{beam(XA,XE-0.35,o.I2);const amp=o.pol2===null?E0:(o.pol1===null?E0*0.71:E0*Math.abs(Math.cos(o.th||0)));
+      if(o.I2>0.003)travel(XA+0.4,XE-0.6,o.pol2,amp,o.A&&o.pol1!==null?'E cosθ':o.pol2!==null?'E':null,o.A&&o.pol1!==null?S.ap:null);if(o.I2>0.003)propArrow((XA+XE)/2-0.3,AC());}},
+    {x:XE,f:()=>drawCell(o.I2)}];
+  items.sort((a,b)=>Math.abs(b.x-cx)-Math.abs(a.x-cx)).forEach(it=>it.f());
+  if(S.showLab){const t=P(X1,-1.6,0);txt('ضوء غير مستقطب',t.x,t.y,{font:F(600,12.5),color:AC()});}
+  intensityTag(o);drawFront(o);drawOrbitHint();}
+function update(dt){const k=Math.min(1,dt*10);S.ap+=(S.apT-S.ap)*k;S.aa+=(S.aaT-S.aa)*k;
+  ins.P+=((S.inP?1:0)-ins.P)*Math.min(1,dt*5);ins.A+=((S.inA?1:0)-ins.A)*Math.min(1,dt*5);}
+
+/* ---------- hands-on input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function nearX(x){return B.pos[0]<x?x-PT-0.01:x+PT+0.01;}
+function hit(s){camBasis();const cands=[];const lp=P(-0.9,0,0);if(Math.hypot(s.x-lp.x,s.y-lp.y)<Math.max(30,view.F*0.75/lp.d))return{type:'lamp',key:'lamp'};
+  for(const w of['P','A']){const k=plateKey(w);if(k.inn<0.9)continue;const xo=nearX(k.x),hd=P(xo,(R+0.22)*Math.cos(k.a),(R+0.22)*Math.sin(k.a));
+    const dh=Math.hypot(s.x-hd.x,s.y-hd.y);if(dh<26)cands.push({type:'rot',w,key:k.hk,d:hd.d,pri:0});
+    const c=[];for(let i=0;i<32;i++){const t=i/32*Math.PI*2;c.push(P(xo,(R+0.08)*Math.cos(t),(R+0.08)*Math.sin(t)));}ctx.setTransform(1,0,0,1,0,0);poly(c);
+    if(ctx.isPointInPath(s.x,s.y))cands.push({type:'tap',w,key:k.hk,d:hd.d,pri:1});}
+  if(!cands.length)return null;cands.sort((a,b)=>a.pri-b.pri||a.d-b.d);return cands[0];}
+function toPlane(s,x0){const o=P(x0,0,0),py=P(x0,1,0),pz=P(x0,0,1);const a1=py.x-o.x,a2=py.y-o.y,b1=pz.x-o.x,b2=pz.y-o.y,det=a1*b2-a2*b1;
+  if(Math.abs(det)<1e-3)return null;const dx=s.x-o.x,dy=s.y-o.y;return{y:(dx*b2-dy*b1)/det,z:(a1*dy-a2*dx)/det};}
+function snap(a){const st=Math.PI/12;const n=Math.round(a/st)*st;return Math.abs(a-n)<0.05?n:a;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},v0:{...view}};return;}
+  if(ptrs.size>2)return;const h=hit(s);
+  if(!h){const now=performance.now();if(now-lastTap<320){cam.yaw=defYaw();cam.pitch=defPitch();fit();}lastTap=now;drag={type:'orbit',s0:s,y0:cam.yaw,p0:cam.pitch};cv.style.cursor='grabbing';return;}
+  touched[h.key]=true;if(h.type==='lamp'){S.li=(S.li+1)%LAMS.length;return;}if(h.type==='rot')drag={type:'rot',w:h.w};else drag={type:'tap',w:h.w,s0:s,moved:false};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},k=clamp(d/pinch.d0,0.4,4);
+    view={F:pinch.v0.F*k,ox:mid.x-(pinch.m0.x-pinch.v0.ox)*k,oy:mid.y-(pinch.m0.y-pinch.v0.oy)*k};return;}
+  if(!drag){const h=hit(s);hover=h?h.key:null;cv.style.cursor=h?'pointer':'grab';return;}
+  camBasis();
+  if(drag.type==='orbit'){const dx=s.x-drag.s0.x,dy=s.y-drag.s0.y;if(Math.hypot(dx,dy)>8)touched.orbit=true;cam.yaw=drag.y0+dx*0.006;cam.pitch=clamp(drag.p0+dy*0.005,-8*Math.PI/180,85*Math.PI/180);}
+  else if(drag.type==='rot'){const k=plateKey(drag.w),p=toPlane(s,nearX(k.x));if(!p)return;let a=wrapA(Math.atan2(p.z,p.y));a=snap(a);
+    const cur=drag.w==='P'?S.apT:S.aaT;let best=a;[a-Math.PI,a,a+Math.PI].forEach(v=>{if(Math.abs(v-cur)<Math.abs(best-cur))best=v;});
+    if(drag.w==='P'){S.apT=best;S.ap=best;}else{S.aaT=best;S.aa=best;}}
+  else if(drag.type==='tap'){if(Math.hypot(s.x-drag.s0.x,s.y-drag.s0.y)>6)drag.moved=true;}});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}
+  if(drag&&drag.type==='tap'&&!drag.moved){if(drag.w==='P')S.apT+=Math.PI/12;else S.aaT+=Math.PI/12;}
+  drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);cv.addEventListener('pointerleave',()=>{if(!drag)hover=null;});
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),k=Math.exp(-e.deltaY*0.0015);view={F:view.F*k,ox:s.x-(s.x-view.ox)*k,oy:s.y-(s.y-view.oy)*k};},{passive:false});
+
+/* ---------- teacher hint (lamp button) ---------- */
+window.__explain=function(){const o=optics(),th=o.th!==null?Math.abs(deg(o.th)):null,cur=(o.I2*60).toFixed(1);
+  const nums=`<div class="nums" style="direction:rtl;justify-content:flex-start"><span dir="rtl">اللون: ${LAMS[S.li][1]} ⁦${LAMS[S.li][0]} nm⁩</span>${th!==null?`<span dir="rtl">⁦θ = ${th}°⁩</span><span dir="rtl">⁦E cosθ = ${Math.cos(th*Math.PI/180).toFixed(2)} E⁩</span>`:''}<span dir="rtl">قراءة الخلية الضوئية: ⁦${cur} μA⁩</span></div>`;
+  const tryit=`<p class="note">جرّب: اسحب المقبض الأصفر على المحلل لتدويره ببطء، وراقب قراءة الخلية الضوئية حتى تنعدم. انقر على المصدر لتغيير لونه، وأخرج أي لوح أو أدخله من الأزرار في الأعلى.</p>`;
+  const cell=`<p class="note">الخلية الضوئية تحوّل الضوء الساقط عليها إلى تيار كهربائي يتناسب مع شدته، فقراءة المقياس تدل على شدة الضوء النافذ.</p>`;
+  if(!o.P&&!o.A)return{t:'الضوء غير المستقطب يصل كاملاً',b:`<p>بلا لوحين يصل الضوء غير المستقطب كله إلى الخلية الضوئية، ومجاله الكهربائي يهتز في جميع الاتجاهات (اللوح الشفاف الأول في الشكل 20).</p><p>ضع اللوح المستقطب أمام المصدر من الزر في الأعلى ولاحظ قراءة الخلية.</p>${cell}${nums}${tryit}`};
+  if(o.P&&!o.A)return{t:'الضوء النافذ من المستقطب مستقطب وقلّت شدته',b:`<p>اللوح المستقطب لا يمرّر إلا اهتزاز المجال الكهربائي باتجاه محور نفاذه، فيصبح الضوء <b>مستقطباً استوائياً</b> بمجال <b class="m">E</b> باتجاه واحد، وتقل شدته إلى النصف.</p><p>ضع اللوح المحلل خلفه ثم دوّره.</p>${cell}${nums}${tryit}`};
+  if(!o.P&&o.A)return{t:'المحلل وحده يعمل كمستقطب',b:`<p>الضوء الساقط على المحلل غير مستقطب، فمهما دوّرته تمرّ نصف الشدة. أدخل اللوح المستقطب أمامه ليصبح للتدوير أثر.</p>${cell}${nums}${tryit}`};
+  const base=`<p>المحلل لا يمرّر إلا مركّبة المجال <b class="m">E</b> باتجاه محوره، وهي <b class="m">E cosθ</b> كما في الدائرة أسفل الشكل (20)، حيث θ الزاوية بين محوري اللوحين.</p>`;
+  if(th>=87)return{t:'انعدمت شدة الضوء تماماً',b:`<p>عندما يصبح محور المحلل عمودياً على محور المستقطب (θ = 90°) يكون <b class="m">E cos 90° = 0</b>، فلا يمرّ أي ضوء وتصبح قراءة الخلية الضوئية صفراً.</p><p><b>نستنتج:</b> الضوء النافذ من المستقطب قد استقطب، والمحلل حجبه بالكامل عند هذا الوضع.</p>${base}${cell}${nums}${tryit}`};
+  if(th<=3)return{t:'المحوران متوازيان',b:`<p>محور المحلل موازٍ لمحور المستقطب، فيمرّ الضوء المستقطب كله ويكون التيار في الخلية أكبر ما يمكن.</p><p>دوّر المحلل ببطء ولاحظ تناقص القراءة.</p>${base}${cell}${nums}${tryit}`};
+  return{t:'لماذا قلّت شدة الضوء بعد المحلل؟',b:`<p>الضوء النافذ من المستقطب قلّت شدته، وعند نفوذه من المحلل قلّت شدته أكثر، لأن المحلل يمرّر جزءاً فقط من المجال: <b class="m">\u2066E cos ${th}° = ${Math.cos(th*Math.PI/180).toFixed(2)} E\u2069</b>.</p><p>كلما اقتربت θ من 90° صغرت هذه المركّبة حتى تنعدم شدة الضوء تماماً.</p>${base}${cell}${nums}${tryit}`};
+};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(W){update(dt);draw();}requestAnimationFrame(frame);}
+readColors();layout();
+document.querySelectorAll('#parts button').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.p;
+  if(n==='pol')S.inP=!S.inP;else if(n==='ana')S.inA=!S.inA;else if(n==='front')S.showFront=!S.showFront;else S.showLab=!S.showLab;
+  b.setAttribute('aria-pressed',{pol:S.inP,ana:S.inA,front:S.showFront,lab:S.showLab}[n]);fit();}));
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
