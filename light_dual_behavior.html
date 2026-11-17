@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>السلوك المزدوج للضوء</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة السلوك الجسيمي والموجي والمزدوج للضوء "></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="أجزاء المحاكاة">
+    <button data-p="part" aria-pressed="true"><i></i><span class="l">السلوك الجسيمي</span><span class="s">جسيم</span></button>
+    <button data-p="wave" aria-pressed="true"><i></i><span class="l">السلوك الموجي</span><span class="s">موجة</span></button>
+    <button data-p="dual" aria-pressed="true"><i></i><span class="l">السلوك المزدوج</span><span class="s">مزدوج</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* state: T = temperature of the cavity walls (K); Tv = displayed value easing towards T */
+const S={lamP:470,lamW:470,lamD:470,field:true,fast:false,pause:false,cmp:false};
+const VIS={part:true,wave:true,dual:true};let PL={};
+const touched={};
+let W=0,H=0,DPR=1,narrow=null,L=null,view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function lamArr(l){let r=0,g=0,b=0;if(l<380){return[150,90,255];}if(l<440){r=-(l-440)/60;b=1;}else if(l<490){g=(l-440)/50;b=1;}else if(l<510){g=1;b=-(l-510)/20;}else if(l<580){r=(l-510)/70;g=1;}else if(l<645){r=1;g=-(l-645)/65;}else if(l<=780)r=1;else return[150,40,40];
+  let f=1;if(l<420)f=0.4+0.6*(l-380)/40;else if(l>700)f=0.4+0.6*(780-l)/80;return[255*Math.pow(r*f,0.8),255*Math.pow(g*f,0.8),255*Math.pow(b*f,0.8)];}
+/* ---------- layout & panels: the two figures fill the screen (halves), controls beside or below ---------- */
+function buildLayout(){L={fs:narrow?1.04:1,part:{w:100,h:100},wave:{w:100,h:100},dual:{w:100,h:100}};}
+function fitView(){view={z:1,x:0,y:0};}
+/* panels fill the screen: the three behaviours as wide strips, the derivation beside them (or below on a phone) */
+function arrange(){PL={};if(!L)return;const m=10,top=H<500?56:62,aw=W-2*m,ah=H-top-m,gd=10;const beh=['part','wave','dual'].filter(n=>VIS[n]);
+  const wt={part:1,wave:1,dual:1.35},tot=beh.reduce((a,b)=>a+wt[b],0),avail=ah-gd*(beh.length-1);let y=top;beh.forEach(b=>{const hh=avail*wt[b]/tot;PL[b]={x:m,y,w:aw,h:hh};y+=hh+gd;});
+  for(const k in PL){PL[k].k=1;L[k].w=PL[k].w;L[k].h=PL[k].h;}ACC=null;}
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);const nn=W<H*0.95;if(nn!==narrow||!L){narrow=nn;buildLayout();}fitView();arrange();}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function panelAt(w){for(const n in PL){const P=PL[n];if(w.x>=P.x-6&&w.x<=P.x+P.w+6&&w.y>=P.y-6&&w.y<=P.y+P.h+6)return n;}return null;}
+function toLocal(s,n){const P=PL[n],w=toWorld(s);return{x:(w.x-P.x)/P.k,y:(w.y-P.y)/P.k};}
+function setPanel(n){const P=PL[n],z=view.z*P.k;ctx.setTransform(DPR*z,0,0,DPR*z,DPR*(view.z*P.x+view.x),DPR*(view.z*P.y+view.y));}
+
+/* ---------- helpers ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+function panelEdge(w,h){rr(0,0,w,h,18);ctx.strokeStyle='rgba(234,240,250,.16)';ctx.lineWidth=1;ctx.stroke();}
+const fmtT=T=>Math.round(T).toLocaleString('en-US');
+function rnd(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+
+/* ---------- shared: light colour (wavelength) ---------- */
+const COLS=[410,470,530,580,610,660];
+const hJ=6.626e-34,cM=2.998e8,eV=1.602e-19,HC=1239.84;
+const LAMK={part:'lamP',wave:'lamW',dual:'lamD'};const lamOf=n=>S[LAMK[n]];const lc=n=>lamArr(lamOf(n));
+let fieldKey={};
+function colorDots(w,y){const r=8,gap=6,n=COLS.length,x1=w-14;const it=[];for(let i=0;i<n;i++){const cx=x1-r-i*(2*r+gap);it.push({x:cx,y,r,l:COLS[i]});}return it;}
+function drawDots(w,y,cur){colorDots(w,y).forEach(d=>{ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,7);ctx.fillStyle=rgba(lamArr(d.l),1);ctx.fill();if(cur===d.l){ctx.strokeStyle='#fff';ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(d.x,d.y,d.r+3,0,7);ctx.stroke();}});}
+function dotHit(p,w,y){for(const d of colorDots(w,y))if(Math.hypot(p.x-d.x,p.y-d.y)<d.r+5)return d.l;return null;}
+function titleChip(t,w,c){const cw=chip(t,14,22,c,'left');return cw;}
+function lampSide(x,y,s,c){const bg=ctx.createRadialGradient(x+s,y,0,x+s,y,s*2.4);bg.addColorStop(0,rgba(c,0.5));bg.addColorStop(1,rgba(c,0));ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x+s,y,s*2.4,0,7);ctx.fill();
+  const hg=ctx.createLinearGradient(0,y-s*0.6,0,y+s*0.6);hg.addColorStop(0,'#9aa6b8');hg.addColorStop(0.45,'#e6ecf4');hg.addColorStop(1,'#3d4656');rr(x-s,y-s*0.6,s*1.8,s*1.2,s*0.25);ctx.fillStyle=hg;ctx.fill();
+  ctx.beginPath();ctx.ellipse(x+s*0.85,y,s*0.15,s*0.62,0,0,7);ctx.fillStyle=rgba(c.map(v=>Math.min(255,v+70)),1);ctx.fill();}
+function electron(x,y,r){const g=ctx.createRadialGradient(x-r*0.35,y-r*0.35,r*0.1,x,y,r);g.addColorStop(0,'#fefefe');g.addColorStop(1,'#b9c6dc');ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='#26324a';ctx.lineWidth=1.2;ctx.stroke();ctx.beginPath();ctx.moveTo(x-r*0.5,y);ctx.lineTo(x+r*0.5,y);ctx.stroke();}
+
+/* ---------- panel 1: particle behaviour — photons are packets of energy E = hf (photoelectric effect) ---------- */
+const WCS=2.14;let PH=[],EL=[],pAcc=0,nEj=0;
+function partG(){const P=L.part,w=P.w,h=P.h,s=clamp(Math.min(w/3,h)/150,0.7,1.4);return{w,h,s,lx:Math.max(40,w*0.07),ly:h*0.5,mx:w*0.8,my0:h*0.2,my1:h*0.8};}
+function stepPart(dt){const g=partG();pAcc+=dt*5;while(pAcc>1){pAcc-=1;PH.push({x:g.lx+30*g.s,y:g.ly+(Math.random()-0.5)*g.h*0.32,l:S.lamP});}
+  const v=230*g.s;PH.forEach(p=>{p.x+=v*dt;if(p.x>=g.mx-6){p.dead=true;const E=HC/p.l;if(E>=WCS){nEj++;const ke=E-WCS,sp=(70+170*Math.sqrt(ke))*g.s,a=Math.PI+(Math.random()-0.5)*1.4;EL.push({x:g.mx-8,y:p.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*0.8});}else FLp.push({x:g.mx-4,y:p.y,t:0});}});
+  PH=PH.filter(p=>!p.dead);EL.forEach(e=>{e.x+=e.vx*dt;e.y+=e.vy*dt;});EL=EL.filter(e=>e.x>-20&&e.y>-20&&e.y<g.h+20);}
+let FLp=[];
+function drawPart(){const g=partG(),w=g.w,h=g.h,c=lc('part');panelBox(w,h);ctx.save();rr(0,0,w,h,18);ctx.clip();
+  // metal plate (caesium)
+  const mg=ctx.createLinearGradient(g.mx,0,g.mx+w*0.08,0);mg.addColorStop(0,'#f0dca4');mg.addColorStop(0.2,'#d6be86');mg.addColorStop(1,'#6c5d3e');rr(g.mx,g.my0,Math.min(w*0.08,60*g.s),g.my1-g.my0,6);ctx.fillStyle=mg;ctx.fill();ctx.strokeStyle='rgba(0,0,0,.4)';ctx.stroke();
+  for(let i=0;i<7;i++){electron(g.mx+Math.min(w*0.04,30*g.s)+(i%2?6:-4)*g.s,g.my0+(g.my1-g.my0)*(i+0.5)/7,5*g.s);}
+  lampSide(g.lx,g.ly,22*g.s,c);
+  // photons: separate glowing packets (each one a quantum of energy)
+  PH.forEach(p=>{const pc=lamArr(p.l),gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,11*g.s);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.3,rgba(pc,0.95));gr.addColorStop(1,rgba(pc,0));ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p.x,p.y,11*g.s,0,7);ctx.fill();});
+  FLp=FLp.filter(f=>(f.t+=1/60)<0.3);FLp.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,3+16*f.t,0,7);ctx.strokeStyle=`rgba(255,160,140,${1-f.t/0.3})`;ctx.lineWidth=2;ctx.stroke();});
+  EL.forEach(e=>{const v=Math.hypot(e.vx,e.vy),ux=e.vx/v,uy=e.vy/v;ctx.strokeStyle='#9c9cff';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(e.x+ux*7,e.y+uy*7);ctx.lineTo(e.x+ux*(10+v*0.1),e.y+uy*(10+v*0.1));ctx.stroke();arrowHead(e.x+ux*(12+v*0.1),e.y+uy*(12+v*0.1),Math.atan2(uy,ux),5,'#9c9cff');electron(e.x,e.y,5.5*g.s);});
+  ctx.restore();panelEdge(w,h);
+  const E=HC/S.lamP,ok=E>=WCS,bf=w<520?11:12.5;
+  titleChip(w<520?'السلوك الجسيمي':'السلوك الجسيمي: الضوء سيل من الفوتونات',w,'#7fd3ff');drawDots(w,22,S.lamP);
+  label(`كل فوتون كمّة طاقتها ⁦E = hf = ${E.toFixed(2)} eV⁩`,w<520?w*0.36:w*0.32,w<520?h-46:h-20,'#ffe6b0',{s:bf});
+  label(ok?'تتحرر الكترونات من السيزيوم':'لا تتحرر الكترونات (hf < W)',Math.min(w-100,g.mx-30),h-20,ok?'#bff5d8':'#ffb3a8',{s:bf});}
+
+/* ---------- double-slit geometry shared by the wave and dual panels ---------- */
+function slitG(n){const P=L[n],w=P.w,h=P.h,yc=h*0.56,xb=w*0.4,xs=w*0.8,d=Math.max(26,h*0.2),lam=lamOf(n),lv=10+(lam-410)/250*7,dual=n==='dual',xb2=dual?w*0.34:xb,xs2=dual?w*(w<560?0.66:0.68):xs;const bot=dual?h-46:h-6,yc2=dual?(40+bot)/2:yc;return{n,w,h,bot,yc:yc2,xb:xb2,xs:xs2,d,lv,k:2*Math.PI/lv,sw:dual?Math.min(w*0.13,120):Math.min(w*0.1,70),src:Math.max(40,w*0.06),top:40,col:lamArr(lam)};}
+/* time-averaged intensity on the screen at height y: two-slit interference (with a soft single-slit envelope) */
+function Iy(g,y){const L2=g.xs-g.xb,dy=y-g.yc,r1=Math.hypot(L2,dy-g.d/2),r2=Math.hypot(L2,dy+g.d/2);const ph=g.k*(r1-r2)/2;return Math.cos(ph)**2*Math.exp(-Math.pow(dy/(g.h*0.6),2));}
+/* instantaneous wave field, drawn into a small offscreen image */
+const FC={};
+function field(n,g,alpha){const cell=3,W2=Math.ceil(g.xs/cell),H2=Math.ceil(g.h/cell);let f=FC[n];if(!f||f.w!==W2||f.h!==H2){const c=document.createElement('canvas');c.width=W2;c.height=H2;f=FC[n]={c,x:c.getContext('2d'),w:W2,h:H2,im:null};f.im=f.x.createImageData(W2,H2);}
+  const d=f.im.data,col=g.col,om=g.k*70,t=time*om,y1=g.yc-g.d/2,y2=g.yc+g.d/2;
+  for(let j=0;j<H2;j++){const y=(j+0.5)*cell;for(let i=0;i<W2;i++){const x=(i+0.5)*cell;let b;
+    if(x<g.src+20)b=0;else if(x<g.xb){const a=Math.cos(g.k*x-t);b=a*a*0.85;}
+    else{const r1=Math.hypot(x-g.xb,y-y1),r2=Math.hypot(x-g.xb,y-y2),a=(Math.cos(g.k*r1-t-g.k*g.xb)+Math.cos(g.k*r2-t-g.k*g.xb))*0.5;b=a*a*1.05;}
+    const k=(j*W2+i)*4;d[k]=col[0];d[k+1]=col[1];d[k+2]=col[2];d[k+3]=255*clamp(b,0,1)*alpha;}}
+  f.x.putImageData(f.im,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(f.c,0,0,W2*cell,H2*cell);}
+function barrier(g){const bw=8,sl=6;ctx.fillStyle='#596273';const segs=[[0,g.yc-g.d/2-sl/2],[g.yc-g.d/2+sl/2,g.yc+g.d/2-sl/2],[g.yc+g.d/2+sl/2,g.h]];
+  segs.forEach(([a,b])=>{const gr=ctx.createLinearGradient(g.xb-bw/2,0,g.xb+bw/2,0);gr.addColorStop(0,'#3a4250');gr.addColorStop(0.5,'#a3adbd');gr.addColorStop(1,'#2d333e');ctx.fillStyle=gr;ctx.fillRect(g.xb-bw/2,a,bw,b-a);});}
+function screenFace(g,fill){const x0=g.xs,x1=g.xs+g.sw;ctx.fillStyle='#0a0f1a';ctx.fillRect(x0,g.top,x1-x0,g.h-6-g.top);
+  if(fill){const c=g.col;for(let y=g.top;y<g.h-6;y+=2){const I=Iy(g,y);ctx.fillStyle=rgba(c.map(v=>v*(0.15+0.85*I)),Math.min(1,I*1.1));ctx.fillRect(x0,y,x1-x0,2);}}
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.strokeRect(x0,g.top,x1-x0,g.h-6-g.top);}
+
+/* ---------- panel 2: wave behaviour — interference from two slits ---------- */
+function drawWave(){const g=slitG('wave'),w=g.w,h=g.h,c=g.col;panelBox(w,h);ctx.save();rr(0,0,w,h,18);ctx.clip();
+  field('wave',g,1);barrier(g);screenFace(g,true);lampSide(g.src-10,g.yc,20,c);
+  ctx.restore();panelEdge(w,h);const bf=w<520?11:12.5;
+  titleChip(w<520?'السلوك الموجي':'السلوك الموجي: تداخل الضوء من شقين',w,'#7fd3ff');drawDots(w,22,S.lamW);
+  label('هدب مضيئة ومظلمة',Math.max(80,g.xs+g.sw/2-10),h-20,'#ffe6b0',{s:bf});label('شقّان',g.xb,h-20,'#e8ecf2',{s:bf});}
+
+/* ---------- panel 3: dual behaviour — photons sent ONE AT A TIME through the two slits.
+   Each arrives as a single dot (particle); where it can arrive is set by the wave (bright fringes = high probability). ---------- */
+let DP=[],N=0,dAcc=0,ACC=null,BINS=[],RIP=[];const NB=60;
+function accReset(){ACC=null;N=0;DP=[];RIP=[];BINS=new Array(NB).fill(0);}
+function accCanvas(g){const w=Math.max(4,Math.round(g.sw*DPR)),h=Math.max(4,Math.round((g.bot-g.top)*DPR));if(!ACC||ACC.width!==w||ACC.height!==h){ACC=document.createElement('canvas');ACC.width=w;ACC.height=h;N=0;BINS=new Array(NB).fill(0);}return ACC;}
+function sampleY(g){for(let k=0;k<300;k++){const y=g.top+Math.random()*(g.bot-g.top);if(Math.random()<Iy(g,y))return y;}return g.yc;}
+function land(g,y){const a=accCanvas(g),c=a.getContext('2d'),x=(3+Math.random()*(g.sw-6))*DPR,yy=(y-g.top)*DPR,r=1.6*DPR;c.globalCompositeOperation='lighter';const col=g.col;
+  const gr=c.createRadialGradient(x,yy,0,x,yy,r*2.2);gr.addColorStop(0,rgba(col.map(v=>Math.min(255,v*0.6+100)),0.9));gr.addColorStop(1,rgba(col,0));c.fillStyle=gr;c.beginPath();c.arc(x,yy,r*2.2,0,7);c.fill();
+  N++;BINS[clamp(Math.floor((y-g.top)/(g.bot-g.top)*NB),0,NB-1)]++;}
+let FLd=[];
+function stepDual(dt){const g=slitG('dual');if(!BINS.length)BINS=new Array(NB).fill(0);RIP.forEach(r=>r.t+=dt);RIP=RIP.filter(r=>r.t<1.6);FLd.forEach(f=>f.t+=dt);FLd=FLd.filter(f=>f.t<0.6);if(S.pause)return;const rate=S.fast?90:4;dAcc+=dt*rate;
+  while(dAcc>1){dAcc-=1;const sl=Math.random()<0.5?-1:1;DP.push({x:g.src+20,y:g.yc,sy:g.yc+sl*g.d/2,ty:sampleY(g),ph:0});}
+  const v=S.fast?560:280;DP.forEach(p=>{if(p.ph===0){const dx=g.xb-p.x,st=Math.min(dx,v*dt);p.y+=(p.sy-p.y)*st/Math.max(dx,1e-3);p.x+=st;if(p.x>=g.xb-0.5){p.ph=1;if(!S.fast)RIP.push({x:g.xb,t:0});}}
+    else{const dx=g.xs-p.x,st=Math.min(dx,v*dt);p.y+=(p.ty-p.y)*st/Math.max(dx,1e-3);p.x+=st;if(p.x>=g.xs-0.5){p.dead=true;land(g,p.ty);if(!S.fast)FLd.push({y:p.ty,x:g.xs+g.sw/2,t:0});}}});
+  DP=DP.filter(p=>!p.dead);}
+function stageOf(){return N<12?0:N<500?1:2;}
+function drawDual(){const g=slitG('dual'),w=g.w,h=g.h,c=g.col,nar=w<560;panelBox(w,h);ctx.save();rr(0,0,w,h,18);ctx.clip();
+  if(S.field)field('dual',g,0.22);
+  if(S.field)RIP.forEach(r=>{[-1,1].forEach(sg=>{ctx.beginPath();ctx.arc(g.xb,g.yc+sg*g.d/2,10+r.t*(g.xs-g.xb)/1.4,-Math.PI/2,Math.PI/2);ctx.strokeStyle=rgba(c,0.5*(1-r.t/1.6));ctx.lineWidth=1.4;ctx.stroke();});});
+  barrier(g);lampSide(g.src-10,g.yc,20,c);
+  const x0=g.xs,sh=g.bot-g.top;ctx.fillStyle='#05080f';ctx.fillRect(x0,g.top,g.sw,sh);
+  if(S.cmp){for(let y=g.top;y<g.bot;y+=2){const I=Iy(g,y);ctx.fillStyle=rgba(c,0.18*I);ctx.fillRect(x0,y,g.sw,2);}}
+  if(ACC)ctx.drawImage(ACC,x0,g.top,g.sw,sh);
+  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;ctx.strokeRect(x0,g.top,g.sw,sh);
+  FLd.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,4+22*f.t,0,7);ctx.strokeStyle=rgba(c,0.9*(1-f.t/0.6));ctx.lineWidth=2;ctx.stroke();});
+  const hx0=x0+g.sw+10,hx1=w-16,mx=Math.max(1,...BINS),bh=sh/NB;ctx.fillStyle='rgba(255,255,255,.04)';ctx.fillRect(hx0,g.top,hx1-hx0,sh);
+  for(let i=0;i<NB;i++){const v=BINS[i]/mx;if(v<=0)continue;ctx.fillStyle=rgba(c,0.35+0.6*v);ctx.fillRect(hx0,g.top+i*bh+0.5,(hx1-hx0)*v,bh-1);}
+  if(S.cmp){ctx.strokeStyle='rgba(255,255,255,.85)';ctx.setLineDash([4,3]);ctx.lineWidth=1.5;ctx.beginPath();let mI=0;for(let i=0;i<NB;i++)mI=Math.max(mI,Iy(g,g.top+(i+0.5)*bh));for(let i=0;i<NB;i++){const y=g.top+(i+0.5)*bh,x=hx0+(hx1-hx0)*Iy(g,y)/mI;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.setLineDash([]);}
+  DP.forEach(p=>{const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,10);gr.addColorStop(0,'#fff');gr.addColorStop(0.3,rgba(c,0.95));gr.addColorStop(1,rgba(c,0));ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p.x,p.y,10,0,7);ctx.fill();});
+  ctx.restore();panelEdge(w,h);const bf=nar?11:12.5;
+  titleChip(nar?'السلوك المزدوج':'السلوك المزدوج: فوتونات تُرسَل واحداً واحداً',w,'#7fd3ff');drawDots(w,22,S.lamD);
+  const st=stageOf(),ST=['١  كل فوتون يصل نقطةً واحدة: جسيم','٢  النقاط تبدو عشوائية…','٣  تتجمع النقاط في هدب: موجة'];
+  if(!nar){const xs0=g.src+40,xe=g.xs-10,cw=(xe-xs0)/3;ST.forEach((t,i)=>{const cx=xe-cw*(i+0.5),on=i===st,done=i<st;ctx.globalAlpha=on?1:done?0.55:0.35;label(t,cx,g.top+8,on?'#ffe6b0':'#cfd8e6',{s:on?12.5:11.5});ctx.globalAlpha=1;});}
+  else label(ST[st],(g.xb+g.xs)/2,g.top+8,'#ffe6b0',{s:11});
+  if(!nar){label('الشاشة',x0+g.sw/2,h-24,'#e8ecf2',{s:bf});label('عدد الفوتونات عند كل ارتفاع',(hx0+hx1)/2,h-24,'#e8ecf2',{s:11.5});}
+  chip(`⁦${N}⁩ فوتون`,hx1,g.top+14,'#ffe6b0','right');
+  dualBtns(w,h).forEach(b=>{rr(b.x,b.y,b.w,b.h,b.h/2);const on=b.on&&b.on();ctx.fillStyle=on?'rgba(255,210,122,.25)':'rgba(255,255,255,.08)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(600,nar?11:12),color:on?'#ffe2a8':col.ink});});}
+function dualBtns(w,h){const nar=w<560,bh=nar?28:30,y=h-bh-8,gp=6,bs=[{l:S.pause?'▶ تشغيل':'⏸ إيقاف',a:()=>S.pause=!S.pause,on:()=>S.pause,wd:nar?62:80},{l:S.fast?'السرعة: سريعة':'السرعة: بطيئة',a:()=>S.fast=!S.fast,on:()=>S.fast,wd:nar?86:104},{l:'↺ إعادة',a:accReset,wd:nar?56:70},{l:nar?'الموجة':'الموجة الموجِّهة',a:()=>S.field=!S.field,on:()=>S.field,wd:nar?56:108},{l:nar?'قارن':'قارن بنمط الموجة',a:()=>S.cmp=!S.cmp,on:()=>S.cmp,wd:nar?48:118}];
+  let x=14;return bs.map(b=>{b.x=x;b.y=y;b.w=b.wd;b.h=bh;x+=b.wd+gp;return b;});}
+
+function draw(){drawBg();const fn={part:drawPart,wave:drawWave,dual:drawDual};let any=false;
+  for(const n of['part','wave','dual'])if(PL[n]){setPanel(n);LB=[];LBW=L[n].w;LBH=L[n].h;fn[n]();any=true;}
+  if(!any){ctx.setTransform(DPR,0,0,DPR,0,0);const f=L.fs;L.fs=1;txt('كل الأجزاء مخفية: اختر جزءاً من الأزرار في الأعلى لإظهاره',W/2,H/2,{font:F(600,15),color:col.muted});L.fs=f;}}
+
+/* ---------- input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+/* each phenomenon keeps its own colour; choosing a colour in the dual panel applies it to all three */
+function setLam(n,l){if(n==='dual'){S.lamP=S.lamW=S.lamD=l;accReset();}else S[LAMK[n]]=l;}
+function hit(p,n){const P=L[n];const l=dotHit(p,P.w,22);if(l)return{type:'act',a:()=>setLam(n,l),key:n+l};
+  if(n==='dual'){for(const b of dualBtns(P.w,P.h))if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return{type:'act',a:b.a,key:b.l};}return null;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  if(ptrs.size>2)return;const pn=panelAt(toWorld(s)),p=pn?toLocal(s,pn):null,h=pn?hit(p,pn):null;
+  if(!h){const now=performance.now();if(now-lastTap<320)fitView();lastTap=now;drag={type:'pan',s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';return;}
+  h.a();});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const pn=panelAt(toWorld(s)),h=pn?hit(toLocal(s,pn),pn):null;hover=h?h.key:null;cv.style.cursor=h?'pointer':'grab';return;}
+  if(drag.type==='pan'){view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;}});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){const st=stageOf();
+  return{t:'الجسيمات والموجات',b:`<p><b>السلوك الجسيمي:</b> في الظاهرة الكهروضوئية يسلك الضوء سلوك فوتونات، كل فوتون كمّة طاقتها <b class="m">E = hf</b> يعطيها كاملة لالكترون واحد. (اللون الحالي ⁦${S.lamP} nm⁩: ⁦E = ${(HC/S.lamP).toFixed(2)} eV⁩)</p>
+  <p><b>السلوك الموجي:</b> الضوء نفسه يحدث تداخلاً: الموجتان من الشقين تتقويان في أماكن (هدب مضيئة) وتتلاشيان في أخرى (هدب مظلمة).</p>
+  <p><b>السلوك المزدوج:</b> نرسل الفوتونات <b>واحداً واحداً</b>. كل فوتون يصل إلى الشاشة <b>نقطةً واحدة</b> (صفة جسيمية)، لكن مكان وصوله يحدده مجال موجي يمر من الشقين معاً، فتتجمع النقاط مع الوقت في <b>هدب التداخل</b> (صفة موجية). أي أن طاقة الإشعاع تنتقل بشكل فوتونات يقودها باتجاه سيرها مجال موجي، والصفتان تكمل إحداهما الأخرى.</p>
+  <p>المرحلة الآن: ${['فوتونات قليلة، كل منها نقطة','نقاط تبدو عشوائية','ظهرت هدب التداخل'][st]} (⁦${N}⁩ فوتون).</p>
+  <p class="note">جرّب: اضغط «إعادة» وراقب الفوتونات الأولى ببطء، ثم اختر «السرعة: سريعة» حتى تظهر الهدب، ثم «قارن بنمط الموجة». اختيار لون في هذا الجزء يطبَّق على الأجزاء الثلاثة.</p>`};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();
+  if(W){if(PL.part)stepPart(dt);if(PL.dual)stepDual(dt);draw();}requestAnimationFrame(frame);}
+readColors();layout();accReset();
+document.querySelectorAll('#parts button').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.p;VIS[n]=!VIS[n];b.setAttribute('aria-pressed',VIS[n]);fitView();arrange();}));
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
