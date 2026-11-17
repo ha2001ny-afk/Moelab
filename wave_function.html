@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>دالة الموجة</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts button[aria-pressed="false"] span{text-decoration:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة دالة الموجة: حزمة موجية لجسيم متحرك، ودالة الموجة ψ وكثافة الاحتمالية |ψ|²"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="الصفحات">
+    <button data-p="f16" aria-pressed="false"><i></i><span class="l">شكل (16)</span><span class="s">شكل 16</span></button>
+    <button data-p="f17" aria-pressed="false"><i></i><span class="l">شكل (17)</span><span class="s">شكل 17</span></button>
+    <button data-p="both" aria-pressed="true"><i></i><span class="l">الاثنان معاً</span><span class="s">معاً</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* page: 'cl' classical atom, 'qm' quantum atom, 'both' */
+const S={page:'both',run16:true,env:false,meas:false,auto:true};
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+/* ---------- layout: each figure free on the screen; 'both' splits it ---------- */
+let REG={};
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){REG={};const top=H<500?58:66,m=8,aw=W-2*m,ah=H-top-m;
+  if(S.page==='f16')REG.f16={x:m,y:top,w:aw,h:ah};else if(S.page==='f17')REG.f17={x:m,y:top,w:aw,h:ah};
+  else if(aw/ah>1.1){REG.f16={x:m+aw/2,y:top,w:aw/2,h:ah};REG.f17={x:m,y:top,w:aw/2,h:ah};}else{REG.f16={x:m,y:top,w:aw,h:ah*0.42};REG.f17={x:m,y:top+ah*0.42,w:aw,h:ah*0.58};}}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setReg(n){const R=REG[n];ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*(view.z*R.x+view.x),DPR*(view.z*R.y+view.y));}
+function regAt(w){for(const n in REG){const R=REG[n];if(w.x>=R.x&&w.x<=R.x+R.w&&w.y>=R.y&&w.y<=R.y+R.h)return n;}return null;}
+function btn(b,on){rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=on?'rgba(255,210,122,.22)':hover===b.k?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(600,narrow?12:12.5),color:on?'#ffe2a8':col.ink});}
+function rowBtns(n,list){const R=REG[n],gap=8;ctx.font=F(600,12.5);const ws=list.map(b=>Math.max(64,ctx.measureText(b.l).width+26)),tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);let x=(R.w+tot)/2;
+  return list.map((b,i)=>{x-=ws[i];const r={...b,x,y:R.h-40,w:ws[i],h:34};x-=gap;return r;});}
+/* axes like the book: vertical axis at the left with its symbol, x axis with an arrow */
+function axes(x0,yc,x1,yt,yb,sym,symSup){ctx.strokeStyle='rgba(230,236,245,.85)';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(x0,yb);ctx.lineTo(x0,yt);ctx.moveTo(x0-8,yc);ctx.lineTo(x1,yc);ctx.stroke();arrowHead(x1+4,yc,0,6,'rgba(230,236,245,.9)');arrowHead(x0,yt-4,-Math.PI/2,6,'rgba(230,236,245,.9)');
+  ctx.font=`italic 600 ${Math.round(17*L.fs)}px "Times New Roman",serif`;ctx.fillStyle='#eaf0fa';ctx.textAlign='left';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText('x',x1-6,yc+18);
+  if(symSup){const tw=ctx.measureText('|ψ|').width;ctx.fillText('|ψ|',x0-tw-14,yt+10);ctx.font=`italic 600 ${Math.round(11*L.fs)}px "Times New Roman",serif`;ctx.fillText('2',x0-13,yt+1);}else ctx.fillText('ψ',x0-24,yt+10);}
+
+/* ---------- figure 16: the wave function of a moving particle — a wave packet travelling along x ---------- */
+let t16=0;
+function g16(){const R=REG.f16,w=R.w,h=R.h,x0=Math.max(46,w*0.08),x1=w-Math.max(30,w*0.06),yc=46+(h-46-50)*0.52,A=Math.min((h-46-50)*0.38,w*0.18);return{w,h,x0,x1,yc,A};}
+function psi16(g,x){const L2=g.x1-g.x0,c=g.x0+L2*(0.12+0.76*((t16*0.09)%1)),s=L2*0.13,k=2*Math.PI/(L2*0.055),env=Math.exp(-Math.pow((x-c)/s,2));return{v:env*Math.cos(k*(x-c)-t16*6),env,c};}
+function draw16(){const g=g16();axes(g.x0,g.yc,g.x1,g.yc-g.A-26,g.yc+g.A*0.9,'ψ');
+  // faint envelope: where the particle is most likely to be
+  if(S.env){ctx.beginPath();for(let x=g.x0+2;x<=g.x1;x+=2){const p=psi16(g,x);ctx.lineTo(x,g.yc-p.env*g.A);}for(let x=g.x1;x>=g.x0+2;x-=2){const p=psi16(g,x);ctx.lineTo(x,g.yc+p.env*g.A);}ctx.closePath();ctx.fillStyle='rgba(255,180,120,.10)';ctx.fill();}
+  ctx.beginPath();for(let x=g.x0+2;x<=g.x1;x+=1.5){const p=psi16(g,x);const y=g.yc-p.v*g.A;x===g.x0+2?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.strokeStyle='#e0a070';ctx.lineWidth=3.2;ctx.shadowColor='rgba(224,160,112,.5)';ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;
+  const c=psi16(g,g.x0).c;LB=[];LBW=g.w;LBH=g.h;const nar=g.w<520;
+  const cw=chip(nar?'شكل (16)':'شكل (16): تغير دالة الموجة ψ مع الإحداثي x',g.w/2,20,'#7fd3ff','center',{s:nar?12.5:13.5});LB.push([g.w/2-cw/2,6,cw,30]);
+  label('الجسيم يتحرك مع حزمة الموجة',clamp(c,110,g.w-110),g.yc+g.A+26,'#ffd9b8',{s:12.5});
+  rowBtns('f16',[{k:'run16',l:S.run16?'⏸ إيقاف':'▶ تشغيل'},{k:'env',l:'غلاف الحزمة'}]).forEach(b=>btn(b,(b.k==='env'&&S.env)||(b.k==='run16'&&!S.run16)));}
+
+/* ---------- figure 17: ψ (red) and the probability density |ψ|² (green); a probe shows the value at any x ---------- */
+let probe=0.5,pph=0,MEAS=[],mAcc=0;
+function g17(){const R=REG.f17,w=R.w,h=R.h,x0=Math.max(56,w*0.09),x1=w-Math.max(30,w*0.06),top=52,bot=h-96,gap=(bot-top)*0.12,ph=(bot-top-gap)/2;
+  return{w,h,x0,x1,yb1:top+ph,yt1:top,yc2:top+ph+gap+ph/2,A2:ph*0.42,A1:ph*0.86};}
+const CYC=3.5;
+const psi17=(g,x)=>Math.sin(2*Math.PI*CYC*(x-g.x0)/(g.x1-g.x0));
+function draw17(){const g=g17();
+  // |ψ|² (top) — always ≥ 0
+  axes(g.x0,g.yb1,g.x1,g.yt1+6,g.yb1+4,'',true);
+  ctx.beginPath();for(let x=g.x0;x<=g.x1;x+=1.5){const v=psi17(g,x)**2,y=g.yb1-v*g.A1;x===g.x0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.strokeStyle='#5fcf6a';ctx.lineWidth=3;ctx.shadowColor='rgba(95,207,106,.5)';ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;
+  // measurements: the particle is found more often where |ψ|² is large
+  MEAS.forEach(m=>{const x=g.x0+m.u*(g.x1-g.x0);ctx.fillStyle=m.age<0.4?'#ffffff':'rgba(140,240,150,.75)';ctx.beginPath();ctx.arc(x,g.yb1+8+m.v*12,m.age<0.4?3.4:2,0,7);ctx.fill();});
+  // ψ (bottom) — positive and negative
+  axes(g.x0,g.yc2,g.x1,g.yc2-g.A2-18,g.yc2+g.A2+10,'ψ');
+  ctx.beginPath();for(let x=g.x0;x<=g.x1;x+=1.5){const y=g.yc2-psi17(g,x)*g.A2;x===g.x0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.strokeStyle='#e0404a';ctx.lineWidth=3;ctx.shadowColor='rgba(224,64,74,.5)';ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;
+  // probe line
+  const px=g.x0+probe*(g.x1-g.x0),pv=psi17(g,px),p2=pv*pv;ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,210,122,.75)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(px,g.yt1);ctx.lineTo(px,g.yc2+g.A2+6);ctx.stroke();ctx.setLineDash([]);
+  [[px,g.yb1-p2*g.A1,'#5fcf6a'],[px,g.yc2-pv*g.A2,'#e0404a']].forEach(([x,y,c])=>{ctx.beginPath();ctx.arc(x,y,7,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=3;ctx.stroke();});
+  const hx=clamp(px,16,g.w-16);ctx.beginPath();ctx.arc(hx,g.yc2+g.A2+18,9,0,7);ctx.fillStyle='#ffd27a';ctx.fill();txt('↔',hx,g.yc2+g.A2+18,{font:F(800,11,1),color:'#1b1300',dir:'ltr'});
+  if(!touched.probe&&!drag&&!S.auto)pulseRing(hx,g.yc2+g.A2+18,10,'#ffd27a',0);
+  LB=[];LBW=g.w;LBH=g.h;const nar=g.w<520;
+  const cw=chip(nar?'شكل (17)':'شكل (17): دالة الموجة ψ وكثافة الاحتمالية ⁦|ψ|²⁩',g.w/2,20,'#7fd3ff','center',{s:nar?12.5:13.5});LB.push([g.w/2-cw/2,6,cw,30]);
+  const verdict=p2>0.6?'احتمالية كبيرة لوجود الجسيم':p2<0.04?'احتمالية ≈ صفر':'احتمالية متوسطة';
+  label(`⁦ψ = ${pv>=0?'+':'−'}${Math.abs(pv).toFixed(2)}⁩   ⁦|ψ|² = ${p2.toFixed(2)}⁩   ←   ${verdict}`,g.w/2,g.h-60,p2>0.6?'#bff5c8':p2<0.04?'#ffb3a8':'#ffe6b0',{s:12.5});
+  rowBtns('f17',[{k:'auto',l:S.auto?'حركة تلقائية ✓':'حركة تلقائية'},{k:'meas',l:S.meas?'⏸ إيقاف القياسات':'▶ قياس موقع الجسيم'},{k:'clr',l:'↺ مسح'}]).forEach(b=>btn(b,(b.k==='meas'&&S.meas)||(b.k==='auto'&&S.auto)));}
+function sampleU(){for(let k=0;k<200;k++){const u=Math.random();if(Math.random()<Math.sin(2*Math.PI*CYC*u)**2)return u;}return 0.5;}
+
+function draw(){drawBg();if(REG.f16){setReg('f16');draw16();}if(REG.f17){setReg('f17');draw17();}
+  if(REG.f16&&REG.f17){ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.x,DPR*view.y);ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.beginPath();if(REG.f16.x>REG.f17.x){ctx.moveTo(REG.f16.x,REG.f16.y+30);ctx.lineTo(REG.f16.x,REG.f16.y+REG.f16.h-30);}else{ctx.moveTo(REG.f17.x+30,REG.f17.y);ctx.lineTo(REG.f17.x+REG.f17.w-30,REG.f17.y);}ctx.stroke();}}
+
+/* ---------- input ---------- */
+const touched={probe:false};const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function local(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n];return{n,p:{x:w.x-R.x,y:w.y-R.y}};}
+function hitAt(s){const q=local(s);if(!q)return null;const{n,p}=q;
+  const list=n==='f16'?rowBtns('f16',[{k:'run16',l:S.run16?'⏸ إيقاف':'▶ تشغيل'},{k:'env',l:'غلاف الحزمة'}]):rowBtns('f17',[{k:'auto',l:S.auto?'حركة تلقائية ✓':'حركة تلقائية'},{k:'meas',l:S.meas?'⏸ إيقاف القياسات':'▶ قياس موقع الجسيم'},{k:'clr',l:'↺ مسح'}]);
+  for(const b of list)if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return{type:'btn',b};
+  if(n==='f17'){const g=g17();if(p.x>g.x0-10&&p.x<g.x1+10&&p.y>g.yt1&&p.y<g.yc2+g.A2+34)return{type:'probe'};}return null;}
+function act(b){switch(b.k){case'run16':S.run16=!S.run16;break;case'env':S.env=!S.env;break;case'meas':S.meas=!S.meas;break;case'clr':MEAS=[];break;case'auto':S.auto=!S.auto;if(S.auto)pph=Math.asin(clamp((probe-0.5)/0.45,-1,1));break;}}
+function setProbe(s){const q=local(s);if(!q||q.n!=='f17')return;const g=g17();probe=clamp((q.p.x-g.x0)/(g.x1-g.x0),0,1);touched.probe=true;S.auto=false;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const h=hitAt(s);if(h&&h.type==='btn'){act(h.b);return;}if(h&&h.type==='probe'){drag={type:'probe'};setProbe(s);cv.style.cursor='ew-resize';return;}
+  const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={type:'pan',s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const h=hitAt(s);hover=h&&h.type==='btn'?h.b.k:null;cv.style.cursor=h?(h.type==='probe'?'ew-resize':'pointer'):'grab';return;}
+  if(drag.type==='probe'){setProbe(s);return;}view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){
+  const a=`<p>في الموجات المائية يتغير ارتفاع سطح الماء، وفي الصوتية الضغط، وفي الضوئية المجالان الكهربائي والمغناطيسي. أما في <b>الموجات المادية</b> فالكمية المتغيرة تسمى <b>دالة الموجة ψ</b> (تُقرأ بساي).</p><p><b>شكل (16):</b> قيمة دالة الموجة المرافقة لجسيم متحرك في نقطة معينة ولزمن معين تتعلق باحتمالية إيجاد الجسيم في ذلك المكان والزمان، لذلك تتحرك «حزمة الموجة» مع الجسيم، وتكون سعتها كبيرة حيث يُرجَّح وجوده.</p>`;
+  const g=REG.f17?g17():null,pv=g?psi17(g,g.x0+probe*(g.x1-g.x0)):0,p2=pv*pv;
+  const b=`<p><b>شكل (17):</b> كثافة الاحتمالية (الاحتمالية لوحدة الحجم) لإيجاد الجسيم في نقطة معينة ولزمن معين تتناسب طردياً مع <b class="m">|ψ|²</b>. لاحظ أن ψ تأخذ قيماً موجبة وسالبة، أما <b class="m">|ψ|²</b> فهي موجبة دائماً، وقممها حيث تكون ψ أكبر ما يمكن أو أصغر ما يمكن.</p><p>• قيمة كبيرة لـ |ψ|² ← احتمالية كبيرة لوجود الجسيم.<br>• قيمة صغيرة لـ |ψ|² ← احتمالية صغيرة.<br>• ما دامت |ψ|² لا تساوي صفراً في مكان ما، فهناك احتمال معين لوجود الجسيم فيه.</p><p>هذا التفسير قدّمه العالم <b>بورن</b> عام 1927.</p>${g?`<div class="nums" style="direction:rtl;justify-content:flex-start"><span dir="ltr">ψ = ${pv.toFixed(2)}</span><span dir="ltr">|ψ|² = ${p2.toFixed(2)}</span></div>`:''}<p class="note">جرّب: اسحب الخط المتقطع على المحور x، ثم اضغط «قياس موقع الجسيم» وراقب أين تتجمع النقاط.</p>`;
+  if(S.page==='f16')return{t:'دالة الموجة ψ',b:a};if(S.page==='f17')return{t:'دالة الموجة وكثافة الاحتمالية',b:b};return{t:'دالة الموجة',b:a+b};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();
+  if(S.run16&&REG.f16)t16+=dt;
+  if(S.meas&&REG.f17){mAcc+=dt*12;while(mAcc>1){mAcc-=1;MEAS.push({u:sampleU(),v:Math.random(),age:0});if(MEAS.length>1500)MEAS.shift();}}MEAS.forEach(m=>m.age+=dt);
+  if(S.auto&&!(drag&&drag.type==='probe')&&REG.f17){pph+=dt*0.35;probe=0.5+0.45*Math.sin(pph);}
+  if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();
+const pb=document.querySelectorAll('#parts button');function syncPages(){pb.forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.page));}
+pb.forEach(b=>b.addEventListener('click',()=>{S.page=b.dataset.p;syncPages();view={z:1,x:0,y:0};arrange();}));syncPages();
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
