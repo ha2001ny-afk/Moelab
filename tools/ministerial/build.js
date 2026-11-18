@@ -49,12 +49,11 @@ for (const [key, { data }] of Object.entries(all)) {
   let html = fs.readFileSync(file, 'utf8');
   const a = html.indexOf(START), b = html.indexOf(END);
   if (a >= 0 && b > a) html = html.slice(0, a) + html.slice(b + END.length);
-  html = html.replace(/\n?$/, '');
   const json = JSON.stringify(data).replace(/</g, '\\u003c');
-  const block = `${START}\n<style>\n${css}\n</style>\n<script>window.MOE_MIN_DATA=${json};</script>\n<script>\n${engine}\n</script>\n${END}\n`;
+  const block = `${START}\n<style>\n${css}\n</style>\n<script>window.MOE_MIN_DATA=${json};</script>\n<script>\n${engine}\n</script>\n${END}`;
   const i = html.lastIndexOf('</body>');
   if (i < 0) { console.error(`❌ ${key}.html: لا يوجد </body>`); process.exit(1); }
-  const out = html.slice(0, i) + block + html.slice(i) + '\n';
+  const out = html.slice(0, i) + block + html.slice(i);
   if (!checkOnly && out !== fs.readFileSync(file, 'utf8')) { fs.writeFileSync(file, out); changed++; }
   console.log(`✔ ${key}: ${data.qs.length} سؤال`);
 }
