@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>الاندماج النووي</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts button[aria-pressed="false"] span{text-decoration:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة الاندماج النووي وجهاز التوكاماك ومفاعل الاندماج"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="الصفحات">
+    <button data-p="fus" aria-pressed="true"><i></i><span class="l">الاندماج النووي</span><span class="s">اندماج</span></button>
+    <button data-p="tok" aria-pressed="false"><i></i><span class="l">التوكاماك</span><span class="s">توكاماك</span></button>
+    <button data-p="reac" aria-pressed="false"><i></i><span class="l">مفاعل الاندماج</span><span class="s">المفاعل</span></button>
+    <button data-p="all" aria-pressed="false"><i></i><span class="l">الكل معاً</span><span class="s">الكل</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* page: 'cl' classical atom, 'qm' quantum atom, 'both' */
+const S={page:'fus',hot:true,mag:true};
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+/* ---------- layout: one decay per page, or all three together ---------- */
+let REG={};const PG=['fus','tok','reac'];
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){REG={};const top=H<500?58:66,m=8,aw=W-2*m,ah=H-top-m;
+  if(S.page!=='all')REG[S.page]={x:m,y:top,w:aw,h:ah};
+  else if(aw/ah>1.3){const cw=aw/3;PG.forEach((n,i)=>REG[n]={x:m+aw-cw*(i+1),y:top,w:cw,h:ah});}else{const rh=ah/3;PG.forEach((n,i)=>REG[n]={x:m,y:top+rh*i,w:aw,h:rh});}}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setReg(n){const R=REG[n];ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*(view.z*R.x+view.x),DPR*(view.z*R.y+view.y));}
+function regAt(w){for(const n in REG){const R=REG[n];if(w.x>=R.x&&w.x<=R.x+R.w&&w.y>=R.y&&w.y<=R.y+R.h)return n;}return null;}
+function btn(b,on){rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=on?'rgba(255,210,122,.22)':hover===b.id?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(600,narrow?11.5:12.5),color:on?'#ffe2a8':col.ink});}
+function rowBtns(n,list,y){const R=REG[n],gap=6;ctx.font=F(600,12.5);let ws=list.map(b=>Math.max(44,ctx.measureText(b.l).width+22));let tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);
+  if(tot>R.w-12){list=list.map(b=>({...b,l:b.s||b.l}));ws=list.map(b=>Math.max(36,ctx.measureText(b.l).width+16));tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);}
+  let x=(R.w+tot)/2;return list.map((b,i)=>{x-=ws[i];const r={...b,id:n+b.k,x,y,w:ws[i],h:30};x-=gap;return r;});}
+/* nuclide symbol like the book: A up, Z down, symbol to the right */
+function nuclide(x,y,A,Z,sym,size,c,star){ctx.save();ctx.direction='ltr';ctx.textBaseline='middle';ctx.fillStyle=c||'#eaf0fa';const f1=`700 ${Math.round(size*0.5)}px "Times New Roman",serif`,f2=`700 ${Math.round(size)}px "Times New Roman",serif`;
+  ctx.font=f1;const wA=Math.max(ctx.measureText(String(A)).width,ctx.measureText(String(Z)).width);ctx.font=f2;const wS=ctx.measureText(sym).width,tot=wA+3+wS+(star?size*0.35:0),x0=x-tot/2;
+  ctx.font=f1;ctx.textAlign='right';ctx.fillText(String(A),x0+wA,y-size*0.3);ctx.fillText(String(Z),x0+wA,y+size*0.32);ctx.font=f2;ctx.textAlign='left';ctx.fillText(sym,x0+wA+3,y+size*0.05);
+  if(star){ctx.font=`700 ${Math.round(size*0.6)}px serif`;ctx.fillText('*',x0+wA+3+wS+2,y-size*0.3);}ctx.restore();}
+function ball(x,y,r,base,shade){const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x,y,r);g.addColorStop(0,base[0]);g.addColorStop(0.55,base[1]);g.addColorStop(1,base[2]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();
+  if(shade){ctx.fillStyle=`rgba(0,0,0,${shade})`;ctx.fill();}}
+const PRO=['#ffb0a4','#e8352e','#7d1010'],NEU=['#a9d4ff','#2f78dc','#0f3a80'],EM=['#e7c4ff','#9b3fd6','#4a136e'],EP=['#b8c4ff','#2d3fd0','#101a6e'],NUB=['#d6ffb8','#58c43a','#1d5c10'],NU=['#fff1a8','#f2b81f','#7a5200'],ELE=['#e0f4ff','#36a3ff','#0a4a90'];
+function legend(n,y){const R=REG[n],items=[['بروتون',PRO],['نيوترون',NEU]];let x=R.w/2+60;items.forEach(([t,c])=>{ball(x,y,7,c);txt(t,x-12,y,{font:F(600,11.5),color:'#cfd8e6',align:'right'});x-=110;});}
+
+/* ---------- a nucleus: nucleons packed in a ball, drawn back-to-front, slowly turning ---------- */
+function makeNuc(A,Z,seed){const Rr=Math.cbrt(A/0.62),P=[];let s=seed||1;const rr2=()=>{s=(s*16807)%2147483647;return s/2147483647;};
+  for(let i=0;i<A;i++){let x,y,z;do{x=rr2()*2-1;y=rr2()*2-1;z=rr2()*2-1;}while(x*x+y*y+z*z>1);P.push({x:x*Rr,y:y*Rr,z:z*Rr,p:false});}
+  for(let it=0;it<70;it++){for(let i=0;i<A;i++)for(let j=i+1;j<A;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,d=Math.hypot(dx,dy,dz)||1e-3;if(d<2){const f=(2-d)/4;a.x-=dx/d*f;a.y-=dy/d*f;a.z-=dz/d*f;b.x+=dx/d*f;b.y+=dy/d*f;b.z+=dz/d*f;}}
+    P.forEach(q=>{const d=Math.hypot(q.x,q.y,q.z);if(d>Rr-1){const k=(Rr-1)/d;q.x*=k;q.y*=k;q.z*=k;}});}
+  const idx=P.map((q,i)=>[i,rr2()]).sort((a,b)=>a[1]-b[1]);for(let k=0;k<Z;k++)P[idx[k][0]].p=true;return{P,A,Z,Rr};}
+function drawNuc(nu,cx,cy,rn,rot,o={}){const c=Math.cos(rot),s=Math.sin(rot),hide=o.hide||new Set(),list=[];
+  nu.P.forEach((q,i)=>{if(hide.has(i))return;const x=q.x*c+q.z*s,z=-q.x*s+q.z*c;list.push({x,y:q.y,z,i,p:o.flip&&o.flip.has(i)?!q.p:q.p});});list.sort((a,b)=>a.z-b.z);
+  const R=nu.Rr*rn;if(o.glow){const g=ctx.createRadialGradient(cx,cy,R*0.7,cx,cy,R*1.7);g.addColorStop(0,`rgba(255,190,90,${0.45*o.glow})`);g.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*1.7,0,7);ctx.fill();}
+  const j=o.jit||0;list.forEach((q,k)=>{const jx=j?Math.sin(time*40+q.i*2.1)*j*rn:0,jy=j?Math.cos(time*37+q.i*1.3)*j*rn:0;const depth=(q.z/nu.Rr+1)/2;
+    ball(cx+q.x*rn+jx,cy+q.y*rn+jy,rn*1.04,q.p?PRO:NEU,0.4*(1-depth));
+    if(o.mark===q.i){ctx.beginPath();ctx.arc(cx+q.x*rn,cy+q.y*rn,rn*(1.5+0.25*Math.sin(time*10)),0,7);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2.4;ctx.stroke();}});
+  // ground shadow
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(cx,cy+R*1.08,R*0.8,R*0.12,0,0,7);ctx.fill();}
+function screenOf(nu,i,cx,cy,rn,rot){const q=nu.P[i],c=Math.cos(rot),s=Math.sin(rot);return{x:cx+(q.x*c+q.z*s)*rn,y:cy+q.y*rn,z:-q.x*s+q.z*c};}
+function trail(x0,y0,x1,y1,c){const dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy);if(l<4)return;const nx=-dy/l,ny=dx/l;ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.setLineDash([9,6]);for(let k=-2;k<=2;k++){ctx.beginPath();ctx.moveTo(x0+nx*k*4,y0+ny*k*4);ctx.lineTo(x1-dx/l*10+nx*k*5,y1-dy/l*10+ny*k*5);ctx.stroke();}ctx.setLineDash([]);}
+function speedArrow(x,y,dir,len,c){ctx.strokeStyle=c;ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*len,y);ctx.stroke();arrowHead(x+dir*(len+6),y,dir>0?0:Math.PI,11,c);}
+function mtxt(s,x,y,size,c){ctx.font=`italic 600 ${Math.round(size*L.fs)}px "Times New Roman",serif`;ctx.fillStyle=c||'#eaf0fa';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(s,x,y);}
+
+function burst(x,y,r,a){ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);const n=18;ctx.beginPath();for(let i=0;i<=n*2;i++){const ang=i/(n*2)*Math.PI*2+time,rr2=i%2?r*0.45:r;ctx.lineTo(Math.cos(ang)*rr2,Math.sin(ang)*rr2);}ctx.closePath();
+  const g=ctx.createRadialGradient(0,0,0,0,0,r);g.addColorStop(0,'#ffffff');g.addColorStop(0.35,'#fff27a');g.addColorStop(1,'#ff7a1a');ctx.fillStyle=g;ctx.fill();ctx.restore();}
+/* small light nuclei drawn as touching balls */
+const SHAPES={D:[[-.5,0,'p'],[.5,0,'n']],T:[[0,-.55,'p'],[-.5,.35,'n'],[.5,.35,'n']],He:[[-.55,-.55,'p'],[.55,.55,'p'],[.55,-.55,'n'],[-.55,.55,'n']],n:[[0,0,'n']]};
+function light(x,y,k,r,rot){const c=Math.cos(rot||0),s=Math.sin(rot||0);SHAPES[k].map(([a,b,t])=>[x+(a*c-b*s)*r*1.9,y+(a*s+b*c)*r*1.9,t]).sort((p,q)=>p[1]-q[1]).forEach(([px,py,t])=>ball(px,py,r,t==='p'?PRO:NEU));}
+const T={fus:-1};
+
+/* ---------- page 1 (figure 26): ²H + ³H → ⁴He (3.5 MeV) + n (14.1 MeV) ---------- */
+function gF(){const R=REG.fus,w=R.w,h=R.h,u=Math.min(w,h-200);return{w,h,cx:w/2,cy:100+(h-260)*0.5,u,r:Math.max(9,u*0.04)};}
+function drawFus(){const g=gF(),t=T.fus,nar=g.w<520,hot=S.hot,T1=1.8;LB=[];LBW=g.w;LBH=g.h;
+  chip(nar?'الاندماج النووي':'الاندماج النووي Nuclear fusion',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  rowBtns('fus',[{k:'cold',l:'درجة حرارة منخفضة',s:'حرارة منخفضة'},{k:'hot',l:'درجة حرارة عالية جداً (10⁸ K)',s:'10⁸ K'}],44).forEach(b=>btn(b,(b.k==='hot')===hot));
+  const D0={x:g.cx-g.u*0.4,y:g.cy-g.u*0.32},T0={x:g.cx+g.u*0.4,y:g.cy-g.u*0.32};
+  if(t<0){light(D0.x,D0.y,'D',g.r,0.3);light(T0.x,T0.y,'T',g.r,-0.2);nuclide(D0.x,D0.y-g.r*3.2,2,1,'H',nar?20:24,'#eaf0fa');nuclide(T0.x,T0.y-g.r*3.6,3,1,'H',nar?20:24,'#eaf0fa');
+    label('ديوتيريوم',D0.x,D0.y+g.r*3,'#cfd8e6',{s:11.5});label('تريتيوم',T0.x,T0.y+g.r*3.2,'#cfd8e6',{s:11.5});label('اضغط «ابدأ»',g.cx,g.cy+g.u*0.1,'#e8ecf2',{s:12.5});}
+  else if(!hot){// not enough energy: Coulomb repulsion turns them back
+    const k=Math.min(t/T1,2),d=k<=1?1-0.62*Math.sin(k*Math.PI/2):0.38+0.62*Math.sin((k-1)*Math.PI/2),ang=Math.atan2(D0.y-g.cy,D0.x-g.cx);
+    const dx=Math.cos(ang)*g.u*0.51*d,dy=Math.sin(ang)*g.u*0.51*d;light(g.cx+dx,g.cy+dy,'D',g.r,t);light(g.cx-dx,g.cy+dy,'T',g.r,-t);
+    if(k>0.6&&k<1.4){ctx.strokeStyle='rgba(255,120,120,.8)';ctx.lineWidth=2.4;[[g.cx+dx+g.r*2.4,g.cy+dy,1],[g.cx-dx-g.r*2.4,g.cy+dy,-1]].forEach(([x,y,sg])=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-sg*28,y);ctx.stroke();arrowHead(x-sg*32,y,sg>0?Math.PI:0,8,'rgba(255,120,120,.9)');});}
+    label('قوة كولوم التنافرية تمنع اقتراب النواتين: لا يحدث اندماج',g.cx,g.cy+g.u*0.18,'#ffb3a8',{s:nar?11:12.5});}
+  else if(t<T1){const k=t/T1,e=k*k,x1=D0.x+(g.cx-g.r*1.5-D0.x)*e,y1=D0.y+(g.cy-D0.y)*e,x2=T0.x+(g.cx+g.r*1.5-T0.x)*e;light(x1,y1,'D',g.r,t*2);light(x2,y1,'T',g.r,-t*2);
+    ctx.strokeStyle='rgba(80,160,255,.6)';ctx.lineWidth=3;ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(D0.x,D0.y);ctx.quadraticCurveTo(D0.x+g.u*0.1,g.cy,g.cx-g.r*1.5,g.cy);ctx.moveTo(T0.x,T0.y);ctx.quadraticCurveTo(T0.x-g.u*0.1,g.cy,g.cx+g.r*1.5,g.cy);ctx.stroke();ctx.setLineDash([]);}
+  else{const f=t-T1;if(f<1.2)burst(g.cx,g.cy,g.u*(0.08+0.12*Math.min(1,f*3))*(1-f/1.4),1-f/1.2);
+    // equal and opposite momenta: the neutron (¼ of the mass) moves 4 times faster
+    const vHe=g.u*0.06,dn=Math.min(f*vHe*4,g.u*0.5),dh=Math.min(f*vHe,g.u*0.5),a=Math.PI*0.72;
+    const nx=g.cx+Math.cos(a)*dn,ny=g.cy+Math.sin(a)*dn,hx=g.cx-Math.cos(a)*dh,hy=g.cy-Math.sin(a)*dh*-1;
+    const hx2=g.cx-Math.cos(a)*dh,hy2=g.cy-Math.sin(a)*dh;trail(g.cx,g.cy,nx,ny,'rgba(160,220,255,.35)');light(nx,ny,'n',g.r,0);light(hx2,hy2+0,'He',g.r,f);
+    label('⁦n + 14.1 MeV⁩',nx,ny+g.r*3,'#bfe4ff',{s:12.5});label('⁦⁴He + 3.5 MeV⁩',hx2,hy2-g.r*3.6,'#ffe6b0',{s:12.5});
+    label('النيوترون أخف بأربع مرات فيأخذ طاقة حركية أكبر (حفظ الزخم الخطي)',g.cx,g.cy+g.u*0.42,'#cfd8e6',{s:nar?10.5:11.5});}
+  const ey=g.h-108,s1=nar?18:23,items=[[2,1,'H'],'+',[3,1,'H'],'→',[4,2,'He'],'+',[1,0,'n'],'+','Q'],step=s1*2.25;let x=g.w/2-step*(items.length-1)/2;
+  items.forEach(it=>{if(it==='Q')mtxt('17.6 MeV',x+s1*0.8,ey,s1*0.8,'#ffd27a');else if(typeof it==='string')mtxt(it,x,ey,s1,'#ffd27a');else nuclide(x,ey,it[0],it[1],it[2],s1,'#eaf0fa');x+=step;});
+  label('كتلة النواة الأثقل أقل من مجموع كتلتي النواتين الخفيفتين، وفرق الكتلة يتحول إلى طاقة ⁦E = mc²⁩',g.w/2,g.h-76,'#cfd8e6',{s:nar?10.5:12});
+  label(hot?'عند ⁦10⁸ K⁩ تمتلك النوى طاقة كافية للتغلب على قوة كولوم التنافرية':'يلزم رفع درجة الحرارة جداً للتغلب على قوة كولوم التنافرية',g.w/2,g.h-54,hot?'#bff5c8':'#ffb3a8',{s:nar?10.5:12});
+  rowBtns('fus',[{k:'go',l:t<0?'▶ ابدأ':'↺ أعد',s:t<0?'▶':'↺'}],g.h-36).forEach(b=>btn(b,false));}
+
+/* ---------- page 2 (figure 28): the Tokamak — a ring-shaped magnetic field confines the plasma ---------- */
+let PZ=[],FL=[],heat=1;
+function gT(){const R=REG.tok,w=R.w,h=R.h,Rm=Math.min(w*0.28,(h-190)/1.9),rm=Rm*0.3;return{w,h,cx:w/2,cy:70+(h-170)*0.5,Rm,rm,sq:0.42};}
+function initPZ(){PZ=[];for(let i=0;i<70;i++)PZ.push({phi:Math.random()*Math.PI*2,th:Math.random()*Math.PI*2,rr:0.15+0.5*Math.random(),w:0.5+Math.random()*0.5,dr:0,p:Math.random()<0.5,dead:0});}
+function tPos(g,phi,th,rr){const r=g.Rm+g.rm*rr*Math.cos(th);return{x:g.cx+r*Math.cos(phi),y:g.cy+r*Math.sin(phi)*g.sq-g.rm*rr*Math.sin(th)*0.95,z:Math.sin(phi)};}
+function stepTok(dt){if(!PZ.length)initPZ();const g=gT();heat+=((S.mag?1:0.15)-heat)*dt*0.6;
+  PZ.forEach(p=>{if(p.dead>0){p.dead-=dt;if(p.dead<=0&&S.mag){Object.assign(p,{rr:0.15+0.4*Math.random(),dr:0,phi:Math.random()*7});}return;}
+    p.phi+=dt*0.8*p.w;p.th+=dt*(S.mag?3.2:0.6)*(p.p?1:-1);if(!S.mag){p.dr+=dt*0.5;p.rr+=p.dr*dt;}else p.rr+=(Math.min(p.rr,0.6)-p.rr)*dt;
+    if(p.rr>=1){const q=tPos(g,p.phi,p.th,1);FL.push({x:q.x,y:q.y,t:0});p.dead=S.mag?0.4:1e9;}});
+  FL.forEach(f=>f.t+=dt);FL=FL.filter(f=>f.t<0.5);}
+function drawTorusHalf(g,back){// chamber walls (inner bright glow of plasma) drawn as a band
+  const N=72;for(let i=0;i<N;i++){const p0=i/N*Math.PI*2,p1=(i+1)/N*Math.PI*2,z=Math.sin((p0+p1)/2);if((z<0)!==back)continue;
+    const a=tPos(g,p0,Math.PI/2,1),b=tPos(g,p1,Math.PI/2,1),c=tPos(g,p1,-Math.PI/2,1),d=tPos(g,p0,-Math.PI/2,1),sh=0.55+0.45*(z+1)/2;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.fillStyle=`rgba(${Math.round(40*sh)},${Math.round(48*sh)},${Math.round(62*sh)},.55)`;ctx.fill();}}
+function coil(g,phi){const pts=[];for(let k=0;k<=40;k++){const th=k/40*Math.PI*2,r=g.Rm+g.rm*1.25*Math.cos(th);pts.push([g.cx+r*Math.cos(phi),g.cy+r*Math.sin(phi)*g.sq-g.rm*1.35*Math.sin(th)]);}
+  ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();const z=Math.sin(phi);ctx.strokeStyle=S.mag?`rgba(${120+60*(z+1)/2},${150+60*(z+1)/2},${200+50*(z+1)/2},.95)`:'rgba(110,120,135,.8)';ctx.lineWidth=Math.max(3,g.rm*0.1);ctx.stroke();
+  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1;ctx.stroke();}
+function drawTok(){const g=gT(),nar=g.w<520;const coils=[];for(let i=0;i<12;i++)coils.push(i/12*Math.PI*2+0.13);
+  // base plate & central column
+  ctx.fillStyle='rgba(150,160,175,.25)';ctx.beginPath();ctx.ellipse(g.cx,g.cy+g.rm*1.6,g.Rm*1.45,g.Rm*1.45*g.sq,0,0,7);ctx.fill();
+  coils.filter(p=>Math.sin(p)<0).forEach(p=>coil(g,p));drawTorusHalf(g,true);
+  const col=ctx.createLinearGradient(g.cx-g.Rm*0.35,0,g.cx+g.Rm*0.35,0);col.addColorStop(0,'#2b3038');col.addColorStop(0.5,'#8e98a6');col.addColorStop(1,'#22262d');ctx.fillStyle=col;ctx.fillRect(g.cx-g.Rm*0.32,g.cy-g.rm*1.6,g.Rm*0.64,g.rm*3.2);ctx.beginPath();ctx.ellipse(g.cx,g.cy-g.rm*1.6,g.Rm*0.32,g.Rm*0.32*g.sq,0,0,7);ctx.fillStyle='#4a525e';ctx.fill();
+  // plasma glow along the ring
+  ctx.save();ctx.globalCompositeOperation='lighter';for(let i=0;i<60;i++){const phi=i/60*Math.PI*2,q=tPos(g,phi,0,0),gr=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,g.rm*0.75);gr.addColorStop(0,`rgba(255,${150+60*heat},60,${0.2*heat})`);gr.addColorStop(1,'rgba(255,90,20,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(q.x,q.y,g.rm*0.75,0,7);ctx.fill();}
+  const sorted=PZ.filter(p=>p.dead<=0).map(p=>({p,q:tPos(g,p.phi,p.th,p.rr)})).sort((a,b)=>a.q.z-b.q.z);sorted.forEach(({p,q})=>{ctx.beginPath();ctx.arc(q.x,q.y,2.6,0,7);ctx.fillStyle=p.p?'rgba(255,200,140,.95)':'rgba(170,210,255,.95)';ctx.fill();});
+  // a helical magnetic field line
+  if(S.mag){ctx.strokeStyle='rgba(255,70,70,.85)';ctx.lineWidth=2;ctx.beginPath();for(let k=0;k<=400;k++){const phi=k/400*Math.PI*2,q=tPos(g,phi,phi*7+time*1.5,0.62);k?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);}ctx.stroke();}
+  ctx.restore();
+  FL.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,3+14*f.t,0,7);ctx.strokeStyle=`rgba(255,240,200,${1-f.t/0.5})`;ctx.lineWidth=2;ctx.stroke();});
+  coils.filter(p=>Math.sin(p)>=0).forEach(p=>coil(g,p));
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'التوكاماك':'جهاز التوكاماك Tokamak (شكل 28)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  const cq=coil;const lp={x:g.cx-g.Rm*1.2,y:g.cy-g.rm*1.8};label('مغناط حلقية',Math.max(70,lp.x),lp.y-20,'#bfe4ff',{s:12.5});label('بلازما ⁦(10⁸ K)⁩',g.cx,g.cy+g.Rm*g.sq+g.rm*0.2,'#ffd27a',{s:12.5});
+  label(S.mag?'المجال المغناطيسي يحصر البلازما بعيداً عن جدران الحاوية':'بدون المجال: تصطدم البلازما بالجدران وتبرد، ولا توجد مادة تتحمل هذه الحرارة',g.w/2,g.h-60,S.mag?'#bff5c8':'#ffb3a8',{s:nar?10.5:12});
+  rowBtns('tok',[{k:'mag',l:S.mag?'المجال المغناطيسي: يعمل':'المجال المغناطيسي: متوقف',s:S.mag?'المجال ✓':'المجال ✗'}],g.h-36).forEach(b=>btn(b,S.mag));}
+
+/* ---------- page 3 (figure 29): a proposed fusion power plant ---------- */
+function gR(){const R=REG.reac,w=R.w,h=R.h,s=Math.min(w/1000,(h-70)/860);return{w,h,s,ox:(w-1000*s)/2,oy:50+(h-70-860*s)/2};}
+function pipe(pts,col,g,dir){ctx.save();ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();pts.forEach(([x,y],i)=>{const X=g.ox+x*g.s,Y=g.oy+y*g.s;i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});
+  ctx.strokeStyle=col==='r'?'#c42b2b':'#2a6fd0';ctx.lineWidth=14*g.s;ctx.stroke();ctx.strokeStyle=col==='r'?'#ff6a5a':'#69a8ff';ctx.lineWidth=6*g.s;ctx.stroke();
+  ctx.setLineDash([10*g.s,26*g.s]);ctx.lineDashOffset=-time*60*g.s*(dir||1);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=3*g.s;ctx.stroke();ctx.restore();}
+function box(x,y,w2,h2,t,g,fs){const X=g.ox+x*g.s,Y=g.oy+y*g.s;rr(X,Y,w2*g.s,h2*g.s,12*g.s);const gr=ctx.createLinearGradient(0,Y,0,Y+h2*g.s);gr.addColorStop(0,'#1f6b5c');gr.addColorStop(1,'#0e3d33');ctx.fillStyle=gr;ctx.fill();ctx.strokeStyle='#9ee6cf';ctx.lineWidth=1.5;ctx.stroke();
+  const lines=t.split('\n');lines.forEach((l,i)=>txt(l,X+w2*g.s/2,Y+h2*g.s/2+(i-(lines.length-1)/2)*(fs||20)*g.s*1.15,{font:F(800,(fs||20)*g.s/L.fs),color:'#ffe98a'}));}
+function drawReac(){const g=gR(),s=g.s,P=(x,y)=>[g.ox+x*s,g.oy+y*s];
+  // pipes
+  pipe([[530,250],[530,215],[680,215]],'r',g);                                     // pressurised fluid to the turbine
+  pipe([[600,620],[600,640],[860,640],[860,450]],'r',g);                         // heat to generator
+  pipe([[380,560],[230,560],[230,330]],'r',g,-1);                                // lithium loop
+  pipe([[880,330],[880,40],[200,40],[200,110]],'r',g);                           // part of the energy to run the plant
+  pipe([[300,680],[180,680],[180,820],[920,820],[920,450]],'r',g,-1);
+  pipe([[270,330],[270,600],[420,600]],'b',g);                                    // lithium tanks → reactor
+  pipe([[500,766],[500,792]],'b',g,-1);                                 // helium removal
+  // reactor vessel with lithium blanket
+  const [vx,vy]=P(340,250),vw=330*s,vh=430*s;rr(vx-30*s,vy+40*s,vw+60*s,vh,30*s);ctx.fillStyle='#5b636f';ctx.fill();ctx.strokeStyle='#2c3138';ctx.lineWidth=2;ctx.stroke();
+  for(let i=0;i<7;i++)[0,1].forEach(sd=>{const X=sd?vx+vw+5*s:vx-25*s;ctx.strokeStyle='#ff7a4a';ctx.lineWidth=5*s;ctx.beginPath();ctx.ellipse(X+10*s,vy+120*s+i*36*s,12*s,8*s,0,0,7);ctx.stroke();});
+  ctx.beginPath();ctx.moveTo(vx+20*s,vy+vh*0.8);ctx.lineTo(vx+20*s,vy+120*s);ctx.quadraticCurveTo(vx+vw/2,vy-20*s,vx+vw-20*s,vy+120*s);ctx.lineTo(vx+vw-20*s,vy+vh*0.8);ctx.closePath();
+  const wg=ctx.createLinearGradient(0,vy,0,vy+vh);wg.addColorStop(0,'#bfe6ff');wg.addColorStop(0.55,'#5aa8e8');wg.addColorStop(1,'#2a6fb0');ctx.fillStyle=wg;ctx.fill();
+  const cyc=vy+vh*0.62;for(let i=0;i<7;i++){const x=vx+40*s+i*(vw-80*s)/6,fl=0.6+0.4*Math.sin(time*7+i*1.3);const fg=ctx.createLinearGradient(0,cyc-60*s,0,cyc+40*s);fg.addColorStop(0,`rgba(255,250,170,${0.5*fl})`);fg.addColorStop(1,`rgba(255,120,20,1)`);ctx.fillStyle=fg;ctx.fillRect(x-16*s,cyc-80*s*fl,32*s,120*s);}
+  ctx.fillStyle='#8a929e';ctx.fillRect(vx+30*s,cyc-90*s,vw-60*s,10*s);for(let i=0;i<3;i++){ctx.fillStyle='#c8ced8';ctx.fillRect(vx+vw*(0.28+0.22*i)-4*s,vy+90*s,8*s,180*s);}
+  for(let i=0;i<10;i++){const bx=vx+40*s+((i*97+time*20)%1)*(vw-80*s)+(i%3)*30*s,by=vy+vh*0.5-((time*40+i*37)%120)*s;ctx.beginPath();ctx.arc(Math.min(bx,vx+vw-30*s),by,4*s,0,7);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.stroke();}
+  txt('مفاعل',vx+vw/2,vy+150*s,{font:F(900,30*s/L.fs),color:'#0b2a4a'});txt('الاندماج',vx+vw/2,vy+190*s,{font:F(900,30*s/L.fs),color:'#0b2a4a'});
+  // turbine + generator
+  const [tx,ty]=P(680,215);ctx.save();ctx.translate(tx+60*s,ty);ctx.fillStyle='#9aa4b2';rr(-60*s,-35*s,120*s,70*s,8*s);ctx.fill();for(let i=0;i<6;i++){ctx.save();ctx.rotate(time*6+i*Math.PI/3);ctx.fillStyle='#d8dee8';ctx.fillRect(-3*s,-30*s,6*s,30*s);ctx.restore();}ctx.restore();
+  const [gx2,gy2]=P(800,380);ctx.save();ctx.translate(gx2+70*s,gy2);ctx.fillStyle='#7e8794';rr(-70*s,-40*s,140*s,80*s,14*s);ctx.fill();ctx.rotate(time*8);ctx.strokeStyle='#e8ecf2';ctx.lineWidth=3*s;ctx.beginPath();ctx.moveTo(-25*s,0);ctx.lineTo(25*s,0);ctx.moveTo(0,-25*s);ctx.lineTo(0,25*s);ctx.stroke();ctx.restore();
+  // boxes
+  box(80,110,240,80,'المعمل',g,26);box(120,330,190,100,'سخانات\nالليثيوم',g,22);box(780,450,190,100,'مولد\nالكهرباء',g,22);box(400,688,200,78,'الديوتيريوم\nوالتريتيوم',g,19);box(90,700,220,90,'الهيليوم من\nماء التبريد',g,19);box(420,792,240,58,'إزالة الهيليوم',g,19);
+  // electricity out
+  const [ex,ey]=P(960,380);ctx.strokeStyle='#ff4a4a';ctx.lineWidth=8*s;ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex,g.oy+10*s);ctx.stroke();arrowHead(ex,g.oy+4*s,-Math.PI/2,16*s,'#ff4a4a');
+  LB=[];LBW=g.w;LBH=g.h;chip(g.w<520?'مفاعل الاندماج':'تصميم مقترح لمفاعل نووي اندماجي (شكل 29)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  label('جزء من الطاقة لتشغيل المعمل',...P(540,40),'#ffd0c8',{s:12});label('سائل تحت ضغط',...P(600,180),'#ffd0c8',{s:11.5});label('غلاف من الليثيوم',...P(330,290),'#ffd0c8',{s:11.5});label('طاقة كهربائية',ex-60*s,g.oy+40*s,'#ffd0c8',{s:11.5});}
+
+function draw(){drawBg();const fn={fus:drawFus,tok:drawTok,reac:drawReac};for(const n of PG)if(REG[n]){setReg(n);fn[n]();}
+  if(S.page==='all'){ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.x,DPR*view.y);ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;PG.slice(1).forEach(n=>{const R=REG[n];ctx.beginPath();if(REG.fus.y===R.y){ctx.moveTo(R.x+R.w,R.y+30);ctx.lineTo(R.x+R.w,R.y+R.h-30);}else{ctx.moveTo(R.x+30,R.y);ctx.lineTo(R.x+R.w-30,R.y);}ctx.stroke();});}}
+
+/* ---------- input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function btnsOf(n){const R=REG[n];if(n==='fus')return[...rowBtns('fus',[{k:'go',l:T.fus<0?'▶ ابدأ':'↺ أعد',s:T.fus<0?'▶':'↺'}],R.h-36),...rowBtns('fus',[{k:'cold',l:'درجة حرارة منخفضة',s:'حرارة منخفضة'},{k:'hot',l:'درجة حرارة عالية جداً (10⁸ K)',s:'10⁸ K'}],44)];
+  if(n==='tok')return rowBtns('tok',[{k:'mag',l:S.mag?'المجال المغناطيسي: يعمل':'المجال المغناطيسي: متوقف',s:S.mag?'المجال ✓':'المجال ✗'}],R.h-36);return[];}
+function hitBtn(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n],p={x:w.x-R.x,y:w.y-R.y};for(const b of btnsOf(n))if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return{n,b};return null;}
+function act(h){const b=h.b;if(b.k==='go')T.fus=T.fus<0?0:-1;else if(b.k==='hot'){S.hot=true;T.fus=-1;}else if(b.k==='cold'){S.hot=false;T.fus=-1;}else if(b.k==='mag'){S.mag=!S.mag;if(S.mag)PZ.forEach(p=>{if(p.dead>1e8)p.dead=0.3;});}}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const h=hitBtn(s);if(h){act(h);return;}const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const h=hitBtn(s);hover=h?h.b.id:null;cv.style.cursor=h?'pointer':'grab';return;}view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){
+  const a=`<p><b>الاندماج النووي:</b> تفاعل نووي تدمج فيه نواتان صغيرتان (خفيفتان بالكتلة) لتكوين نواة أثقل، وتكون كتلة النواة الأثقل أقل من مجموع كتلتي النواتين الأصليتين، وفرق الكتلة يتحول إلى طاقة متحررة وفق علاقة اينشتاين <b class="m">E = mc²</b>.</p><p class="m">²H + ³H → ⁴He (3.5 MeV) + n (14.1 MeV)</p><p>الشمس مفاعل نووي اندماجي حراري عملاق: تندمج فيها نوى الهيدروجين (البروتونات) لتوليد نواة الهيليوم عند درجة حرارة نحو ⁦1.5 × 10⁷ K⁩ (دورة بروتون–بروتون). ويحرر الاندماج طاقة أكبر من الانشطار لكتل متساوية من الوقود.</p><p>العائق الرئيس: <b>قوة كولوم الكهربائية التنافرية</b> بين النوى الموجبة؛ وللتغلب عليها يلزم رفع درجة الحرارة إلى نحو <b>10⁸ K</b> فيصبح الوسط <b>بلازما</b> (الحالة الرابعة للمادة).</p>`;
+  const b=`<p><b>التوكاماك:</b> لا توجد مادة تتحمل هذه الحرارة العالية جداً، لذلك يُستعمل المجال المغناطيسي لحصر البلازما داخل حاوية حلقية بعيداً عن جدرانها.</p>`;
+  const c=`<p><b>مفاعل الاندماج المقترح:</b> يُستعمل الديوتيريوم والتريتيوم وقوداً، وتُنقل الحرارة بسائل تحت ضغط إلى التوربين ومولد الكهرباء، ويُستعمل جزء من الطاقة لتشغيل المعمل. والاندماج مصدر للطاقة النظيفة نوعاً ما، لأن الهيليوم الناتج غير مشع، والوقود (الماء) متوافر بكثرة.</p>`;
+  const tail=`<p class="note">جرّب: في الاندماج قارن «درجة حرارة منخفضة» مع «⁦10⁸ K⁩»، وفي التوكاماك أوقف المجال المغناطيسي وراقب البلازما.</p>`;
+  const m={fus:a,tok:b,reac:c};if(S.page!=='all')return{t:{fus:'الاندماج النووي',tok:'التوكاماك',reac:'مفاعل الاندماج'}[S.page],b:m[S.page]+tail};return{t:'الاندماج النووي',b:a+b+c+tail};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(T.fus>=0)T.fus=Math.min(T.fus+dt,20);if(REG.tok)stepTok(dt);if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();
+const pb=document.querySelectorAll('#parts button');function syncPages(){pb.forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.page));}
+pb.forEach(b=>b.addEventListener('click',()=>{S.page=b.dataset.p;syncPages();view={z:1,x:0,y:0};arrange();}));syncPages();
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
