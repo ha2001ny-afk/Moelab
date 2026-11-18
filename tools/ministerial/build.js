@@ -48,12 +48,12 @@ for (const [key, { data }] of Object.entries(all)) {
   const file = path.join(ROOT, key + '.html');
   let html = fs.readFileSync(file, 'utf8');
   const a = html.indexOf(START), b = html.indexOf(END);
-  if (a >= 0 && b > a) html = html.slice(0, a) + html.slice(b + END.length);
+  if (a >= 0 && b > a) { let e = b + END.length; if (html.lastIndexOf('</body>') < 0 && html[e] === '\n' && e === html.length - 1) e++; html = html.slice(0, a) + html.slice(e); }
   const json = JSON.stringify(data).replace(/</g, '\\u003c');
   const block = `${START}\n<style>\n${css}\n</style>\n<script>window.MOE_MIN_DATA=${json};</script>\n<script>\n${engine}\n</script>\n${END}`;
   const i = html.lastIndexOf('</body>');
-  if (i < 0) { console.error(`❌ ${key}.html: لا يوجد </body>`); process.exit(1); }
-  const out = html.slice(0, i) + block + html.slice(i);
+  /* ملف بدون </body>: يُضاف القسم في نهاية الملف (مع سطر جديد واحد يُزال عند إعادة البناء) */
+  const out = i >= 0 ? html.slice(0, i) + block + html.slice(i) : html + block + '\n';
   if (!checkOnly && out !== fs.readFileSync(file, 'utf8')) { fs.writeFileSync(file, out); changed++; }
   console.log(`✔ ${key}: ${data.qs.length} سؤال`);
 }
