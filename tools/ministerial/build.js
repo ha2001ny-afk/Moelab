@@ -21,7 +21,7 @@ for (const f of fs.readdirSync(path.join(HERE, 'data')).filter(f => f.endsWith('
 }
 
 const errors = [];
-const TAG = /^\d\/\d{4}( .+)?$|^\d{4} .+$|^أسئلة الفصل$/;
+const TAG = /^(\d\/\d{4}|\d{4})( .+)?$|^أسئلة .+$/;
 for (const [key, { data, src }] of Object.entries(all)) {
   const E = m => errors.push(`${src} → ${key}: ${m}`);
   const file = path.join(ROOT, key + '.html');

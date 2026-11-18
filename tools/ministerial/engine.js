@@ -6,7 +6,7 @@ var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
-var tagK=function(s){return /الفصل/.test(s)?'book':/تمهيدي/.test(s)?'pre':/خارج|الموصل/.test(s)?'out':'min';};
+var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
 var tagH=function(s){var k=tagK(s);return '<span class="tg '+k+'">'+esc(k==='book'?s:'وزاري '+s)+'</span>';};
 var minCount=function(q){var t=(q.tags||[]).slice();(q.items||[]).forEach(function(i){t=t.concat(i.tags||[]);});return t.filter(function(s){return tagK(s)!=='book';}).length;};
 var $=function(id){return document.getElementById(id);};
@@ -33,9 +33,10 @@ var list=function(){return qsec==='all'?QS:QS.filter(function(q){return q.sec===
 qchips.innerHTML=[['all','الكل']].concat(secKeys.map(function(k){return [k,SEC[k]];})).map(function(a){return '<button type="button" data-k="'+a[0]+'">'+esc(a[1])+'</button>';}).join('');
 qchips.onclick=function(e){var b=e.target.closest('button');if(!b)return;qsec=b.dataset.k;qi=0;qrev=false;render();};
 
-function ansH(a){var h='';if(!a)return h;if(a.p)h+='<div>'+esc(a.p)+'</div>';
+function ansH(a){var h='';if(!a)return h;if(a.p&&!a.tb)h+='<div>'+esc(a.p)+'</div>';
   if(a.ol)h+='<ol>'+a.ol.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>';
-  if(a.dl)h+='<dl>'+a.dl.map(function(x){return '<dt>'+esc(x[0])+'</dt><dd>'+esc(x[1])+'</dd>';}).join('')+'</dl>';return h;}
+  if(a.tb)h+='<div class="tbw"><table><tr>'+a.tb.h.map(function(x){return '<th>'+esc(x)+'</th>';}).join('')+'</tr>'+a.tb.r.map(function(r){return '<tr>'+r.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')+'</tr>';}).join('')+'</table></div>';
+  if(a.dl)h+='<dl>'+a.dl.map(function(x){return '<dt>'+esc(x[0])+'</dt><dd>'+esc(x[1])+'</dd>';}).join('')+'</dl>';if(a.p&&a.tb)h+='<div class="note">'+esc(a.p)+'</div>';return h;}
 var SIM=null;function sim(){return SIM||(SIM=window.MOE_SIM||null);}
 function canSee(k){var s=sim();return !!(k&&s&&s.groups&&s.groups[k]);}
 function render(){try{render0();}catch(err){qOpen=false;qp.classList.remove('on');$('qbtn').style.display='none';if(window.console)console.warn('MoeLab ministerial:',err);}}
