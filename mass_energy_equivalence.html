@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>تكافؤ الكتلة والطاقة</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts button[aria-pressed="false"] span{text-decoration:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة تكافؤ الكتلة والطاقة: معادلة اينشتاين وتحويل غرام واحد من المادة إلى طاقة"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* page: 'cl' classical atom, 'qm' quantum atom, 'both' */
+const S={page:'both',runC:true,runQ:true,bohr:false,fast:false,cloud:true};
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+/* ---------- one page: the famous equation framed in the centre, then a scene: 1 g of matter turned completely into energy ---------- */
+let R={};
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){const top=H<500?56:62,eqH=narrow?170:Math.min(200,H*0.27);R.eq={x:0,y:top,w:W,h:eqH};const y=top+eqH,ah=H-y-8;
+  if(!narrow&&W/ah>1.5){R.sc={x:W*0.42,y,w:W*0.58-8,h:ah};R.cal={x:8,y,w:W*0.42-16,h:ah};}else{R.sc={x:0,y,w:W,h:ah*0.55};R.cal={x:0,y:y+ah*0.55,w:W,h:ah*0.45};}}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setR(n){const r=R[n];ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*(view.z*r.x+view.x),DPR*(view.z*r.y+view.y));}
+const C2=9e16,ED=9e13,FAM=3.6e9;
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sci(x,d=1){if(x<=0)return'0';const e=Math.floor(Math.log10(x)),m=x/Math.pow(10,e);return`${m.toFixed(d)}×10${String(e).split('').map(c=>SUP[c]).join('')}`;}
+let ph=-1,T=0;   // ph −1: waiting; ≥0 seconds since start
+const P_CONV=1.6,P_FLASH=1.75,P_CALC=4.2;
+const PARTS=[];
+
+/* ---------- the equation ---------- */
+function drawEq(){const r=R.eq,w=r.w,h=r.h,cx=w/2;
+  txt('معادلة ألبرت أينشتاين الشهيرة لتكافؤ الكتلة والطاقة',cx,22,{font:F(700,narrow?15:19),color:'#ffe6b0'});
+  const fs=Math.min(h*0.42,w*0.13,88),bw=fs*4.6,bh=fs*1.55,bx=cx-bw/2,by=44+(h-44-bh)/2;
+  // glowing golden frame
+  const pul=0.5+0.5*Math.sin(time*2);const gl=ctx.createRadialGradient(cx,by+bh/2,bw*0.2,cx,by+bh/2,bw*0.75);gl.addColorStop(0,`rgba(255,200,90,${0.18+0.08*pul})`);gl.addColorStop(1,'rgba(255,200,90,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(cx,by+bh/2,bw*0.75,0,7);ctx.fill();
+  rr(bx,by,bw,bh,18);const bg=ctx.createLinearGradient(0,by,0,by+bh);bg.addColorStop(0,'rgba(20,30,60,.92)');bg.addColorStop(1,'rgba(8,14,32,.92)');ctx.fillStyle=bg;ctx.fill();
+  const fr=ctx.createLinearGradient(bx,by,bx+bw,by+bh);fr.addColorStop(0,'#fff2c0');fr.addColorStop(0.3,'#e3a83a');fr.addColorStop(0.55,'#fff0b0');fr.addColorStop(0.8,'#b8771e');fr.addColorStop(1,'#ffe39a');ctx.strokeStyle=fr;ctx.lineWidth=5;ctx.stroke();
+  rr(bx+9,by+9,bw-18,bh-18,12);ctx.strokeStyle='rgba(255,215,130,.55)';ctx.lineWidth=1.5;ctx.stroke();
+  [[bx,by],[bx+bw,by],[bx,by+bh],[bx+bw,by+bh]].forEach(([x,y])=>{ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillStyle='#ffd27a';ctx.fillRect(-6,-6,12,12);ctx.restore();});
+  // E = mc²
+  ctx.save();ctx.font=`italic 700 ${fs}px "Times New Roman","Cambria Math",serif`;ctx.textBaseline='alphabetic';ctx.direction='ltr';ctx.textAlign='left';
+  const parts=[['E',0],[' = ',0],['mc',0]],tw=ctx.measureText('E = mc').width+fs*0.42,x0=cx-tw/2,y0=by+bh/2+fs*0.34;
+  const tg=ctx.createLinearGradient(0,y0-fs,0,y0);tg.addColorStop(0,'#fffbe6');tg.addColorStop(1,'#ffcf6a');ctx.fillStyle=tg;ctx.shadowColor='rgba(255,190,80,.7)';ctx.shadowBlur=18;
+  ctx.fillText('E = mc',x0,y0);const wmc=ctx.measureText('E = mc').width;ctx.font=`italic 700 ${fs*0.55}px "Times New Roman",serif`;ctx.fillText('2',x0+wmc+2,y0-fs*0.42);ctx.restore();
+  txt('الطاقة = الكتلة × مربع سرعة الضوء',cx,by+bh+18,{font:F(600,narrow?12:13.5),color:'#cfd8e6'});}
+
+/* ---------- the scene ---------- */
+function sg(){const r=R.sc,w=r.w,h=r.h;return{w,h,cx:w/2,gy:h-58,u:Math.min(w,h)};}
+function drawScene(){const g=sg(),w=g.w,h=g.h,u=g.u,t=ph;
+  // ground
+  const gr=ctx.createLinearGradient(0,g.gy,0,h);gr.addColorStop(0,'rgba(60,70,90,.55)');gr.addColorStop(1,'rgba(20,26,40,0)');ctx.fillStyle=gr;ctx.fillRect(0,g.gy,w,h-g.gy);ctx.strokeStyle='rgba(180,190,210,.35)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(10,g.gy);ctx.lineTo(w-10,g.gy);ctx.stroke();
+  const conv=t<0?0:clamp(t/P_CONV,0,1);
+  if(t<P_FLASH){// the 1 g sample on a pedestal, glowing more as it is converted
+    const ps=u*0.12,px=g.cx,py=g.gy;ctx.fillStyle='#4a5466';rr(px-ps*0.7,py-ps*0.35,ps*1.4,ps*0.35,4);ctx.fill();
+    const cs=u*0.1*(1-0.6*conv),shake=t>0?Math.sin(time*80)*3*conv:0,cy=py-ps*0.35-cs/2-4;
+    const glow=ctx.createRadialGradient(px,cy,0,px,cy,cs*(3+6*conv));glow.addColorStop(0,`rgba(140,255,170,${0.35+0.6*conv})`);glow.addColorStop(1,'rgba(140,255,170,0)');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(px,cy,cs*(3+6*conv),0,7);ctx.fill();
+    const cg=ctx.createLinearGradient(px-cs/2,cy-cs/2,px+cs/2,cy+cs/2);cg.addColorStop(0,`rgb(${150+100*conv},${200+55*conv},${160+90*conv})`);cg.addColorStop(1,`rgb(${60+190*conv},${90+160*conv},${70+170*conv})`);ctx.fillStyle=cg;rr(px-cs/2+shake,cy-cs/2,cs,cs,3);ctx.fill();
+    if(t<0)label('غرام واحد من المادة (يورانيوم)',px,cy-cs-26,'#c8ffd6',{s:12.5});
+    label(`⁦m = ${(1-conv).toFixed(3)} g⁩`,px+u*0.22,cy-6,'#c8ffd6',{s:13});label(`⁦E = ${sci(conv*ED)} J⁩`,px-u*0.22,cy-6,'#ffd27a',{s:13});}
+  // flash
+  if(t>=P_FLASH&&t<P_FLASH+0.6){const k=1-(t-P_FLASH)/0.6;ctx.fillStyle=`rgba(255,250,235,${0.95*k})`;ctx.fillRect(-20,-20,w+40,h+40);}
+  if(t>=P_FLASH){const e=t-P_FLASH,px=g.cx;
+    // shock ring along the ground
+    const sr=u*0.15+e*u*0.35;if(e<3){ctx.beginPath();ctx.ellipse(px,g.gy,sr,sr*0.12,0,0,7);ctx.strokeStyle=`rgba(255,240,220,${0.7*(1-e/3)})`;ctx.lineWidth=3;ctx.stroke();}
+    // rising fireball → mushroom cloud (stylised)
+    const rise=Math.min(1,e/3.2),capY=g.gy-u*0.12-rise*u*0.42,capR=u*(0.09+0.13*Math.min(1,e/2.6)),heat=Math.max(0,1-e/5);
+    const st=ctx.createLinearGradient(0,capY,0,g.gy);st.addColorStop(0,`rgba(${150+100*heat},${110+60*heat},${80+20*heat},.9)`);st.addColorStop(1,'rgba(120,100,90,.5)');ctx.fillStyle=st;
+    ctx.beginPath();ctx.moveTo(px-capR*0.22,capY+capR*0.4);ctx.quadraticCurveTo(px-capR*0.12,(capY+g.gy)/2,px-capR*0.38,g.gy);ctx.lineTo(px+capR*0.38,g.gy);ctx.quadraticCurveTo(px+capR*0.12,(capY+g.gy)/2,px+capR*0.22,capY+capR*0.4);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.ellipse(px,g.gy,capR*0.9,capR*0.22,0,0,7);ctx.fillStyle=`rgba(${200*heat+60},${120*heat+60},60,.55)`;ctx.fill();
+    for(let i=0;i<9;i++){const a=i/9*Math.PI*2+e*0.6,rx=px+Math.cos(a)*capR*0.55,ry=capY+Math.sin(a)*capR*0.28,rr2=capR*(0.45+0.1*Math.sin(i*3+e));
+      const cg=ctx.createRadialGradient(rx,ry-rr2*0.3,rr2*0.1,rx,ry,rr2);cg.addColorStop(0,`rgba(255,${200+40*heat},${120+80*heat},${0.6+0.35*heat})`);cg.addColorStop(0.6,`rgba(${230-60*(1-heat)},${110+40*(1-heat)},${50+80*(1-heat)},.75)`);cg.addColorStop(1,`rgba(${110},${100},${110},0)`);
+      ctx.fillStyle=cg;ctx.beginPath();ctx.arc(rx,ry,rr2,0,7);ctx.fill();}
+    const core=ctx.createRadialGradient(px,capY,0,px,capY,capR*0.9);core.addColorStop(0,`rgba(255,255,230,${0.9*heat})`);core.addColorStop(1,'rgba(255,200,120,0)');ctx.fillStyle=core;ctx.beginPath();ctx.arc(px,capY,capR*0.9,0,7);ctx.fill();
+    // sparks
+    PARTS.forEach(p=>{const pe=e-p.d;if(pe<0||pe>2.5)return;const x=px+p.vx*pe*u,y=g.gy-u*0.12+p.vy*pe*u+0.25*u*pe*pe;if(y>g.gy)return;ctx.fillStyle=`rgba(255,${180+60*p.c},120,${1-pe/2.5})`;ctx.fillRect(x-1.5,y-1.5,3,3);});
+    label('اختفت الكتلة كلها وتحولت إلى طاقة',w/2,30,'#ffe6b0',{s:13});}
+  else if(t<0)label('اضغط «حوّل الغرام إلى طاقة»',w/2,30,'#e8ecf2',{s:13});
+  sceneBtns().forEach(b=>btn(b,false));}
+function sceneBtns(){const g=sg(),bw=Math.min(210,g.w*0.5),y=g.h-44;return[{k:'go',l:ph<0?'⚡ حوّل الغرام إلى طاقة':'↺ أعد المشهد',x:g.w/2-bw/2,y,w:bw,h:36}];}
+function btn(b,on){rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=hover===b.k?'rgba(255,210,122,.32)':'rgba(255,210,122,.2)';ctx.fill();ctx.strokeStyle='#ffd27a';ctx.lineWidth=1.3;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(700,13.5),color:'#ffe9bf'});}
+
+/* ---------- the calculation (revealed step by step after the explosion) ---------- */
+function drawCalc(){const r=R.cal,w=r.w,h=r.h,t=ph-P_CALC;const lines=[
+   {a:'كتلة المادة',m:'m = 1 g = 1 × 10⁻³ kg'},
+   {a:'نعوض في معادلة اينشتاين',m:'E = mc²  ⟹  E = 1 × 10⁻³ × (3 × 10⁸)²'},
+   {a:'الطاقة الناتجة',m:'E = 9 × 10¹³ J',big:true},
+   {a:'استهلاك عائلة عراقية في الشهر',m:'1000 kWh = 3.6 × 10⁹ J'},
+   {a:'عدد الأشهر المكافئة',m:'9 × 10¹³ J ÷ 3.6 × 10⁹ J = 2.5 × 10⁴ months'}];
+  const n=lines.length,lh=Math.min((h-70)/n,narrow?44:62);let y=Math.max(8,(h-70-lh*n)/2);
+  lines.forEach((L1,i)=>{const a=ph<0?0:clamp((t-i*0.8)/0.5,0,1);if(a<=0){y+=lh;return;}ctx.globalAlpha=a;
+    const two=w<520;txt(L1.a,two?w/2:w-14,y+(two?lh*0.28:lh*0.5),{font:F(600,narrow?11.5:13),color:'#a3b3cc',align:two?'center':'right'});
+    ctx.font=`italic 600 ${Math.round((L1.big?22:15)*L.fs*(narrow?0.92:1))}px "Times New Roman",serif`;ctx.fillStyle=L1.big?'#ffd27a':'#eaf0fa';ctx.textAlign=two?'center':'left';ctx.textBaseline='middle';ctx.direction='ltr';
+    ctx.fillText(L1.m,two?w/2:14,y+(two?lh*0.68:lh*0.5));ctx.globalAlpha=1;y+=lh;});
+  // a house powered for more than two thousand years
+  const t2=t-n*0.8;if(ph>=0&&t2>0){const yrs=Math.min(2083,Math.round(2083*clamp(t2/2.5,0,1))),hx=w/2,hy=h-34;
+    ctx.fillStyle='#e8c070';ctx.beginPath();ctx.moveTo(hx-150,hy-6);ctx.lineTo(hx-136,hy-20);ctx.lineTo(hx-122,hy-6);ctx.closePath();ctx.fill();ctx.fillStyle='#cfd8e6';ctx.fillRect(hx-146,hy-6,20,14);ctx.fillStyle='#ffe28a';ctx.fillRect(hx-140,hy-2,6,6);
+    label(`تكفي عائلة لأكثر من ⁦${yrs.toLocaleString('en-US')}⁩ سنة`,hx+16,hy,'#bff5c8',{s:narrow?12.5:14});}
+  else if(ph<0)txt('ستظهر الحسابات هنا بعد التحويل',w/2,h/2,{font:F(500,13),color:'rgba(163,179,204,.6)'});}
+
+function draw(){drawBg();LB=[];LBW=W;LBH=H;setR('eq');drawEq();setR('sc');LB=[];LBW=R.sc.w;LBH=R.sc.h;drawScene();setR('cal');LB=[];LBW=R.cal.w;LBH=R.cal.h;drawCalc();}
+
+/* ---------- input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function hitBtn(s){const w=toWorld(s),r=R.sc;const p={x:w.x-r.x,y:w.y-r.y};for(const b of sceneBtns())if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return b;return null;}
+function start(){ph=0;PARTS.length=0;for(let i=0;i<70;i++){const a=-Math.PI*Math.random(),s=0.25+0.5*Math.random();PARTS.push({vx:Math.cos(a)*s,vy:Math.sin(a)*s,d:Math.random()*0.4,c:Math.random()});}}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const b=hitBtn(s);if(b){if(ph<0)start();else{ph=-1;}return;}const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const b=hitBtn(s);hover=b?b.k:null;cv.style.cursor=b?'pointer':'grab';return;}view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){return{t:'تكافؤ الكتلة والطاقة',b:`<p>استطاع اينشتاين أن يدمج قانوني حفظ الطاقة وحفظ المادة، بافتراض أن المادة يمكن أن تتحول إلى طاقة: مقدار ضئيل من الكتلة يختفي وينتج عنه كمية كبيرة جداً من الطاقة.</p><p class="m">E = mc²</p><p>الطاقة الناتجة عن كتلة معينة تساوي حاصل ضرب الكتلة في مربع سرعة الضوء. وبما أن ⁦c² = 9 × 10¹⁶ m²/s²⁩ عدد هائل، فإن غراماً واحداً يعطي:</p><p class="m">E = 1 × 10⁻³ × (3 × 10⁸)² = 9 × 10¹³ J</p><p>وهذه الطاقة تكفي عائلة تستهلك ⁦1000 kWh⁩ شهرياً مدة ⁦2.5 × 10⁴⁩ شهر، أي أكثر من ألفي سنة.</p><p>هذه المعادلة تفسّر سر طاقة النجوم وعمرها الطويل، وهي مبدأ عمل المفاعلات النووية والأسلحة النووية.</p><p class="note">ملاحظة للمدرس: المثال يفترض تحوّل الغرام <b>كلياً</b> إلى طاقة. في الانشطار النووي الحقيقي لا يتحول إلا نحو ⁦0.1%⁩ من كتلة اليورانيوم، والطاقة ⁦9 × 10¹³ J⁩ تكافئ تقريباً انفجار ⁦21⁩ ألف طن من مادة TNT.</p>`};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(ph>=0)ph+=dt;if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();new ResizeObserver(()=>layout()).observe(cv);requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
