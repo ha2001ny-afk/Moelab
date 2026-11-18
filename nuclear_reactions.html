@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>التفاعلات النووية</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts button[aria-pressed="false"] span{text-decoration:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة التفاعلات النووية وقدرة اختراق وانحراف الإشعاعات"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="الصفحات">
+    <button data-p="react" aria-pressed="true"><i></i><span class="l">التفاعلات النووية</span><span class="s">تفاعلات</span></button>
+    <button data-p="pen" aria-pressed="false"><i></i><span class="l">قدرة الاختراق</span><span class="s">اختراق</span></button>
+    <button data-p="mag" aria-pressed="false"><i></i><span class="l">الانحراف في المجال</span><span class="s">انحراف</span></button>
+    <button data-p="all" aria-pressed="false"><i></i><span class="l">الكل معاً</span><span class="s">الكل</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* page: 'cl' classical atom, 'qm' quantum atom, 'both' */
+const S={page:'react'};
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+/* ---------- layout: one decay per page, or all three together ---------- */
+let REG={};const PG=['react','pen','mag'];
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){REG={};const top=H<500?58:66,m=8,aw=W-2*m,ah=H-top-m;
+  if(S.page!=='all')REG[S.page]={x:m,y:top,w:aw,h:ah};
+  else if(aw/ah>1.3){const cw=aw/3;PG.forEach((n,i)=>REG[n]={x:m+aw-cw*(i+1),y:top,w:cw,h:ah});}else{const rh=ah/3;PG.forEach((n,i)=>REG[n]={x:m,y:top+rh*i,w:aw,h:rh});}}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setReg(n){const R=REG[n];ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*(view.z*R.x+view.x),DPR*(view.z*R.y+view.y));}
+function regAt(w){for(const n in REG){const R=REG[n];if(w.x>=R.x&&w.x<=R.x+R.w&&w.y>=R.y&&w.y<=R.y+R.h)return n;}return null;}
+function btn(b,on){rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=on?'rgba(255,210,122,.22)':hover===b.id?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(600,narrow?11.5:12.5),color:on?'#ffe2a8':col.ink});}
+function rowBtns(n,list,y){const R=REG[n],gap=6;ctx.font=F(600,12.5);let ws=list.map(b=>Math.max(44,ctx.measureText(b.l).width+22));let tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);
+  if(tot>R.w-12){list=list.map(b=>({...b,l:b.s||b.l}));ws=list.map(b=>Math.max(36,ctx.measureText(b.l).width+16));tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);}
+  let x=(R.w+tot)/2;return list.map((b,i)=>{x-=ws[i];const r={...b,id:n+b.k,x,y,w:ws[i],h:30};x-=gap;return r;});}
+/* nuclide symbol like the book: A up, Z down, symbol to the right */
+function nuclide(x,y,A,Z,sym,size,c,star){ctx.save();ctx.direction='ltr';ctx.textBaseline='middle';ctx.fillStyle=c||'#eaf0fa';const f1=`700 ${Math.round(size*0.5)}px "Times New Roman",serif`,f2=`700 ${Math.round(size)}px "Times New Roman",serif`;
+  ctx.font=f1;const wA=Math.max(ctx.measureText(String(A)).width,ctx.measureText(String(Z)).width);ctx.font=f2;const wS=ctx.measureText(sym).width,tot=wA+3+wS+(star?size*0.35:0),x0=x-tot/2;
+  ctx.font=f1;ctx.textAlign='right';ctx.fillText(String(A),x0+wA,y-size*0.3);ctx.fillText(String(Z),x0+wA,y+size*0.32);ctx.font=f2;ctx.textAlign='left';ctx.fillText(sym,x0+wA+3,y+size*0.05);
+  if(star){ctx.font=`700 ${Math.round(size*0.6)}px serif`;ctx.fillText('*',x0+wA+3+wS+2,y-size*0.3);}ctx.restore();}
+function ball(x,y,r,base,shade){const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x,y,r);g.addColorStop(0,base[0]);g.addColorStop(0.55,base[1]);g.addColorStop(1,base[2]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();
+  if(shade){ctx.fillStyle=`rgba(0,0,0,${shade})`;ctx.fill();}}
+const PRO=['#ffb0a4','#e8352e','#7d1010'],NEU=['#a9d4ff','#2f78dc','#0f3a80'],EM=['#e7c4ff','#9b3fd6','#4a136e'],EP=['#b8c4ff','#2d3fd0','#101a6e'],NUB=['#d6ffb8','#58c43a','#1d5c10'],NU=['#fff1a8','#f2b81f','#7a5200'],ELE=['#e0f4ff','#36a3ff','#0a4a90'];
+function legend(n,y){const R=REG[n],items=[['بروتون',PRO],['نيوترون',NEU]];let x=R.w/2+60;items.forEach(([t,c])=>{ball(x,y,7,c);txt(t,x-12,y,{font:F(600,11.5),color:'#cfd8e6',align:'right'});x-=110;});}
+
+/* ---------- a nucleus: nucleons packed in a ball, drawn back-to-front, slowly turning ---------- */
+function makeNuc(A,Z,seed){const Rr=Math.cbrt(A/0.62),P=[];let s=seed||1;const rr2=()=>{s=(s*16807)%2147483647;return s/2147483647;};
+  for(let i=0;i<A;i++){let x,y,z;do{x=rr2()*2-1;y=rr2()*2-1;z=rr2()*2-1;}while(x*x+y*y+z*z>1);P.push({x:x*Rr,y:y*Rr,z:z*Rr,p:false});}
+  for(let it=0;it<70;it++){for(let i=0;i<A;i++)for(let j=i+1;j<A;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,d=Math.hypot(dx,dy,dz)||1e-3;if(d<2){const f=(2-d)/4;a.x-=dx/d*f;a.y-=dy/d*f;a.z-=dz/d*f;b.x+=dx/d*f;b.y+=dy/d*f;b.z+=dz/d*f;}}
+    P.forEach(q=>{const d=Math.hypot(q.x,q.y,q.z);if(d>Rr-1){const k=(Rr-1)/d;q.x*=k;q.y*=k;q.z*=k;}});}
+  const idx=P.map((q,i)=>[i,rr2()]).sort((a,b)=>a[1]-b[1]);for(let k=0;k<Z;k++)P[idx[k][0]].p=true;return{P,A,Z,Rr};}
+function drawNuc(nu,cx,cy,rn,rot,o={}){const c=Math.cos(rot),s=Math.sin(rot),hide=o.hide||new Set(),list=[];
+  nu.P.forEach((q,i)=>{if(hide.has(i))return;const x=q.x*c+q.z*s,z=-q.x*s+q.z*c;list.push({x,y:q.y,z,i,p:o.flip&&o.flip.has(i)?!q.p:q.p});});list.sort((a,b)=>a.z-b.z);
+  const R=nu.Rr*rn;if(o.glow){const g=ctx.createRadialGradient(cx,cy,R*0.7,cx,cy,R*1.7);g.addColorStop(0,`rgba(255,190,90,${0.45*o.glow})`);g.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*1.7,0,7);ctx.fill();}
+  const j=o.jit||0;list.forEach((q,k)=>{const jx=j?Math.sin(time*40+q.i*2.1)*j*rn:0,jy=j?Math.cos(time*37+q.i*1.3)*j*rn:0;const depth=(q.z/nu.Rr+1)/2;
+    ball(cx+q.x*rn+jx,cy+q.y*rn+jy,rn*1.04,q.p?PRO:NEU,0.4*(1-depth));
+    if(o.mark===q.i){ctx.beginPath();ctx.arc(cx+q.x*rn,cy+q.y*rn,rn*(1.5+0.25*Math.sin(time*10)),0,7);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2.4;ctx.stroke();}});
+  // ground shadow
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(cx,cy+R*1.08,R*0.8,R*0.12,0,0,7);ctx.fill();}
+function screenOf(nu,i,cx,cy,rn,rot){const q=nu.P[i],c=Math.cos(rot),s=Math.sin(rot);return{x:cx+(q.x*c+q.z*s)*rn,y:cy+q.y*rn,z:-q.x*s+q.z*c};}
+function trail(x0,y0,x1,y1,c){const dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy);if(l<4)return;const nx=-dy/l,ny=dx/l;ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.setLineDash([9,6]);for(let k=-2;k<=2;k++){ctx.beginPath();ctx.moveTo(x0+nx*k*4,y0+ny*k*4);ctx.lineTo(x1-dx/l*10+nx*k*5,y1-dy/l*10+ny*k*5);ctx.stroke();}ctx.setLineDash([]);}
+function speedArrow(x,y,dir,len,c){ctx.strokeStyle=c;ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*len,y);ctx.stroke();arrowHead(x+dir*(len+6),y,dir>0?0:Math.PI,11,c);}
+function mtxt(s,x,y,size,c){ctx.font=`italic 600 ${Math.round(size*L.fs)}px "Times New Roman",serif`;ctx.fillStyle=c||'#eaf0fa';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(s,x,y);}
+
+/* ---------- page 1: nuclear reactions  a + X → Y + b ---------- */
+const MU={n:1.008665,H:1.007825,He:4.002603,N14:14.003074,O17:16.999132,C14:14.003242,U238:238.050788,U239:239.054293};
+const RX=[
+ {k:'ruth',l:'تجربة رذرفورد',s:'رذرفورد',a:{A:4,Z:2,sym:'He',t:'جسيمة ألفا'},X:{A:14,Z:7,sym:'N',t:'نواة النيتروجين'},Y:{A:17,Z:8,sym:'O',t:'نواة الأوكسجين'},b:{A:1,Z:1,sym:'H',t:'بروتون'},m:[MU.He,MU.N14,MU.O17,MU.H]},
+ {k:'nC',l:'قذف النيتروجين بنيوترون',s:'n + N',a:{A:1,Z:0,sym:'n',t:'نيوترون'},X:{A:14,Z:7,sym:'N',t:'نواة النيتروجين'},Y:{A:14,Z:6,sym:'C',t:'نواة الكاربون'},b:{A:1,Z:1,sym:'H',t:'بروتون'},m:[MU.n,MU.N14,MU.C14,MU.H]},
+ {k:'nU',l:'أسر نيوترون باليورانيوم',s:'n + U',a:{A:1,Z:0,sym:'n',t:'نيوترون'},X:{A:238,Z:92,sym:'U',t:'نواة اليورانيوم'},Y:{A:239,Z:92,sym:'U',t:'نواة اليورانيوم'},b:{A:0,Z:0,sym:'γ',t:'أشعة كاما'},m:[MU.n,MU.U238,MU.U239,0]}];
+let rI=0,tR=-1;const NUCS={};
+function nucFor(A,Z,seed){const k=A+'|'+Z;if(!NUCS[k])NUCS[k]=makeNuc(A,Z,seed||A*7+Z);return NUCS[k];}
+function smallParticle(x,y,o,r){if(o.A===4){[[-.55,-.55,PRO],[.55,.55,PRO],[.55,-.55,NEU],[-.55,.55,NEU]].forEach(([dx,dy,c])=>ball(x+dx*r,y+dy*r,r,c));}else if(o.sym==='n')ball(x,y,r*1.1,NEU);else ball(x,y,r*1.1,PRO);}
+function qOf(o){return(o.m[0]+o.m[1]-o.m[2]-o.m[3])*931.5;}
+function gR(){const R=REG.react,w=R.w,h=R.h;return{w,h,cy:96+(h-260)*0.5+20,u:Math.min(w,h-200)};}
+function drawReact(){const g=gR(),o=RX[rI],t=tR,nar=g.w<520;const X=nucFor(o.X.A,o.X.Z),Yn=nucFor(o.Y.A,o.Y.Z);
+  const big=o.X.A>100,rn=g.u*(big?0.2:0.13)/X.Rr,R=X.Rr*rn,pr=rn*1.05,tx=g.w*0.5,T1=1.6,T2=0.5;
+  // stage 1: projectile approaches (α slows down as it is repelled; the neutral neutron does not)
+  if(t<T1+T2){const k=t<0?0:Math.min(1,t/T1),ease=o.a.Z?1-Math.pow(1-k,1.6):k,px=g.w*0.08+(tx-R-pr-g.w*0.08)*ease;
+    drawNuc(X,tx,g.cy,rn,time*0.3,{glow:t>T1?(t-T1)/T2:0,jit:t>T1?0.08:0});
+    if(t<T1){if(t>0)trail(g.w*0.06,g.cy,px,g.cy,'rgba(220,230,255,.4)');smallParticle(px,g.cy,o.a,pr);}
+    if(t>T1){ctx.beginPath();ctx.arc(tx,g.cy,R*(1.1+0.6*(t-T1)/T2),0,7);ctx.strokeStyle=`rgba(255,240,200,${1-(t-T1)/T2})`;ctx.lineWidth=3;ctx.stroke();}
+    LB=[];LBW=g.w;LBH=g.h;label(o.X.t+' (الهدف)',tx,g.cy+R+24,'#cfd8e6',{s:11.5});if(t<T1)label(o.a.t+' (القذيفة)',Math.max(70,px),g.cy-pr*2.6,'#ffe6b0',{s:11.5});
+    if(t<0)label('اضغط «ابدأ التفاعل»',g.w/2,g.cy-R-40,'#e8ecf2',{s:12.5});}
+  else{const f=t-T1-T2,d=Math.min(f*g.w*0.18,g.w*0.28);const yx=tx-d*0.25;drawNuc(Yn,yx,g.cy,rn,time*0.3,{});
+    if(o.b.sym==='γ'){const x0=yx+Yn.Rr*rn+6,len=Math.min(f*g.w*0.5,g.w-x0-30);ctx.save();ctx.shadowColor='rgba(255,150,40,.8)';ctx.shadowBlur=8;ctx.strokeStyle='#ffa53a';ctx.lineWidth=3;ctx.beginPath();for(let s=0;s<=len;s+=1.5){const y=g.cy-12*Math.sin(s/9-time*14)*Math.min(1,s/20);s?ctx.lineTo(x0+s,y):ctx.moveTo(x0+s,y);}ctx.stroke();ctx.restore();if(len>20){arrowHead(x0+len+6,g.cy,0,9,'#ffa53a');mtxt('γ',x0+len*0.6,g.cy+32,24,'#ffd27a');}}
+    else{const bx=tx+Yn.Rr*rn+pr*2+d*1.3,by=g.cy-d*0.25;trail(tx+Yn.Rr*rn,g.cy,bx,by,'rgba(220,230,255,.4)');smallParticle(bx,by,o.b,pr);}
+    LB=[];LBW=g.w;LBH=g.h;label(o.Y.t+' (الناتجة)',yx,g.cy+Yn.Rr*rn+24,'#bff5c8',{s:11.5});if(o.b.sym!=='γ')label(o.b.t,Math.min(g.w-60,tx+Yn.Rr*rn+pr*2+d*1.3),g.cy-d*0.25-pr*2.6,'#ffe6b0',{s:11.5});}
+  chip(nar?'التفاعلات النووية':'التفاعلات النووية Nuclear reactions',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  rowBtns('react',RX.map((r,i)=>({k:'r'+i,l:r.l,s:r.s})),44).forEach(b=>btn(b,b.k==='r'+rI));
+  // equation with the conserved sums
+  const ey=g.h-118,s1=nar?19:25,items=[o.a,'+',o.X,'→',o.Y,'+',o.b],step=s1*2.3;let x=g.w/2-step*3;
+  items.forEach(it=>{if(typeof it==='string')mtxt(it,x,ey,s1,'#ffd27a');else nuclide(x,ey,it.A,it.Z,it.sym,s1,it===o.Y?'#bff5c8':'#eaf0fa');x+=step;});
+  const sA1=o.a.A+o.X.A,sZ1=o.a.Z+o.X.Z,sA2=o.Y.A+o.b.A,sZ2=o.Y.Z+o.b.Z;
+  if(nar){label(`مجموع الأعداد الكتلية: ⁦${sA1} = ${sA2}⁩  ·  مجموع الأعداد الذرية: ⁦${sZ1} = ${sZ2}⁩`,g.w/2,g.h-84,'#cfd8e6',{s:11});}else label(`مجموع الأعداد الكتلية: ⁦${o.a.A} + ${o.X.A} = ${sA1}⁩ = ⁦${o.Y.A} + ${o.b.A} = ${sA2}⁩   ·   مجموع الأعداد الذرية: ⁦${sZ1} = ${sZ2}⁩`,g.w/2,g.h-84,'#cfd8e6',{s:12});
+  const Q=qOf(o);label(`⁦${nar?'':'Q = [Ma + MX − MY − Mb]c² = '}${nar?'Q = ':''}${Q>0?'+':''}${Q.toFixed(2)} MeV⁩   ←   ${Q>0?'تفاعل محرِّر للطاقة':'تفاعل ماص للطاقة'}`,g.w/2,g.h-60,Q>0?'#bff5c8':'#ffb3a8',{s:nar?10.5:12});
+  rowBtns('react',[{k:'go',l:t<0?'▶ ابدأ التفاعل':'↺ أعد',s:t<0?'▶':'↺'}],g.h-36).forEach(b=>btn(b,false));}
+
+/* ---------- page 2: penetrating power — paper, aluminium, lead ---------- */
+let PP=[],pAcc=0;
+function gP(){const R=REG.pen,w=R.w,h=R.h;return{w,h,sx:w*0.1,ys:{a:h*0.3,b:h*0.47,g:h*0.64},xs:[w*0.42,w*0.6,w*0.8],th:[6,14,28]};}
+function stepPen(dt){const g=gP();pAcc+=dt*5;while(pAcc>1){pAcc-=1;['a','b','g'].forEach(k=>PP.push({k,x:g.sx+20,y:g.ys[k]+(Math.random()-0.5)*14,v:k==='a'?160:k==='b'?260:380,ph:Math.random()*6,a:1}));}
+  PP.forEach(p=>{const stop=p.k==='a'?g.xs[0]-g.th[0]/2:p.k==='b'?g.xs[1]-g.th[1]/2:1e9;p.x+=p.v*dt;if(p.x>=stop){p.dead=true;}if(p.k==='g'&&p.x>g.xs[2]&&!p.th){p.th=1;p.a=0.35;}});PP=PP.filter(p=>!p.dead&&p.x<g.w+20);}
+function drawPen(){const g=gP(),nar=g.w<520;
+  // source
+  rr(g.sx-30,g.ys.a-30,34,g.ys.g-g.ys.a+60,6);ctx.fillStyle='#2a3140';ctx.fill();ctx.strokeStyle='#5a6577';ctx.stroke();txt('مصدر',g.sx-13,g.ys.g+46,{font:F(600,11.5),color:'#a3b3cc'});
+  // sheets
+  const names=['ورقة','ألمنيوم','رصاص'],cols=[['#f4efe2','#d8d0bc'],['#cfd6df','#8c96a3'],['#5e6573','#2d323b']];
+  g.xs.forEach((x,i)=>{const t2=g.th[i],gr=ctx.createLinearGradient(x-t2/2,0,x+t2/2,0);gr.addColorStop(0,cols[i][0]);gr.addColorStop(1,cols[i][1]);ctx.save();ctx.translate(x,0);ctx.transform(1,0,-0.25,1,0,0);ctx.fillStyle=gr;ctx.fillRect(-t2/2,g.ys.a-60,t2,g.ys.g-g.ys.a+120);ctx.restore();
+    txt(names[i],x-10,g.ys.g+80,{font:F(700,12.5),color:'#e8ecf2'});});
+  PP.forEach(p=>{ctx.globalAlpha=p.a;if(p.k==='a'){const r=5;[[-.55,-.55,PRO],[.55,.55,PRO],[.55,-.55,NEU],[-.55,.55,NEU]].forEach(([dx,dy,c])=>ball(p.x+dx*r,p.y+dy*r,r,c));}
+    else if(p.k==='b')ball(p.x,p.y,3.5,EM);else{ctx.strokeStyle='#ffa53a';ctx.lineWidth=2;ctx.beginPath();for(let s=0;s<26;s+=1.5){const y=p.y-4*Math.sin(s/3-time*20+p.ph);s?ctx.lineTo(p.x-s,y):ctx.moveTo(p.x,y);}ctx.stroke();}ctx.globalAlpha=1;});
+  [['α','a','#ffb3a8'],['β','b','#d9b3ff'],['γ','g','#ffd27a']].forEach(([s,k,c])=>mtxt(s,g.sx+40,g.ys[k]-18,20,c));
+  LB=[];LBW=g.w;LBH=g.h;
+  chip(nar?'قدرة الاختراق':'قدرة الاختراق: ألفا وبيتا وكاما',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  label('ألفا تتوقف بالورقة · بيتا تتوقف بالألمنيوم · كاما تخترق وتضعف بالرصاص',g.w/2,g.h-56,'#ffe6b0',{s:nar?10.5:12.5});
+  label('قدرة التأين: ألفا > بيتا > كاما   ·   قدرة الاختراق: كاما > بيتا > ألفا',g.w/2,g.h-28,'#cfd8e6',{s:nar?10.5:12});}
+
+/* ---------- page 3: deflection in a magnetic field into the page ---------- */
+let MP=[],mAcc=0;
+function gM(){const R=REG.mag,w=R.w,h=R.h,cx=w/2,by=h-110,top=70,rf=Math.min(w*0.3,(by-top)*0.4);return{w,h,cx,by,top,rf,fy:by-60-rf};}
+/* path of each ray: straight up to the field, then circular (r = mv/qB): α bends to the left a little, β to the right strongly, γ straight */
+/* ray paths: straight outside the field, circular arc (r = mv/qB) inside it; α bends left a little, β⁻ right strongly, γ goes straight */
+let PATHS={},pathKey='';
+function buildPaths(g){const key=g.w+'x'+g.h;if(key===pathKey)return;pathKey=key;PATHS={};['a','b','g'].forEach(k=>{const R=k==='a'?g.rf*3:k==='b'?g.rf*0.55:1e9,sg=k==='a'?-1:1;let x=g.cx,y=g.by-30,dx=0,dy=-1;const pts=[[x,y]];
+  for(let i=0;i<900;i++){const inF=Math.hypot(x-g.cx,y-g.fy)<g.rf;if(inF&&R<1e8){const a=sg*2/R,c=Math.cos(a),s2=Math.sin(a),nx=dx*c-dy*s2,ny=dx*s2+dy*c;dx=nx;dy=ny;}x+=dx*2;y+=dy*2;pts.push([x,y]);if(y<g.top-10||x<-10||x>g.w+10||y>g.h)break;}PATHS[k]=pts;});}
+function rayPt(g,k,s){buildPaths(g);const P=PATHS[k],i=Math.min(P.length-1,Math.floor(s/2));return{x:P[i][0],y:P[i][1],end:i>=P.length-1};}
+function stepMag(dt){mAcc+=dt*6;while(mAcc>1){mAcc-=1;['a','b','g'].forEach(k=>MP.push({k,s:0,v:k==='a'?140:k==='b'?220:320}));}MP.forEach(p=>{p.s+=p.v*dt;});const g=gM();MP=MP.filter(p=>!rayPt(g,p.k,p.s).end);}
+function drawMag(){const g=gM(),nar=g.w<520;
+  // field region
+  ctx.beginPath();ctx.arc(g.cx,g.fy,g.rf,0,7);ctx.fillStyle='rgba(127,211,255,.06)';ctx.fill();ctx.setLineDash([6,6]);ctx.strokeStyle='rgba(127,211,255,.6)';ctx.lineWidth=1.6;ctx.stroke();ctx.setLineDash([]);
+  for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++){const x=g.cx+i*g.rf/3.4,y=g.fy+j*g.rf/3.4;if(Math.hypot(x-g.cx,y-g.fy)>g.rf-10)continue;txt('×',x,y,{font:F(500,14,1),color:'rgba(127,211,255,.55)',dir:'ltr'});}
+  // full paths (faint)
+  [['a','rgba(255,120,110,.5)'],['b','rgba(200,140,255,.5)'],['g','rgba(255,190,90,.5)']].forEach(([k,c])=>{buildPaths(g);ctx.strokeStyle=c;ctx.lineWidth=2;ctx.beginPath();PATHS[k].forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();});
+  MP.forEach(p=>{const q=rayPt(g,p.k,p.s);if(p.k==='a'){const r=4.5;[[-.55,-.55,PRO],[.55,.55,PRO],[.55,-.55,NEU],[-.55,.55,NEU]].forEach(([dx,dy,c])=>ball(q.x+dx*r,q.y+dy*r,r,c));}else if(p.k==='b')ball(q.x,q.y,3.5,EM);else{ctx.beginPath();ctx.arc(q.x,q.y,3,0,7);ctx.fillStyle='#ffd27a';ctx.fill();}});
+  // lead block with uranium
+  const bw=70,bh=60;rr(g.cx-bw/2,g.by-bh/2,bw,bh,6);ctx.fillStyle='#22262e';ctx.fill();ctx.strokeStyle='#555d6b';ctx.stroke();ctx.fillStyle='#1a1d23';ctx.fillRect(g.cx-6,g.by-bh/2,12,bh*0.6);ctx.beginPath();ctx.arc(g.cx,g.by+4,7,0,7);ctx.fillStyle='#7cff8a';ctx.fill();
+  LB=[];LBW=g.w;LBH=g.h;
+  chip(nar?'الانحراف في المجال':'انحراف الإشعاعات بتأثير المجال المغناطيسي',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  buildPaths(g);const la=PATHS.a[PATHS.a.length-1],lb=PATHS.b[PATHS.b.length-1];mtxt('α',clamp(la[0]-18,20,g.w-20),clamp(la[1]+14,g.top+10,g.h-60),22,'#ffb3a8');mtxt('β⁻',clamp(lb[0]+(lb[0]>g.cx?-22:22),20,g.w-20),clamp(lb[1]+(lb[1]>g.by?-20:14),g.top+10,g.h-60),22,'#d9b3ff');mtxt('γ',g.cx+16,g.top+10,22,'#ffd27a');
+  label('مجال مغناطيسي عمودي على الورقة (×)',g.cx,g.fy+g.rf*0.75,'#bfe4ff',{s:11.5});label('حاجز واقٍ من الرصاص + يورانيوم',g.cx,g.by+bh/2+16,'#cfd8e6',{s:11.5});
+  label('تنحرف ألفا باتجاه (موجبة) وبيتا باتجاه معاكس (سالبة)، وكاما لا تنحرف',g.w/2,g.h-28,'#ffe6b0',{s:nar?10.5:12});}
+
+function draw(){drawBg();const fn={react:drawReact,pen:drawPen,mag:drawMag};for(const n of PG)if(REG[n]){setReg(n);fn[n]();}
+  if(S.page==='all'){ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.x,DPR*view.y);ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;PG.slice(1).forEach(n=>{const R=REG[n];ctx.beginPath();if(REG.react.y===R.y){ctx.moveTo(R.x+R.w,R.y+30);ctx.lineTo(R.x+R.w,R.y+R.h-30);}else{ctx.moveTo(R.x+30,R.y);ctx.lineTo(R.x+R.w-30,R.y);}ctx.stroke();});}}
+
+/* ---------- input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function btnsOf(n){if(n!=='react')return[];const R=REG.react;return[...rowBtns('react',[{k:'go',l:tR<0?'▶ ابدأ التفاعل':'↺ أعد',s:tR<0?'▶':'↺'}],R.h-36),...rowBtns('react',RX.map((r,i)=>({k:'r'+i,l:r.l,s:r.s})),44)];}
+function hitBtn(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n],p={x:w.x-R.x,y:w.y-R.y};for(const b of btnsOf(n))if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return{n,b};return null;}
+function act(h){const b=h.b;if(b.k==='go')tR=tR<0?0:-1;else{rI=+b.k.slice(1);tR=-1;}}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const h=hitBtn(s);if(h){act(h);return;}const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const h=hitBtn(s);hover=h?h.b.id:null;cv.style.cursor=h?'pointer':'grab';return;}view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){const o=RX[rI],Q=qOf(o);
+  const a=`<p>يمكننا أن نغيّر تركيب النواة عند قذفها بجسيمات نووية ذات طاقة معينة. أول برهان على حدوث هذا التفاعل النووي المحتث (الاصطناعي) قدّمه العالم <b>رذرفورد</b>:</p><p class="m">⁴₂He + ¹⁴₇N → ¹⁷₈O + ¹₁H</p><p>في المعادلات النووية يجب أن يكون <b>مجموع الأعداد الذرية</b> و<b>مجموع الأعداد الكتلية</b> متساويين في طرفي المعادلة (معادلة موزونة). ويجب أن تتحقق قوانين الحفظ: الطاقة–الكتلة، الزخم الخطي، الزخم الزاوي، الشحنة (العدد الذري)، وعدد النيوكليونات (العدد الكتلي).</p><p><b>طاقة التفاعل:</b> للتفاعل <b class="m">a + X → Y + b</b>:</p><p class="m">Q = [Ma + MX − MY − Mb]c² ,  c² = 931 MeV/u</p><p>إذا كانت <b class="m">Q > 0</b> فالتفاعل <b>محرِّر للطاقة</b>، وإذا كانت <b class="m">Q < 0</b> فهو <b>ماص للطاقة</b>. التفاعل الحالي: ⁦Q = ${Q.toFixed(2)} MeV⁩.</p><p>النيوترونات قذائف مهمة لأن شحنتها صفر، فتدخل النواة بسهولة لعدم وجود قوة كولوم التنافرية بينها وبين النواة.</p>`;
+  const b=`<p><b>قدرة الاختراق والتأين:</b> جسيمات ألفا لها القدرة الأكبر على تأيين المواد تليها بيتا السالبة والأقل أشعة كاما. أما الاختراق فأشعة كاما أكبر تليها بيتا والأقل ألفا (عادة لا تخترق الملابس وجلد الإنسان).</p>`;
+  const c=`<p><b>الانحراف:</b> تنحرف جسيمات ألفا بتأثير المجال الكهربائي أو المغناطيسي باتجاه يدل على أنها موجبة الشحنة، وتنحرف بيتا السالبة باتجاه معاكس يدل على أنها سالبة، ولا تنحرف أشعة كاما لأنها متعادلة.</p>`;
+  const tail=`<p class="note">جرّب: اختر تفاعلاً واضغط «ابدأ التفاعل»، وتحقق من تساوي المجموعين في طرفي المعادلة، وقارن إشارة Q.</p>`;
+  const m={react:a,pen:b,mag:c};if(S.page!=='all')return{t:{react:'التفاعلات النووية',pen:'قدرة الاختراق',mag:'الانحراف في المجال'}[S.page],b:m[S.page]+tail};return{t:'التفاعلات النووية',b:a+b+c+tail};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(tR>=0)tR=Math.min(tR+dt,14);if(REG.pen)stepPen(dt);if(REG.mag)stepMag(dt);if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();
+const pb=document.querySelectorAll('#parts button');function syncPages(){pb.forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.page));}
+pb.forEach(b=>b.addEventListener('click',()=>{S.page=b.dataset.p;syncPages();view={z:1,x:0,y:0};arrange();}));syncPages();
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
