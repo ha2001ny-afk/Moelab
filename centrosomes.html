@@ -229,15 +229,14 @@ addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key===' ')btn.click();e
 apply();render(0);requestAnimationFrame(frame);
 })();
 </script>
-
 <!--MOE-MIN:START-->
 <style>
   #qp,#qbtn,#hlbar{--ok:#1b7a3a;--okbg:#eef9f0;--navy:#1f3a52;--hint:#c4623a;box-sizing:border-box;font-family:Tahoma,"Segoe UI",Arial,sans-serif;direction:rtl}
   #qp *,#qp *:before,#qp *:after{box-sizing:border-box}
   /* ===== ministerial questions ===== */
-  #qbtn{position:absolute;top:10px;right:max(10px,env(safe-area-inset-right,0px));z-index:6;height:44px;padding:0 16px 0 12px;border-radius:22px;border:2px solid var(--hint);background:var(--hint);color:#fff;font:bold clamp(14px,3.6vw,17px) Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);display:flex;align-items:center;gap:6px}
+  #qbtn{position:absolute;top:10px;left:62px;z-index:2147482000;height:44px;padding:0 16px 0 12px;border-radius:22px;border:2px solid var(--hint);background:var(--hint);color:#fff;font:bold clamp(14px,3.6vw,17px) Tahoma,"Segoe UI",Arial,sans-serif;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);display:flex;align-items:center;gap:6px}
   #qbtn b{background:#fff;color:var(--hint);border-radius:11px;min-width:22px;height:22px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
-  #qp{position:absolute;inset:0;z-index:20;background:#f4f7fa;display:none;flex-direction:column}
+  #qp{position:absolute;inset:0;z-index:2147483000;background:#f4f7fa;display:none;flex-direction:column}
   #qp.on{display:flex;animation:qin .28s ease}
   @keyframes qin{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
   #qhd{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-bottom:1px solid #dde5ec}
@@ -286,7 +285,7 @@ apply();render(0);requestAnimationFrame(frame);
   #qft #qa{border-color:var(--hint);background:var(--hint);color:#fff}
   #qft #qa.hide{background:#fff;color:var(--hint)}
   #qft button:disabled{opacity:.35;box-shadow:none;cursor:default}
-  #hlbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:7;display:none;align-items:center;gap:8px;background:var(--navy);color:#fff;border-radius:24px;padding:6px 6px 6px 14px;font-weight:bold;font-size:clamp(13px,3.4vw,16px);box-shadow:0 4px 12px rgba(0,0,0,.3);max-width:calc(100% - 140px);white-space:nowrap}
+  #hlbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2147482000;display:none;align-items:center;gap:8px;background:var(--navy);color:#fff;border-radius:24px;padding:6px 6px 6px 14px;font-weight:bold;font-size:clamp(13px,3.4vw,16px);box-shadow:0 4px 12px rgba(0,0,0,.3);max-width:calc(100% - 140px);white-space:nowrap}
   #hlbar.on{display:flex}
   #hlbar span{overflow:hidden;text-overflow:ellipsis}
   #hlbar button{flex:none;height:34px;border-radius:17px;border:0;background:var(--hint);color:#fff;font:bold 14px Tahoma,Arial,sans-serif;padding:0 12px;cursor:pointer}
@@ -324,7 +323,14 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
   '<div id="qft"><button id="qprev" type="button">السابق ▶</button><button id="qa" type="button">إظهار الحل 💡</button><button id="qnext" type="button">التالي ◀</button></div>'+
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
-if(!document.querySelector('.zb'))$('qbtn').style.left='10px';
+/* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
+function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+  if(!zb){b.style.left='10px';b.style.top='10px';return;}
+  var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
+  if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
+  if(row){b.style.left=Math.round(r.left-st.left)+'px';b.style.top=Math.round(r.bottom-st.top+8)+'px';}
+  else{b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';}}catch(_){}}
+placeBtn();setInterval(placeBtn,700);window.addEventListener('resize',placeBtn);document.addEventListener('fullscreenchange',function(){setTimeout(placeBtn,50);});
 
 var qp=$('qp'),qbody=$('qbody'),qchips=$('qchips'),qa=$('qa'),qprev=$('qprev'),qnext=$('qnext');
 var QS=D.qs,SEC=D.sections||{},NAMES=D.names||{};
@@ -413,5 +419,4 @@ window.addEventListener('keydown',function(e){
 }catch(err){try{var b=document.getElementById('qbtn');if(b)b.style.display='none';var p=document.getElementById('qp');if(p)p.style.display='none';}catch(_){} if(window.console)console.warn('MoeLab ministerial:',err);}})();
 
 </script>
-<!--MOE-MIN:END-->
-</body></html>
+<!--MOE-MIN:END--></body></html>

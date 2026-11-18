@@ -21,7 +21,14 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
   '<div id="qft"><button id="qprev" type="button">السابق ▶</button><button id="qa" type="button">إظهار الحل 💡</button><button id="qnext" type="button">التالي ◀</button></div>'+
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
-if(!document.querySelector('.zb'))$('qbtn').style.left='10px';
+/* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
+function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+  if(!zb){b.style.left='10px';b.style.top='10px';return;}
+  var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
+  if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
+  if(row){b.style.left=Math.round(r.left-st.left)+'px';b.style.top=Math.round(r.bottom-st.top+8)+'px';}
+  else{b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';}}catch(_){}}
+placeBtn();setInterval(placeBtn,700);window.addEventListener('resize',placeBtn);document.addEventListener('fullscreenchange',function(){setTimeout(placeBtn,50);});
 
 var qp=$('qp'),qbody=$('qbody'),qchips=$('qchips'),qa=$('qa'),qprev=$('qprev'),qnext=$('qnext');
 var QS=D.qs,SEC=D.sections||{},NAMES=D.names||{};
