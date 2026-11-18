@@ -283,6 +283,8 @@ apply();render(0);requestAnimationFrame(frame);
   #qp .tbw td{padding:6px 8px;border:1px solid #c9d6e2;color:#174d2a;vertical-align:top;font-weight:bold}
   #qp .tbw tr:nth-child(even) td{background:#f4faf6}
   #qp .note{margin-top:8px;color:var(--hint);font-size:14px}
+  .moe-fixed #qp,.moe-fixed #qbtn,.moe-fixed #hlbar{position:fixed}
+  .moe-fixed #qp{z-index:2147483000}
 
 </style>
 <script>window.MOE_MIN_DATA={"sections":{},"names":{},"qs":[{"type":"عرّف","tags":["2/2014","2/2015"],"q":"عرّف التوائم المتماثلة ( المتطابقة ) ؟","a":{"p":"هي التوائم المتكونة من بيضة مخصبة واحدة بحيوان منوي واحد ، وتنقسم هذه البيضة المخصبة إلى خليتين وتواصل كل خلية نموها وتكوين جنين كامل ، وتتشابه التوائم المتطابقة بدرجة كبيرة في الشكل والجنس ( تكون إما ذكور أو إناث ) ."}},{"type":"عرّف","tags":["1/2015"],"q":"عرّف التوائم السيامية ؟","a":{"p":"وهي أحد أنواع التوائم المتماثلة الناتجة من بيضة واحدة مخصبة بحيوان منوي واحد وقد يكون انفصال هذه البيضة المخصبة غير تام فيؤدي إلى حالة توائم ملتحمة من منطقة القحف أو الصدر أو العجز ."}},{"type":"علّل","tags":["2/2017 أسئلة خارج القطر"],"q":"تكون التوائم الطفيلية .","a":{"p":"لأن التوائم الملتحمة غير متساوية فيكون أحد التوائم صغير ويكون متطفلاً على الآخر ."}},{"type":"قارن","tags":["أسئلة الفصل","2/2013","1/2019","1/2025"],"q":"قارن بين التوائم الأخوية والتوائم المتماثلة .","a":{"tb":{"h":["التوائم الأخوية","التوائم المتماثلة"],"r":[["وهي التوائم المتكونة من انطلاق بيضتين منفصلتين تنطلقان من المبيض في نفس الوقت","هي التوائم المتكونة من بيضة مخصبة واحدة"],["تخصب كل بيضة بحيوان منوي","تخصب البيضة بحيوان منوي واحد ، وتنقسم هذه البيضة المخصبة إلى خليتين وتواصل كل خلية نموها وتكوين جنين كامل"],["لا تظهر التوائم الأخوية تشابه وقد تكون أجناسها متشابهة ( جميعها ذكور أو جميعها إناث ) ، أو تكون مختلفة","تتشابه التوائم المتطابقة بدرجة كبيرة في الشكل والجنس ( تكون إما ذكور أو إناث )"],["تكون بنوع واحد","إذا كان انفصال البيضة المخصبة غير تام فيؤدي إلى حالة توائم سيامية أو توائم طفيلية غير متساوية"]]}}}]};</script>
@@ -293,6 +295,9 @@ apply();render(0);requestAnimationFrame(frame);
 (function(){try{
 var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
+/* محاكيات بقالب آخر (أزرار التكبير داخل .side خارج #stage): نضع العناصر فوق الصفحة كلها */
+var ZB=document.querySelector('.zb')||(function(){var z=document.getElementById('zin');return z&&z.parentElement;})();
+if(!document.querySelector('.zb')&&ZB&&!stage.contains(ZB)){stage=document.body;document.documentElement.classList.add('moe-fixed');}
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
@@ -311,7 +316,7 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
 /* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
-function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+function placeBtn(){try{var b=$('qbtn'),zb=ZB,st=stage===document.body?{left:0,top:0,width:innerWidth,height:innerHeight}:stage.getBoundingClientRect();
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
@@ -320,7 +325,7 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
   /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
   var q=b.getBoundingClientRect(),hit=false;
-  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||(zb&&zb.contains(e))||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
     if(e.parentElement!==stage&&!e.id)return;
     var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
     var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;

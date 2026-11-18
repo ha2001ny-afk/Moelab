@@ -420,6 +420,8 @@ apply();
   #qp .tbw td{padding:6px 8px;border:1px solid #c9d6e2;color:#174d2a;vertical-align:top;font-weight:bold}
   #qp .tbw tr:nth-child(even) td{background:#f4faf6}
   #qp .note{margin-top:8px;color:var(--hint);font-size:14px}
+  .moe-fixed #qp,.moe-fixed #qbtn,.moe-fixed #hlbar{position:fixed}
+  .moe-fixed #qp{z-index:2147483000}
 
 </style>
 <script>window.MOE_MIN_DATA={"sections":{"g":"النسيج الظهاري عموماً","s":"الحرشفي البسيط"},"names":{},"qs":[{"sec":"g","type":"الموقع والأهمية","tags":["2/2014","3/2018","3/2024 نظام المحاولات","3/2020"],"q":"ما موقع وأهمية الغشاء القاعدي ؟","a":{"dl":[["الموقع","أسفل الخلايا الطلائية ."],["الأهمية","تستند عليه جميع خلايا النسيج الظهاري ."]]}},{"sec":"g","type":"املأ الفراغ","tags":["3/2020"],"q":"يصنف النسيج الظهاري تبعاً لعدد طبقات الخلايا المكونة له إلى {النسيج الظهاري البسيط} و{النسيج الظهاري المطبق} ."},{"sec":"g","type":"صنّف","tags":["أسئلة التلفزيون التربوي"],"q":"صنّف الأنسجة الحيوانية إلى أنواعها الأساسية ؟","a":{"ol":["الأنسجة الطلائية ( الظهارية ) .","الأنسجة الضامة ( الرابطة ) .","الأنسجة العضلية .","الأنسجة العصبية ."]}},{"sec":"g","type":"الموقع والأهمية","tags":["1/2024","2/2025","1/2022"],"q":"ما موقع ووظيفة الروابط البلازمية ؟","a":{"dl":[["الموقع","حافات خلايا الأنسجة الظهارية مع بعضها البعض ."],["الوظيفة","ربط حافات الخلايا في النسيج الظهاري ."]]}},{"sec":"g","type":"علّل","tags":["أسئلة التلفزيون التربوي"],"q":"وجود الروابط الخلوية ( البلازمية ) والغشاء القاعدي في النسيج الطلائي .","a":{"p":"وذلك لأن المادة بين خلايا النسيج الظهاري تكاد تكون معدومة لذلك وجدت روابط خلوية ( بلازمية ) لتربط حلقات الخلايا مع بعضها ، ووجود الغشاء القاعدي لتستند عليه خلايا النسيج الظهاري ."}},{"sec":"g","type":"عدّد","tags":["3/2017","2020 تمهيدي"],"q":"عدّد أنواع الأنسجة الطلائية ( الظهارية ) البسيطة .","a":{"ol":["نسيج ظهاري حرشفي بسيط .","نسيج ظهاري مكعبي بسيط .","نسيج ظهاري عمودي بسيط .","نسيج ظهاري عمودي مطبق كاذب ."]}},{"sec":"s","type":"نوع النسيج","q":"ما نوع ( طبيعة ) النسيج في كل من :","items":[{"t":"الأوعية الدموية","tags":[]},{"t":"حويصلات الرئة","tags":[]},{"t":"التجاويف الجسمية","tags":["2014 تمهيدي","2015 تمهيدي","2/2016"]},{"t":"جسيمات مالبيجي","tags":["2/2015"]},{"t":"بطانة جسيمات مالبيجي","tags":["2022 تمهيدي","1/2024"]}],"common":"النسيج الظهاري الحرشفي البسيط"},{"sec":"s","type":"ما موقع","tags":["2/2024 نظام المحاولات"],"q":"ما موقع كل من : 1. بطانة الأوعية الدموية 2. حويصلات الرئة 3. التجاويف الجسمية 4. جسيمات مالبيجي 5. بطانة جسيمات مالبيجي ؟","a":{"p":"النسيج الظهاري الحرشفي البسيط ."}}]};</script>
@@ -430,6 +432,9 @@ apply();
 (function(){try{
 var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
+/* محاكيات بقالب آخر (أزرار التكبير داخل .side خارج #stage): نضع العناصر فوق الصفحة كلها */
+var ZB=document.querySelector('.zb')||(function(){var z=document.getElementById('zin');return z&&z.parentElement;})();
+if(!document.querySelector('.zb')&&ZB&&!stage.contains(ZB)){stage=document.body;document.documentElement.classList.add('moe-fixed');}
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
@@ -448,7 +453,7 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
 /* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
-function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+function placeBtn(){try{var b=$('qbtn'),zb=ZB,st=stage===document.body?{left:0,top:0,width:innerWidth,height:innerHeight}:stage.getBoundingClientRect();
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
@@ -457,7 +462,7 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
   /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
   var q=b.getBoundingClientRect(),hit=false;
-  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||(zb&&zb.contains(e))||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
     if(e.parentElement!==stage&&!e.id)return;
     var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
     var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;

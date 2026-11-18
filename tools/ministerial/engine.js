@@ -4,6 +4,9 @@
 (function(){try{
 var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
+/* محاكيات بقالب آخر (أزرار التكبير داخل .side خارج #stage): نضع العناصر فوق الصفحة كلها */
+var ZB=document.querySelector('.zb')||(function(){var z=document.getElementById('zin');return z&&z.parentElement;})();
+if(!document.querySelector('.zb')&&ZB&&!stage.contains(ZB)){stage=document.body;document.documentElement.classList.add('moe-fixed');}
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
@@ -22,7 +25,7 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
 /* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
-function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+function placeBtn(){try{var b=$('qbtn'),zb=ZB,st=stage===document.body?{left:0,top:0,width:innerWidth,height:innerHeight}:stage.getBoundingClientRect();
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
@@ -31,7 +34,7 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
   /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
   var q=b.getBoundingClientRect(),hit=false;
-  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||(zb&&zb.contains(e))||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
     if(e.parentElement!==stage&&!e.id)return;
     var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
     var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;

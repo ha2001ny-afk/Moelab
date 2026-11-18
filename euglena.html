@@ -245,6 +245,8 @@ apply();
   #qp .tbw td{padding:6px 8px;border:1px solid #c9d6e2;color:#174d2a;vertical-align:top;font-weight:bold}
   #qp .tbw tr:nth-child(even) td{background:#f4faf6}
   #qp .note{margin-top:8px;color:var(--hint);font-size:14px}
+  .moe-fixed #qp,.moe-fixed #qbtn,.moe-fixed #hlbar{position:fixed}
+  .moe-fixed #qp{z-index:2147483000}
 
 </style>
 <script>window.MOE_MIN_DATA={"sections":{},"names":{},"qs":[{"type":"اشرح","tags":["1/2020","1/2022","3/2023","2/2024 نظام المحاولات","2023 تمهيدي"],"q":"اشرح التكاثر اللاجنسي ( الانقسام الثنائي الطولي ) في اليوغلينا .","a":{"p":"تتكاثر اليوغلينا لاجنسياً بالانقسام الثنائي الطولي ويحصل هذا الانقسام في الطور حر السباحة وفي الطور المكيس وكالآتي :","ol":["تنقسم النواة انقساماً خيطياً اعتيادياً ويتكون سوط إضافي .","ينقسم السايتوبلازم طولياً وبشكل تدريجي لحين انفصال القسمين بالكامل ليتكون فردان جديدان ، ويتم التكاثر بطريقة الانقسام ( الانشطار ) الثنائي الطولي ."]}},{"type":"ما نوع","tags":["2013 تمهيدي","1/2013","2020 تمهيدي"],"q":"ما نوع التكاثر اللاجنسي في اليوغلينا ؟","a":{"p":"الانقسام الثنائي الطولي ."}},{"type":"علّل","tags":["أسئلة التلفزيون التربوي"],"q":"تستطيع اليوغلينا التكاثر في جميع الظروف .","a":{"p":"لأنها توجد في حالة حرة السباحة في الظروف الملائمة أو متكيسة في الظروف غير الملائمة وتستطيع أن تتكاثر بكلا الحالتين بطريقة ( الانقسام الثنائي الطولي ) ."}},{"type":"املأ الفراغ","tags":["2/2021 تكميلي","2025 تمهيدي"],"q":"تتكاثر اليوغلينا لاجنسياً بطريقة {الانقسام الثنائي الطولي} ويتكاثر البراميسيوم لاجنسياً عن طريق {الانقسام الثنائي} ."},{"type":"ارسم","tags":["2/2023 أسئلة المتميزين"],"q":"ارسم مع التأشير الانشطار الطولي في اليوغلينا .","a":{"p":"الأجزاء المؤشرة : سوط ، نواة ، سايتوبلازم . ( شاهد الرسم بالمحاكاة )"}},{"type":"أعط مثالاً","tags":["1/2018","3/2019","3/2024"],"q":"أعط مثالاً واحداً : انقسام ثنائي طولي .","a":{"p":"التكاثر اللاجنسي في اليوغلينا ."}}]};</script>
@@ -255,6 +257,9 @@ apply();
 (function(){try{
 var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
+/* محاكيات بقالب آخر (أزرار التكبير داخل .side خارج #stage): نضع العناصر فوق الصفحة كلها */
+var ZB=document.querySelector('.zb')||(function(){var z=document.getElementById('zin');return z&&z.parentElement;})();
+if(!document.querySelector('.zb')&&ZB&&!stage.contains(ZB)){stage=document.body;document.documentElement.classList.add('moe-fixed');}
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
@@ -273,7 +278,7 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
 /* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
-function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+function placeBtn(){try{var b=$('qbtn'),zb=ZB,st=stage===document.body?{left:0,top:0,width:innerWidth,height:innerHeight}:stage.getBoundingClientRect();
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
@@ -282,7 +287,7 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
   /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
   var q=b.getBoundingClientRect(),hit=false;
-  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||(zb&&zb.contains(e))||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
     if(e.parentElement!==stage&&!e.id)return;
     var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
     var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;

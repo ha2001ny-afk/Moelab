@@ -339,6 +339,8 @@ setUI();play();render(0);requestAnimationFrame(frame);
   #qp .tbw td{padding:6px 8px;border:1px solid #c9d6e2;color:#174d2a;vertical-align:top;font-weight:bold}
   #qp .tbw tr:nth-child(even) td{background:#f4faf6}
   #qp .note{margin-top:8px;color:var(--hint);font-size:14px}
+  .moe-fixed #qp,.moe-fixed #qbtn,.moe-fixed #hlbar{position:fixed}
+  .moe-fixed #qp{z-index:2147483000}
 
 </style>
 <script>window.MOE_MIN_DATA={"sections":{},"names":{},"qs":[{"type":"علّل","tags":["2/2016 أسئلة خارج القطر"],"q":"تعد الخلية بدائية النواة أقل الخلايا تطوراً .","a":{"p":"كونها أكثرها بدائية من حيث الشكل والتركيب ."}},{"type":"التركيب الكيميائي","tags":["2/2013","3/2020","أسئلة التلفزيون التربوي"],"q":"ما التركيب الكيميائي لجدار الخلية بدائية النواة ( الجدار الصلب ) ؟","a":{"p":"البروتين والدهون وعديد السكريد ."}},{"type":"ما مميزات","tags":["1/2022","2023 تمهيدي"],"q":"ما مميزات الخلية بدائية النواة ؟","a":{"ol":["أقل تطوراً من الخلية الحقيقية النواة من ( حيث الشكل والتركيب ) .","أصغر حجماً من الخلية الحقيقية النواة .","لها نواة بدون غشاء نووي يدعى منطقة نووية أو المنطقة النووية .","لا يحتوي السايتوبلازم على عضيات غشائية كأجسام كولجي والمايتوكوندريا .","يحتوي السايتوبلازم على رايبوسومات تظهر بهيئة حبيبات صغيرة كثيرة العدد تقوم ببناء البروتينات .","تتمثل الخلية بدائية النواة بالطحالب الخضر المزرقة والبكتريا والمايتوكوندريا وجميعها تتبع مملكة الأوليات ."]}},{"type":"ارسم","tags":["2013 تمهيدي","2015 تمهيدي","1/2016","1/2019 أسئلة خارج القطر","2021 تمهيدي","2/2021 تكميلي","2024 تمهيدي"],"q":"ارسم مع التأشير خلية بدائية النواة ( البكتريا ) توضح فيها المنطقة النووية التي تعد موقع DNA .","a":{"p":"الأجزاء المؤشرة : المحفظة ، جدار الخلية ، غشاء بلازمي ، سايتوبلازم ، منطقة نووية ، هلب جنسي ، شعيرات أو أهداب ، سوط . ( شاهد الرسم بالمحاكاة )"}},{"type":"قارن","tags":["أسئلة التلفزيون التربوي"],"q":"قارن بين الخلايا حقيقية النواة والخلايا بدائية النواة .","a":{"tb":{"h":["الخلايا بدائية النواة","الخلايا حقيقية النواة"],"r":[["تعد أقل الخلايا تطوراً كونها أكثر بدائية من حيث الشكل والتركيب","أكثر تطوراً وأكبر حجماً من الخلايا بدائية النواة"],["لها نواة دون غشاء نووي تدعى بالمنطقة النووية ( منطقة النواة )","لها نواة حقيقية محاطة بغشاء نووي وقد تحتوي على نوية أو أكثر"],["لا يحتوي السايتوبلازم على عضيات غشائية كالمايتوكوندريا والبلاستيدات","يحتوي السايتوبلازم على عضيات غشائية كالمايتوكوندريا والبلاستيدات"],["تتمثل بالبكتريا والطحالب الخضر المزرقة والمايكوبلازما وجميعها تتبع مملكة الأوليات","توجد في عوالم الطليعيات والفطريات والنباتات والحيوانات"]]}}}]};</script>
@@ -349,6 +351,9 @@ setUI();play();render(0);requestAnimationFrame(frame);
 (function(){try{
 var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
+/* محاكيات بقالب آخر (أزرار التكبير داخل .side خارج #stage): نضع العناصر فوق الصفحة كلها */
+var ZB=document.querySelector('.zb')||(function(){var z=document.getElementById('zin');return z&&z.parentElement;})();
+if(!document.querySelector('.zb')&&ZB&&!stage.contains(ZB)){stage=document.body;document.documentElement.classList.add('moe-fixed');}
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
@@ -367,7 +372,7 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
 /* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
-function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+function placeBtn(){try{var b=$('qbtn'),zb=ZB,st=stage===document.body?{left:0,top:0,width:innerWidth,height:innerHeight}:stage.getBoundingClientRect();
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
@@ -376,7 +381,7 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
   /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
   var q=b.getBoundingClientRect(),hit=false;
-  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||(zb&&zb.contains(e))||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
     if(e.parentElement!==stage&&!e.id)return;
     var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
     var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;

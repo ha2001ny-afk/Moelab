@@ -304,6 +304,8 @@ apply();render(0);requestAnimationFrame(frame);
   #qp .tbw td{padding:6px 8px;border:1px solid #c9d6e2;color:#174d2a;vertical-align:top;font-weight:bold}
   #qp .tbw tr:nth-child(even) td{background:#f4faf6}
   #qp .note{margin-top:8px;color:var(--hint);font-size:14px}
+  .moe-fixed #qp,.moe-fixed #qbtn,.moe-fixed #hlbar{position:fixed}
+  .moe-fixed #qp{z-index:2147483000}
 
 </style>
 <script>window.MOE_MIN_DATA={"sections":{},"names":{},"qs":[{"type":"عرّف","tags":["أسئلة الفصل","2/2023 أسئلة المتميزين"],"q":"عرّف القصرة ؟","a":{"p":"وهو نمو غلاف أو غلافي البويض وتحوله إلى غلاف البذرة ."}},{"type":"ما موقع","tags":["1/2022"],"q":"ما موقع القصرة ؟","a":{"p":"البذرة ."}},{"type":"الموقع والأهمية","tags":["2/2010","2/2018","2/2021","3/2023 تكميلي"],"q":"ما موقع ووظيفة السويداء ؟","a":{"dl":[["الموقع","في البذرة ."],["الوظيفة","تخضع لعدة انقسامات اعتيادية مكونة نسيج السويداء الخازن للمواد الغذائية التي يعتمد عليها الجنين أثناء نموه ."]]}},{"type":"ما منشأ","q":"ما منشأ كل مما يأتي ؟","items":[{"t":"القصرة","tags":["1/1995","1/2006","3/2014","1/2021","2/2021 تكميلي","2/2023","2/2024"],"a":"غلاف أو غلافي البويض"},{"t":"البذرة","tags":["1/2005"],"a":"البويض بعد الإخصاب المزدوج"}]},{"type":"ارسم","tags":["2/1992","2/2025"],"q":"ارسم مع التأشير تركيب البذور في ذوات الفلقتين ( وذوات الفلقة الواحدة ) .","a":{"p":"ذوات الفلقتين : غطاء البذرة ، رويشة ، جذير ، ورقة جنينية ، جنين . ذوات الفلقة الواحدة : طبقة محيطة ، سويداء ، ورقة جنينية ، جذير ، جنين . ( شاهد الرسم بالمحاكاة )"}},{"type":"علّل","tags":["1/2016 أسئلة خارج القطر","1/2017","1/2025"],"q":"تتكون بذور الحنطة والخروع والذرة من جنين وسويداء وغلاف بذرة ( تكون بذور الذرة الناضجة حاوية على سويداء ) .","a":{"p":"لأن الجنين لا يستخدم السويداء إلا بعد زرع تلك البذور وبدئها بامتصاص الماء ."}},{"type":"ما ميزة","tags":["1/2023 أسئلة المتميزين"],"q":"ما ميزة بذور نباتات ذوات الفلقتين كالباقلاء والفاصوليا ؟","a":{"p":"تتكون من جنين وغلاف البذرة ."}},{"type":"أعط مثالاً","tags":["1/2008","2/2009"],"q":"مثّل لما يأتي : بذرة تخلو من السويداء .","a":{"p":"الباقلاء والفاصوليا ( يكتفى بذكر مثال واحد ) ."}}]};</script>
@@ -314,6 +316,9 @@ apply();render(0);requestAnimationFrame(frame);
 (function(){try{
 var D=window.MOE_MIN_DATA;if(!D||!D.qs||!D.qs.length)return;
 var stage=document.getElementById('stage')||document.body;
+/* محاكيات بقالب آخر (أزرار التكبير داخل .side خارج #stage): نضع العناصر فوق الصفحة كلها */
+var ZB=document.querySelector('.zb')||(function(){var z=document.getElementById('zin');return z&&z.parentElement;})();
+if(!document.querySelector('.zb')&&ZB&&!stage.contains(ZB)){stage=document.body;document.documentElement.classList.add('moe-fixed');}
 var AR=function(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];});};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 var tagK=function(s){return /الفصل|الكتاب|التلفزيون/.test(s)?'book':/خارج|الموصل|المتميزين|النازحين|المحاولات/.test(s)?'out':/تمهيدي|تكميلي/.test(s)?'pre':'min';};
@@ -332,7 +337,7 @@ wrap.innerHTML='<button id="qbtn" type="button" aria-label="الأسئلة ال�
  '</div>';
 while(wrap.firstChild)stage.appendChild(wrap.firstChild);
 /* place the button just to the right of the sim's zoom buttons (or under them if they are in a row) */
-function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stage.getBoundingClientRect();
+function placeBtn(){try{var b=$('qbtn'),zb=ZB,st=stage===document.body?{left:0,top:0,width:innerWidth,height:innerHeight}:stage.getBoundingClientRect();
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
@@ -341,7 +346,7 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
   /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
   var q=b.getBoundingClientRect(),hit=false;
-  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||(zb&&zb.contains(e))||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
     if(e.parentElement!==stage&&!e.id)return;
     var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
     var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;
