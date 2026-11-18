@@ -394,8 +394,17 @@ function placeBtn(){try{var b=$('qbtn'),zb=document.querySelector('.zb'),st=stag
   if(!zb){b.style.left='10px';b.style.top='10px';return;}
   var r=zb.getBoundingClientRect(),row=getComputedStyle(zb).flexDirection==='row';
   if(!r.width||!r.height){b.style.left='10px';b.style.top='10px';return;}
-  if(row){b.style.left=Math.round(r.left-st.left)+'px';b.style.top=Math.round(r.bottom-st.top+8)+'px';}
-  else{b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';}}catch(_){}}
+  var below=function(){b.style.left=Math.round(r.left-st.left)+'px';b.style.top=Math.round(r.bottom-st.top+8)+'px';};
+  if(row||placeBtn.down){below();return;}
+  b.style.left=Math.round(r.right-st.left+10)+'px';b.style.top=Math.round(r.top-st.top)+'px';
+  /* if the sim shows its own caption/banner in that spot, move under the zoom buttons (and stay there) */
+  var q=b.getBoundingClientRect(),hit=false;
+  [].forEach.call(stage.querySelectorAll('*'),function(e){if(hit||e===b||e.closest('.zb,#qp,#hlbar,#qbtn'))return;
+    if(e.parentElement!==stage&&!e.id)return;
+    var cs=getComputedStyle(e);if(cs.position==='static'||cs.display==='none'||cs.visibility==='hidden'||!(e.textContent||'').trim())return;
+    var x=e.getBoundingClientRect();if(!x.width||x.width>st.width*.9||x.height>120)return;
+    if(x.left<q.right&&x.right>q.left&&x.top<q.bottom&&x.bottom>q.top)hit=true;});
+  if(hit){placeBtn.down=true;below();}}catch(_){}}
 placeBtn();setInterval(placeBtn,700);window.addEventListener('resize',placeBtn);document.addEventListener('fullscreenchange',function(){setTimeout(placeBtn,50);});
 
 var qp=$('qp'),qbody=$('qbody'),qchips=$('qchips'),qa=$('qa'),qprev=$('qprev'),qnext=$('qnext');
