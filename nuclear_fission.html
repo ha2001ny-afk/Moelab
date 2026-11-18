@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>الانشطار النووي</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts button[aria-pressed="false"] span{text-decoration:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة الانشطار النووي لليورانيوم والتفاعل المتسلسل"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="الصفحات">
+    <button data-p="fis" aria-pressed="true"><i></i><span class="l">الانشطار النووي</span><span class="s">انشطار</span></button>
+    <button data-p="stg" aria-pressed="false"><i></i><span class="l">مراحل الانشطار</span><span class="s">مراحل</span></button>
+    <button data-p="chain" aria-pressed="false"><i></i><span class="l">التفاعل المتسلسل</span><span class="s">متسلسل</span></button>
+    <button data-p="all" aria-pressed="false"><i></i><span class="l">الكل معاً</span><span class="s">الكل</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* page: 'cl' classical atom, 'qm' quantum atom, 'both' */
+const S={page:'fis',rods:false};
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+/* ---------- layout: one decay per page, or all three together ---------- */
+let REG={};const PG=['fis','stg','chain'];
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){REG={};const top=H<500?58:66,m=8,aw=W-2*m,ah=H-top-m;
+  if(S.page!=='all')REG[S.page]={x:m,y:top,w:aw,h:ah};
+  else if(aw/ah>1.3){const cw=aw/3;PG.forEach((n,i)=>REG[n]={x:m+aw-cw*(i+1),y:top,w:cw,h:ah});}else{const rh=ah/3;PG.forEach((n,i)=>REG[n]={x:m,y:top+rh*i,w:aw,h:rh});}}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setReg(n){const R=REG[n];ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*(view.z*R.x+view.x),DPR*(view.z*R.y+view.y));}
+function regAt(w){for(const n in REG){const R=REG[n];if(w.x>=R.x&&w.x<=R.x+R.w&&w.y>=R.y&&w.y<=R.y+R.h)return n;}return null;}
+function btn(b,on){rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=on?'rgba(255,210,122,.22)':hover===b.id?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(600,narrow?11.5:12.5),color:on?'#ffe2a8':col.ink});}
+function rowBtns(n,list,y){const R=REG[n],gap=6;ctx.font=F(600,12.5);let ws=list.map(b=>Math.max(44,ctx.measureText(b.l).width+22));let tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);
+  if(tot>R.w-12){list=list.map(b=>({...b,l:b.s||b.l}));ws=list.map(b=>Math.max(36,ctx.measureText(b.l).width+16));tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);}
+  let x=(R.w+tot)/2;return list.map((b,i)=>{x-=ws[i];const r={...b,id:n+b.k,x,y,w:ws[i],h:30};x-=gap;return r;});}
+/* nuclide symbol like the book: A up, Z down, symbol to the right */
+function nuclide(x,y,A,Z,sym,size,c,star){ctx.save();ctx.direction='ltr';ctx.textBaseline='middle';ctx.fillStyle=c||'#eaf0fa';const f1=`700 ${Math.round(size*0.5)}px "Times New Roman",serif`,f2=`700 ${Math.round(size)}px "Times New Roman",serif`;
+  ctx.font=f1;const wA=Math.max(ctx.measureText(String(A)).width,ctx.measureText(String(Z)).width);ctx.font=f2;const wS=ctx.measureText(sym).width,tot=wA+3+wS+(star?size*0.35:0),x0=x-tot/2;
+  ctx.font=f1;ctx.textAlign='right';ctx.fillText(String(A),x0+wA,y-size*0.3);ctx.fillText(String(Z),x0+wA,y+size*0.32);ctx.font=f2;ctx.textAlign='left';ctx.fillText(sym,x0+wA+3,y+size*0.05);
+  if(star){ctx.font=`700 ${Math.round(size*0.6)}px serif`;ctx.fillText('*',x0+wA+3+wS+2,y-size*0.3);}ctx.restore();}
+function ball(x,y,r,base,shade){const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x,y,r);g.addColorStop(0,base[0]);g.addColorStop(0.55,base[1]);g.addColorStop(1,base[2]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();
+  if(shade){ctx.fillStyle=`rgba(0,0,0,${shade})`;ctx.fill();}}
+const PRO=['#ffb0a4','#e8352e','#7d1010'],NEU=['#a9d4ff','#2f78dc','#0f3a80'],EM=['#e7c4ff','#9b3fd6','#4a136e'],EP=['#b8c4ff','#2d3fd0','#101a6e'],NUB=['#d6ffb8','#58c43a','#1d5c10'],NU=['#fff1a8','#f2b81f','#7a5200'],ELE=['#e0f4ff','#36a3ff','#0a4a90'];
+function legend(n,y){const R=REG[n],items=[['بروتون',PRO],['نيوترون',NEU]];let x=R.w/2+60;items.forEach(([t,c])=>{ball(x,y,7,c);txt(t,x-12,y,{font:F(600,11.5),color:'#cfd8e6',align:'right'});x-=110;});}
+
+/* ---------- a nucleus: nucleons packed in a ball, drawn back-to-front, slowly turning ---------- */
+function makeNuc(A,Z,seed){const Rr=Math.cbrt(A/0.62),P=[];let s=seed||1;const rr2=()=>{s=(s*16807)%2147483647;return s/2147483647;};
+  for(let i=0;i<A;i++){let x,y,z;do{x=rr2()*2-1;y=rr2()*2-1;z=rr2()*2-1;}while(x*x+y*y+z*z>1);P.push({x:x*Rr,y:y*Rr,z:z*Rr,p:false});}
+  for(let it=0;it<70;it++){for(let i=0;i<A;i++)for(let j=i+1;j<A;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,d=Math.hypot(dx,dy,dz)||1e-3;if(d<2){const f=(2-d)/4;a.x-=dx/d*f;a.y-=dy/d*f;a.z-=dz/d*f;b.x+=dx/d*f;b.y+=dy/d*f;b.z+=dz/d*f;}}
+    P.forEach(q=>{const d=Math.hypot(q.x,q.y,q.z);if(d>Rr-1){const k=(Rr-1)/d;q.x*=k;q.y*=k;q.z*=k;}});}
+  const idx=P.map((q,i)=>[i,rr2()]).sort((a,b)=>a[1]-b[1]);for(let k=0;k<Z;k++)P[idx[k][0]].p=true;return{P,A,Z,Rr};}
+function drawNuc(nu,cx,cy,rn,rot,o={}){const c=Math.cos(rot),s=Math.sin(rot),hide=o.hide||new Set(),list=[];
+  nu.P.forEach((q,i)=>{if(hide.has(i))return;const x=q.x*c+q.z*s,z=-q.x*s+q.z*c;list.push({x,y:q.y,z,i,p:o.flip&&o.flip.has(i)?!q.p:q.p});});list.sort((a,b)=>a.z-b.z);
+  const R=nu.Rr*rn;if(o.glow){const g=ctx.createRadialGradient(cx,cy,R*0.7,cx,cy,R*1.7);g.addColorStop(0,`rgba(255,190,90,${0.45*o.glow})`);g.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*1.7,0,7);ctx.fill();}
+  const j=o.jit||0;list.forEach((q,k)=>{const jx=j?Math.sin(time*40+q.i*2.1)*j*rn:0,jy=j?Math.cos(time*37+q.i*1.3)*j*rn:0;const depth=(q.z/nu.Rr+1)/2;
+    ball(cx+q.x*rn+jx,cy+q.y*rn+jy,rn*1.04,q.p?PRO:NEU,0.4*(1-depth));
+    if(o.mark===q.i){ctx.beginPath();ctx.arc(cx+q.x*rn,cy+q.y*rn,rn*(1.5+0.25*Math.sin(time*10)),0,7);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2.4;ctx.stroke();}});
+  // ground shadow
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(cx,cy+R*1.08,R*0.8,R*0.12,0,0,7);ctx.fill();}
+function screenOf(nu,i,cx,cy,rn,rot){const q=nu.P[i],c=Math.cos(rot),s=Math.sin(rot);return{x:cx+(q.x*c+q.z*s)*rn,y:cy+q.y*rn,z:-q.x*s+q.z*c};}
+function trail(x0,y0,x1,y1,c){const dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy);if(l<4)return;const nx=-dy/l,ny=dx/l;ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.setLineDash([9,6]);for(let k=-2;k<=2;k++){ctx.beginPath();ctx.moveTo(x0+nx*k*4,y0+ny*k*4);ctx.lineTo(x1-dx/l*10+nx*k*5,y1-dy/l*10+ny*k*5);ctx.stroke();}ctx.setLineDash([]);}
+function speedArrow(x,y,dir,len,c){ctx.strokeStyle=c;ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*len,y);ctx.stroke();arrowHead(x+dir*(len+6),y,dir>0?0:Math.PI,11,c);}
+function mtxt(s,x,y,size,c){ctx.font=`italic 600 ${Math.round(size*L.fs)}px "Times New Roman",serif`;ctx.fillStyle=c||'#eaf0fa';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(s,x,y);}
+
+/* ---------- nuclei used ---------- */
+const U235=makeNuc(235,92,5),BA=makeNuc(141,56,9),KR=makeNuc(92,36,13);
+function neutron(x,y,r){ball(x,y,r,NEU);}
+function burst(x,y,r,a,txt2){ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);const n=16;ctx.beginPath();for(let i=0;i<=n*2;i++){const ang=i/(n*2)*Math.PI*2,rr2=i%2?r*0.55:r;ctx.lineTo(Math.cos(ang)*rr2,Math.sin(ang)*rr2);}ctx.closePath();
+  const g=ctx.createRadialGradient(0,0,0,0,0,r);g.addColorStop(0,'#fffbe0');g.addColorStop(0.45,'#ffd23a');g.addColorStop(1,'#ff7a1a');ctx.fillStyle=g;ctx.fill();ctx.restore();
+  if(txt2){ctx.save();ctx.globalAlpha=a;ctx.font=`italic 800 ${Math.round(r*0.42)}px "Times New Roman",serif`;ctx.fillStyle='#2a1500';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(txt2,x,y);ctx.restore();}}
+const goBtn=(n,t,l)=>rowBtns(n,[{k:'go',l:t<0?'▶ '+l:'↺ أعد',s:t<0?'▶':'↺'}],REG[n].h-36);
+const T={fis:-1,stg:-1};
+
+/* ---------- page 1 (figure 20): a slow neutron splits ²³⁵U into Ba + Kr + neutrons + 200 MeV ---------- */
+function gF(){const R=REG.fis,w=R.w,h=R.h,u=Math.min(w,h-150);return{w,h,cx:w/2,cy:60+(h-200)*0.42,u,rn:u*0.17/U235.Rr};}
+function drawFis(){const g=gF(),t=T.fis,nar=g.w<520,T1=1.6,T2=0.5,R=U235.Rr*g.rn;
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'الانشطار النووي':'الانشطار النووي Nuclear fission',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  if(t<T1+T2){const k=t<0?0:Math.min(1,t/T1),ny=g.cy-R-g.u*0.32+(g.u*0.32-g.rn*1.2)*k;
+    drawNuc(U235,g.cx,g.cy,g.rn,time*0.3,{glow:t>T1?(t-T1)/T2:0,jit:t>T1?0.1:0});
+    if(t<T1){neutron(g.cx,ny,g.rn*1.3);ctx.strokeStyle='#5fbf6a';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(g.cx,ny+g.rn*2);ctx.lineTo(g.cx,Math.min(ny+g.rn*5,g.cy-R-6));ctx.stroke();arrowHead(g.cx,Math.min(ny+g.rn*5,g.cy-R-4),Math.PI/2,7,'#5fbf6a');label('نيوترون بطيء ⁦(0.025 eV)⁩',g.cx+g.rn*12,ny,'#bfe4ff',{s:11.5});}
+    nuclide(g.cx+R+30,g.cy-R*0.7,t>T1?236:235,92,'U',nar?20:24,'#d9b3ff',t>T1);
+    label(t>T1?'نواة اليورانيوم المركبة المتهيجة':'نواة اليورانيوم (ثقيلة)',g.cx,g.cy+R+22,'#cfd8e6',{s:11.5});if(t<0)label('اضغط «ابدأ الانشطار»',g.cx,g.cy-R-g.u*0.36,'#e8ecf2',{s:12.5});}
+  else{const f=t-T1-T2,e=1-Math.exp(-f*1.6),d=g.u*0.34*e;
+    const bx=g.cx-d*0.9,by=g.cy+d*0.6,kx=g.cx+d*0.9,ky=g.cy+d*0.6;drawNuc(BA,bx,by,g.rn,time*0.3,{});drawNuc(KR,kx,ky,g.rn,-time*0.3,{});
+    [[-1,-0.25],[1,-0.25],[0,-1]].forEach(([dx,dy])=>{const l=Math.hypot(dx,dy),nx=g.cx+dx/l*d*1.25,ny2=g.cy+dy/l*d*1.25;trail(g.cx,g.cy,nx,ny2,'rgba(160,220,255,.35)');neutron(nx,ny2,g.rn*1.3);mtxt('n',nx+g.rn*2.6,ny2-g.rn*2,18,'#bfe4ff');});
+    if(f<0.5){ctx.fillStyle=`rgba(255,250,230,${0.85*(1-f/0.5)})`;ctx.beginPath();ctx.arc(g.cx,g.cy,R*(1.2+2*f),0,7);ctx.fill();}
+    burst(g.cx,g.cy+d*1.05,g.u*0.11*(0.6+0.4*Math.min(1,f*2))*(1+0.05*Math.sin(time*8)),Math.min(1,f*2),'200 MeV');
+    nuclide(bx,by+BA.Rr*g.rn+22,141,56,'Ba',nar?18:22,'#d9b3ff');nuclide(kx,ky+KR.Rr*g.rn+22,92,36,'Kr',nar?18:22,'#d9b3ff');}
+  const ey=g.h-108,s1=nar?16:22,items=[[1,0,'n'],'+',[235,92,'U'],'→',[141,56,'Ba'],'+',[92,36,'Kr'],'+',[3,'3n']],step=s1*2.25;let x=g.w/2-step*(items.length-1)/2;
+  items.forEach(it=>{if(typeof it==='string')mtxt(it,x,ey,s1,'#ffd27a');else if(it[1]==='3n'){mtxt('3',x-s1*0.55,ey,s1,'#eaf0fa');nuclide(x+s1*0.35,ey,1,0,'n',s1,'#bfe4ff');}else nuclide(x,ey,it[0],it[1],it[2],s1,'#eaf0fa');x+=step;});
+  label('مجموع الكتل الناتجة أقل من مجموع الكتل المتفاعلة: الكتلة المفقودة تتحول إلى طاقة ⁦E = mc²⁩',g.w/2,g.h-76,'#cfd8e6',{s:nar?10.5:12});
+  label('تتحرر نحو ⁦200 MeV⁩ عند انشطار نواة واحدة من اليورانيوم ⁦²³⁵U⁩',g.w/2,g.h-54,'#ffd27a',{s:nar?10.5:12});
+  goBtn('fis',t,'ابدأ الانشطار').forEach(b=>btn(b,false));}
+
+/* ---------- page 2 (figure 21): the compound nucleus ²³⁶U* stretches, necks and splits ---------- */
+const STG=['نيوترون بطيء + ²³⁵U','نواة مركبة متهيجة ²³⁶U*','تستطيل النواة','يتكوّن عنق','تنشطر النواة'];
+let SPL=null;
+(function(){const ids=U235.P.map((q,i)=>[i,q.y]).sort((a,b)=>a[1]-b[1]).map(o=>o[0]);SPL=new Set(ids.slice(0,92));})();   // upper part becomes Kr (92 nucleons), the rest Ba (+ 3 neutrons)
+function gS(){const R=REG.stg,w=R.w,h=R.h,u=Math.min(w,h-170);return{w,h,cx:w/2,cy:70+(h-230)*0.5,u,rn:u*0.15/U235.Rr};}
+function stageT(t){return t<0?0:t<1.4?0:t<2.4?1:t<3.4?2:t<4.4?3:4;}
+function drawStg(){const g=gS(),t=T.stg,nar=g.w<520,Rr=U235.Rr;
+  const el=clamp((t-2.4)/1,0,1),nk=clamp((t-3.4)/1,0,1),sp=clamp((t-4.4)/1.2,0,1),spE=1-Math.pow(1-sp,2);const rot=time*0.25,c=Math.cos(rot),s=Math.sin(rot);
+  const pts=U235.P.map((q,i)=>{let x=q.x*c+q.z*s,z=-q.x*s+q.z*c,y=q.y;y*=1+0.45*el+0.25*nk;const sx=1-0.18*el,neck=1-0.55*nk*Math.exp(-Math.pow(y/(Rr*0.45),2));x*=sx*neck;z*=sx*neck;
+    const up=SPL.has(i);if(sp>0){y+=(up?-1:1)*spE*Rr*1.6;x+=(up?1:-1)*spE*Rr*0.3;}return{x,y,z,p:q.p,i,up};});
+  pts.sort((a,b)=>a.z-b.z);const jit=t>1.4&&t<4.4?0.07:0;
+  if(t>1.4&&sp<1){const gl=ctx.createRadialGradient(g.cx,g.cy,Rr*g.rn*0.6,g.cx,g.cy,Rr*g.rn*2);gl.addColorStop(0,`rgba(255,190,90,${0.35*(1-sp)})`);gl.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(g.cx,g.cy,Rr*g.rn*2,0,7);ctx.fill();}
+  pts.forEach(q=>{const jx=jit?Math.sin(time*40+q.i)*jit*g.rn:0;ball(g.cx+q.x*g.rn+jx,g.cy+q.y*g.rn,g.rn*1.04,q.p?PRO:NEU,0.4*(1-(q.z/Rr+1)/2));});
+  // incoming slow neutron
+  if(t<1.4){const k=t<0?0:t/1.4,nx=g.cx-Rr*g.rn-g.u*0.35+(g.u*0.35-g.rn*1.3)*k;neutron(nx,g.cy,g.rn*1.3);ctx.strokeStyle='#ff5050';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(nx+g.rn*2,g.cy);ctx.lineTo(nx+g.rn*6,g.cy);ctx.stroke();arrowHead(nx+g.rn*6+4,g.cy,0,8,'#ff5050');}
+  // 3 neutrons leave at the split
+  if(sp>0)[-0.35,0,0.35].forEach(a=>{const d=spE*g.u*0.42,nx=g.cx+Math.cos(a)*d,ny=g.cy+Math.sin(a)*d;neutron(nx,ny,g.rn*1.2);if(d>20){ctx.strokeStyle='#ff5050';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(nx+g.rn*1.8,ny);ctx.lineTo(nx+g.rn*1.8+22*Math.cos(a),ny+22*Math.sin(a));ctx.stroke();arrowHead(nx+g.rn*1.8+26*Math.cos(a),ny+26*Math.sin(a),a,7,'#ff5050');}});
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'مراحل الانشطار':'انشطار نواة اليورانيوم المركبة (شكل 21)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  const st=stageT(t),R2=Rr*g.rn;
+  if(st<4){const lab=st===0?[235,'U',false]:[236,'U',true];nuclide(g.cx+R2+40,g.cy-R2*(1+0.5*el),lab[0],92,lab[1],nar?20:24,'#d9b3ff',lab[2]);}
+  else{nuclide(g.cx+R2*0.6+40,g.cy-R2*1.7*spE-R2*0.6,92,36,'Kr',nar?18:22,'#d9b3ff');nuclide(g.cx-R2*0.6-40,g.cy+R2*1.7*spE+R2*0.6,141,56,'Ba',nar?18:22,'#d9b3ff');}
+  // stage strip
+  const sy=g.h-96,n=STG.length,sw=Math.min(150,(g.w-20)/n);STG.forEach((s2,i)=>{const x=g.w/2+(i-(n-1)/2)*sw,on=i===st,done=i<st;ctx.globalAlpha=on?1:done?0.6:0.3;ctx.beginPath();ctx.arc(x,sy,on?8:5,0,7);ctx.fillStyle=on?'#ffd27a':done?'#bff5c8':'#a3b3cc';ctx.fill();
+    if(i<n-1){ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+10,sy);ctx.lineTo(x+sw-10,sy);ctx.stroke();}ctx.globalAlpha=1;});
+  label(STG[st],g.w/2,sy-24,'#ffe6b0',{s:nar?12:13.5});
+  label('⁦¹₀n + ²³⁵₉₂U → ²³⁶₉₂U* → ¹⁴¹₅₆Ba + ⁹²₃₆Kr + 3 ¹₀n⁩',g.w/2,g.h-66,'#eaf0fa',{s:nar?11.5:13.5});
+  goBtn('stg',t,'ابدأ').forEach(b=>btn(b,false));}
+
+/* ---------- page 3 (figure 22): the chain reaction, with or without control rods ---------- */
+let CH={nuc:[],neu:[],frag:[],fis:0,abs:0,lost:0,key:''},SPR=null;const MAXN=500;
+function sprite(nu,r){const c=document.createElement('canvas'),S2=Math.ceil(r*2.6);c.width=S2*DPR;c.height=S2*DPR;const sv=ctx;ctx=c.getContext('2d');ctx.scale(DPR,DPR);drawNuc(nu,S2/2,S2/2,r/nu.Rr,0.4,{});ctx=sv;return{c,S:S2};}
+function gC(){const R=REG.chain,w=R.w,h=R.h;return{w,h,x0:16,x1:w-16,y0:84,y1:h-96};}
+function chainReset(){const g=gC();CH={nuc:[],neu:[],frag:[],fis:0,abs:0,lost:0,key:w0(g)};const cols=Math.max(6,Math.floor((g.x1-g.x0)/88)),rows=Math.max(3,Math.floor((g.y1-g.y0)/80)),dx=(g.x1-g.x0)/cols,dy=(g.y1-g.y0)/rows;
+  for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){if(i===0&&Math.abs(j-(rows-1)/2)<0.6)continue;CH.nuc.push({x:g.x0+dx*(i+0.5)+(Math.random()-0.5)*dx*0.4,y:g.y0+dy*(j+0.5)+(Math.random()-0.5)*dy*0.4,alive:true,t:0});}
+  CH.r=Math.min(dx,dy)*0.24;SPR=null;}
+const w0=g=>g.w+'x'+g.h;
+function rodsX(g){return S.rods?[g.x0+(g.x1-g.x0)*0.34,g.x0+(g.x1-g.x0)*0.67]:[];}
+function shoot(){const g=gC(),x=g.x0+4,y=(g.y0+g.y1)/2;let best=null,bd=1e9;CH.nuc.forEach(u=>{if(!u.alive)return;const d=Math.hypot(u.x-x,u.y-y);if(d<bd){bd=d;best=u;}});const a=best?Math.atan2(best.y-y,best.x-x):0;CH.neu.push({x,y,vx:Math.cos(a),vy:Math.sin(a),sp:Math.max(120,(g.x1-g.x0)*0.13)});}
+function stepChain(dt){const g=gC();if(CH.key!==w0(g))chainReset();const rx=rodsX(g),rw=12;
+  CH.neu.forEach(n=>{const ox=n.x;n.x+=n.vx*n.sp*dt;n.y+=n.vy*n.sp*dt;if(n.x<g.x0-10||n.x>g.x1+10||n.y<g.y0-10||n.y>g.y1+10){n.dead=true;CH.lost++;return;}
+    for(const x of rx)if((ox-x)*(n.x-x)<=0||Math.abs(n.x-x)<rw/2){n.dead=true;n.absorbed=true;CH.abs++;CH.frag.push({x:n.x,y:n.y,t:0,kind:'abs'});return;}
+    for(const u of CH.nuc){if(!u.alive)continue;if(Math.hypot(u.x-n.x,u.y-n.y)<CH.r*1.1){u.alive=false;u.t=0;n.dead=true;CH.fis++;const k=Math.random()<0.5?2:3,a0=Math.random()*Math.PI*2;
+      for(let i=0;i<k&&CH.neu.length<MAXN;i++){const a=a0+i*Math.PI*2/k+(Math.random()-0.5)*0.6;CH.neu.push({x:u.x+Math.cos(a)*CH.r*1.3,y:u.y+Math.sin(a)*CH.r*1.3,vx:Math.cos(a),vy:Math.sin(a),sp:Math.max(120,(g.x1-g.x0)*0.13)});}
+      const a=Math.random()*Math.PI;CH.frag.push({x:u.x,y:u.y,vx:Math.cos(a)*14,vy:Math.sin(a)*14,t:0,kind:'Ba'},{x:u.x,y:u.y,vx:-Math.cos(a)*18,vy:-Math.sin(a)*18,t:0,kind:'Kr'},{x:u.x,y:u.y,t:0,kind:'flash'});return;}}});
+  CH.neu=CH.neu.filter(n=>!n.dead);CH.frag.forEach(f=>{f.t+=dt;if(f.vx){f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=0.98;f.vy*=0.98;}});CH.frag=CH.frag.filter(f=>f.kind==='flash'?f.t<0.6:f.kind==='abs'?f.t<0.5:true);}
+function drawChain(){const g=gC(),nar=g.w<520;if(CH.key!==w0(g))chainReset();if(!SPR){SPR={u:sprite(U235,CH.r),b:sprite(BA,CH.r*0.8),k:sprite(KR,CH.r*0.7)};}
+  CH.nuc.forEach(u=>{if(u.alive)ctx.drawImage(SPR.u.c,u.x-SPR.u.S/2,u.y-SPR.u.S/2,SPR.u.S,SPR.u.S);});
+  CH.frag.forEach(f=>{if(f.kind==='flash'){const k=1-f.t/0.6;burst(f.x,f.y,CH.r*(1.2+1.4*f.t),k*0.9);}else if(f.kind==='abs'){ctx.beginPath();ctx.arc(f.x,f.y,4+12*f.t,0,7);ctx.strokeStyle=`rgba(255,120,120,${1-f.t/0.5})`;ctx.lineWidth=2;ctx.stroke();}
+    else{const s=f.kind==='Ba'?SPR.b:SPR.k;ctx.globalAlpha=0.85;ctx.drawImage(s.c,f.x-s.S/2,f.y-s.S/2,s.S,s.S);ctx.globalAlpha=1;}});
+  rodsX(g).forEach(x=>{const gr=ctx.createLinearGradient(x-6,0,x+6,0);gr.addColorStop(0,'#7a1a1a');gr.addColorStop(0.5,'#e04848');gr.addColorStop(1,'#6a1010');rr(x-6,g.y0-6,12,g.y1-g.y0+12,6);ctx.fillStyle=gr;ctx.fill();});
+  CH.neu.forEach(n=>{ball(n.x,n.y,Math.max(3,CH.r*0.32),NEU);});
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'التفاعل المتسلسل':'التفاعل النووي المتسلسل (شكل 22)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  const E=CH.fis*200;if(nar)label(`انشطارات: ⁦${CH.fis}⁩  ·  نيوترونات: ⁦${CH.neu.length}⁩  ·  ⁦${E>=1000?(E/1000).toFixed(1)+' GeV':E+' MeV'}⁩`,g.w/2,54,'#ffe6b0',{s:11});else label(`انشطارات: ⁦${CH.fis}⁩   ·   نيوترونات حرة: ⁦${CH.neu.length}⁩   ·   ممتصة بالقضبان: ⁦${CH.abs}⁩   ·   الطاقة ≈ ⁦${E>=1000?(E/1000).toFixed(1)+' GeV':E+' MeV'}⁩`,g.w/2,54,'#ffe6b0',{s:nar?10.5:12});
+  if(S.rods&&rodsX(g).length)label('قضبان السيطرة',rodsX(g)[0],g.y1+16,'#ffb3a8',{s:11});
+  label(S.rods?'قضبان السيطرة تمتص بعض النيوترونات فيبقى التفاعل مسيطراً عليه (كما في المفاعل)':'بدون سيطرة: يتضاعف عدد الانشطارات بسرعة هائلة فيحدث انفجار مدمر',g.w/2,g.h-58,S.rods?'#bff5c8':'#ffb3a8',{s:nar?10.5:12});
+  rowBtns('chain',[{k:'shoot',l:'▶ أطلق نيوتروناً بطيئاً',s:'▶ نيوترون'},{k:'rods',l:S.rods?'قضبان السيطرة: داخلة':'قضبان السيطرة: خارجة',s:S.rods?'القضبان ✓':'القضبان'},{k:'reset',l:'↺ أعد',s:'↺'}],g.h-36).forEach(b=>btn(b,b.k==='rods'&&S.rods));}
+
+function draw(){drawBg();const fn={fis:drawFis,stg:drawStg,chain:drawChain};for(const n of PG)if(REG[n]){setReg(n);fn[n]();}
+  if(S.page==='all'){ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.x,DPR*view.y);ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;PG.slice(1).forEach(n=>{const R=REG[n];ctx.beginPath();if(REG.fis.y===R.y){ctx.moveTo(R.x+R.w,R.y+30);ctx.lineTo(R.x+R.w,R.y+R.h-30);}else{ctx.moveTo(R.x+30,R.y);ctx.lineTo(R.x+R.w-30,R.y);}ctx.stroke();});}}
+
+/* ---------- input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function btnsOf(n){if(n==='fis')return goBtn('fis',T.fis,'ابدأ الانشطار');if(n==='stg')return goBtn('stg',T.stg,'ابدأ');return rowBtns('chain',[{k:'shoot',l:'▶ أطلق نيوتروناً بطيئاً',s:'▶ نيوترون'},{k:'rods',l:S.rods?'قضبان السيطرة: داخلة':'قضبان السيطرة: خارجة',s:S.rods?'القضبان ✓':'القضبان'},{k:'reset',l:'↺ أعد',s:'↺'}],REG.chain.h-36);}
+function hitBtn(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n],p={x:w.x-R.x,y:w.y-R.y};for(const b of btnsOf(n))if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return{n,b};return null;}
+function act(h){const{n,b}=h;if(b.k==='go')T[n]=T[n]<0?0:-1;else if(b.k==='shoot')shoot();else if(b.k==='rods')S.rods=!S.rods;else if(b.k==='reset')chainReset();}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const h=hitBtn(s);if(h){act(h);return;}const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const h=hitBtn(s);hover=h?h.b.id:null;cv.style.cursor=h?'pointer':'grab';return;}view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){
+  const a=`<p><b>الانشطار النووي</b> تفاعل نووي تقسم فيه نواة ثقيلة (مثل ⁦²³⁵₉₂U⁩) إلى نواتين متوسطتين بالكتلة، عن طريق قصفها بنيوترون بطيء (حراري) طاقته نحو ⁦0.025 eV⁩.</p><p>ينتج عن الانشطار نوى جديدة مشعة وعدد من النيوترونات (اثنان أو ثلاثة) فضلاً عن طاقة هائلة. مصدر الطاقة أن مجموع الكتل الناتجة أقل من مجموع الكتل المتفاعلة، فتتحول الكتلة المفقودة إلى طاقة وفق <b class="m">E = mc²</b>؛ وتتحرر نحو <b>200 MeV</b> عند انشطار نواة يورانيوم واحدة، وهي أكبر بكثير من الطاقة المتحررة من التفاعلات الكيميائية.</p>`;
+  const b=`<p><b>شكل (21):</b> يمتص اليورانيوم النيوترون البطيء فتتكوّن نواة مركبة متهيجة <b class="m">²³⁶₉₂U*</b> تستطيل ثم يتكوّن فيها عنق فتنشطر:</p><p class="m">¹₀n + ²³⁵₉₂U → ²³⁶₉₂U* → ¹⁴¹₅₆Ba + ⁹²₃₆Kr + 3 ¹₀n</p><p>لاحظ: مجموع الأعداد الكتلية ⁦236 = 141 + 92 + 3⁩ ومجموع الأعداد الذرية ⁦92 = 56 + 36⁩.</p>`;
+  const c=`<p><b>التفاعل النووي المتسلسل:</b> النيوترونات الناتجة من انشطار نواة تسبب انشطار نوى أخرى، فتستمر عملية الانشطار. إذا لم يُسيطر عليه يؤدي إلى انفجار عنيف مدمر مع انبعاث كمية هائلة من الطاقة. وتُستعمل <b>قضبان السيطرة</b> لامتصاص قسم من النيوترونات فيبقى التفاعل مسيطراً عليه.</p>`;
+  const tail=`<p class="note">جرّب: في التفاعل المتسلسل أطلق نيوتروناً والقضبان خارجة وراقب العدّاد، ثم أعد وأدخل القضبان وقارن.</p>`;
+  const m={fis:a,stg:b,chain:c};if(S.page!=='all')return{t:{fis:'الانشطار النووي',stg:'مراحل الانشطار',chain:'التفاعل المتسلسل'}[S.page],b:m[S.page]+(S.page==='chain'?tail:'')};return{t:'الانشطار النووي',b:a+b+c+tail};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();for(const n in T)if(T[n]>=0)T[n]=Math.min(T[n]+dt,20);if(REG.chain)stepChain(dt);if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();
+const pb=document.querySelectorAll('#parts button');function syncPages(){pb.forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.page));}
+pb.forEach(b=>b.addEventListener('click',()=>{S.page=b.dataset.p;syncPages();view={z:1,x:0,y:0};arrange();}));syncPages();
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
