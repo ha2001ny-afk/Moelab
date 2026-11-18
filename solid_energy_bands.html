@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>حزم الطاقة في المواد الصلبة</title>
+<style>
+/* Layout: one full-screen navy lab bench; every control is a physical part of the apparatus or a clear button */
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts button[aria-pressed="false"] span{text-decoration:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة حزم الطاقة في المواد الصلبة: حزمة التكافؤ والتوصيل والثغرة المحظورة"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="الصفحات">
+    <button data-p="split" aria-pressed="true"><i></i><span class="l">تكوّن الحزم</span><span class="s">تكوّن</span></button>
+    <button data-p="bands" aria-pressed="false"><i></i><span class="l">حزم الطاقة</span><span class="s">الحزم</span></button>
+    <button data-p="types" aria-pressed="false"><i></i><span class="l">عازل · شبه موصل · موصل</span><span class="s">المواد</span></button>
+    <button data-p="all" aria-pressed="false"><i></i><span class="l">الكل معاً</span><span class="s">الكل</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');let ctx=cv.getContext('2d');
+/* page: 'cl' classical atom, 'qm' quantum atom, 'both' */
+const S={page:'split',field:false,field2:false,tI:1};
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle='rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:c||col.ink,dir:o.dir});return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(w,h){rr(0,0,w,h,18);const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(14,24,44,.94)');g.addColorStop(1,'rgba(8,14,28,.94)');ctx.fillStyle=g;ctx.fill();}
+/* ---------- layout: one decay per page, or all three together ---------- */
+let REG={};const PG=['split','bands','types'];
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){REG={};const top=H<500?58:66,m=8,aw=W-2*m,ah=H-top-m;
+  if(S.page!=='all')REG[S.page]={x:m,y:top,w:aw,h:ah};
+  else if(aw/ah>1.3){const cw=aw/3;PG.forEach((n,i)=>REG[n]={x:m+aw-cw*(i+1),y:top,w:cw,h:ah});}else{const rh=ah/3;PG.forEach((n,i)=>REG[n]={x:m,y:top+rh*i,w:aw,h:rh});}}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setReg(n){const R=REG[n];ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*(view.z*R.x+view.x),DPR*(view.z*R.y+view.y));}
+function regAt(w){for(const n in REG){const R=REG[n];if(w.x>=R.x&&w.x<=R.x+R.w&&w.y>=R.y&&w.y<=R.y+R.h)return n;}return null;}
+function btn(b,on){rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=on?'rgba(255,210,122,.22)':hover===b.id?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(600,narrow?11.5:12.5),color:on?'#ffe2a8':col.ink});}
+function rowBtns(n,list,y){const R=REG[n],gap=6;ctx.font=F(600,12.5);let ws=list.map(b=>Math.max(44,ctx.measureText(b.l).width+22));let tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);
+  if(tot>R.w-12){list=list.map(b=>({...b,l:b.s||b.l}));ws=list.map(b=>Math.max(36,ctx.measureText(b.l).width+16));tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);}
+  let x=(R.w+tot)/2;return list.map((b,i)=>{x-=ws[i];const r={...b,id:n+b.k,x,y,w:ws[i],h:30};x-=gap;return r;});}
+/* nuclide symbol like the book: A up, Z down, symbol to the right */
+function nuclide(x,y,A,Z,sym,size,c,star){ctx.save();ctx.direction='ltr';ctx.textBaseline='middle';ctx.fillStyle=c||'#eaf0fa';const f1=`700 ${Math.round(size*0.5)}px "Times New Roman",serif`,f2=`700 ${Math.round(size)}px "Times New Roman",serif`;
+  ctx.font=f1;const wA=Math.max(ctx.measureText(String(A)).width,ctx.measureText(String(Z)).width);ctx.font=f2;const wS=ctx.measureText(sym).width,tot=wA+3+wS+(star?size*0.35:0),x0=x-tot/2;
+  ctx.font=f1;ctx.textAlign='right';ctx.fillText(String(A),x0+wA,y-size*0.3);ctx.fillText(String(Z),x0+wA,y+size*0.32);ctx.font=f2;ctx.textAlign='left';ctx.fillText(sym,x0+wA+3,y+size*0.05);
+  if(star){ctx.font=`700 ${Math.round(size*0.6)}px serif`;ctx.fillText('*',x0+wA+3+wS+2,y-size*0.3);}ctx.restore();}
+function ball(x,y,r,base,shade){const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x,y,r);g.addColorStop(0,base[0]);g.addColorStop(0.55,base[1]);g.addColorStop(1,base[2]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();
+  if(shade){ctx.fillStyle=`rgba(0,0,0,${shade})`;ctx.fill();}}
+const PRO=['#ffb0a4','#e8352e','#7d1010'],NEU=['#a9d4ff','#2f78dc','#0f3a80'],EM=['#e7c4ff','#9b3fd6','#4a136e'],EP=['#b8c4ff','#2d3fd0','#101a6e'],NUB=['#d6ffb8','#58c43a','#1d5c10'],NU=['#fff1a8','#f2b81f','#7a5200'],ELE=['#e0f4ff','#36a3ff','#0a4a90'];
+function legend(n,y){const R=REG[n],items=[['بروتون',PRO],['نيوترون',NEU]];let x=R.w/2+60;items.forEach(([t,c])=>{ball(x,y,7,c);txt(t,x-12,y,{font:F(600,11.5),color:'#cfd8e6',align:'right'});x-=110;});}
+
+/* ---------- a nucleus: nucleons packed in a ball, drawn back-to-front, slowly turning ---------- */
+function makeNuc(A,Z,seed){const Rr=Math.cbrt(A/0.62),P=[];let s=seed||1;const rr2=()=>{s=(s*16807)%2147483647;return s/2147483647;};
+  for(let i=0;i<A;i++){let x,y,z;do{x=rr2()*2-1;y=rr2()*2-1;z=rr2()*2-1;}while(x*x+y*y+z*z>1);P.push({x:x*Rr,y:y*Rr,z:z*Rr,p:false});}
+  for(let it=0;it<70;it++){for(let i=0;i<A;i++)for(let j=i+1;j<A;j++){const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,d=Math.hypot(dx,dy,dz)||1e-3;if(d<2){const f=(2-d)/4;a.x-=dx/d*f;a.y-=dy/d*f;a.z-=dz/d*f;b.x+=dx/d*f;b.y+=dy/d*f;b.z+=dz/d*f;}}
+    P.forEach(q=>{const d=Math.hypot(q.x,q.y,q.z);if(d>Rr-1){const k=(Rr-1)/d;q.x*=k;q.y*=k;q.z*=k;}});}
+  const idx=P.map((q,i)=>[i,rr2()]).sort((a,b)=>a[1]-b[1]);for(let k=0;k<Z;k++)P[idx[k][0]].p=true;return{P,A,Z,Rr};}
+function drawNuc(nu,cx,cy,rn,rot,o={}){const c=Math.cos(rot),s=Math.sin(rot),hide=o.hide||new Set(),list=[];
+  nu.P.forEach((q,i)=>{if(hide.has(i))return;const x=q.x*c+q.z*s,z=-q.x*s+q.z*c;list.push({x,y:q.y,z,i,p:o.flip&&o.flip.has(i)?!q.p:q.p});});list.sort((a,b)=>a.z-b.z);
+  const R=nu.Rr*rn;if(o.glow){const g=ctx.createRadialGradient(cx,cy,R*0.7,cx,cy,R*1.7);g.addColorStop(0,`rgba(255,190,90,${0.45*o.glow})`);g.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*1.7,0,7);ctx.fill();}
+  const j=o.jit||0;list.forEach((q,k)=>{const jx=j?Math.sin(time*40+q.i*2.1)*j*rn:0,jy=j?Math.cos(time*37+q.i*1.3)*j*rn:0;const depth=(q.z/nu.Rr+1)/2;
+    ball(cx+q.x*rn+jx,cy+q.y*rn+jy,rn*1.04,q.p?PRO:NEU,0.4*(1-depth));
+    if(o.mark===q.i){ctx.beginPath();ctx.arc(cx+q.x*rn,cy+q.y*rn,rn*(1.5+0.25*Math.sin(time*10)),0,7);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2.4;ctx.stroke();}});
+  // ground shadow
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(cx,cy+R*1.08,R*0.8,R*0.12,0,0,7);ctx.fill();}
+function screenOf(nu,i,cx,cy,rn,rot){const q=nu.P[i],c=Math.cos(rot),s=Math.sin(rot);return{x:cx+(q.x*c+q.z*s)*rn,y:cy+q.y*rn,z:-q.x*s+q.z*c};}
+function trail(x0,y0,x1,y1,c){const dx=x1-x0,dy=y1-y0,l=Math.hypot(dx,dy);if(l<4)return;const nx=-dy/l,ny=dx/l;ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.setLineDash([9,6]);for(let k=-2;k<=2;k++){ctx.beginPath();ctx.moveTo(x0+nx*k*4,y0+ny*k*4);ctx.lineTo(x1-dx/l*10+nx*k*5,y1-dy/l*10+ny*k*5);ctx.stroke();}ctx.setLineDash([]);}
+function speedArrow(x,y,dir,len,c){ctx.strokeStyle=c;ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dir*len,y);ctx.stroke();arrowHead(x+dir*(len+6),y,dir>0?0:Math.PI,11,c);}
+function mtxt(s,x,y,size,c){ctx.font=`italic 600 ${Math.round(size*L.fs)}px "Times New Roman",serif`;ctx.fillStyle=c||'#eaf0fa';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(s,x,y);}
+
+function eDot(x,y,r){const b=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x,y,r);b.addColorStop(0,'#c9d8ff');b.addColorStop(0.6,'#2b4ad0');b.addColorStop(1,'#0c1a60');ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=b;ctx.fill();}
+function stripes(x,y,w,h,c1,c2,step){ctx.fillStyle=c1;ctx.fillRect(x,y,w,h);ctx.strokeStyle=c2;ctx.lineWidth=2;for(let yy=y+step/2;yy<y+h;yy+=step){ctx.beginPath();ctx.moveTo(x+3,yy);ctx.lineTo(x+w-3,yy);ctx.stroke();}ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.2;ctx.strokeRect(x,y,w,h);}
+function axisE(x,y0,y1,lab){ctx.strokeStyle='#eaf0fa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();arrowHead(x,y1-4,-Math.PI/2,8,'#eaf0fa');txt(lab||'الطاقة',x,y1-16,{font:F(700,12),color:'#ffe6b0'});}
+
+/* ---------- page 1 (figure 4): bringing atoms together splits each level into a band ---------- */
+let rSel=3.0,nAt=6;const R0=1.0,RMIN=0.62,RMAX=3.2;
+const LV=[{E:0.3,W:0.2,lam:0.5},{E:0.78,W:0.15,lam:0.45}];
+function Esub(L,k,N,r){const w=Math.min(1.4,L.W*Math.exp(-(r-R0)/L.lam)*0.9)*(r<RMAX?1:0),f=N>1?k/(N-1)-0.5:0,rise=0.05*Math.exp(-(r-RMIN)/0.08);return L.E+w*f+rise*(1+f);}
+function gP(){const R=REG.split,w=R.w,h=R.h,x0=Math.max(46,w*0.1),x1=w-Math.max(20,w*0.05),y0=66,y1=h-120;return{w,h,x0,x1,y0,y1,X:r=>x0+(x1-x0)*(r/RMAX),Y:E=>y1-(y1-y0)*E/1.25};}
+function drawSplit(){const g=gP(),nar=g.w<520;
+  // axes
+  ctx.strokeStyle='#eaf0fa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(g.x0,g.y0-10);ctx.lineTo(g.x0,g.y1);ctx.lineTo(g.x1,g.y1);ctx.stroke();arrowHead(g.x0,g.y0-14,-Math.PI/2,8,'#eaf0fa');arrowHead(g.x1+4,g.y1,0,8,'#eaf0fa');
+  mtxt('E',g.x0-16,g.y0,18,'#ffe6b0');mtxt('r',g.x1-6,g.y1+18,18,'#ffe6b0');mtxt('O',g.x0-12,g.y1+14,15);
+  const xr0=g.X(R0);ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(xr0,g.y0);ctx.lineTo(xr0,g.y1);ctx.stroke();ctx.setLineDash([]);mtxt('r₀',xr0,g.y1+18,16,'#ffe6b0');
+  // bands at r₀ (shaded) and the sublevel curves
+  LV.forEach((L,li)=>{const top=Esub(L,nAt-1,nAt,R0),bot=Esub(L,0,nAt,R0);ctx.fillStyle=li?'rgba(120,200,140,.18)':'rgba(255,200,90,.18)';ctx.fillRect(xr0,g.Y(top),g.x1-xr0,g.Y(bot)-g.Y(top));
+    for(let k=0;k<nAt;k++){ctx.beginPath();for(let r=RMIN;r<=RMAX;r+=0.01){const x=g.X(r),y=g.Y(Esub(L,k,nAt,r));r===RMIN?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.strokeStyle=li?'rgba(140,230,160,.85)':'rgba(255,205,110,.9)';ctx.lineWidth=1.6;ctx.stroke();}});
+  // movable separation marker
+  const xs=g.X(rSel);ctx.strokeStyle='#7fd3ff';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(xs,g.y0);ctx.lineTo(xs,g.y1);ctx.stroke();
+  LV.forEach((L,li)=>{for(let k=0;k<nAt;k++){ctx.beginPath();ctx.arc(xs,g.Y(Esub(L,k,nAt,rSel)),3.2,0,7);ctx.fillStyle='#fff';ctx.fill();}});
+  ctx.beginPath();ctx.arc(xs,g.y1,9,0,7);ctx.fillStyle='#7fd3ff';ctx.fill();txt('↔',xs,g.y1,{font:F(800,11,1),color:'#06263d',dir:'ltr'});if(!touched.r&&!drag)pulseRing(xs,g.y1,11,'#ffd27a',0);
+  // atoms picture: spacing follows r
+  const ay=g.y0+18,sp=Math.min(46,(g.x1-g.x0)*0.4/nAt)*(rSel/1.6);for(let i=0;i<Math.min(nAt,8);i++){const x=g.x1-30-i*Math.min(sp,(g.x1-g.x0-60)/8);ball(x,ay,7,PRO);}
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'تكوّن حزم الطاقة':'تداخل مستويات الطاقة وتكوّن الحزم (شكل 4)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  const far=rSel>2.3;label(far?'الذرات متباعدة: لكل ذرة مستويات منفردة محددة':rSel>R0+0.25?'تقترب الذرات: يتأثر كل الكترون بالذرات المجاورة فينقسم المستوى':'عند ⁦r₀⁩ (المادة الصلبة): مستويات متقاربة جداً تكوّن حزمة',g.w/2,g.h-86,'#ffe6b0',{s:nar?11:12.5});
+  label(`عدد الذرات ⁦${nAt}⁩ ← كل مستوى ينقسم إلى ⁦${nAt}⁩ مستويات ثانوية`,g.w/2,g.h-62,'#cfd8e6',{s:nar?11:12});
+  rowBtns('split',[{k:'n2',l:'ذرتان',s:'2'},{k:'n6',l:'6 ذرات',s:'6'},{k:'n20',l:'عدد هائل من الذرات',s:'كثيرة'}],g.h-36).forEach(b=>btn(b,b.k==='n'+nAt));}
+
+/* ---------- page 2 (figure 5): valence band, forbidden gap, conduction band ---------- */
+let BE=[],bKey='',bMsg='';
+function gB(){const R=REG.bands,w=R.w,h=R.h,bw=Math.min(w*0.62,420),x=(w-bw)/2+14,top=72,bot=h-130,H2=bot-top;return{w,h,x,bw,cb:{y:top,h:H2*0.28},gap:{y:top+H2*0.28,h:H2*0.37},vb:{y:top+H2*0.65,h:H2*0.35}};}
+function initB(g){const key=g.w+'x'+g.h;if(key===bKey)return;bKey=key;BE=[];const n=18;for(let i=0;i<n;i++){BE.push({x:g.x+14+(g.bw-28)*((i+0.5)/n),y:g.vb.y+12+(g.vb.h-24)*((i*7)%5)/4,band:'v',t:0,hx:0});}}
+function excite(E){const g=gB(),gapE=3;if(E<gapE){bMsg=`طاقة ⁦${E} eV⁩ أقل من ثغرة الطاقة المحظورة ⁦(${gapE} eV)⁩: لا ينتقل الالكترون`;BE.filter(e=>e.band==='v').slice(0,3).forEach(e=>e.shake=0.8);return;}
+  const c=BE.filter(e=>e.band==='v').sort((a,b)=>a.y-b.y)[0];if(!c)return;c.band='up';c.t=0;c.y0=c.y;c.y1=g.cb.y+10+Math.random()*(g.cb.h-20);bMsg=`اكتسب الالكترون ⁦${E} eV⁩ ≥ ثغرة الطاقة فانتقل إلى حزمة التوصيل`;}
+function stepB(dt){const g=gB();initB(g);BE.forEach(e=>{if(e.shake)e.shake=Math.max(0,e.shake-dt);if(e.band==='up'){e.t+=dt;const k=Math.min(1,e.t/0.8);e.y=e.y0+(e.y1-e.y0)*k;if(k>=1)e.band='c';}
+  if(e.band==='c'&&S.field){e.x+=dt*60;if(e.x>g.x+g.bw-8)e.x=g.x+8;}});}
+function drawBands(){const g=gB(),nar=g.w<520;initB(g);
+  stripes(g.x,g.cb.y,g.bw,g.cb.h,'rgba(110,200,120,.25)','rgba(110,200,120,.7)',10);
+  ctx.fillStyle='rgba(255,255,255,.06)';ctx.fillRect(g.x,g.gap.y,g.bw,g.gap.h);ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.2;ctx.strokeRect(g.x,g.gap.y,g.bw,g.gap.h);
+  stripes(g.x,g.vb.y,g.bw,g.vb.h,'rgba(240,200,60,.28)','rgba(240,200,60,.75)',10);
+  BE.forEach(e=>{const j=e.shake?Math.sin(time*50)*4*e.shake:Math.sin(time*3+e.x)*1.2;if(e.band==='up'){ctx.strokeStyle='rgba(127,211,255,.6)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(e.x,e.y0);ctx.lineTo(e.x,e.y);ctx.stroke();ctx.setLineDash([]);}eDot(e.x+j,e.y,7);});
+  if(S.field){ctx.strokeStyle='#ff6a5a';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(g.x+g.bw*0.25,g.cb.y-12);ctx.lineTo(g.x+g.bw*0.75,g.cb.y-12);ctx.stroke();arrowHead(g.x+g.bw*0.75+4,g.cb.y-12,0,8,'#ff6a5a');}
+  axisE(g.x-26,g.vb.y+g.vb.h,g.cb.y-6);
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'حزم الطاقة':'حزمة التكافؤ وحزمة التوصيل وثغرة الطاقة (شكل 5)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  const lx=g.x+g.bw/2;label('حزمة التوصيل Conduction Band',lx,g.cb.y+g.cb.h/2,'#bff5c8',{s:nar?11:12.5});label('ثغرة الطاقة المحظورة Forbidden Gap',lx,g.gap.y+g.gap.h/2,'#e8ecf2',{s:nar?11:12.5});label('حزمة التكافؤ Valence Band',lx,g.vb.y-14,'#ffe6b0',{s:nar?11:12.5});
+  label(bMsg||'أعطِ الكترون التكافؤ طاقة: يجب أن تساوي ثغرة الطاقة المحظورة أو تزيد عليها',g.w/2,g.h-90,'#ffe6b0',{s:nar?10.5:12});
+  rowBtns('bands',[{k:'e1',l:'طاقة ⁦1 eV⁩',s:'⁦1 eV⁩'},{k:'e4',l:'طاقة ⁦4 eV⁩',s:'⁦4 eV⁩'},{k:'fld',l:'مجال كهربائي',s:'مجال'},{k:'rb',l:'↺',s:'↺'}],g.h-36).forEach(b=>btn(b,b.k==='fld'&&S.field));
+  label('ثغرة الطاقة المحظورة هنا ⁦3 eV⁩ (مثال)',g.w/2,g.h-62,'#a3b3cc',{s:11});}
+
+/* ---------- page 3 (figure 6): insulator, semiconductor, conductor ---------- */
+const MAT=[{n:'عازل',gap:0.42,k:'ins'},{n:'شبه موصل',gap:0.14,k:'semi'},{n:'موصل',gap:-0.08,k:'met'}];
+let TE=[],tKey='';const TEMP=[{l:'منخفضة',v:0.3},{l:'الغرفة',v:0.6},{l:'عالية',v:1}];
+function gT(){const R=REG.types,w=R.w,h=R.h,top=86,bot=h-150,cw=Math.min((w-40)/3,240);return{w,h,top,bot,cw,cx:i=>w/2+(1-i)*cw*1.02};}
+function geomM(g,m){const H2=g.bot-g.top,vbH=H2*0.18,cbH=H2*0.18,vbY=g.bot-vbH,cbY=vbY-H2*m.gap-cbH;return{vbY,vbH,cbY,cbH};}
+function initT(g){const key=g.w+'x'+g.h;if(key===tKey)return;tKey=key;TE=[];MAT.forEach((m,mi)=>{const q=geomM(g,m),x0=g.cx(mi)-g.cw*0.32;for(let i=0;i<8;i++)TE.push({m:mi,x:x0+g.cw*0.64*(i+0.5)/8,y:q.vbY+q.vbH*(m.gap<0?0.25:0.68),band:'v',t:0});});}
+function stepT(dt){const g=gT();initT(g);const T2=TEMP[S.tI].v;TE.forEach(e=>{const m=MAT[e.m],q=geomM(g,m);
+  if(e.band==='v'){const rate=m.gap<0?0.8:m.k==='semi'?0.25*Math.exp(-0.55/T2):0;if(Math.random()<rate*dt){e.band='up';e.t=0;e.y0=e.y;}}
+  else if(e.band==='up'){e.t+=dt;const yT=q.cbY+q.cbH*0.68;e.y=e.y0+(yT-e.y0)*Math.min(1,e.t/0.7);if(e.t>0.7){e.band='c';e.life=2+Math.random()*3;}}
+  else{e.life-=dt;if(S.field2){e.x+=dt*(m.k==='met'?55/(0.6+T2):45);const x0=g.cx(e.m)-g.cw*0.32,x1=x0+g.cw*0.64;if(e.x>x1)e.x=x0;}if(e.life<=0&&m.gap>0){e.band='v';e.y=q.vbY+q.vbH*0.68;}}});}
+function cond(m,T2){if(m.k==='met')return 0.95/(0.65+0.5*T2);if(m.k==='semi')return 0.9*Math.exp(-0.9/T2)*1.6;return 0.01;}
+function drawTypes(){const g=gT(),nar=g.w<560,T2=TEMP[S.tI].v;initT(g);
+  MAT.forEach((m,mi)=>{const q=geomM(g,m),cx=g.cx(mi),bw=g.cw*0.7,x=cx-bw/2;
+    ctx.fillStyle='rgba(205,140,60,.55)';ctx.fillRect(x,q.cbY,bw,q.cbH);ctx.strokeStyle='#e8a04a';ctx.lineWidth=1.5;ctx.strokeRect(x,q.cbY,bw,q.cbH);
+    ctx.fillStyle='rgba(205,140,60,.85)';ctx.fillRect(x,q.vbY,bw,q.vbH);ctx.strokeRect(x,q.vbY,bw,q.vbH);
+    if(m.gap<0){ctx.fillStyle='rgba(255,90,90,.35)';ctx.fillRect(x,q.vbY,bw,q.cbY+q.cbH-q.vbY);}
+    else{ctx.strokeStyle='#7fd3ff';ctx.lineWidth=1.6;const gx=x+bw*0.82;ctx.beginPath();ctx.moveTo(gx,q.vbY-3);ctx.lineTo(gx,q.cbY+q.cbH+3);ctx.stroke();arrowHead(gx,q.vbY-1,Math.PI/2,6,'#7fd3ff');arrowHead(gx,q.cbY+q.cbH+1,-Math.PI/2,6,'#7fd3ff');}
+    axisE(x-14,q.vbY+q.vbH+4,q.cbY-26,'');
+    txt('حزمة التوصيل',cx,q.cbY+(m.gap<0?12:q.cbH*0.28),{font:F(700,nar?10:11.5),color:'#fff'});txt('حزمة التكافؤ',cx,q.vbY+q.vbH-12,{font:F(700,nar?10:11.5),color:'#2a1500'});
+    // conductivity meter
+    const c=Math.min(1,cond(m,T2)),my=g.bot+30;rr(cx-bw/2,my,bw,10,5);ctx.fillStyle='rgba(255,255,255,.1)';ctx.fill();rr(cx-bw/2,my,bw*c,10,5);ctx.fillStyle=c>0.5?'#5fe08a':c>0.15?'#ffd27a':'#ff7a6a';ctx.fill();
+    txt(m.n,cx,g.bot+60,{font:F(800,nar?14:16),color:'#eaf0fa'});});
+  TE.forEach(e=>eDot(e.x+(e.band==='c'?0:Math.sin(time*4+e.x)*1.5),e.y,5.5));
+  LB=[];LBW=g.w;LBH=g.h;chip(nar?'عازل · شبه موصل · موصل':'حزم الطاقة في العازل وشبه الموصل والموصل (شكل 6)',g.w/2,20,'#7fd3ff','center',{s:13.5});
+  txt('قابلية التوصيل الكهربائي',g.w/2,g.bot+18,{font:F(600,11),color:'#a3b3cc'});
+  label(nar?'موصل: تتداخل الحزمتان · عازل: ثغرة واسعة':'في الموصل تتداخل الحزمتان (لا ثغرة) · في العازل ثغرة واسعة · في شبه الموصل ثغرة ضيقة',g.w/2,g.h-60,'#ffe6b0',{s:nar?10.5:12});
+  rowBtns('types',[...TEMP.map((t,i)=>({k:'t'+i,l:'درجة الحرارة: '+t.l,s:t.l})),{k:'f2',l:'مجال كهربائي',s:'مجال'}],g.h-36).forEach(b=>btn(b,b.k==='t'+S.tI||(b.k==='f2'&&S.field2)));}
+
+function draw(){drawBg();const fn={split:drawSplit,bands:drawBands,types:drawTypes};for(const n of PG)if(REG[n]){setReg(n);fn[n]();}
+  if(S.page==='all'){ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.x,DPR*view.y);ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;PG.slice(1).forEach(n=>{const R=REG[n];ctx.beginPath();if(REG.split.y===R.y){ctx.moveTo(R.x+R.w,R.y+30);ctx.lineTo(R.x+R.w,R.y+R.h-30);}else{ctx.moveTo(R.x+30,R.y);ctx.lineTo(R.x+R.w-30,R.y);}ctx.stroke();});}}
+
+/* ---------- input ---------- */
+const touched={r:false};const ptrs=new Map();let pinch=null,lastTap=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function btnsOf(n){const R=REG[n];if(n==='split')return rowBtns('split',[{k:'n2',l:'ذرتان',s:'2'},{k:'n6',l:'6 ذرات',s:'6'},{k:'n20',l:'عدد هائل من الذرات',s:'كثيرة'}],R.h-36);
+  if(n==='bands')return rowBtns('bands',[{k:'e1',l:'طاقة ⁦1 eV⁩',s:'⁦1 eV⁩'},{k:'e4',l:'طاقة ⁦4 eV⁩',s:'⁦4 eV⁩'},{k:'fld',l:'مجال كهربائي',s:'مجال'},{k:'rb',l:'↺',s:'↺'}],R.h-36);
+  return rowBtns('types',[...TEMP.map((t,i)=>({k:'t'+i,l:'درجة الحرارة: '+t.l,s:t.l})),{k:'f2',l:'مجال كهربائي',s:'مجال'}],R.h-36);}
+function local(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n];return{n,p:{x:w.x-R.x,y:w.y-R.y}};}
+function hitAt(s){const q=local(s);if(!q)return null;const{n,p}=q;for(const b of btnsOf(n))if(p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h)return{type:'btn',b};
+  if(n==='split'){const g=gP();if(p.x>g.x0&&p.x<g.x1+10&&p.y>g.y0-10&&p.y<g.y1+16)return{type:'r'};}return null;}
+function act(b){const k=b.k;if(k[0]==='n'&&k!=='n')nAt=+k.slice(1);else if(k==='e1')excite(1);else if(k==='e4')excite(4);else if(k==='fld')S.field=!S.field;else if(k==='rb'){bKey='';bMsg='';}else if(k[0]==='t'&&k.length===2)S.tI=+k[1];else if(k==='f2')S.field2=!S.field2;}
+function setR(s){const q=local(s);if(!q||q.n!=='split')return;const g=gP();rSel=clamp((q.p.x-g.x0)/(g.x1-g.x0)*RMAX,RMIN+0.05,RMAX-0.02);touched.r=true;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const h=hitAt(s);if(h&&h.type==='btn'){act(h.b);return;}if(h&&h.type==='r'){drag={type:'r'};setR(s);cv.style.cursor='ew-resize';return;}
+  const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={type:'pan',s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const h=hitAt(s);hover=h&&h.type==='btn'?h.b.id:null;cv.style.cursor=h?(h.type==='r'?'ew-resize':'pointer'):'grab';return;}
+  if(drag.type==='r'){setR(s);return;}view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){
+  const a=`<p>الكترونات الذرة المنفردة تدور بمدارات محددة، ولكل مدار مستوى محدد من الطاقة. أما في المواد الصلبة فالذرات متراصة، فتتداخل مستويات الطاقة مع بعضها، وتتأثر الكترونات أية ذرة بالكترونات الذرات المجاورة. ونتيجة لهذا التفاعل تنقسم مستويات الطاقة المسموح بها في الأغلفة الثانوية الخارجية المتقاربة جداً من بعضها بشكل حزم، كل حزمة منها ذات مستويات طاقة ثانوية متقاربة جداً من بعضها، تسمى <b>حزم الطاقة Energy Bands</b>.</p>`;
+  const b=`<p><b>حزمة التكافؤ:</b> مستويات طاقة مسموح بها طاقتها واطئة، مملوءة كلياً أو جزئياً بالالكترونات. الكترونات التكافؤ لا تتمكن من الحركة بين الذرات بسبب قربها من النواة.</p><p><b>حزمة التوصيل:</b> مستويات طاقة مسموح بها ذات طاقة عالية، والكترونات التوصيل تتمكن من الانتقال بسهولة فتشارك في التوصيل الكهربائي.</p><p><b>ثغرة الطاقة المحظورة:</b> لا تحتوي مستويات طاقة مسموحاً بها. ولكي ينتقل الكترون من حزمة التكافؤ إلى حزمة التوصيل يجب أن يكتسب طاقة كافية من مصدر خارجي (حرارية أو ضوئية أو مجال كهربائي) لا يقل مقدارها عن مقدار ثغرة الطاقة المحظورة.</p>`;
+  const c=`<p><b>الموصلات (المعادن):</b> تتداخل حزمة التكافؤ مع حزمة التوصيل وتنعدم الثغرة المحظورة، فتكون الالكترونات طليقة، ولذلك قابليتها للتوصيل عالية. وتقل قابلية التوصيل بارتفاع درجة الحرارة لزيادة مقاومتها (زيادة الطاقة الاهتزازية للذرات).</p><p><b>العوازل:</b> حزمة التكافؤ مملوءة، وحزمة التوصيل خالية، والثغرة المحظورة واسعة نسبياً.</p><p><b>أشباه الموصلات:</b> ثغرتها ضيقة، فترتفع قابلية توصيلها بارتفاع درجة الحرارة لأن عدداً أكبر من الالكترونات يعبر الثغرة.</p>`;
+  const m={split:a,bands:b,types:c};if(S.page!=='all')return{t:{split:'حزم الطاقة',bands:'حزمة التكافؤ وحزمة التوصيل',types:'العازل وشبه الموصل والموصل'}[S.page],b:m[S.page]};return{t:'حزم الطاقة في المواد الصلبة',b:a+b+c};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();if(!touched.r&&!drag&&REG.split)rSel=RMIN+0.3+(RMAX-RMIN-0.4)*(0.5+0.5*Math.cos(time*0.4));if(REG.bands)stepB(dt);if(REG.types)stepT(dt);if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();
+const pb=document.querySelectorAll('#parts button');function syncPages(){pb.forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.page));}
+pb.forEach(b=>b.addEventListener('click',()=>{S.page=b.dataset.p;syncPages();view={z:1,x:0,y:0};arrange();bKey='';tKey='';}));syncPages();
+new ResizeObserver(()=>{layout();bKey='';tKey='';}).observe(cv);
+requestAnimationFrame(frame);
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
