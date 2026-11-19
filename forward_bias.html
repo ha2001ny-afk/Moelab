@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>الانحياز الأمامي للثنائي PN</title>
+<style>
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --warn:#ffc04d;
+  --f-display:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.fs{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.fs:hover{border-color:var(--accent)}
+.fs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs svg{width:20px;height:20px}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:max(10px,env(safe-area-inset-right,0px));max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;color:var(--ink)}
+.tipbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:#ffd27a;display:grid;place-items:center;cursor:pointer;padding:0}
+.tipbtn:hover,.tipbtn.on{border-color:#ffd27a;background:rgba(255,210,122,.14)}
+.tipbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tipbtn svg{width:22px;height:22px}
+.tip{box-sizing:border-box;position:absolute;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(360px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.95);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.tip h2{margin:0 0 8px;font-family:var(--f-display);font-size:16px;font-weight:600;color:#ffd27a;padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+.tip p.m{text-align:center;color:var(--accent);font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;direction:ltr;justify-content:flex-end}
+.tip .nums span{font-family:var(--f-mono);font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button:hover{border-color:var(--accent)}
+.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 9px 0 10px;font-size:12.5px}}
+@media (max-width:420px){.parts{gap:4px}.parts button{padding:0 7px 0 8px;font-size:12px;gap:5px}.parts button i{width:7px;height:7px}}
+.parts{max-width:calc(100vw - 124px);overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.parts::-webkit-scrollbar{display:none}.parts button{flex:none}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة الانحياز الأمامي للثنائي PN: الدائرة وما يحدث داخل الملتقى"></canvas>
+  <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+  <div class="parts" id="parts" role="group" aria-label="الصفحات">
+    <button data-p="cir" aria-pressed="true"><i></i><span class="l">الدائرة (شكل 20 و21)</span><span class="s">الدائرة</span></button>
+    <button data-p="jun" aria-pressed="false"><i></i><span class="l">داخل الملتقى (شكل 22)</span><span class="s">الملتقى</span></button>
+    <button data-p="all" aria-pressed="false"><i></i><span class="l">الكل معاً</span><span class="s">الكل</span></button>
+  </div>
+  <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene');const ctx=cv.getContext('2d');
+const LRI='⁦',PDI='⁩',iso=s=>LRI+s+PDI;
+/* ---------- state & physics ---------- */
+const S={page:'cir',on:false,V:0.9,rev:false,touched:false};
+const IS=1e-12,VT=0.02585,RES=100,V0=0.70,W0F=0.15,VMAX=1.5;
+function solve(){if(!S.on)return{Vd:0,I:0};
+  if(S.rev){const Vd=-S.V;return{Vd,I:-IS*(1-Math.exp(Vd/VT))};}
+  let lo=0,hi=S.V;for(let i=0;i<60;i++){const m=(lo+hi)/2,f=IS*(Math.exp(m/VT)-1)-(S.V-m)/RES;if(f>0)hi=m;else lo=m;}
+  const Vd=(lo+hi)/2;return{Vd,I:(S.V-Vd)/RES};}
+let P={Vd:0,I:0};const SM={W:W0F,bar:V0,vd:0,I:0};
+const mA=()=>Math.max(0,SM.I*1000);
+const velPx=()=>{const i=mA();return i<0.004?0:150*(1-Math.exp(-i/2.5));};
+function fmtI(I){const a=Math.abs(I)*1000;if(S.on&&S.rev)return{v:'0.00',u:'µA'};if(a>=1)return{v:a.toFixed(2),u:'mA'};if(a>=0.01)return{v:a.toFixed(3),u:'mA'};return{v:(a*1000).toFixed(2),u:'µA'};}
+
+let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
+const col={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const F=(w,s,mono)=>w+' '+(s*(L?L.fs:1)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function readColors(){const cs=getComputedStyle(document.documentElement);['deep','navy','glow','ink','muted','accent'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim());}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||col.ink;ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function arrowHead(x,y,ang,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.8,size*0.62);ctx.lineTo(-size*0.8,-size*0.62);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();}
+function pulseRing(x,y,r,color,ph){const pu=0.5+0.5*Math.sin(time*5+(ph||0));ctx.beginPath();ctx.arc(x,y,r+pu*5,0,7);ctx.strokeStyle=color;ctx.globalAlpha=0.35+0.4*pu;ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;}
+function chip(s,x,y,c,align,o={}){const f=F(600,o.s||12);ctx.font=f;const w=ctx.measureText(s).width+18,h=(o.s?o.s+12:24)*L.fs,x0=align==='left'?x:align==='right'?x-w:x-w/2;rr(x0,y-h/2,w,h,h/2);ctx.fillStyle=o.bg||'rgba(6,13,28,.74)';ctx.fill();if(c){ctx.strokeStyle=c;ctx.lineWidth=1;ctx.stroke();}txt(s,x0+w/2,y+0.5,{font:f,color:o.tc||c||col.ink,dir:o.dir});LB.push([x0-3,y-h/2-3,w+6,h+6]);return w;}
+let LB=[],LBW=0,LBH=0;
+function label(s,x,y,c,o={}){const f=F(o.w||600,o.s||12.5);ctx.font=f;const tw=ctx.measureText(s).width+16,th=(o.s||12.5)+10;
+  if(o.alt){const cands=[[x,y],...o.alt].map(([a,b])=>[clamp(a,tw/2+6,LBW-tw/2-6),clamp(b,th/2+6,LBH-th/2-6)]);let best=cands[0],bo=1e9;
+    for(const [a,b] of cands){let ov=0;for(const r of LB){const ix=Math.max(0,Math.min(a+tw/2,r[0]+r[2])-Math.max(a-tw/2,r[0])),iy=Math.max(0,Math.min(b+th/2,r[1]+r[3])-Math.max(b-th/2,r[1]));ov+=ix*iy;}if(ov<bo-0.5){bo=ov;best=[a,b];}if(ov===0)break;}[x,y]=best;}
+  LB.push([x-tw/2-3,y-th/2-3,tw+6,th+6]);ctx.fillStyle='rgba(6,14,32,.66)';rr(x-tw/2,y-th/2,tw,th,th/2);ctx.fill();txt(s,x,y,{font:f,color:c||'#f2f5fa',dir:o.dir});}
+function wlabel(t,x,y,c,o){ctx.font=F(o.w||600,o.s||12.5);if(ctx.measureText(t).width+26<LBW){label(t,x,y,c,o);return;}const ws=t.split(' ');let best=1,bd=1e9;for(let i=1;i<ws.length;i++){const a=ctx.measureText(ws.slice(0,i).join(' ')).width,b=ctx.measureText(ws.slice(i).join(' ')).width;if(Math.abs(a-b)<bd){bd=Math.abs(a-b);best=i;}}
+  const h=(o.s||12.5)+11;label(ws.slice(0,best).join(' '),x,y-h/2,c,o);label(ws.slice(best).join(' '),x,y+h/2,c,o);}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,col.glow);g.addColorStop(0.55,col.navy);g.addColorStop(1,col.deep);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function ball(x,y,r,base,shade){const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.1,x,y,r);g.addColorStop(0,base[0]);g.addColorStop(0.55,base[1]);g.addColorStop(1,base[2]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();if(shade){ctx.fillStyle=`rgba(0,0,0,${shade})`;ctx.fill();}}
+function eqn(parts,x,y,size,c,align){ctx.save();ctx.direction='ltr';ctx.textBaseline='middle';const f=(sz)=>`italic 700 ${sz}px "Times New Roman",serif`;let tot=0;parts.forEach(p=>{ctx.font=f(p[1]?size*0.62:size);p.w=ctx.measureText(p[0]).width;tot+=p.w;});let xx=align==='left'?x:align==='right'?x-tot:x-tot/2;ctx.fillStyle=c;ctx.textAlign='left';
+  parts.forEach(p=>{ctx.font=f(p[1]?size*0.62:size);ctx.fillText(p[0],xx,y+(p[1]?size*0.3:0));xx+=p.w;});ctx.restore();return tot;}
+const EL=['#ffd6ef','#e0479e','#6a0f45'],HOLE=['#ffffff','#e6e9ef','#8a90a0'];
+
+/* ---------- layout ---------- */
+let REG={};const PG=['cir','jun'];
+function layout(){const nw=cv.clientWidth,nh=cv.clientHeight;if(!nw||!nh)return;W=nw;H=nh;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);narrow=W<H*0.95;L.fs=narrow?1.04:1;arrange();}
+function arrange(){REG={};const top=H<500?58:66,m=8,aw=W-2*m,ah=H-top-m;
+  const fit=(R)=>{const k=Math.min(1,R.w/600,R.h/560);R.k=k;R.vw=R.w/k;R.vh=R.h/k;return R;};
+  if(S.page!=='all'){REG[S.page]={x:m,y:top,w:aw,h:ah,k:1,vw:aw,vh:ah};return;}
+  const land=aw/ah>1.15,cols=land?2:1,rows=Math.ceil(PG.length/cols),cw=aw/cols,rh=ah/rows;
+  PG.forEach((n,i)=>{const r=Math.floor(i/cols),c=i%cols;REG[n]=fit({x:m+aw-cw*(c+1),y:top+rh*r,w:cw,h:rh});});}
+const toWorld=s=>({x:(s.x-view.x)/view.z,y:(s.y-view.y)/view.z});
+function setReg(n){const R=REG[n],z=view.z*R.k;ctx.setTransform(DPR*z,0,0,DPR*z,DPR*(view.z*R.x+view.x),DPR*(view.z*R.y+view.y));}
+function regAt(w){for(const n in REG){const R=REG[n];if(w.x>=R.x&&w.x<=R.x+R.w&&w.y>=R.y&&w.y<=R.y+R.h)return n;}return null;}
+function btn(b,on){if(b.k==='vv'){rr(b.x,b.y,b.w,b.h,8);ctx.fillStyle='#0b1a10';ctx.fill();ctx.strokeStyle='rgba(140,255,170,.45)';ctx.lineWidth=1;ctx.stroke();txt(b.l,b.x+b.w/2,b.y+b.h/2+0.5,{font:F(700,13,true),color:'#9ff0b8',dir:'ltr'});return;}
+  rr(b.x,b.y,b.w,b.h,b.h/2);ctx.fillStyle=on?'rgba(255,210,122,.22)':hover===b.id?'rgba(255,255,255,.14)':'rgba(255,255,255,.07)';ctx.fill();ctx.strokeStyle=on?'#ffd27a':'rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.stroke();
+  txt(b.l,b.x+b.w/2,b.y+b.h/2,{font:F(b.big?800:600,b.big?17:(narrow?11.5:12.5)),color:on?'#ffe2a8':col.ink});}
+function rowBtns(n,list,y){const R={w:REG[n].vw},gap=6;ctx.font=F(600,12.5);let ws=list.map(b=>Math.max(b.big?48:44,ctx.measureText(b.l).width+22));let tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);
+  if(tot>R.w-12){list=list.map(b=>({...b,l:b.s||b.l}));ws=list.map(b=>Math.max(b.big?44:36,ctx.measureText(b.l).width+16));tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);}
+  let x=(R.w+tot)/2;return list.map((b,i)=>{x-=ws[i];const r={...b,id:n+b.k,x,y,w:ws[i],h:30};x-=gap;return r;});}
+const BV=()=>[{k:'v+',l:'+',big:1},{k:'vv',l:iso('V = '+S.V.toFixed(1)+' V'),s:iso(S.V.toFixed(1)+' V')},{k:'v-',l:'−',big:1}];
+const BS=()=>[{k:'sw',l:S.on?'⏻ المفتاح مغلق':'⏻ أغلق المفتاح',s:S.on?'⏻ مغلق':'⏻ أغلق'},{k:'pol',l:'⇄ اعكس قطبية البطارية',s:'⇄ اعكس'}];
+function controls(n,h){rowBtns(n,BV(),h-68).forEach(b=>btn(b,false));rowBtns(n,BS(),h-30).forEach(b=>btn(b,b.k==='sw'?S.on:S.rev));}
+const HS={cir:[],jun:[]};
+
+/* ---------- page 1: the circuit (figures 20, 21) ---------- */
+function gCir(){const R=REG.cir,w=R.vw,h=R.vh,cx=w/2,schY=44,schH=90;const dw=Math.min(w*0.62,500),dh=clamp(Math.min(h*0.12,w*0.16),46,80),dy=schY+schH+22+dh/2;
+  const side=clamp(w*0.09,30,80);return{w,h,cx,schY,dw,dh,dy,lx:cx-dw/2-side,rx:cx+dw/2+side,yb:h-182};}
+function wire(pts){ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle='#8f98a8';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='#e4e9f1';ctx.lineWidth=3;ctx.stroke();ctx.lineCap='butt';}
+function polyLen(p){let s=0;for(let i=1;i<p.length;i++)s+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return s;}
+function polyAt(p,d){for(let i=1;i<p.length;i++){const l=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(d<=l){const t=d/l;return[p[i-1][0]+(p[i][0]-p[i-1][0])*t,p[i-1][1]+(p[i][1]-p[i-1][1])*t];}d-=l;}return p[p.length-1];}
+function drawSch(g){const y0=g.schY,cx=g.cx,on=S.on,fw=!S.rev,bwid=Math.min(g.w*0.36,230);
+  const title=fw?'طريقة الانحياز الامامي':'انحياز عكسي (قطبية معكوسة)';ctx.font=F(700,13);const tw=ctx.measureText(title).width+30;
+  rr(cx-tw/2,y0,tw,24,4);ctx.fillStyle='#f6f2e6';ctx.fill();txt(title,cx,y0+12.5,{font:F(700,13),color:'#10141c'});
+  const by=y0+34,bh=26;
+  const pos='rgba(244,178,150,.95)',neg='rgba(168,180,224,.95)';
+  const blk=(x0,c,sgn,lab,outerLeft)=>{ctx.fillStyle=c;ctx.fillRect(x0,by,bwid,bh);const sx=outerLeft?x0+5:x0+bwid-27;ctx.fillStyle='#fff';ctx.fillRect(sx,by+3,22,bh-6);ctx.strokeStyle='#888';ctx.lineWidth=1;ctx.strokeRect(sx,by+3,22,bh-6);
+    txt(sgn,sx+11,by+bh/2+1,{font:F(800,16),color:'#111'});const tw2=bwid*0.6-27;txt(lab,outerLeft?x0+27+tw2/2+3:x0+bwid-27-tw2/2-3,by+bh/2+1,{font:F(700,bwid<170?10:12),color:sgn==='+'?'#7a1010':'#13246e'});};
+  // left block = p side, right block = n side
+  blk(cx-6-bwid,fw?pos:neg,fw?'+':'−',fw?'قطبية موجبة':'قطبية سالبة',true);
+  blk(cx+6,fw?neg:pos,fw?'−':'+',fw?'قطبية سالبة':'قطبية موجبة',false);
+  // push arrow from the positive side toward the junction
+  ctx.globalAlpha=on?1:0.35;const al=bwid*0.36;if(fw){ctx.fillStyle='#e8141c';ctx.fillRect(cx-6-al,by+bh/2-4,al-14,8);arrowHead(cx-14,by+bh/2,0,11,'#e8141c');}
+  else{ctx.fillStyle='#e8141c';ctx.fillRect(cx+20,by+bh/2-4,al-14,8);arrowHead(cx+14,by+bh/2,Math.PI,11,'#e8141c');}ctx.globalAlpha=1;
+  ctx.fillStyle='#2a3a9a';ctx.fillRect(cx-1.5,y0+24,3,bh+12);
+  txt('p',cx-6-bwid-12,by+bh/2,{font:'italic 700 17px "Times New Roman",serif',color:'#ffb0a4',dir:'ltr'});txt('n',cx+6+bwid+12,by+bh/2,{font:'italic 700 17px "Times New Roman",serif',color:'#a9c8ff',dir:'ltr'});
+  const i=mA(),st=!on?'لا يوجد تيار (الدائرة مفتوحة)':S.rev?'تيار صغير جداً ≈ 0':i>=1?'تيار امامي كبير':i>=0.05?'تيار امامي صغير':'تيار ضئيل جداً';
+  const big=on&&!S.rev&&i>=1;chip('I ⟵  '+st,cx,by+bh+20,big?'#a07a00':'rgba(255,255,255,.3)','center',{bg:big?'#f6e07a':'rgba(6,13,28,.74)',tc:big?'#2a2000':'#cfd8e6'});}
+function drawCir(){const g=gCir(),cx=g.cx,on=S.on,fw=!S.rev,h=g.h;LB=[];LBW=g.w;LBH=g.h;HS.cir=[];
+  chip(narrow||g.w<640?'الانحياز الأمامي (شكل 20 و21)':'طريقة الانحياز الأمامي للثنائي PN: دائرة البطارية والمقاومة (شكل 20 و21)',g.w/2,18,'#7fd3ff','center',{s:13.5});
+  drawSch(g);
+  const x0=cx-g.dw/2,x1=cx+g.dw/2,dy=g.dy,yb=g.yb,lx=g.lx,rx=g.rx,bw=clamp(g.w*0.17,74,120),xbL=cx-bw/2,xbR=cx+bw/2;
+  const sw1=xbR+(rx-xbR)*0.32,sw2=sw1+clamp((rx-xbR)*0.4,30,48);
+  // wires
+  wire([[x0,dy],[lx,dy],[lx,yb],[xbL,yb]]);wire([[x1,dy],[rx,dy],[rx,yb],[sw2,yb]]);wire([[xbR,yb],[sw1,yb]]);
+  // electrons in the wires (they leave the battery's negative terminal)
+  const pathA=fw?[[xbR,yb],[rx,yb],[rx,dy],[x1,dy]]:[[xbL,yb],[lx,yb],[lx,dy],[x0,dy]];
+  const pathB=fw?[[x0,dy],[lx,dy],[lx,yb],[xbL,yb]]:[[x1,dy],[rx,dy],[rx,yb],[xbR,yb]];
+  const la=polyLen(pathA),lb=polyLen(pathB),tot=la+lb,sp=30;
+  for(let d=(CPH%sp);d<tot;d+=sp){const p=d<la?polyAt(pathA,d):polyAt(pathB,d-la);if(Math.abs(p[1]-yb)<2&&p[0]>sw1-4&&p[0]<sw2+4&&!on)continue;ball(p[0],p[1],4.2,EL);}
+  // conventional current arrow
+  if(on&&fw&&mA()>0.004){const ax=(lx+x0)/2;arrowHead(ax+8,dy,0,9,'#ffd27a');txt('I',ax-8,dy-16,{font:'italic 700 17px "Times New Roman",serif',color:'#ffd27a',dir:'ltr'});}
+  // resistor (brown-black-brown = 100 Ω)
+  const ry=(dy+yb)/2+10,rh2=clamp((yb-dy)*0.24,46,74),rw=16;rr(lx-rw/2,ry-rh2/2,rw,rh2,6);const rg=ctx.createLinearGradient(lx-rw/2,0,lx+rw/2,0);rg.addColorStop(0,'#6e5530');rg.addColorStop(0.5,'#c9a46a');rg.addColorStop(1,'#5e4524');ctx.fillStyle=rg;ctx.fill();
+  [['#6b3a14',0.2],['#111',0.36],['#6b3a14',0.52],['#d4a838',0.78]].forEach(([c,f])=>{ctx.fillStyle=c;ctx.fillRect(lx-rw/2,ry-rh2/2+rh2*f,rw,rh2*0.09);});
+  mtxt('R',lx+rw/2+14,ry-8,18);txt(iso('100 Ω'),lx+rw/2+8,ry+12,{font:F(600,11,true),color:'#a3b3cc',align:'left',dir:'ltr'});LB.push([lx-10,ry-rh2/2,70,rh2]);
+  // ammeter on the right wire
+  const ay=(dy+yb)/2+10,ar=clamp(g.w*0.04,20,28);ctx.beginPath();ctx.arc(rx,ay,ar+3,0,7);const mg=ctx.createLinearGradient(rx-ar,ay-ar,rx+ar,ay+ar);mg.addColorStop(0,'#eef2f8');mg.addColorStop(1,'#5a606c');ctx.fillStyle=mg;ctx.fill();
+  ctx.beginPath();ctx.arc(rx,ay,ar,0,7);ctx.fillStyle='#141a24';ctx.fill();const fi=fmtI(SM.I);rr(rx-ar*0.82,ay-9,ar*1.64,15,3);ctx.fillStyle='#0b1a10';ctx.fill();
+  txt(fi.v,rx,ay-1,{font:F(700,clamp(ar*0.42,9,12),true),color:'#9ff0b8',dir:'ltr'});txt(fi.u,rx,ay+ar*0.62,{font:F(700,9.5),color:'#cfd8e6',dir:'ltr'});LB.push([rx-ar-4,ay-ar-4,2*ar+8,2*ar+8]);
+  label('الأميتر',rx-ar-34,ay-ar-6,'#cfd8e6',{s:10.5});
+  // battery
+  const bh=24;HS.cir.push({k:'pol',x:xbL-6,y:yb-bh/2-8,w:bw+12,h:bh+16});
+  ctx.save();ctx.translate(cx,yb);if(!fw)ctx.scale(-1,1);
+  rr(-bw/2,-bh/2,bw,bh,5);const bg=ctx.createLinearGradient(0,-bh/2,0,bh/2);bg.addColorStop(0,'#3a3f48');bg.addColorStop(0.45,'#9aa1ad');bg.addColorStop(1,'#1b1f26');ctx.fillStyle=bg;ctx.fill();
+  rr(-bw/2,-bh/2,bw*0.32,bh,5);const cg=ctx.createLinearGradient(0,-bh/2,0,bh/2);cg.addColorStop(0,'#8a5a14');cg.addColorStop(0.45,'#f2c25a');cg.addColorStop(1,'#5a3a08');ctx.fillStyle=cg;ctx.fill();
+  ctx.fillStyle='#c8ccd4';ctx.fillRect(-bw/2-5,-5,5,10);ctx.restore();
+  const pX=fw?xbL:xbR,nX=fw?xbR:xbL;[[pX,'+','#ffb0a4'],[nX,'−','#a9c8ff']].forEach(([x,s,c])=>{ctx.beginPath();ctx.arc(x,yb+22,9,0,7);ctx.fillStyle='#f4f6fa';ctx.fill();ctx.strokeStyle='#8f98a8';ctx.lineWidth=2;ctx.stroke();txt(s,x,yb+22.5,{font:F(800,14),color:'#111'});});
+  txt('فولتية الانحياز '+iso(S.V.toFixed(1)+' V'),cx,yb+44,{font:F(700,12),color:'#ffe6b0'});LB.push([cx-90,yb-20,180,72]);
+  // switch
+  HS.cir.push({k:'sw',x:sw1-10,y:yb-38,w:sw2-sw1+20,h:52});
+  [sw1,sw2].forEach(x=>{ctx.beginPath();ctx.arc(x,yb,5,0,7);ctx.fillStyle='#d8dde6';ctx.fill();ctx.strokeStyle='#5a606c';ctx.lineWidth=1.5;ctx.stroke();});
+  const ang=on?0:-0.6,ll=sw2-sw1+4;ctx.strokeStyle='#e8c860';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sw1,yb);ctx.lineTo(sw1+Math.cos(ang)*ll,yb+Math.sin(ang)*ll);ctx.stroke();ctx.lineCap='butt';
+  if(!S.touched)pulseRing((sw1+sw2)/2,yb-8,22,'#ffd27a');
+  txt('المفتاح',(sw1+sw2)/2,yb-34,{font:F(600,10.5),color:'#a3b3cc'});
+  // diode (figure 21)
+  const capW=g.dw*0.15,bodyH=g.dh*0.92;
+  [x0,x1-capW].forEach(x=>{rr(x,dy-g.dh/2,capW,g.dh,6);const q=ctx.createLinearGradient(0,dy-g.dh/2,0,dy+g.dh/2);q.addColorStop(0,'#3a3a3a');q.addColorStop(0.28,'#9a9a9a');q.addColorStop(0.6,'#3a3a3a');q.addColorStop(1,'#181818');ctx.fillStyle=q;ctx.fill();});
+  const bx0=x0+capW,bx1=x1-capW,bwd=bx1-bx0;const q2=ctx.createLinearGradient(0,dy-bodyH/2,0,dy+bodyH/2);q2.addColorStop(0,'#2a2a2a');q2.addColorStop(0.3,'#555');q2.addColorStop(0.7,'#1c1c1c');q2.addColorStop(1,'#0e0e0e');ctx.fillStyle=q2;ctx.fillRect(bx0,dy-bodyH/2,bwd,bodyH);
+  const jw=Math.max(3,bwd*SM.W*0.55);ctx.fillStyle='#e8c22e';ctx.fillRect(cx-jw/2,dy-bodyH/2,jw,bodyH);ctx.fillStyle='rgba(255,240,170,.75)';ctx.fillRect(cx-jw*0.22,dy-bodyH/2,jw*0.44,bodyH);
+  if(on&&fw&&mA()>0.3){const gl=clamp(mA()/8,0,1);const rgd=ctx.createRadialGradient(cx,dy,2,cx,dy,bodyH);rgd.addColorStop(0,`rgba(255,200,90,${0.45*gl})`);rgd.addColorStop(1,'rgba(255,200,90,0)');ctx.fillStyle=rgd;ctx.fillRect(cx-bodyH,dy-bodyH/2,bodyH*2,bodyH);}
+  mtxt('p',bx0+bwd*0.27,dy-bodyH*0.12,clamp(bodyH*0.55,20,40));mtxt('n',bx1-bwd*0.27,dy-bodyH*0.12,clamp(bodyH*0.55,20,40));
+  LB.push([x0-4,dy-g.dh/2-4,g.dw+8,g.dh+8]);
+  label('الثنائي PN',cx,dy+g.dh/2+14,'#cfd8e6',{s:11});
+  // readout box
+  const ry0=dy+g.dh/2+32,rwb=clamp(rx-lx-2*(ar+40),180,280),rows=[['فولتية البطارية V',S.V.toFixed(2)+' V'],['جهد الثنائي V_D',(on?P.Vd:0).toFixed(2)+' V'],['جهد المقاومة I·R',(on?S.V-Math.abs(P.Vd):0).toFixed(2)+' V'],['حاجز الجهد',SM.bar.toFixed(2)+' V']],rh=narrow?19:21;
+  const rhb=rows.length*rh+12,ryc=Math.min(ry0,(ry0+yb-40)/2-rhb/2);
+  if(yb-60-ry0>rhb-10){rr(cx-rwb/2,ryc,rwb,rhb,10);ctx.fillStyle='rgba(6,13,28,.8)';ctx.fill();ctx.strokeStyle='rgba(127,211,255,.35)';ctx.lineWidth=1;ctx.stroke();
+    rows.forEach((r,i)=>{const y=ryc+6+rh*(i+0.5);txt(r[0],cx+rwb/2-10,y,{font:F(600,11.5),color:'#a3b3cc',align:'right'});txt(iso(r[1]),cx-rwb/2+10,y,{font:F(700,12,true),color:i===3?'#ffd27a':'#eaf0fa',align:'left',dir:'ltr'});});LB.push([cx-rwb/2,ryc,rwb,rhb]);}
+  const i=mA(),msg=!on?'أغلق المفتاح لتسليط فولتية البطارية على طرفي الثنائي':S.rev?'القطب الموجب مع n والسالب مع p: هذا انحياز عكسي فيكبر حاجز الجهد ولا يمر تيار تقريباً':i<0.05?'فولتية البطارية أصغر من حاجز الجهد للملتقى: لا تستطيع الحاملات عبور الملتقى فالتيار ضئيل جداً':i<1?'بدأ فرق الجهد المسلط يتغلب على حاجز الجهد فبدأ تيار صغير يمر خلال الملتقى':'فرق الجهد المسلط أكبر من حاجز الجهد فيمر تيار أمامي كبير، والمقاومة R تحدد مقداره وتحمي الثنائي من التلف';
+  wlabel(msg,g.w/2,h-104,'#ffe6b0',{s:narrow?10:11.5});controls('cir',h);}
+function mtxt(s,x,y,size,c){ctx.font=`italic 600 ${Math.round(size*L.fs)}px "Times New Roman",serif`;ctx.fillStyle=c||'#eaf0fa';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(s,x,y);}
+
+/* ---------- page 2: inside the junction (figure 22) ---------- */
+const ROWS=6,HO=[],EE=[],FL=[];
+for(let r=0;r<ROWS;r++)for(let k=0;k<3;k++){const u=(k+0.25+0.45*(r%2))/3.2;HO.push({r,u,st:0,s:0});EE.push({r,u:(k+0.2+0.4*((r+1)%2))/3.2,st:0,s:0});}
+let CPH=0,WPH=0;
+function stepCarriers(dt){const v=velPx()/700,nf=0.5-SM.W/2,cf=SM.W/2;
+  [HO,EE].forEach((A,ai)=>A.forEach(c=>{if(v>0){if(c.st===0){c.u+=v*dt/nf;if(c.u>=1){c.st=1;c.s=0;}}else{c.s+=v*dt/cf;if(c.s>=1){FL.push({r:c.r,t:0,e:ai});c.st=0;c.u=0;}}}
+    else if(c.st===1){c.s-=dt*1.5;if(c.s<=0){c.st=0;c.u=1;}}}));
+  for(let i=FL.length-1;i>=0;i--){FL[i].t+=dt;if(FL[i].t>0.55)FL.splice(i,1);}}
+function gJun(){const R=REG.jun,w=R.vw,h=R.vh,bx0=w*0.1,bx1=w*0.9,capW=clamp(w*0.035,14,30),inL=bx0+capW,inR=bx1-capW,by=80,bh=clamp(h*0.32,110,240);
+  return{w,h,bx0,bx1,capW,inL,inR,inW:inR-inL,cx:(inL+inR)/2,by,bh,yc:by+bh/2,py0:by+bh+100,py1:Math.min(h-130,by+bh+330)};}
+function drawJun(){const g=gJun(),on=S.on,fw=!S.rev,cx=g.cx;LB=[];LBW=g.w;LBH=g.h;HS.jun=[];
+  chip(narrow||g.w<640?'داخل الملتقى PN (شكل 22)':'ماذا يحصل داخل الثنائي عند انحيازه أمامياً؟ (شكل 22)',g.w/2,18,'#7fd3ff','center',{s:13.5});
+  const W=SM.W*g.inW,dL=cx-W/2,dR=cx+W/2,v=velPx(),cr=clamp(g.bh/ROWS*0.26,5,11);
+  // side wires + electrons in them
+  const wh=clamp(g.bh*0.08,10,18);ctx.fillStyle='#b8bec8';ctx.fillRect(0,g.yc-wh/2,g.bx0,wh);ctx.fillRect(g.bx1,g.yc-wh/2,g.w-g.bx1,wh);
+  const sp=46;for(let d=WPH%sp;d<g.bx0;d+=sp){const xl=g.bx0-d;tailBall(xl,g.yc,cr*0.9,EL,v>0?1:0,-1);}
+  for(let d=WPH%sp;d<g.w-g.bx1;d+=sp){const xr=g.w-d;tailBall(xr,g.yc,cr*0.9,EL,v>0?1:0,-1);}
+  // + and − terminals
+  txt(fw?'+':'−',g.bx0*0.45,g.yc-wh-20,{font:F(800,30),color:fw?'#ffb0a4':'#a9c8ff'});txt(fw?'−':'+',g.w-g.bx0*0.45,g.yc-wh-20,{font:F(800,30),color:fw?'#a9c8ff':'#ffb0a4'});
+  // body
+  const q=ctx.createLinearGradient(0,g.by,0,g.by+g.bh);q.addColorStop(0,'#363636');q.addColorStop(1,'#1a1a1a');ctx.fillStyle=q;ctx.fillRect(g.inL,g.by,g.inW,g.bh);
+  [g.bx0,g.inR].forEach(x=>{const m=ctx.createLinearGradient(x,0,x+g.capW,0);m.addColorStop(0,'#2a2a2a');m.addColorStop(0.5,'#9a9a9a');m.addColorStop(1,'#2a2a2a');ctx.fillStyle=m;ctx.fillRect(x,g.by-8,g.capW,g.bh+16);});
+  // depletion region
+  ctx.fillStyle='rgba(120,100,40,.7)';ctx.fillRect(dL,g.by,W,g.bh);ctx.fillStyle='#e8c22e';ctx.fillRect(cx-2.5,g.by,5,g.bh);
+  ctx.setLineDash([5,4]);ctx.strokeStyle='#fff';ctx.lineWidth=1.5;[dL,dR].forEach(x=>{ctx.beginPath();ctx.moveTo(x,g.by);ctx.lineTo(x,g.by+g.bh);ctx.stroke();});ctx.setLineDash([]);
+  // fixed ions in the depletion region
+  const step=clamp(cr*2.1,11,18),ir=clamp(cr*0.55,3.5,6);for(let r=0;r<ROWS;r++){const y=g.by+g.bh*(r+0.5)/ROWS+(g.bh/ROWS)*0.0;
+    for(let x=cx-step*0.6;x>dL+ir;x-=step)ion(x,y,ir,'−');for(let x=cx+step*0.6;x<dR-ir;x+=step)ion(x,y,ir,'+');}
+  // carriers
+  const nf=0.5-SM.W/2,cf=SM.W/2,tl=v>0?Math.min(1,v/60):0;
+  HO.forEach((c,i)=>{const f=c.st===0?c.u*nf:nf+c.s*cf,y=g.by+g.bh*(c.r+0.5)/ROWS,jx=Math.sin(time*6+i*1.7)*1.6,jy=Math.cos(time*5+i*2.3)*1.6;tailBall(g.inL+cr+f*(g.inW/2-cr)+jx,y+jy,cr,HOLE,tl,1);});
+  EE.forEach((c,i)=>{const f=c.st===0?c.u*nf:nf+c.s*cf,y=g.by+g.bh*(c.r+0.5)/ROWS,jx=Math.sin(time*6.3+i*1.3)*1.6,jy=Math.cos(time*5.4+i*2.1)*1.6;tailBall(g.inR-cr-f*(g.inW/2-cr)+jx,y+jy,cr,EL,tl,-1);});
+  FL.forEach(f=>{const y=g.by+g.bh*(f.r+0.5)/ROWS,a=1-f.t/0.55,rg=ctx.createRadialGradient(cx,y,1,cx,y,cr*2.6);rg.addColorStop(0,`rgba(255,235,160,${0.9*a})`);rg.addColorStop(1,'rgba(255,200,90,0)');ctx.fillStyle=rg;ctx.beginPath();ctx.arc(cx,y,cr*2.6,0,7);ctx.fill();});
+  LB.push([g.bx0,g.by-8,g.bx1-g.bx0,g.bh+16]);
+  // labels above
+  mtxt('p',g.inL+g.inW*0.2,g.by-24,26);mtxt('N',g.inL+g.inW*0.8,g.by-24,24);
+  ctx.font=F(600,narrow?11:12.5);const dlw=ctx.measureText('منطقة الاستنزاف').width+20;rr(cx-dlw/2,g.by-38,dlw,24,3);ctx.fillStyle='rgba(6,13,28,.8)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1;ctx.stroke();txt('منطقة الاستنزاف',cx,g.by-25.5,{font:F(600,narrow?11:12.5)});
+  // legend
+  const lgy=g.by+g.bh+16;ball(g.inL+6,lgy,6,HOLE);txt('فجوة',g.inL+16,lgy,{font:F(600,11),color:'#cfd8e6',align:'left'});ball(g.inR-6,lgy,6,EL);txt('الكترون',g.inR-16,lgy,{font:F(600,11),color:'#cfd8e6',align:'right'});
+  // V_barrier bracket
+  const yb=g.by+g.bh+14;ctx.strokeStyle='#e0281e';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(dL,yb-8);ctx.lineTo(dL,yb+8);ctx.moveTo(dR,yb-8);ctx.lineTo(dR,yb+8);ctx.moveTo(dL,yb);ctx.lineTo(dR,yb);ctx.stroke();
+  eqn([['V'],['barrier',1],[' = '+SM.bar.toFixed(2)+' V']],cx,yb+20,narrow?14:16,'#ffb0a0');
+  // fields: barrier field (n→p) and applied field
+  const Lm=clamp(g.inW*0.2,60,170),y1=yb+46,y2=yb+70,Lb=Lm*0.9,La=Lm*0.9*Math.min(2.6,Math.abs(SM.vd)/V0);
+  fArrow(cx+Lb/2,cx-Lb/2,y1,'#ff8a7a');txt('مجال الحاجز',cx+Lm*1.4/2+8,y1,{font:F(600,11),color:'#ffb0a0',align:'left'});
+  if(on&&La>4){fArrow(fw?cx-La/2:cx+La/2,fw?cx+La/2:cx-La/2,y2,'#7fd3ff');}
+  txt(on?(fw?'المجال المسلط (معاكس)':'المجال المسلط (بالاتجاه نفسه)'):'لا مجال مسلط',cx+Lm*1.4/2+8,y2,{font:F(600,11),color:'#7fd3ff',align:'left'});
+  LB.push([cx-Lm,y1-10,Lm*2+120,y2-y1+20]);
+  drawPot(g);
+  const i=mA(),msg=!on?'بدون انحياز: حاجز الجهد يمنع الالكترونات والفجوات من عبور الملتقى':S.rev?'انحياز عكسي: تنجذب الحاملات بعيداً عن الملتقى فتتسع منطقة الاستنزاف ويكبر حاجز الجهد':i<0.05?'الفولتية المسلطة صغيرة: ضاقت منطقة الاستنزاف قليلاً لكن الحاملات لا تملك طاقة كافية لعبور الحاجز':'الالكترونات تتنافر مع القطب السالب والفجوات مع الموجب فتندفع نحو الملتقى وتعبره، وتضيق منطقة الاستنزاف ويقل حاجز الجهد';
+  wlabel(msg,g.w/2,g.h-104,'#ffe6b0',{s:narrow?10:11.5});controls('jun',g.h);}
+function ion(x,y,r,s){ctx.fillStyle=s==='−'?'rgba(150,170,230,.85)':'rgba(255,170,120,.85)';ctx.fillRect(x-r,y-r,2*r,2*r);txt(s,x,y+0.5,{font:`800 ${(r*1.9).toFixed(1)}px system-ui`,color:'#10141c',dir:'ltr'});}
+function tailBall(x,y,r,c,tl,dir){if(tl>0.02){const len=r*5*tl,gx=ctx.createLinearGradient(x,0,x-dir*len,0);gx.addColorStop(0,c===EL?'rgba(224,71,158,.75)':'rgba(255,255,255,.6)');gx.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gx;ctx.beginPath();ctx.moveTo(x,y-r*0.7);ctx.lineTo(x-dir*len,y-r*0.15);ctx.lineTo(x-dir*len,y+r*0.15);ctx.lineTo(x,y+r*0.7);ctx.closePath();ctx.fill();}ball(x,y,r,c);}
+function fArrow(xa,xb,y,c){ctx.strokeStyle=c;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(xa,y);ctx.lineTo(xb-(xb>xa?8:-8),y);ctx.stroke();arrowHead(xb,y,xb>xa?0:Math.PI,9,c);}
+function drawPot(g){const y0=g.py0,y1=g.py1;if(y1-y0<60)return;const top=y0+14,base=y1-8,sc=(base-top)/Math.max(0.8,SM.bar*1.05),cx=g.cx;
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(g.inL,base+4);ctx.lineTo(g.inR,base+4);ctx.stroke();
+  ctx.strokeStyle='#eaf0fa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(g.bx0,base+4);ctx.lineTo(g.bx0,top-6);ctx.stroke();arrowHead(g.bx0,top-8,-Math.PI/2,7,'#eaf0fa');
+  txt('الجهد',g.bx0+6,top-12,{font:F(700,11.5),color:'#ffe6b0',align:'left'});
+  const curve=(W,bar)=>{const Wp=W*g.inW,dL=cx-Wp/2,dR=cx+Wp/2;ctx.beginPath();for(let x=g.inL;x<=g.inR;x+=2){let f=0;if(x>=dR)f=1;else if(x>dL){f=x<cx?0.5*Math.pow((x-dL)/(Wp/2),2):1-0.5*Math.pow((dR-x)/(Wp/2),2);}const y=base-f*bar*sc;x===g.inL?ctx.moveTo(x,y):ctx.lineTo(x,y);}};
+  ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=1.6;curve(W0F,V0);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='#ffd27a';ctx.lineWidth=3;curve(SM.W,SM.bar);ctx.stroke();
+  const xr=g.inR-10,yt=base-SM.bar*sc;if(base-yt>14){ctx.strokeStyle='#e0281e';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(xr,base-2);ctx.lineTo(xr,yt+2);ctx.stroke();arrowHead(xr,yt+1,-Math.PI/2,6,'#e0281e');arrowHead(xr,base-1,Math.PI/2,6,'#e0281e');}
+  txt('حاجز الجهد '+iso(SM.bar.toFixed(2)+' V'),xr-10,Math.min(base-12,(base+yt)/2),{font:F(700,11.5),color:'#ffb0a0',align:'right'});
+  txt('-- بدون انحياز '+iso('0.70 V'),g.inL+4,top+2,{font:F(600,10.5),color:'#a3b3cc',align:'left'});}
+
+function draw(){drawBg();const fn={cir:drawCir,jun:drawJun};for(const n of PG)if(REG[n]){setReg(n);fn[n]();}
+  if(S.page==='all'){ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.x,DPR*view.y);ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;PG.forEach(n=>{const R=REG[n];rr(R.x+3,R.y+3,R.w-6,R.h-6,10);ctx.stroke();});}}
+
+/* ---------- input ---------- */
+const ptrs=new Map();let pinch=null,lastTap=0,rep=0,repT=0;
+function scr(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function btnsOf(n){const h=REG[n].vh;return[...rowBtns(n,BV(),h-68),...rowBtns(n,BS(),h-30)];}
+function local(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n];return{n,p:{x:(w.x-R.x)/R.k,y:(w.y-R.y)/R.k}};}
+function hitAt(s){const q=local(s);if(!q)return null;const{n,p}=q;const inR=b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
+  for(const b of btnsOf(n))if(b.k!=='vv'&&inR(b))return{type:'btn',b};for(const b of HS[n]||[])if(inR(b))return{type:'btn',b:{...b,id:n+'hs'+b.k}};return null;}
+function act(b){const k=b.k;if(k==='v+')S.V=Math.min(VMAX,Math.round(S.V*10+1)/10);else if(k==='v-')S.V=Math.max(0,Math.round(S.V*10-1)/10);else if(k==='sw'){S.on=!S.on;S.touched=true;}else if(k==='pol')S.rev=!S.rev;}
+function stopRep(){clearTimeout(repT);clearInterval(rep);rep=0;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){drag=null;stopRep();const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
+  const h=hitAt(s);if(h){act(h.b);if(h.b.k==='v+'||h.b.k==='v-'){stopRep();repT=setTimeout(()=>{rep=setInterval(()=>act(h.b),120);},420);}return;}
+  const now=performance.now();if(now-lastTap<320)view={z:1,x:0,y:0};lastTap=now;drag={s0:s,x0:view.x,y0:view.y};cv.style.cursor='grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},z=clamp(pinch.z0*d/pinch.d0,0.6,5),wx=(pinch.m0.x-pinch.x0)/pinch.z0,wy=(pinch.m0.y-pinch.y0)/pinch.z0;view={z,x:mid.x-wx*z,y:mid.y-wy*z};return;}
+  if(!drag){const h=hitAt(s);hover=h?h.b.id:null;cv.style.cursor=h?'pointer':'grab';return;}
+  view.x=drag.x0+s.x-drag.s0.x;view.y=drag.y0+s.y-drag.s0.y;});
+function pointerEnd(e){ptrs.delete(e.pointerId);stopRep();if(pinch){if(ptrs.size<2)pinch=null;return;}drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',pointerEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
+
+/* ---------- teacher hint ---------- */
+window.__explain=function(){const i=mA(),Vd=S.on?P.Vd:0,fi=fmtI(SM.I);
+  const nums=`<p class="nums"><span>V = ${S.V.toFixed(1)} V</span><span>V_D = ${Vd.toFixed(2)} V</span><span>I = ${fi.v} ${fi.u}</span><span>V_barrier = ${(V0-Vd).toFixed(2)} V</span><span>W/W₀ = ${(Math.sqrt((V0-Vd)/V0)).toFixed(2)}</span></p>`;
+  let why,tryit;
+  if(!S.on){why=`<p><b>الدائرة مفتوحة:</b> لا توجد فولتية مسلطة على الثنائي، فمنطقة الاستنزاف بعرضها الطبيعي وحاجز الجهد للملتقى <b class="m">V₀ ≈ 0.7 V</b> (للسيليكون) يمنع الالكترونات الحرة في N والفجوات في p من عبور الملتقى.</p>`;tryit='أغلق المفتاح (اضغط عليه في الدائرة أو زر ⏻).';}
+  else if(S.rev){why=`<p><b>القطبية معكوسة (انحياز عكسي):</b> القطب الموجب مع N والسالب مع p، فتنجذب الحاملات الأغلبية بعيداً عن الملتقى، وتتسع منطقة الاستنزاف ويصبح الحاجز <b class="m">V₀ + V</b>، فلا يمر إلا تيار ضئيل جداً. (هذا موضوع الطريقة الثانية.)</p>`;tryit='أعد القطبية إلى الوضع الأمامي وقارن عرض منطقة الاستنزاف.';}
+  else if(i<0.05){why=`<p><b>الفولتية المسلطة أصغر من حاجز الجهد:</b> ضاقت منطقة الاستنزاف قليلاً، لكن الطاقة التي تكتسبها الحاملات من البطارية لا تكفي للتغلب على حاجز الجهد، فالتيار ضئيل جداً.</p><p>الشرط: يجب أن يكون <b class="m">V &gt; V₀ ≈ 0.7 V</b>.</p>`;tryit='زد فولتية البطارية بزر + حتى 0.7 V وما فوقها، وراقب الأميتر.';}
+  else{why=`<p><b>الانحياز الأمامي:</b> القطب الموجب مع المنطقة p والسالب مع N. تتنافر الالكترونات الحرة (الحاملات الأغلبية في N) مع القطب السالب فتندفع نحو الملتقى، وتتنافر الفجوات (الأغلبية في p) مع القطب الموجب، فتكتسب الحاملات طاقة تتغلب بها على حاجز الجهد وتعبر الملتقى وتتحد عنده.</p><p>المجال المسلط معاكس لمجال الحاجز، فتضيق منطقة الاستنزاف ويقل الحاجز وتقل مقاومة الملتقى، فيمر <b>تيار أمامي ${i>=1?'كبير':'يزداد بسرعة'}</b>.</p>`;tryit='قارن التيار عند 0.5 V و0.7 V و1.2 V: التيار لا يتناسب طردياً مع الفولتية.';}
+  const law=`<p class="m">V_barrier = V₀ − V_D</p><p class="m">I = (V − V_D) / R</p><p class="note">الجزء الأكبر من الفولتية الزائدة على نحو 0.6 V يهبط على المقاومة R، لذلك نحتاجها لتحديد مقدار التيار ومنع تلف الثنائي. فرق الجهد على الملتقى نفسه يبقى أصغر قليلاً من V₀، لذا لا يختفي الحاجز تماماً بل يصغر كثيراً.</p>`;
+  const b=why+law+nums+`<p class="nums">جرّب: ${tryit}</p>`;
+  const t={cir:'الانحياز الأمامي: الدائرة',jun:'ماذا يحصل داخل الملتقى؟',all:'الانحياز الأمامي للثنائي PN'}[S.page];return{t,b};};
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();
+  P=solve();const k=1-Math.exp(-dt*5),tW=W0F*Math.sqrt(Math.max(0,V0-P.Vd)/V0);SM.W+=(tW-SM.W)*k;SM.bar+=(V0-P.Vd-SM.bar)*k;SM.vd+=(P.Vd-SM.vd)*k;SM.I+=(P.I-SM.I)*k;
+  const v=velPx();CPH+=v*dt*0.6;WPH-=v*dt*0.6;WPH=((WPH%1e6)+1e6)%1e6;stepCarriers(dt);
+  if(W)draw();requestAnimationFrame(frame);}
+readColors();layout();
+const pb=document.querySelectorAll('#parts button');function syncPages(){pb.forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.page));}
+function goPage(p){S.page=p;syncPages();view={z:1,x:0,y:0};arrange();}
+pb.forEach(b=>b.addEventListener('click',()=>goPage(b.dataset.p)));syncPages();
+new ResizeObserver(()=>layout()).observe(cv);
+requestAnimationFrame(frame);
+window.__S=S;
+})();
+
+(function(){const b=document.getElementById('fsBtn'),ico=document.getElementById('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{
+    if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+(function(){const b=document.getElementById('tipBtn'),p=document.getElementById('tipPanel'),t=document.getElementById('tipTitle'),body=document.getElementById('tipBody');
+  let iv=0,last='';
+  const fill=()=>{if(!window.__explain)return;const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));
+  document.getElementById('tipClose').addEventListener('click',()=>open(false));})();
+</script>
+</body>
+</html>
