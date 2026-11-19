@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>الانحياز الأمامي للثنائي PN</title>
+<title>انحياز الثنائي PN: الأمامي والعكسي</title>
 <style>
 :root{
   color-scheme:dark;
@@ -51,12 +51,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 <body style="margin:0">
 
 <div class="stage" dir="rtl">
-  <canvas id="scene" aria-label="محاكاة الانحياز الأمامي للثنائي PN: الدائرة وما يحدث داخل الملتقى"></canvas>
+  <canvas id="scene" aria-label="محاكاة انحياز الثنائي PN أمامياً وعكسياً: الدائرة وما يحدث داخل الملتقى"></canvas>
   <button class="tipbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
   <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
   <div class="parts" id="parts" role="group" aria-label="الصفحات">
-    <button data-p="cir" aria-pressed="true"><i></i><span class="l">الدائرة (شكل 20 و21)</span><span class="s">الدائرة</span></button>
-    <button data-p="jun" aria-pressed="false"><i></i><span class="l">داخل الملتقى (شكل 22)</span><span class="s">الملتقى</span></button>
+    <button data-p="cir" aria-pressed="true"><i></i><span class="l" id="lCir">الدائرة (شكل 20 و21)</span><span class="s">الدائرة</span></button>
+    <button data-p="jun" aria-pressed="false"><i></i><span class="l" id="lJun">داخل الملتقى (شكل 22)</span><span class="s">الملتقى</span></button>
     <button data-p="all" aria-pressed="false"><i></i><span class="l">الكل معاً</span><span class="s">الكل</span></button>
   </div>
   <button class="fs" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -76,7 +76,7 @@ function solve(){if(!S.on)return{Vd:0,I:0};
 let P={Vd:0,I:0};const SM={W:W0F,bar:V0,vd:0,I:0};
 const mA=()=>Math.max(0,SM.I*1000);
 const velPx=()=>{const i=mA();return i<0.004?0:150*(1-Math.exp(-i/2.5));};
-function fmtI(I){const a=Math.abs(I)*1000;if(S.on&&S.rev)return{v:'0.00',u:'µA'};if(a>=1)return{v:a.toFixed(2),u:'mA'};if(a>=0.01)return{v:a.toFixed(3),u:'mA'};return{v:(a*1000).toFixed(2),u:'µA'};}
+function fmtI(I){const a=Math.abs(I)*1000;if(S.on&&S.rev)return{v:(a*1e6).toFixed(3),u:'nA'};if(a>=1)return{v:a.toFixed(2),u:'mA'};if(a>=0.01)return{v:a.toFixed(3),u:'mA'};return{v:(a*1000).toFixed(2),u:'µA'};}
 
 let W=0,H=0,DPR=1,narrow=null,L={fs:1},view={z:1,x:0,y:0},time=0,drag=null,hover=null;
 const col={};
@@ -119,8 +119,8 @@ function rowBtns(n,list,y){const R={w:REG[n].vw},gap=6;ctx.font=F(600,12.5);let 
   if(tot>R.w-12){list=list.map(b=>({...b,l:b.s||b.l}));ws=list.map(b=>Math.max(b.big?44:36,ctx.measureText(b.l).width+16));tot=ws.reduce((a,b)=>a+b,0)+gap*(list.length-1);}
   let x=(R.w+tot)/2;return list.map((b,i)=>{x-=ws[i];const r={...b,id:n+b.k,x,y,w:ws[i],h:30};x-=gap;return r;});}
 const BV=()=>[{k:'v+',l:'+',big:1},{k:'vv',l:iso('V = '+S.V.toFixed(1)+' V'),s:iso(S.V.toFixed(1)+' V')},{k:'v-',l:'−',big:1}];
-const BS=()=>[{k:'sw',l:S.on?'⏻ المفتاح مغلق':'⏻ أغلق المفتاح',s:S.on?'⏻ مغلق':'⏻ أغلق'},{k:'pol',l:'⇄ اعكس قطبية البطارية',s:'⇄ اعكس'}];
-function controls(n,h){rowBtns(n,BV(),h-68).forEach(b=>btn(b,false));rowBtns(n,BS(),h-30).forEach(b=>btn(b,b.k==='sw'?S.on:S.rev));}
+const BS=()=>[{k:'sw',l:S.on?'⏻ المفتاح مغلق':'⏻ أغلق المفتاح',s:S.on?'⏻ مغلق':'⏻ أغلق'},{k:'fw',l:'انحياز أمامي',s:'أمامي'},{k:'rv',l:'انحياز عكسي',s:'عكسي'}];
+function controls(n,h){rowBtns(n,BV(),h-68).forEach(b=>btn(b,false));rowBtns(n,BS(),h-30).forEach(b=>btn(b,b.k==='sw'?S.on:b.k==='rv'?S.rev:!S.rev));}
 const HS={cir:[],jun:[]};
 
 /* ---------- page 1: the circuit (figures 20, 21) ---------- */
@@ -130,7 +130,7 @@ function wire(pts){ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();pts.
 function polyLen(p){let s=0;for(let i=1;i<p.length;i++)s+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return s;}
 function polyAt(p,d){for(let i=1;i<p.length;i++){const l=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(d<=l){const t=d/l;return[p[i-1][0]+(p[i][0]-p[i-1][0])*t,p[i-1][1]+(p[i][1]-p[i-1][1])*t];}d-=l;}return p[p.length-1];}
 function drawSch(g){const y0=g.schY,cx=g.cx,on=S.on,fw=!S.rev,bwid=Math.min(g.w*0.36,230);
-  const title=fw?'طريقة الانحياز الامامي':'انحياز عكسي (قطبية معكوسة)';ctx.font=F(700,13);const tw=ctx.measureText(title).width+30;
+  const title=fw?'طريقة الانحياز الامامي':'طريقة الانحياز العكسي';ctx.font=F(700,13);const tw=ctx.measureText(title).width+30;
   rr(cx-tw/2,y0,tw,24,4);ctx.fillStyle='#f6f2e6';ctx.fill();txt(title,cx,y0+12.5,{font:F(700,13),color:'#10141c'});
   const by=y0+34,bh=26;
   const pos='rgba(244,178,150,.95)',neg='rgba(168,180,224,.95)';
@@ -144,10 +144,10 @@ function drawSch(g){const y0=g.schY,cx=g.cx,on=S.on,fw=!S.rev,bwid=Math.min(g.w*
   else{ctx.fillStyle='#e8141c';ctx.fillRect(cx+20,by+bh/2-4,al-14,8);arrowHead(cx+14,by+bh/2,Math.PI,11,'#e8141c');}ctx.globalAlpha=1;
   ctx.fillStyle='#2a3a9a';ctx.fillRect(cx-1.5,y0+24,3,bh+12);
   txt('p',cx-6-bwid-12,by+bh/2,{font:'italic 700 17px "Times New Roman",serif',color:'#ffb0a4',dir:'ltr'});txt('n',cx+6+bwid+12,by+bh/2,{font:'italic 700 17px "Times New Roman",serif',color:'#a9c8ff',dir:'ltr'});
-  const i=mA(),st=!on?'لا يوجد تيار (الدائرة مفتوحة)':S.rev?'تيار صغير جداً ≈ 0':i>=1?'تيار امامي كبير':i>=0.05?'تيار امامي صغير':'تيار ضئيل جداً';
+  const i=mA(),st=!on?'لا يوجد تيار (الدائرة مفتوحة)':S.rev?'تيار عكسي صغير جداً':i>=1?'تيار امامي كبير':i>=0.05?'تيار امامي صغير':'تيار ضئيل جداً';
   const big=on&&!S.rev&&i>=1;chip('I ⟵  '+st,cx,by+bh+20,big?'#a07a00':'rgba(255,255,255,.3)','center',{bg:big?'#f6e07a':'rgba(6,13,28,.74)',tc:big?'#2a2000':'#cfd8e6'});}
 function drawCir(){const g=gCir(),cx=g.cx,on=S.on,fw=!S.rev,h=g.h;LB=[];LBW=g.w;LBH=g.h;HS.cir=[];
-  chip(narrow||g.w<640?'الانحياز الأمامي (شكل 20 و21)':'طريقة الانحياز الأمامي للثنائي PN: دائرة البطارية والمقاومة (شكل 20 و21)',g.w/2,18,'#7fd3ff','center',{s:13.5});
+  chip(narrow||g.w<640?(fw?'الانحياز الأمامي (شكل 20 و21)':'الانحياز العكسي (شكل 23 و24)'):(fw?'طريقة الانحياز الأمامي للثنائي PN: دائرة البطارية والمقاومة (شكل 20 و21)':'طريقة الانحياز العكسي للثنائي PN: دائرة البطارية والمقاومة (شكل 23 و24)'),g.w/2,18,'#7fd3ff','center',{s:13.5});
   drawSch(g);
   const x0=cx-g.dw/2,x1=cx+g.dw/2,dy=g.dy,yb=g.yb,lx=g.lx,rx=g.rx,bw=clamp(g.w*0.17,74,120),xbL=cx-bw/2,xbR=cx+bw/2;
   const sw1=xbR+(rx-xbR)*0.32,sw2=sw1+clamp((rx-xbR)*0.4,30,48);
@@ -191,28 +191,35 @@ function drawCir(){const g=gCir(),cx=g.cx,on=S.on,fw=!S.rev,h=g.h;LB=[];LBW=g.w;
   if(on&&fw&&mA()>0.3){const gl=clamp(mA()/8,0,1);const rgd=ctx.createRadialGradient(cx,dy,2,cx,dy,bodyH);rgd.addColorStop(0,`rgba(255,200,90,${0.45*gl})`);rgd.addColorStop(1,'rgba(255,200,90,0)');ctx.fillStyle=rgd;ctx.fillRect(cx-bodyH,dy-bodyH/2,bodyH*2,bodyH);}
   mtxt('p',bx0+bwd*0.27,dy-bodyH*0.12,clamp(bodyH*0.55,20,40));mtxt('n',bx1-bwd*0.27,dy-bodyH*0.12,clamp(bodyH*0.55,20,40));
   LB.push([x0-4,dy-g.dh/2-4,g.dw+8,g.dh+8]);
-  label('الثنائي PN',cx,dy+g.dh/2+14,'#cfd8e6',{s:11});
+  diodeSym(cx,dy+g.dh/2+24,g.w);
   // readout box
-  const ry0=dy+g.dh/2+32,rwb=clamp(rx-lx-2*(ar+40),180,280),rows=[['فولتية البطارية V',S.V.toFixed(2)+' V'],['جهد الثنائي V_D',(on?P.Vd:0).toFixed(2)+' V'],['جهد المقاومة I·R',(on?S.V-Math.abs(P.Vd):0).toFixed(2)+' V'],['حاجز الجهد',SM.bar.toFixed(2)+' V']],rh=narrow?19:21;
+  const ry0=dy+g.dh/2+64,rwb=clamp(rx-lx-2*(ar+40),180,280),rows=[['فولتية البطارية V',S.V.toFixed(2)+' V'],['جهد الثنائي V_D',(on?P.Vd:0).toFixed(2)+' V'],['جهد المقاومة I·R',(on?S.V-Math.abs(P.Vd):0).toFixed(2)+' V'],['حاجز الجهد',SM.bar.toFixed(2)+' V']],rh=narrow?19:21;
   const rhb=rows.length*rh+12,ryc=Math.min(ry0,(ry0+yb-40)/2-rhb/2);
   if(yb-60-ry0>rhb-10){rr(cx-rwb/2,ryc,rwb,rhb,10);ctx.fillStyle='rgba(6,13,28,.8)';ctx.fill();ctx.strokeStyle='rgba(127,211,255,.35)';ctx.lineWidth=1;ctx.stroke();
     rows.forEach((r,i)=>{const y=ryc+6+rh*(i+0.5);txt(r[0],cx+rwb/2-10,y,{font:F(600,11.5),color:'#a3b3cc',align:'right'});txt(iso(r[1]),cx-rwb/2+10,y,{font:F(700,12,true),color:i===3?'#ffd27a':'#eaf0fa',align:'left',dir:'ltr'});});LB.push([cx-rwb/2,ryc,rwb,rhb]);}
-  const i=mA(),msg=!on?'أغلق المفتاح لتسليط فولتية البطارية على طرفي الثنائي':S.rev?'القطب الموجب مع n والسالب مع p: هذا انحياز عكسي فيكبر حاجز الجهد ولا يمر تيار تقريباً':i<0.05?'فولتية البطارية أصغر من حاجز الجهد للملتقى: لا تستطيع الحاملات عبور الملتقى فالتيار ضئيل جداً':i<1?'بدأ فرق الجهد المسلط يتغلب على حاجز الجهد فبدأ تيار صغير يمر خلال الملتقى':'فرق الجهد المسلط أكبر من حاجز الجهد فيمر تيار أمامي كبير، والمقاومة R تحدد مقداره وتحمي الثنائي من التلف';
+  const i=mA(),msg=!on?'أغلق المفتاح لتسليط فولتية البطارية على طرفي الثنائي':S.rev?'القطب السالب مع P والموجب مع N: يزداد حاجز الجهد ومقاومة الثنائي فيمر تيار عكسي صغير جداً يمكن إهماله':i<0.05?'فولتية البطارية أصغر من حاجز الجهد للملتقى: لا تستطيع الحاملات عبور الملتقى فالتيار ضئيل جداً':i<1?'بدأ فرق الجهد المسلط يتغلب على حاجز الجهد فبدأ تيار صغير يمر خلال الملتقى':'فرق الجهد المسلط أكبر من حاجز الجهد فيمر تيار أمامي كبير، والمقاومة R تحدد مقداره وتحمي الثنائي من التلف';
   wlabel(msg,g.w/2,h-104,'#ffe6b0',{s:narrow?10:11.5});controls('cir',h);}
+function diodeSym(x,y,w){const hl=clamp(w*0.1,34,56),tw=16;ctx.strokeStyle='#eaf0fa';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x-hl,y);ctx.lineTo(x+hl,y);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-tw*0.6,y-11);ctx.lineTo(x+tw*0.5,y);ctx.lineTo(x-tw*0.6,y+11);ctx.closePath();ctx.fillStyle='#e8141c';ctx.fill();ctx.fillStyle='#3a6ae8';ctx.fillRect(x+tw*0.5,y-12,4,24);
+  LB.push([x-hl,y-14,2*hl,28]);const sm=w<520;chip(sm?'P':'رمز البلورة P',x-hl-6,y,'#ff6a6a','right',{s:11,bg:'rgba(232,20,28,.85)',tc:'#fff'});chip(sm?'N':'رمز البلورة N',x+hl+6,y,'#6a9aff','left',{s:11,bg:'rgba(58,106,232,.85)',tc:'#fff'});
+  txt('رمز الثنائي (شكل 26)',x,y+22,{font:F(600,10.5),color:'#a3b3cc'});}
+function syncLabels(){const a=document.getElementById('lCir'),b=document.getElementById('lJun');if(a)a.textContent=S.rev?'الدائرة (شكل 23 و24)':'الدائرة (شكل 20 و21)';if(b)b.textContent=S.rev?'داخل الملتقى (شكل 25)':'داخل الملتقى (شكل 22)';}
 function mtxt(s,x,y,size,c){ctx.font=`italic 600 ${Math.round(size*L.fs)}px "Times New Roman",serif`;ctx.fillStyle=c||'#eaf0fa';ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.fillText(s,x,y);}
 
 /* ---------- page 2: inside the junction (figure 22) ---------- */
 const ROWS=6,HO=[],EE=[],FL=[];
 for(let r=0;r<ROWS;r++)for(let k=0;k<3;k++){const u=(k+0.25+0.45*(r%2))/3.2;HO.push({r,u,st:0,s:0});EE.push({r,u:(k+0.2+0.4*((r+1)%2))/3.2,st:0,s:0});}
-let CPH=0,WPH=0;
+let CPH=0,WPH=0,DW=0,MT=0;const MIN=[];
 function stepCarriers(dt){const v=velPx()/700,nf=0.5-SM.W/2,cf=SM.W/2;
   [HO,EE].forEach((A,ai)=>A.forEach(c=>{if(v>0){if(c.st===0){c.u+=v*dt/nf;if(c.u>=1){c.st=1;c.s=0;}}else{c.s+=v*dt/cf;if(c.s>=1){FL.push({r:c.r,t:0,e:ai});c.st=0;c.u=0;}}}
     else if(c.st===1){c.s-=dt*1.5;if(c.s<=0){c.st=0;c.u=1;}}}));
-  for(let i=FL.length-1;i>=0;i--){FL[i].t+=dt;if(FL[i].t>0.55)FL.splice(i,1);}}
+  for(let i=FL.length-1;i>=0;i--){FL[i].t+=dt;if(FL[i].t>0.55)FL.splice(i,1);}
+  if(S.on&&S.rev){MT-=dt;if(MT<=0){MT=1.1+Math.random()*0.8;MIN.push({r:Math.floor(Math.random()*ROWS),e:Math.random()<0.5,s:0});}}
+  for(let i=MIN.length-1;i>=0;i--){MIN[i].s+=dt*0.45;if(MIN[i].s>1.25||!(S.on&&S.rev))MIN.splice(i,1);}}
 function gJun(){const R=REG.jun,w=R.vw,h=R.vh,bx0=w*0.1,bx1=w*0.9,capW=clamp(w*0.035,14,30),inL=bx0+capW,inR=bx1-capW,by=80,bh=clamp(h*0.32,110,240);
   return{w,h,bx0,bx1,capW,inL,inR,inW:inR-inL,cx:(inL+inR)/2,by,bh,yc:by+bh/2,py0:by+bh+100,py1:Math.min(h-130,by+bh+330)};}
 function drawJun(){const g=gJun(),on=S.on,fw=!S.rev,cx=g.cx;LB=[];LBW=g.w;LBH=g.h;HS.jun=[];
-  chip(narrow||g.w<640?'داخل الملتقى PN (شكل 22)':'ماذا يحصل داخل الثنائي عند انحيازه أمامياً؟ (شكل 22)',g.w/2,18,'#7fd3ff','center',{s:13.5});
+  chip(narrow||g.w<640?(fw?'داخل الملتقى PN (شكل 22)':'داخل الملتقى PN (شكل 25)'):(fw?'ماذا يحصل داخل الثنائي عند انحيازه أمامياً؟ (شكل 22)':'ماذا يحصل داخل الثنائي عند انحيازه عكسياً؟ (شكل 25)'),g.w/2,18,'#7fd3ff','center',{s:13.5});
   const W=SM.W*g.inW,dL=cx-W/2,dR=cx+W/2,v=velPx(),cr=clamp(g.bh/ROWS*0.26,5,11);
   // side wires + electrons in them
   const wh=clamp(g.bh*0.08,10,18);ctx.fillStyle='#b8bec8';ctx.fillRect(0,g.yc-wh/2,g.bx0,wh);ctx.fillRect(g.bx1,g.yc-wh/2,g.w-g.bx1,wh);
@@ -230,10 +237,12 @@ function drawJun(){const g=gJun(),on=S.on,fw=!S.rev,cx=g.cx;LB=[];LBW=g.w;LBH=g.
   const step=clamp(cr*2.1,11,18),ir=clamp(cr*0.55,3.5,6);for(let r=0;r<ROWS;r++){const y=g.by+g.bh*(r+0.5)/ROWS+(g.bh/ROWS)*0.0;
     for(let x=cx-step*0.6;x>dL+ir;x-=step)ion(x,y,ir,'−');for(let x=cx+step*0.6;x<dR-ir;x+=step)ion(x,y,ir,'+');}
   // carriers
-  const nf=0.5-SM.W/2,cf=SM.W/2,tl=v>0?Math.min(1,v/60):0;
-  HO.forEach((c,i)=>{const f=c.st===0?c.u*nf:nf+c.s*cf,y=g.by+g.bh*(c.r+0.5)/ROWS,jx=Math.sin(time*6+i*1.7)*1.6,jy=Math.cos(time*5+i*2.3)*1.6;tailBall(g.inL+cr+f*(g.inW/2-cr)+jx,y+jy,cr,HOLE,tl,1);});
-  EE.forEach((c,i)=>{const f=c.st===0?c.u*nf:nf+c.s*cf,y=g.by+g.bh*(c.r+0.5)/ROWS,jx=Math.sin(time*6.3+i*1.3)*1.6,jy=Math.cos(time*5.4+i*2.1)*1.6;tailBall(g.inR-cr-f*(g.inW/2-cr)+jx,y+jy,cr,EL,tl,-1);});
+  const nf=0.5-SM.W/2,cf=SM.W/2,pull=clamp(DW*25,0,1),tl=v>0?Math.min(1,v/60):pull,hd=v>0||pull<=0.02?1:-1;
+  HO.forEach((c,i)=>{const f=c.st===0?c.u*nf:nf+c.s*cf,y=g.by+g.bh*(c.r+0.5)/ROWS,jx=Math.sin(time*6+i*1.7)*1.6,jy=Math.cos(time*5+i*2.3)*1.6;tailBall(g.inL+cr+f*(g.inW/2-cr)+jx,y+jy,cr,HOLE,tl,hd);});
+  EE.forEach((c,i)=>{const f=c.st===0?c.u*nf:nf+c.s*cf,y=g.by+g.bh*(c.r+0.5)/ROWS,jx=Math.sin(time*6.3+i*1.3)*1.6,jy=Math.cos(time*5.4+i*2.1)*1.6;tailBall(g.inR-cr-f*(g.inW/2-cr)+jx,y+jy,cr,EL,tl,-hd);});
   FL.forEach(f=>{const y=g.by+g.bh*(f.r+0.5)/ROWS,a=1-f.t/0.55,rg=ctx.createRadialGradient(cx,y,1,cx,y,cr*2.6);rg.addColorStop(0,`rgba(255,235,160,${0.9*a})`);rg.addColorStop(1,'rgba(255,200,90,0)');ctx.fillStyle=rg;ctx.beginPath();ctx.arc(cx,y,cr*2.6,0,7);ctx.fill();});
+  MIN.forEach(m=>{const y=g.by+g.bh*(m.r+0.5)/ROWS,a=Math.min(1,m.s*4,(1.25-m.s)*4),x=m.e?dL-cr*2+(W+cr*4)*m.s:dR+cr*2-(W+cr*4)*m.s;ctx.globalAlpha=clamp(a,0,1);
+    tailBall(x,y,cr*0.75,m.e?EL:HOLE,0.6,m.e?1:-1);ctx.setLineDash([3,3]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(x,y,cr*1.3,0,7);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;});
   LB.push([g.bx0,g.by-8,g.bx1-g.bx0,g.bh+16]);
   // labels above
   mtxt('p',g.inL+g.inW*0.2,g.by-24,26);mtxt('N',g.inL+g.inW*0.8,g.by-24,24);
@@ -244,13 +253,13 @@ function drawJun(){const g=gJun(),on=S.on,fw=!S.rev,cx=g.cx;LB=[];LBW=g.w;LBH=g.
   const yb=g.by+g.bh+14;ctx.strokeStyle='#e0281e';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(dL,yb-8);ctx.lineTo(dL,yb+8);ctx.moveTo(dR,yb-8);ctx.lineTo(dR,yb+8);ctx.moveTo(dL,yb);ctx.lineTo(dR,yb);ctx.stroke();
   eqn([['V'],['barrier',1],[' = '+SM.bar.toFixed(2)+' V']],cx,yb+20,narrow?14:16,'#ffb0a0');
   // fields: barrier field (n→p) and applied field
-  const Lm=clamp(g.inW*0.2,60,170),y1=yb+46,y2=yb+70,Lb=Lm*0.9,La=Lm*0.9*Math.min(2.6,Math.abs(SM.vd)/V0);
+  const Lm=clamp(g.inW*0.2,60,170),y1=yb+46,y2=yb+70,Lb=Lm*0.9,La=Lm*0.9*Math.min(1.45,Math.abs(SM.vd)/V0);
   fArrow(cx+Lb/2,cx-Lb/2,y1,'#ff8a7a');txt('مجال الحاجز',cx+Lm*1.4/2+8,y1,{font:F(600,11),color:'#ffb0a0',align:'left'});
   if(on&&La>4){fArrow(fw?cx-La/2:cx+La/2,fw?cx+La/2:cx-La/2,y2,'#7fd3ff');}
-  txt(on?(fw?'المجال المسلط (معاكس)':'المجال المسلط (بالاتجاه نفسه)'):'لا مجال مسلط',cx+Lm*1.4/2+8,y2,{font:F(600,11),color:'#7fd3ff',align:'left'});
+  txt(on?(g.w<520?'المجال المسلط':fw?'المجال المسلط (معاكس)':'المجال المسلط (بالاتجاه نفسه)'):'لا مجال مسلط',cx+Lm*1.4/2+8,y2,{font:F(600,11),color:'#7fd3ff',align:'left'});
   LB.push([cx-Lm,y1-10,Lm*2+120,y2-y1+20]);
   drawPot(g);
-  const i=mA(),msg=!on?'بدون انحياز: حاجز الجهد يمنع الالكترونات والفجوات من عبور الملتقى':S.rev?'انحياز عكسي: تنجذب الحاملات بعيداً عن الملتقى فتتسع منطقة الاستنزاف ويكبر حاجز الجهد':i<0.05?'الفولتية المسلطة صغيرة: ضاقت منطقة الاستنزاف قليلاً لكن الحاملات لا تملك طاقة كافية لعبور الحاجز':'الالكترونات تتنافر مع القطب السالب والفجوات مع الموجب فتندفع نحو الملتقى وتعبره، وتضيق منطقة الاستنزاف ويقل حاجز الجهد';
+  const i=mA(),msg=!on?'بدون انحياز: حاجز الجهد يمنع الالكترونات والفجوات من عبور الملتقى':S.rev?'الالكترونات في N تنجذب نحو القطب الموجب والفجوات في P نحو السالب مبتعدة عن الملتقى، فتتسع منطقة الاستنزاف ويزداد حاجز الجهد':i<0.05?'الفولتية المسلطة صغيرة: ضاقت منطقة الاستنزاف قليلاً لكن الحاملات لا تملك طاقة كافية لعبور الحاجز':'الالكترونات تتنافر مع القطب السالب والفجوات مع الموجب فتندفع نحو الملتقى وتعبره، وتضيق منطقة الاستنزاف ويقل حاجز الجهد';
   wlabel(msg,g.w/2,g.h-104,'#ffe6b0',{s:narrow?10:11.5});controls('jun',g.h);}
 function ion(x,y,r,s){ctx.fillStyle=s==='−'?'rgba(150,170,230,.85)':'rgba(255,170,120,.85)';ctx.fillRect(x-r,y-r,2*r,2*r);txt(s,x,y+0.5,{font:`800 ${(r*1.9).toFixed(1)}px system-ui`,color:'#10141c',dir:'ltr'});}
 function tailBall(x,y,r,c,tl,dir){if(tl>0.02){const len=r*5*tl,gx=ctx.createLinearGradient(x,0,x-dir*len,0);gx.addColorStop(0,c===EL?'rgba(224,71,158,.75)':'rgba(255,255,255,.6)');gx.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gx;ctx.beginPath();ctx.moveTo(x,y-r*0.7);ctx.lineTo(x-dir*len,y-r*0.15);ctx.lineTo(x-dir*len,y+r*0.15);ctx.lineTo(x,y+r*0.7);ctx.closePath();ctx.fill();}ball(x,y,r,c);}
@@ -276,7 +285,7 @@ function btnsOf(n){const h=REG[n].vh;return[...rowBtns(n,BV(),h-68),...rowBtns(n
 function local(s){const w=toWorld(s),n=regAt(w);if(!n)return null;const R=REG[n];return{n,p:{x:(w.x-R.x)/R.k,y:(w.y-R.y)/R.k}};}
 function hitAt(s){const q=local(s);if(!q)return null;const{n,p}=q;const inR=b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
   for(const b of btnsOf(n))if(b.k!=='vv'&&inR(b))return{type:'btn',b};for(const b of HS[n]||[])if(inR(b))return{type:'btn',b:{...b,id:n+'hs'+b.k}};return null;}
-function act(b){const k=b.k;if(k==='v+')S.V=Math.min(VMAX,Math.round(S.V*10+1)/10);else if(k==='v-')S.V=Math.max(0,Math.round(S.V*10-1)/10);else if(k==='sw'){S.on=!S.on;S.touched=true;}else if(k==='pol')S.rev=!S.rev;}
+function act(b){const k=b.k;if(k==='v+')S.V=Math.min(VMAX,Math.round(S.V*10+1)/10);else if(k==='v-')S.V=Math.max(0,Math.round(S.V*10-1)/10);else if(k==='sw'){S.on=!S.on;S.touched=true;}else if(k==='pol')S.rev=!S.rev;else if(k==='fw')S.rev=false;else if(k==='rv')S.rev=true;syncLabels();}
 function stopRep(){clearTimeout(repT);clearInterval(rep);rep=0;}
 cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
   if(ptrs.size===2){drag=null;stopRep();const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},z0:view.z,x0:view.x,y0:view.y};return;}
@@ -291,21 +300,24 @@ cv.addEventListener('pointerup',pointerEnd);cv.addEventListener('pointercancel',
 cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),f=Math.exp(-e.deltaY*0.0015),z=clamp(view.z*f,0.6,5),wx=(s.x-view.x)/view.z,wy=(s.y-view.y)/view.z;view={z,x:s.x-wx*z,y:s.y-wy*z};},{passive:false});
 
 /* ---------- teacher hint ---------- */
-window.__explain=function(){const i=mA(),Vd=S.on?P.Vd:0,fi=fmtI(SM.I);
-  const nums=`<p class="nums"><span>V = ${S.V.toFixed(1)} V</span><span>V_D = ${Vd.toFixed(2)} V</span><span>I = ${fi.v} ${fi.u}</span><span>V_barrier = ${(V0-Vd).toFixed(2)} V</span><span>W/W₀ = ${(Math.sqrt((V0-Vd)/V0)).toFixed(2)}</span></p>`;
-  let why,tryit;
-  if(!S.on){why=`<p><b>الدائرة مفتوحة:</b> لا توجد فولتية مسلطة على الثنائي، فمنطقة الاستنزاف بعرضها الطبيعي وحاجز الجهد للملتقى <b class="m">V₀ ≈ 0.7 V</b> (للسيليكون) يمنع الالكترونات الحرة في N والفجوات في p من عبور الملتقى.</p>`;tryit='أغلق المفتاح (اضغط عليه في الدائرة أو زر ⏻).';}
-  else if(S.rev){why=`<p><b>القطبية معكوسة (انحياز عكسي):</b> القطب الموجب مع N والسالب مع p، فتنجذب الحاملات الأغلبية بعيداً عن الملتقى، وتتسع منطقة الاستنزاف ويصبح الحاجز <b class="m">V₀ + V</b>، فلا يمر إلا تيار ضئيل جداً. (هذا موضوع الطريقة الثانية.)</p>`;tryit='أعد القطبية إلى الوضع الأمامي وقارن عرض منطقة الاستنزاف.';}
-  else if(i<0.05){why=`<p><b>الفولتية المسلطة أصغر من حاجز الجهد:</b> ضاقت منطقة الاستنزاف قليلاً، لكن الطاقة التي تكتسبها الحاملات من البطارية لا تكفي للتغلب على حاجز الجهد، فالتيار ضئيل جداً.</p><p>الشرط: يجب أن يكون <b class="m">V &gt; V₀ ≈ 0.7 V</b>.</p>`;tryit='زد فولتية البطارية بزر + حتى 0.7 V وما فوقها، وراقب الأميتر.';}
-  else{why=`<p><b>الانحياز الأمامي:</b> القطب الموجب مع المنطقة p والسالب مع N. تتنافر الالكترونات الحرة (الحاملات الأغلبية في N) مع القطب السالب فتندفع نحو الملتقى، وتتنافر الفجوات (الأغلبية في p) مع القطب الموجب، فتكتسب الحاملات طاقة تتغلب بها على حاجز الجهد وتعبر الملتقى وتتحد عنده.</p><p>المجال المسلط معاكس لمجال الحاجز، فتضيق منطقة الاستنزاف ويقل الحاجز وتقل مقاومة الملتقى، فيمر <b>تيار أمامي ${i>=1?'كبير':'يزداد بسرعة'}</b>.</p>`;tryit='قارن التيار عند 0.5 V و0.7 V و1.2 V: التيار لا يتناسب طردياً مع الفولتية.';}
-  const law=`<p class="m">V_barrier = V₀ − V_D</p><p class="m">I = (V − V_D) / R</p><p class="note">الجزء الأكبر من الفولتية الزائدة على نحو 0.6 V يهبط على المقاومة R، لذلك نحتاجها لتحديد مقدار التيار ومنع تلف الثنائي. فرق الجهد على الملتقى نفسه يبقى أصغر قليلاً من V₀، لذا لا يختفي الحاجز تماماً بل يصغر كثيراً.</p>`;
-  const b=why+law+nums+`<p class="nums">جرّب: ${tryit}</p>`;
-  const t={cir:'الانحياز الأمامي: الدائرة',jun:'ماذا يحصل داخل الملتقى؟',all:'الانحياز الأمامي للثنائي PN'}[S.page];return{t,b};};
+window.__explain=function(){const i=mA(),Vd=S.on?P.Vd:0,fi=fmtI(SM.I),bar=V0-Vd;
+  const nums=`<p class="nums"><span>V = ${S.V.toFixed(1)} V</span><span>V_D = ${Vd.toFixed(2)} V</span><span>I = ${fi.v} ${fi.u}</span><span>V_barrier = ${bar.toFixed(2)} V</span><span>W/W₀ = ${(Math.sqrt(bar/V0)).toFixed(2)}</span></p>`;
+  let why,law,tryit;
+  const lawF=`<p class="m">V_barrier = V₀ − V_D</p><p class="m">I = (V − V_D) / R</p><p class="note">الجزء الأكبر من الفولتية الزائدة على نحو 0.6 V يهبط على المقاومة R، لذلك نحتاجها لتحديد مقدار التيار ومنع تلف الثنائي. فرق الجهد على الملتقى نفسه يبقى أصغر قليلاً من V₀، لذا لا يختفي الحاجز تماماً بل يصغر كثيراً.</p>`;
+  const lawR=`<p class="m">V_barrier = V₀ + V</p><p class="note">التيار العكسي سببه الحاملات الأقلية (الكترونات قليلة في P وفجوات قليلة في N، المحاطة بدائرة متقطعة في صفحة «داخل الملتقى»)؛ المجال يساعدها على عبور الملتقى، لكن عددها قليل جداً فالتيار من رتبة النانوأمبير أو أقل، ولا يزداد تقريباً بزيادة الفولتية العكسية (ما لم نصل إلى جهد الانهيار).</p>`;
+  const sym=`<p class="note">رمز الثنائي (شكل 26): المثلث يمثل البلورة P والخط العمودي يمثل البلورة N، ويشير السهم إلى اتجاه التيار الأمامي الاصطلاحي من P إلى N.</p>`;
+  if(!S.on){why=`<p><b>الدائرة مفتوحة:</b> لا توجد فولتية مسلطة على الثنائي، فمنطقة الاستنزاف بعرضها الطبيعي وحاجز الجهد للملتقى <b class="m">V₀ ≈ 0.7 V</b> (للسيليكون) يمنع الالكترونات الحرة في N والفجوات في P من عبور الملتقى.</p>`;law=S.rev?lawR:lawF;tryit=S.rev?'أغلق المفتاح وراقب اتساع منطقة الاستنزاف.':'أغلق المفتاح (اضغط عليه في الدائرة أو زر ⏻).';}
+  else if(S.rev){why=`<p><b>طريقة الانحياز العكسي:</b> يربط القطب السالب للبطارية بالمنطقة P والقطب الموجب بالمنطقة N.</p><p>تنجذب الالكترونات الحرة في N نحو القطب الموجب مبتعدة عن الملتقى، وفي الوقت نفسه تنجذب الفجوات في P نحو القطب السالب مبتعدة عن الملتقى (شكل 25).</p><p>فتتسع منطقة الاستنزاف ويزداد حاجز الجهد، لأن المجال الكهربائي المسلط يكون <b>باتجاه</b> مجال الحاجز، فتزداد مقاومة الثنائي ويمر <b>تيار صغير جداً (يمكن إهماله)</b> يسمى <b>التيار العكسي</b>.</p>`;law=lawR;tryit='زد الفولتية العكسية وراقب: يتسع الحاجز كثيراً لكن الأميتر يبقى عند قيمة ضئيلة. ثم اضغط «انحياز أمامي» وقارن.';}
+  else if(i<0.05){why=`<p><b>الفولتية المسلطة أصغر من حاجز الجهد:</b> ضاقت منطقة الاستنزاف قليلاً، لكن الطاقة التي تكتسبها الحاملات من البطارية لا تكفي للتغلب على حاجز الجهد، فالتيار ضئيل جداً.</p><p>الشرط: يجب أن يكون <b class="m">V &gt; V₀ ≈ 0.7 V</b>.</p>`;law=lawF;tryit='زد فولتية البطارية بزر + حتى 0.7 V وما فوقها، وراقب الأميتر.';}
+  else{why=`<p><b>الانحياز الأمامي:</b> القطب الموجب مع المنطقة P والسالب مع N. تتنافر الالكترونات الحرة (الحاملات الأغلبية في N) مع القطب السالب فتندفع نحو الملتقى، وتتنافر الفجوات (الأغلبية في P) مع القطب الموجب، فتكتسب الحاملات طاقة تتغلب بها على حاجز الجهد وتعبر الملتقى وتتحد عنده.</p><p>المجال المسلط معاكس لمجال الحاجز، فتضيق منطقة الاستنزاف ويقل الحاجز وتقل مقاومة الملتقى، فيمر <b>تيار أمامي ${i>=1?'كبير':'يزداد بسرعة'}</b>.</p>`;law=lawF;tryit='قارن التيار عند 0.5 V و0.7 V و1.2 V، ثم اضغط «انحياز عكسي» بالفولتية نفسها.';}
+  const b=why+law+(S.page==='jun'?'':sym)+nums+`<p class="nums">جرّب: ${tryit}</p>`;
+  const m=S.rev?'العكسي':'الأمامي';
+  const t={cir:'الانحياز '+m+': الدائرة',jun:'ماذا يحصل داخل الملتقى؟ (الانحياز '+m+')',all:'الانحياز '+m+' للثنائي PN'}[S.page];return{t,b};};
 
 /* ---------- loop ---------- */
 let last=performance.now();
 function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)layout();
-  P=solve();const k=1-Math.exp(-dt*5),tW=W0F*Math.sqrt(Math.max(0,V0-P.Vd)/V0);SM.W+=(tW-SM.W)*k;SM.bar+=(V0-P.Vd-SM.bar)*k;SM.vd+=(P.Vd-SM.vd)*k;SM.I+=(P.I-SM.I)*k;
+  P=solve();const k=1-Math.exp(-dt*5),tW=W0F*Math.sqrt(Math.max(0,V0-P.Vd)/V0);const w0=SM.W;SM.W+=(tW-SM.W)*k;DW=(SM.W-w0)/Math.max(dt,1e-3);SM.bar+=(V0-P.Vd-SM.bar)*k;SM.vd+=(P.Vd-SM.vd)*k;SM.I=S.rev||!S.on&&SM.I<1e-6?P.I:SM.I+(P.I-SM.I)*(1-Math.exp(-dt*8));if(!S.on&&SM.I<1e-7)SM.I=0;
   const v=velPx();CPH+=v*dt*0.6;WPH-=v*dt*0.6;WPH=((WPH%1e6)+1e6)%1e6;stepCarriers(dt);
   if(W)draw();requestAnimationFrame(frame);}
 readColors();layout();
