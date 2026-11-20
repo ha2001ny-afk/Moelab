@@ -249,6 +249,8 @@
     .subjects-grid.single { grid-template-columns: minmax(0, 360px); justify-content: center; }
     .subject-portal-card[data-subj="m3_biology"] { background: radial-gradient(circle at top, rgba(255,255,255,0.15), #EE6200); }
     .subject-portal-card[data-subj="m3_biology"]:hover:not(.locked) { border-color: #ffffff; }
+    .subject-portal-card[data-subj="m3_physics"], .subject-portal-card[data-subj="m3_chemistry"] { background: radial-gradient(circle at top, rgba(255,255,255,0.15), #EE6200); }
+    .subject-portal-card[data-subj="m3_physics"]:hover:not(.locked), .subject-portal-card[data-subj="m3_chemistry"]:hover:not(.locked) { border-color: #ffffff; }
     .m3-empty { grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 16px; color: rgba(255,255,255,.88); border: 2px dashed rgba(255,255,255,.45); border-radius: 16px; font-size: 1rem; line-height: 1.9; }
 
     #chaptersView {
@@ -594,10 +596,10 @@
 
     /* بطاقات المواد */
     .subject-portal-card, .subject-portal-card[data-subj="biology"], .subject-portal-card[data-subj="physics"],
-    .subject-portal-card[data-subj="chemistry"], .subject-portal-card[data-subj="m3_biology"] {
+    .subject-portal-card[data-subj="chemistry"], .subject-portal-card[data-subj="m3_biology"], .subject-portal-card[data-subj="m3_physics"], .subject-portal-card[data-subj="m3_chemistry"] {
       background: #fff; border: 2px solid #FF9A00; box-shadow: 0 6px 18px rgba(238,98,0,.12); }
     .subject-portal-card:hover:not(.locked), .subject-portal-card[data-subj="biology"]:hover:not(.locked), .subject-portal-card[data-subj="physics"]:hover:not(.locked),
-    .subject-portal-card[data-subj="chemistry"]:hover:not(.locked), .subject-portal-card[data-subj="m3_biology"]:hover:not(.locked) {
+    .subject-portal-card[data-subj="chemistry"]:hover:not(.locked), .subject-portal-card[data-subj="m3_biology"]:hover:not(.locked), .subject-portal-card[data-subj="m3_physics"]:hover:not(.locked), .subject-portal-card[data-subj="m3_chemistry"]:hover:not(.locked) {
       border-color: #EE6200; box-shadow: 0 12px 26px rgba(238,98,0,.25); }
     .subject-name { color: #EE6200; }
     .subject-desc { color: #7a5a3a; }
@@ -686,7 +688,7 @@
           <span class="grade-icon">📘</span>
           <span class="grade-text">
             <span class="grade-name">الصف الثالث المتوسط</span>
-            <span class="grade-desc">الأحياء</span>
+            <span class="grade-desc">الأحياء • الفيزياء • الكيمياء</span>
           </span>
           <span class="subject-status-pill" id="gstatus_m3">فحص الصلاحية...</span>
         </button>
@@ -730,6 +732,20 @@
           <div class="subject-name">علم الأحياء</div>
           <div class="subject-desc">منهج الأحياء للصف الثالث المتوسط</div>
           <div class="subject-status-pill" id="status_m3_biology">فحص الصلاحية...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="m3_physics" data-grade="m3" onclick="selectSubject('m3_physics')" style="display:none">
+          <div class="subject-icon-box">⚡</div>
+          <div class="subject-name">الفيزياء</div>
+          <div class="subject-desc">منهج الفيزياء للصف الثالث المتوسط</div>
+          <div class="subject-status-pill" id="status_m3_physics">فحص الصلاحية...</div>
+        </div>
+
+        <div class="subject-portal-card" data-subj="m3_chemistry" data-grade="m3" onclick="selectSubject('m3_chemistry')" style="display:none">
+          <div class="subject-icon-box">🧪</div>
+          <div class="subject-name">الكيمياء</div>
+          <div class="subject-desc">منهج الكيمياء للصف الثالث المتوسط</div>
+          <div class="subject-status-pill" id="status_m3_chemistry">فحص الصلاحية...</div>
         </div>
       </div>
     </div>
@@ -1726,6 +1742,12 @@
       </div>
 
       <!-- مادة الكيمياء -->
+      <!-- فيزياء الثالث المتوسط (فارغة حالياً؛ تُضاف الفصول data-chapter="m3_phy_chN") -->
+      <div id="container_m3_physics" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;"></div>
+
+      <!-- كيمياء الثالث المتوسط (فارغة حالياً؛ تُضاف الفصول data-chapter="m3_chem_chN") -->
+      <div id="container_m3_chemistry" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;"></div>
+
       <!-- أحياء الثالث المتوسط -->
       <div id="container_m3_biology" class="subject-content-container" style="display:none; flex-direction:column; gap:16px;">
 
@@ -2373,6 +2395,8 @@
 
       // الثالث المتوسط: m3_biology أو فصول m3_bio_chN
       if (subj === 'm3_biology') return perms.includes('m3_biology') || perms.some(p => p.startsWith('m3_bio_ch'));
+      if (subj === 'm3_physics') return perms.includes('m3_physics') || perms.some(p => p.startsWith('m3_phy_ch'));
+      if (subj === 'm3_chemistry') return perms.includes('m3_chemistry') || perms.some(p => p.startsWith('m3_chem_ch'));
 
       if (subj === 'physics' && (perms.includes('physics') || perms.includes('فيزياء') || perms.includes('ch1') || perms.includes('ch2'))) return true;
       if (subj === 'biology' && (perms.includes('biology') || perms.includes('احياء') || perms.includes('أحياء') || perms.includes('bio'))) return true;
@@ -2392,7 +2416,7 @@
       if (perms.includes('all') || perms.includes('*') || perms.includes('admin')) return true;
 
       if (isSubjectAllowed(subj)) {
-        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_', m3_biology: 'm3_bio_ch' }[subj];
+        const prefix = { physics: 'phy_', chemistry: 'chem_', biology: 'bio_', m3_biology: 'm3_bio_ch', m3_physics: 'm3_phy_ch', m3_chemistry: 'm3_chem_ch' }[subj];
         const hasSpecificChapter = perms.some(p => p.startsWith(prefix));
         if (hasSpecificChapter) {
           return perms.includes(chapter.toLowerCase());
@@ -2402,7 +2426,7 @@
       return false;
     }
 
-    const GRADE_SUBJECTS = { g6: ['biology', 'physics', 'chemistry'], m3: ['m3_biology'] };
+    const GRADE_SUBJECTS = { g6: ['biology', 'physics', 'chemistry'], m3: ['m3_biology', 'm3_physics', 'm3_chemistry'] };
     const GRADE_LABELS = { g6: 'المختبرات التفاعلية المنهجية لمرحلة السادس العلمي', m3: 'المختبرات التفاعلية المنهجية للصف الثالث المتوسط' };
     let currentGrade = null;
     let gradeAutoDone = false;
@@ -2451,7 +2475,7 @@
 
     function renderPortals() {
       renderGrades();
-      const subjects = ['physics', 'chemistry', 'biology', 'm3_biology'];
+      const subjects = ['physics', 'chemistry', 'biology', 'm3_biology', 'm3_physics', 'm3_chemistry'];
 
       subjects.forEach(subj => {
         const card = document.querySelector(`.subject-portal-card[data-subj="${subj}"]`);
@@ -2489,6 +2513,8 @@
       if (subj === 'biology') titleElem.innerHTML = "🧬 مختبر علم الأحياء المنهجي";
       if (subj === 'chemistry') titleElem.innerHTML = "🧪 مختبر الكيمياء المنهجي";
       if (subj === 'm3_biology') titleElem.innerHTML = "🧬 مختبر أحياء الثالث المتوسط";
+      if (subj === 'm3_physics') titleElem.innerHTML = "⚡ مختبر فيزياء الثالث المتوسط";
+      if (subj === 'm3_chemistry') titleElem.innerHTML = "🧪 مختبر كيمياء الثالث المتوسط";
 
       targetContainer.querySelectorAll('.chapter-section').forEach(sec => {
         const ch = sec.getAttribute('data-chapter');
@@ -2556,7 +2582,7 @@
     document.addEventListener('webkitfullscreenchange', syncSiteFsBtn);
 
     /* ---------- قائمة الفصول: المادة ← الفصول ← محاكيات الفصل ---------- */
-    const CHAPTER_MENU_SUBJECTS = ['physics', 'biology', 'm3_biology'];
+    const CHAPTER_MENU_SUBJECTS = ['physics', 'biology', 'm3_biology', 'm3_physics', 'm3_chemistry'];
     let currentMenuSubj = null;
     function showChapterMenu(subj) {
       subj = subj || currentMenuSubj;
@@ -2636,7 +2662,7 @@
     }
 
     function openExp(chapter, fileName, expTitle) {
-      const subj = chapter.startsWith('m3_bio') ? 'm3_biology' : chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
+      const subj = chapter.startsWith('m3_bio') ? 'm3_biology' : chapter.startsWith('m3_phy') ? 'm3_physics' : chapter.startsWith('m3_chem') ? 'm3_chemistry' : chapter.startsWith('phy') ? 'physics' : chapter.startsWith('chem') ? 'chemistry' : 'biology';
       if (!isChapterAllowed(subj, chapter)) {
         alert("⚠️ هذا الفصل غير مفعّل ضمن اشتراكك الحالي. يرجى التواصل مع الإدارة لتفعيله.");
         return;
