@@ -707,6 +707,71 @@ const THR={id:'thr',ar:'النفاذ خلال مواد مختلفة',en:'Through
   return [['المواد بين القطب والمسامير',g?'زجاج + ماء':'ورق مقوّى',1],['المسامير قرب القطب',this.fol+' / '+this.N.length],['أقرب مسمار إلى القطب',fcm(d)],['المجال عند أحد المسامير',fB(B)],['هل ينفذ المجال؟','نعم',1]]},
  explain(){const g=this.s.mode==='glass';return {t:'المجال ينفذ خلال '+(g?'الزجاج والماء':'الورق المقوّى'),b:`<p>${g?'المسامير داخل الماء والأسطوانة الزجاجية، ومع ذلك انجذبت نحو قطب المغناطيس الموجود خارج الأسطوانة وتحركت متبعة مساره.':'المسامير فوق قطعة الكارتون والمغناطيس تحتها، ومع ذلك انجذبت نحو القطب وتحركت متبعة مسار حركته.'}</p><p>نستنتج أن المجال المغناطيسي يمكنه النفاذ خلال مواد مختلفة مثل ورق المقوّى السميك والزجاج والماء، لأنها ليست مواد فيرومغناطيسية.</p><p>إذا حرّكت المغناطيس بسرعة كبيرة، أو أبعدته، تصبح قوة الجذب أصغر من الاحتكاك فتتخلف المسامير عنه.</p><div class="nums"><span>near pole: ${this.fol}/${this.N.length}</span></div><p class="try">جرّب: ${g?'اختر الجزء (a) ورق مقوّى.':'اختر الجزء (b) أسطوانة الزجاج والماء.'}</p>`}}};
 
+/* ================= طبقة العرض ثلاثي الأبعاد للبطاقات ثنائية الأبعاد ================= */
+const STL3=[[0,"#5d6878"],[.4,"#dfe6ef"],[1,"#3d4654"]];
+const OFF3=document.createElement('canvas'),OX3=OFF3.getContext('2d');let K3=1;
+// صورة المشهد ثنائي الأبعاد (للورقة والشريط العلوي)
+function snap2(E,t){E.draw2(t);const m=ctx.getTransform(),W=Math.max(400,Math.min(1700,Math.round(1000*m.a))),H=Math.round(W*.56);if(OFF3.width!==W||OFF3.height!==H){OFF3.width=W;OFF3.height=H}OX3.clearRect(0,0,W,H);try{OX3.drawImage(cv,m.e,m.f,1000*m.a,560*m.d,0,0,W,H)}catch(_){}K3=W/1000;bench()}
+function hudStrip(c){c.drawImage(OFF3,0,0,OFF3.width,100*K3,0,0,1000,100)}
+// إسقاط: لوحة أفقية (ورقة على المنضدة) أو مستوى رأسي
+let PY3=.012,YBV=530;const MH=(x,y,h=0)=>[(x-500)/1000,PY3+h,(y-324)/1000],MV=(x,y,z=0)=>[(x-500)/1000,(YBV-y)/1000,z];
+function drawTri(c,img,s0,s1,s2,d0,d1,d2){const cx=(d0.x+d1.x+d2.x)/3,cy=(d0.y+d1.y+d2.y)/3,ex=p=>{const dx=p.x-cx,dy=p.y-cy,l=Math.hypot(dx,dy)||1;return [p.x+dx/l*.8,p.y+dy/l*.8]};
+ const x1=s1[0]-s0[0],y1=s1[1]-s0[1],x2=s2[0]-s0[0],y2=s2[1]-s0[1],det=x1*y2-x2*y1;if(Math.abs(det)<1e-9)return;const u1=d1.x-d0.x,v1=d1.y-d0.y,u2=d2.x-d0.x,v2=d2.y-d0.y;
+ const a=(u1*y2-u2*y1)/det,b=(v1*y2-v2*y1)/det,cc=(u2*x1-u1*x2)/det,d=(v2*x1-v1*x2)/det,e=d0.x-a*s0[0]-cc*s0[1],f=d0.y-b*s0[0]-d*s0[1];
+ c.save();c.beginPath();const A=ex(d0),B=ex(d1),C=ex(d2);c.moveTo(A[0],A[1]);c.lineTo(B[0],B[1]);c.lineTo(C[0],C[1]);c.closePath();c.clip();c.transform(a,b,cc,d,e,f);
+ const sx=Math.max(0,Math.min(s0[0],s1[0],s2[0])-2),sy=Math.max(0,Math.min(s0[1],s1[1],s2[1])-2),sw=Math.min(img.width,Math.max(s0[0],s1[0],s2[0])+2)-sx,sh=Math.min(img.height,Math.max(s0[1],s1[1],s2[1])+2)-sy;if(sw>0&&sh>0)c.drawImage(img,sx,sy,sw,sh,sx,sy,sw,sh);c.restore()}
+// يلصق جزء الصورة [x0,x1]×[y0,y1] (إحداثيات التصميم) على الورقة الأفقية
+function paper3(c,x0,y0,x1,y1,h=0,N=14,Mn=8){const k=K3,G=[];for(let j=0;j<=Mn;j++){G.push([]);for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N,y=y0+(y1-y0)*j/Mn;G[j].push({s:[x*k,y*k],d:pj(MH(x,y,h))})}}
+ for(let j=0;j<Mn;j++)for(let i=0;i<N;i++){const a=G[j][i],b=G[j][i+1],cc=G[j+1][i+1],d=G[j+1][i];drawTri(c,OFF3,a.s,b.s,cc.s,a.d,b.d,cc.d);drawTri(c,OFF3,a.s,cc.s,d.s,a.d,cc.d,d.d)}}
+// صندوق عام بمحاور نصفية (متجهات)
+function gbox(c,C,ax,ay,az,col,stroke){const P=(i,j,k)=>[C[0]+i*ax[0]+j*ay[0]+k*az[0],C[1]+i*ax[1]+j*ay[1]+k*az[1],C[2]+i*ax[2]+j*ay[2]+k*az[2]];
+ const F=[[ax,[[1,-1,-1],[1,1,-1],[1,1,1],[1,-1,1]]],[[-ax[0],-ax[1],-ax[2]],[[-1,-1,-1],[-1,1,-1],[-1,1,1],[-1,-1,1]]],[ay,[[-1,1,-1],[1,1,-1],[1,1,1],[-1,1,1]]],[[-ay[0],-ay[1],-ay[2]],[[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]]],[az,[[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]]],[[-az[0],-az[1],-az[2]],[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1]]]];
+ const L=[];for(const[n,cs]of F){const w=cs.map(q=>P(...q)),cen=w.reduce((a,b)=>[a[0]+b[0]/4,a[1]+b[1]/4,a[2]+b[2]/4],[0,0,0]),nl=Math.hypot(...n)||1,nn=[n[0]/nl,n[1]/nl,n[2]/nl];
+  const vis=V3.persp?dot3(nn,sub3(V3.pos,cen))>0:true;if(vis)L.push([w,nn])}
+ for(const[w,nn]of L){const fc=nn[1]>.6?col.top:nn[1]<-.6?(col.bot||col.side):Math.abs(nn[2])>Math.abs(nn[0])?col.front:col.side;poly3(c,w.map(pj),fc,stroke||'rgba(255,255,255,.08)')}
+ return P}
+// ساق مغناطيسية مستوية على الورقة: ang اتجاه N في مستوى التصميم
+const C3R={top:'#ff6a5c',front:'#d0281e',side:'#9e1a12'},C3B={top:'#6f9cf5',front:'#2552c0',side:'#183c92'},C3G={top:'#6a6e75',front:'#45484e',side:'#2c2e33'};
+const alphaC=(col,a)=>{const f=h=>{const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};return {top:f(col.top),front:f(col.front),side:f(col.side)}};
+function bar3(c,x,y,L,W,ang,o={}){const h=(o.h||24)/1000,u=[Math.cos(ang),0,Math.sin(ang)],v=[-Math.sin(ang),0,Math.cos(ang)],cN=MH(x+Math.cos(ang)*L/4,y+Math.sin(ang)*L/4,h/2),cS=MH(x-Math.cos(ang)*L/4,y-Math.sin(ang)*L/4,h/2),hl=L/4000,hw=W/2000;
+ let R=o.nCol||C3R,B=o.sCol||C3B;if(o.alpha!=null&&o.alpha<1){R=alphaC(R,o.alpha);B=alphaC(B,o.alpha)}
+ const parts=[[cN,R,'N'],[cS,B,'S']].sort((a,b)=>pj(b[0]).z-pj(a[0]).z);for(const[C,col]of parts)gbox(c,C,[u[0]*hl,0,u[2]*hl],[0,h/2,0],[v[0]*hw,0,v[2]*hw],col);
+ if(o.lab!==false)for(const[C,,l]of parts){const P=pj([C[0],C[1]+h/2+.001,C[2]]);T(c,l,P.x,P.y,{s:Math.max(10,Math.min(30,W*.45*P.k/1000)),w:800,c:'#fff',d:'ltr'})}}
+function compass3(c,x,y,R,ang){const C=MH(x,y,0),r=R/1000;cyl3(c,C,r,.008,{top:'#c9a24a',side:['#8a6a22','#e6c66a']});ring3(c,C,r*.84,PY3+.0082,'#f3efe4','#8a8578');
+ const ux=Math.cos(ang),uy=Math.sin(ang),L=R*.72,w=Math.max(2.5,R*.16),hh=.0086;
+ quad3(c,[MH(x+ux*L,y+uy*L,hh),MH(x-uy*w,y+ux*w,hh),MH(x,y,hh),MH(x+uy*w,y-ux*w,hh)],'#e8402a');quad3(c,[MH(x-ux*L,y-uy*L,hh),MH(x-uy*w,y+ux*w,hh),MH(x,y,hh),MH(x+uy*w,y-ux*w,hh)],'#e9ecef');
+ const P=pj(MH(x,y,hh+.001));c.fillStyle='#333';c.beginPath();c.arc(P.x,P.y,Math.max(2,2.5*P.k/1000*R/10),0,7);c.fill()}
+function bb3(c,P3,x,y,fn){const P=pj(P3),s=P.k/1000;c.save();c.translate(P.x,P.y);c.scale(s,s);c.translate(-x,-y);fn(c);c.restore();return P}
+function lab3b(c,s,P3,o={}){const P=pj(P3);T(c,s,P.x,P.y,Object.assign({s:13,w:800,c:'#e8f3ee'},o));return P}
+function wire3q(c,P3,col,w){const S=[];for(let i=0;i<P3.length-1;i++){const a=P3[i],b=P3[i+1];for(let k=0;k<10;k++)S.push([a[0]+(b[0]-a[0])*k/10,a[1]+(b[1]-a[1])*k/10,a[2]+(b[2]-a[2])*k/10])}S.push(P3[P3.length-1]);const Q=S.map(p=>{const q=pj(p);return [q.x,q.y]}),k=pj(P3[0]).k/1000;c.save();c.lineCap='round';c.lineJoin='round';c.strokeStyle=col;c.lineWidth=Math.max(1.2,w*k);c.beginPath();Q.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.restore();return Q}
+function zC(E,i,P3,R){const P=pj(P3);E.hz.push({i,x:P.x,y:P.y,r:R*P.k/1000})}
+function zB(E,i,pts){const P=pts.map(pj);E.hz.push({i,x0:Math.min(...P.map(q=>q.x)),x1:Math.max(...P.map(q=>q.x)),y0:Math.min(...P.map(q=>q.y)),y1:Math.max(...P.map(q=>q.y))})}
+// o: {plane:'h'|'v', T0, d, YB, area:[x0,y0,x1,y1], h:()=>رفع الورقة, over(c,t), scene(c,t)}
+function wrapX(E,o){E.cam=true;E.__q=(f,...a)=>{const p=pj(f==="h"?MH(...a):MV(...a));return [p.x,p.y]};E.draw2=E.draw;E.o3=o;
+ E.draw=function(t){if(VIEW!=='3d'){this.draw2(t);return}snap2(this,t);this.hz=[];const c=ctx;if(this.yaw==null){const q=CAM0[this.id]||[0,.8];this.yaw=q[0];this.pitch=q[1]}
+  V3=persp(this.yaw,this.pitch,o.T0||[0,0,0],o.d||1.1,1000,500,330);
+  if(o.plane==='h'){PY3=.012;table3(c,-.62,.62,-.34,.36);const A=o.area||[16,104,984,544];cuboid(c,(A[0]+A[2])/2000-.5,((A[1]+A[3])/2-324)/1000,(A[2]-A[0])/1000+.01,(A[3]-A[1])/1000+.01,0,PY3,{top:'#3a3f45',front:'#2a2e33',side:'#1f2226'});
+   if(o.under)o.under.call(this,c,t);const h=o.h?o.h.call(this):0;paper3(c,A[0],A[1],A[2],A[3],h);if(o.over)o.over.call(this,c,t)}
+  else{YBV=o.YB||530;o.scene.call(this,c,t)}
+  hudStrip(c)};
+ const toP=p=>{if(!V3)return null;if(o.plane==='h'){const w=V3.un(p.x,p.y,1,PY3+(o.h?o.h.call(E):0));return w?{x:w[0]*1000+500,y:w[2]*1000+324}:null}const w=V3.un(p.x,p.y,2,0);return w?{x:w[0]*1000+500,y:YBV-w[1]*1000}:null};
+ E.handles=E.handles.map((h,i)=>{const n=Object.assign({},h);
+  n.hit=(s,p,tol)=>{if(VIEW!=='3d')return h.hit(s,p,tol);if((E.hz||[]).some(z=>z.i===i&&(z.r!=null?Math.hypot(p.x-z.x,p.y-z.y)<z.r:p.x>z.x0&&p.x<z.x1&&p.y>z.y0&&p.y<z.y1)))return true;if(o.zoneOnly&&o.zoneOnly.includes(i))return false;const q=toP(p);return q?h.hit(s,q,tol):false};
+  if(h.grab)n.grab=(s,p)=>{if(VIEW!=='3d')return h.grab(s,p);const q=toP(p)||p;return h.grab(s,q)};
+  if(h.drag)n.drag=(s,p,g)=>{if(VIEW!=='3d')return h.drag(s,p,g);const q=toP(p);if(q)h.drag(s,q,g)};
+  return n})}
+const hexMix=(a,b,t)=>{const A=hx(a),B=hx(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+function uMag3(c,mx,my,h=.026){const L=[];
+ for(const[sx,cap]of[[-1,C3R],[1,C3B]]){L.push([MH(mx+sx*112,my-24.8,h/2),[.024,0,0],[0,h/2,0],[0,0,.0248],C3G]);L.push([MH(mx+sx*112,my-73.6,h/2),[.024,0,0],[0,h/2,0],[0,0,.024],cap])}
+ for(let k=0;k<12;k++){const a=(k+.5)/12*Math.PI,cx=mx+Math.cos(a)*112,cy=my+Math.sin(a)*112;L.push([MH(cx,cy,h/2),[Math.cos(a)*.024,0,Math.sin(a)*.024],[0,h/2,0],[-Math.sin(a)*.0158,0,Math.cos(a)*.0158],C3G])}
+ L.sort((a,b)=>pj(b[0]).z-pj(a[0]).z).forEach(q=>gbox(c,...q,'rgba(0,0,0,0)'));
+ for(const[sx,l]of[[-1,'N'],[1,'S']]){const P=pj(MH(mx+sx*112,my-73.6,h+.001));T(c,l,P.x,P.y,{s:Math.max(10,22*P.k/1000),w:800,c:'#fff',d:'ltr'})}}
+
+wrapX(REG,{plane:'h',over(c){if(this.s.shape==='bar')bar3(c,this.mx,this.my,220,60,-Math.PI/2,{h:26});else uMag3(c,this.mx,this.my);compass3(c,this.cp[0],this.cp[1],26,this.ca)}});
+wrapX(REP,{plane:'h',over(c){const s=this.s;bar3(c,500,325,300,64,0,{h:28,alpha:s.inside?.3:1,lab:!s.inside})}});
+wrapX(PLT,{plane:'h',over(c){bar3(c,500,380,340,62,Math.PI,{h:26});compass3(c,this.cp[0],this.cp[1],this.R,this.ca)}});
+wrapX(FIL,{plane:'h',h(){return this.s.glass?.032:0},under(c){if(this.s.glass)bar3(c,500,325,300,60,-Math.PI/2,{h:30,lab:false})},over(c){if(!this.s.glass)bar3(c,500,325,300,60,-Math.PI/2,{h:30});else{c.strokeStyle='rgba(220,240,255,.6)';c.lineWidth=2;poly3(c,[[22,110],[978,110],[978,538],[22,538]].map(q=>pj(MH(q[0],q[1],.032))),null,'rgba(220,240,255,.7)')}}});
+
 const EX={reg:REG,rep:REP,plt:PLT,fil:FIL,hnd:HND,thr:THR};let E=null,G=null;
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2400)};
 function cfg(k){return E.ctl.find(c=>c.k===k)}
@@ -740,7 +805,7 @@ function setPan(v){PANM=v;$('#zPan').setAttribute('aria-pressed',v);cv.style.cur
 $('#zPan').onclick=()=>setPan(!PANM);
 $('#zIn').onclick=()=>zoomAt(Math.round(ZM.z*1.25*100)/100);$('#zOut').onclick=()=>zoomAt(Math.round(ZM.z/1.25*100)/100);
 addEventListener('keydown',e=>{if(!E||e.target.closest('input'))return;if(e.key==='+'||e.key==='='){zoomAt(ZM.z*1.25)}else if(e.key==='-'){zoomAt(ZM.z/1.25)}else if(e.key==='0'){resetZoom()}});$('#z1').onclick=()=>resetZoom();
-const CAM0={reg:[0,0],rep:[0,0],plt:[0,0],fil:[0,0],hnd:[.25,.3],thr:[.3,.55]};
+const CAM0={reg:[0,.85],rep:[0,.85],plt:[0,.85],fil:[0,.85],hnd:[.25,.3],thr:[.3,.55]};
 function resetCam(){if(E&&CAM0[E.id]){[E.yaw,E.pitch]=CAM0[E.id]}}
 function setView(v){VIEW=v;$('#v3').setAttribute('aria-pressed',v==='3d');$('#v2').setAttribute('aria-pressed',v==='2d');try{localStorage.setItem('fldView',v)}catch(_){}toast(v==='3d'?'عرض ثلاثي الأبعاد — اسحب الفراغ لتدوير المنظر':'عرض ثنائي الأبعاد')}
 $('#v3').onclick=()=>setView('3d');$('#v2').onclick=()=>setView('2d');
