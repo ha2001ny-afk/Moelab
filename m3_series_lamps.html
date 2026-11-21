@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>محاكاة ربط المصابيح على التوالي</title>
+<style>
+
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --amber:#ffd27a; --orange:#ffb36b;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.topbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.topbtn:hover{border-color:var(--accent)}
+.topbtn:focus-visible,.ctrl button:focus-visible,.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.topbtn svg{width:20px;height:20px}
+#fsBtn{right:max(10px,env(safe-area-inset-right,0px))}
+#tipBtn{right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);color:var(--amber)}
+#tipBtn svg{width:22px;height:22px}
+#tipBtn.on{border-color:var(--amber);background:rgba(255,210,122,.14)}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:10px;max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;z-index:5}
+.tip{box-sizing:border-box;position:absolute;z-index:6;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(380px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.96);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.tip h2{margin:0 0 8px;font-size:16px;font-weight:600;color:var(--amber);padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;color:var(--accent)}
+.tip p.m{text-align:center;font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.tip .nums span{font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl;z-index:4}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 8px 0 9px;font-size:12px;gap:5px}}
+
+/* control panel: right column in landscape, bottom sheet in portrait */
+.ctrl{box-sizing:border-box;position:absolute;z-index:3;background:rgba(6,14,30,.86);border:1px solid var(--line);border-radius:16px;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.ctrl[hidden]{display:none!important}
+.ctrl.side{right:10px;top:62px;bottom:10px;width:272px}
+.ctrl.bottom{left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom,0px));max-height:44%;padding:9px;gap:8px}
+.ctrl .ttl{font-weight:700;font-size:14px;color:var(--ink)}
+.ctrl.bottom .ttl{display:none}
+.ctrl .h{font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.ctrl .h .m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;color:var(--accent)}
+.ctrl button{font:600 13px var(--f-body);color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;min-height:36px;padding:0 10px;cursor:pointer;touch-action:manipulation}
+.ctrl button:hover{border-color:var(--accent)}
+.ctrl button[aria-pressed="true"]{background:rgba(127,211,255,.18);border-color:rgba(127,211,255,.7);color:#fff}
+.mats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mats button{display:flex;align-items:center;gap:7px;justify-content:flex-start}
+.mats button i{width:12px;height:12px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.3)}
+.ctrl.bottom .mats{display:flex;overflow-x:auto;padding-bottom:2px}
+.ctrl.bottom .mats button{flex:none}
+.row{display:flex;gap:6px;align-items:stretch}
+.row>button{flex:1}
+.row .pm{flex:none;width:44px;font-size:18px}
+.row .val{flex:1;display:grid;place-items:center;font:700 16px var(--f-mono);direction:ltr;background:#04101f;border:1px solid var(--line);border-radius:10px;color:#9ff0c0;min-height:36px}
+.read{margin-top:8px;background:#04101f;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.75}
+.read div{display:flex;justify-content:space-between;gap:8px}
+.read b{white-space:nowrap;font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;color:#9ff0c0;font-weight:600}
+.read .big b{color:var(--amber);font-size:14px}
+.ctrl.bottom .sec.grp{display:flex;gap:8px;flex-wrap:wrap}
+.ctrl.bottom .sec.grp>div{flex:1 1 150px}
+.ctrl.bottom .read{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;line-height:1.6;font-size:11.5px}
+.ctrl.bottom button{min-height:32px;font-size:12.5px}
+.ctrl.bottom .read div{flex-direction:column;gap:0}
+#mBtn.run{background:rgba(255,179,107,.2);border-color:var(--orange)}
+
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 auto}
+.note2{font-size:11.5px;color:var(--muted);margin-top:5px}
+table.rd{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;background:#04101f;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.rd th,table.rd td{padding:5px 6px;text-align:center;border-bottom:1px solid rgba(234,240,250,.07)}
+table.rd th{color:var(--muted);font-weight:600;font-size:11.5px}
+table.rd td.m{font-family:var(--f-mono);direction:ltr;color:#9ff0c0;white-space:nowrap}
+table.rd td.r{font-family:var(--f-mono);direction:ltr;color:#ffd27a;white-space:nowrap;font-weight:700}
+table.rd .empty td{color:var(--muted);font-size:11.5px;padding:10px}
+.ctrl.bottom .note2{display:none}
+.ctrl.bottom .sec.grp>div{flex:1 1 140px}
+</style>
+</head>
+<body>
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة ربط المصابيح الكهربائية على التوالي: بطارية ومفتاح وثلاثة مصابيح متماثلة a و b و c، يربط الطالب مصباحاً أو اثنين أو ثلاثة على التوالي ويلاحظ توهجها وقراءات التيار"></canvas>
+  <div class="parts" id="parts" role="group" aria-label="إظهار أجزاء المحاكاة أو إخفاؤها">
+    <button data-p="circ" aria-pressed="true"><i></i><span class="l">الدائرة الكهربائية</span><span class="s">الدائرة</span></button>
+    <button data-p="gr" aria-pressed="true"><i></i><span class="l">المخطط والحسابات</span><span class="s">المخطط</span></button>
+    <button data-p="ctrl" aria-pressed="true"><i></i><span class="l">لوحة التحكم</span><span class="s">التحكم</span></button>
+  </div>
+  <button class="topbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <button class="topbtn" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+
+  <div class="ctrl side" id="ctrl" role="group" aria-label="لوحة التحكم">
+    <div class="ttl">لوحة التحكم</div>
+    <div class="sec"><div class="h">عدد المصابيح المربوطة على التوالي</div>
+      <div class="seg"><button data-n="1" aria-pressed="true">مصباح a</button><button data-n="2">a و b</button><button data-n="3">a و b و c</button></div></div>
+    <div class="sec grp">
+      <div><div class="h">المفتاح</div><div class="row"><button id="swBtn" aria-pressed="false">المفتاح مفتوح</button></div></div>
+      <div><div class="h">فرق جهد البطارية</div>
+        <div class="row"><button class="pm" id="vMinus" aria-label="إنقاص الجهد">−</button><div class="val" id="vVal">6.0 V</div><button class="pm" id="vPlus" aria-label="زيادة الجهد">+</button></div>
+        <div class="note2">كل مصباح مصمَّم ليعمل على ⁦6 V⁩</div></div>
+    </div>
+    <div class="sec"><div class="row"><button id="fixBtn">أعد تثبيت المصابيح</button></div>
+      <div class="note2">انقر على أي مصباح في الدائرة لتنزعه وترى ما يحدث للبقية</div></div>
+    <div class="sec"><div class="h">إظهار</div>
+      <div class="seg"><button id="tgA" aria-pressed="true">قراءات التيار</button><button id="tgV" aria-pressed="false">فرق الجهد</button><button id="tgC" aria-pressed="true">اتجاه التيار</button><button id="tgL" aria-pressed="true">التسميات</button></div></div>
+    <div class="sec"><div class="h">سجّل ملاحظاتك</div>
+      <div class="row"><button id="recBtn">سجّل القراءة</button><button id="clrBtn">امسح الجدول</button></div>
+      <table class="rd"><thead><tr><th>المصابيح</th><th>R المكافئة</th><th>التيار I</th><th>جهد كل مصباح</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ctrlEl=$('ctrl');
+
+/* ---------- physics ---------- */
+// identical small lamps, each 12 Ω (6 V, 0.5 A, 3 W), treated as constant resistances as in the textbook's equations
+const RL=12,PR=3,KEYS=['a','b','c'];
+const S={n:1,V:6,sw:false,swA:-0.75,out:{a:false,b:false,c:false},burnt:{a:false,b:false,c:false},heat:{a:0,b:0,c:0},
+  showA:true,showV:false,showC:true,showL:true,show:{circ:true,gr:true,ctrl:true},rows:[]};
+const touched={sw:false,lamp:false};
+const used=()=>KEYS.slice(0,S.n);
+const broken=()=>used().filter(k=>S.out[k]||S.burnt[k]);
+const closed=()=>S.sw&&broken().length===0;
+const Req=()=>RL*S.n;
+const current=()=>closed()?S.V/Req():0;
+let Id=0,flash={a:0,b:0,c:0};
+const lampV=()=>Id*RL;
+const bright=()=>Id*Id*RL/PR;
+
+/* ---------- geometry (circuit panel 800×500) ---------- */
+const LX={c:160,b:400,a:640},BASE=262;
+const T={bp:[432,356],bn:[368,356],sl:[132,436],sr:[236,436]};
+const lt=k=>({l:[LX[k]-62,BASE],r:[LX[k]+62,BASE]});
+function bez(w,t){const u=1-t;return[u*u*u*w.a[0]+3*u*u*t*w.c1[0]+3*u*t*t*w.c2[0]+t*t*t*w.b[0],u*u*u*w.a[1]+3*u*u*t*w.c1[1]+3*u*t*t*w.c2[1]+t*t*t*w.b[1]];}
+const pts=w=>{const p=[];for(let i=0;i<=48;i++)p.push(bez(w,i/48));return p;};
+function polyLen(p){let l=0;for(let i=1;i<p.length;i++)l+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return l;}
+function along(p,s){for(let i=1;i<p.length;i++){const l=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(s<=l){const t=s/l;return{x:p[i-1][0]+(p[i][0]-p[i-1][0])*t,y:p[i-1][1]+(p[i][1]-p[i-1][1])*t,dx:(p[i][0]-p[i-1][0])/l,dy:(p[i][1]-p[i-1][1])/l};}s-=l;}const n=p.length-1;return{x:p[n][0],y:p[n][1],dx:1,dy:0};}
+
+
+const PATH=()=>{ // conventional order: + → a → b → c → switch → −   (absent lamps are skipped by a straight wire)
+  const out=[];const last=KEYS[S.n-1];
+  out.push({w:{a:T.bp,c1:[520,356],c2:[780,420],b:[740,BASE]},k:'w'});
+  out.push({w:{a:[740,BASE],c1:[740,BASE],c2:[LX.a+62,BASE],b:lt('a').r},k:'w'});
+  for(let i=0;i<S.n-1;i++){const k1=KEYS[i],k2=KEYS[i+1];out.push({w:{a:lt(k1).l,c1:lt(k1).l,c2:lt(k2).r,b:lt(k2).r},k:'w'});}
+  out.push({w:{a:lt(last).l,c1:[40,BASE],c2:[40,436],b:T.sl},k:'w'});
+  out.push({w:{a:T.sr,c1:[300,436],c2:[300,356],b:T.bn},k:'w'});
+  return out;};
+/* ---------- panels, layout, camera ---------- */
+const PAN={circ:{w:800,h:510,s:1,ox:0,oy:0,fk:1},gr:{w:800,h:320,s:1,ox:0,oy:0,fk:1}};
+let W=0,H=0,DPR=1,portrait=false,cam={k:1,x:0,y:0},FK=1,time=0;
+function arrange(){
+  W=cv.clientWidth;H=cv.clientHeight;if(!W||!H)return;DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  portrait=W<H*0.95||W<560;
+  ctrlEl.className='ctrl '+(portrait?'bottom':'side');ctrlEl.hidden=!S.show.ctrl;
+  let x0=10,x1=W-10,y0=60,y1=H-10;
+  if(S.show.ctrl){const r=ctrlEl.getBoundingClientRect(),cr=cv.getBoundingClientRect();if(portrait)y1=r.top-cr.top-8;else x1=r.left-cr.left-10;}
+  const vis=['circ','gr'].filter(k=>S.show[k]);if(!vis.length)return;
+  const aw=x1-x0,ah=y1-y0,gap=10;
+  const tot=k=>vis.reduce((a,n)=>a+PAN[n].h*Math.min(aw/PAN[n].w,k),0)+gap*(vis.length-1);
+  let lo=0.05,hi=2.2;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(tot(m)>ah)hi=m;else lo=m;}
+  let y=y0+(ah-tot(lo))/2;
+  for(const n of vis){const Q=PAN[n];Q.s=Math.min(aw/Q.w,lo);Q.ox=x0+(aw-Q.w*Q.s)/2;Q.oy=y;y+=Q.h*Q.s+gap;Q.fk=clamp(0.8/Q.s,1,1.75);}
+}
+function toDesign(n,sx,sy){const Q=PAN[n];return{x:((sx-cam.x)/cam.k-Q.ox)/Q.s,y:((sy-cam.y)/cam.k-Q.oy)/Q.s};}
+function setPanel(n){const Q=PAN[n],k=cam.k*Q.s;ctx.setTransform(DPR*k,0,0,DPR*k,DPR*(cam.k*Q.ox+cam.x),DPR*(cam.k*Q.oy+cam.y));FK=Q.fk;}
+
+/* ---------- drawing helpers ---------- */
+const F=(w,s,mono)=>w+' '+(s*FK).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+const Fi=(w,s,mono)=>w+' '+(s*Math.min(FK,1.15)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||'#eaf0fa';ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function pulse(x,y,r,c){const u=0.5+0.5*Math.sin(time*5);ctx.beginPath();ctx.arc(x,y,r+u*6,0,7);ctx.strokeStyle=c;ctx.globalAlpha=0.3+0.45*u;ctx.lineWidth=2.4;ctx.stroke();ctx.globalAlpha=1;}
+function tag(s,x,y,c){ctx.font=F(700,13);const w=ctx.measureText(s).width+22,h=26*FK;rr(x-w/2,y-h/2,w,h,h/2);ctx.fillStyle='rgba(8,20,41,.92)';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.stroke();txt(s,x,y+0.5,{color:c,font:F(700,13)});}
+function label(s,bx,by,tx,ty){if(!S.showL)return;ctx.font=F(700,12.5);const w=ctx.measureText(s).width+18,h=24*FK;
+  ctx.strokeStyle='#ff5a5a';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(tx,ty);ctx.stroke();ctx.beginPath();ctx.arc(tx,ty,3.5,0,7);ctx.fillStyle='#ff5a5a';ctx.fill();
+  rr(bx-w/2,by-h/2,w,h,7);ctx.fillStyle='rgba(255,246,246,.96)';ctx.fill();ctx.strokeStyle='#e23a3a';ctx.stroke();txt(s,bx,by+0.5,{font:F(700,12.5),color:'#1c2333'});}
+function chevron(x,y,a,c){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.beginPath();ctx.moveTo(7,0);ctx.lineTo(-6,-7.5);ctx.lineTo(-2,0);ctx.lineTo(-6,7.5);ctx.closePath();ctx.shadowColor='rgba(255,220,80,.9)';ctx.shadowBlur=8;ctx.fillStyle=c;ctx.fill();ctx.restore();}
+function screw(x,y,r){const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,1,x,y,r);g.addColorStop(0,'#fff3c4');g.addColorStop(0.5,'#d6a73c');g.addColorStop(1,'#7a5a12');ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();
+  ctx.strokeStyle='rgba(60,40,5,.8)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-r*0.55,y);ctx.lineTo(x+r*0.55,y);ctx.moveTo(x,y-r*0.55);ctx.lineTo(x,y+r*0.55);ctx.stroke();}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,'#1d3d6e');g.addColorStop(0.55,'#10264a');g.addColorStop(1,'#081429');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(Q){rr(0,0,Q.w,Q.h,18);ctx.fillStyle='rgba(6,14,30,.42)';ctx.fill();ctx.strokeStyle='rgba(234,240,250,.12)';ctx.lineWidth=1;ctx.stroke();}
+function drawWire(p){ctx.lineCap='round';ctx.lineJoin='round';const path=()=>{ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));};
+  path();ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=10;ctx.stroke();path();ctx.strokeStyle='#050608';ctx.lineWidth=7;ctx.stroke();path();ctx.strokeStyle='#2c3038';ctx.lineWidth=4.8;ctx.stroke();
+  ctx.save();ctx.translate(-1,-1.4);path();ctx.strokeStyle='rgba(200,205,215,.35)';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}
+
+
+
+/* ---------- apparatus ---------- */
+function drawBattery(){ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=16;ctx.shadowOffsetY=7;const g=ctx.createLinearGradient(330,0,470,0);g.addColorStop(0,'#9e1414');g.addColorStop(0.45,'#e83a32');g.addColorStop(1,'#8a1010');rr(330,372,140,110,10);ctx.fillStyle=g;ctx.fill();ctx.restore();
+  ctx.fillStyle='#16181d';rr(330,366,140,34,8);ctx.fill();
+  ctx.fillStyle='#ffc51f';ctx.beginPath();ctx.moveTo(406,408);ctx.lineTo(388,434);ctx.lineTo(400,434);ctx.lineTo(392,454);ctx.lineTo(414,428);ctx.lineTo(402,428);ctx.closePath();ctx.fill();
+  txt('بطارية',400,470,{font:Fi(800,13),color:'#fff'});
+  rr(424,412,40,22,5);ctx.fillStyle='rgba(4,10,24,.8)';ctx.fill();txt(S.V.toFixed(1)+' V',444,423,{font:Fi(700,10,true),color:'#9ff0c0',dir:'ltr'});
+  for(const [k,pos] of [['bp',true],['bn',false]]){const [x,y]=T[k];const tg=ctx.createRadialGradient(x-3,y-3,1,x,y,11);tg.addColorStop(0,pos?'#ff8a8a':'#6aa8ff');tg.addColorStop(1,pos?'#8e1010':'#0f3d7a');ctx.beginPath();ctx.arc(x,y+6,11,0,7);ctx.fillStyle=tg;ctx.fill();
+    txt(pos?'+':'−',x,y-18,{font:F(800,18),color:pos?'#ff7b7b':'#9ccaff',dir:'ltr'});}}
+function drawSwitch(){ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=10;ctx.shadowOffsetY=5;const g=ctx.createLinearGradient(0,422,0,452);g.addColorStop(0,'#3b8fe6');g.addColorStop(1,'#1b56a8');rr(124,420,120,32,7);ctx.fillStyle=g;ctx.fill();ctx.restore();
+  screw(T.sl[0]+6,T.sl[1],5);screw(T.sr[0]-6,T.sr[1],5);
+  const hx=156,hy=420,L=62,a=S.swA;ctx.fillStyle='#d6a73c';rr(146,410,20,14,3);ctx.fill();rr(206,410,7,14,2);ctx.fill();rr(218,410,7,14,2);ctx.fill();
+  const ex=hx+Math.cos(a)*L,ey=hy+Math.sin(a)*L;ctx.strokeStyle='#d7dde4';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(ex,ey);ctx.stroke();
+  ctx.strokeStyle='#111';ctx.lineWidth=11;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(hx+Math.cos(a)*(L+16),hy+Math.sin(a)*(L+16));ctx.stroke();screw(hx,hy,4.5);
+  if(!touched.sw)pulse(hx+Math.cos(a)*(L+6),hy+Math.sin(a)*(L+6),18,'#7fd3ff');}
+function drawLamp(k){const x=LX[k],base=BASE,on=used().includes(k);
+  if(!on){return;}
+  const out=S.out[k],burnt=S.burnt[k],b=(out||burnt)?0:clamp(bright(),0,3),lift=out?-56:0;
+  if(b>0.005){const r=36+90*Math.sqrt(Math.min(b,2.5));const cy=base-96+lift;const g=ctx.createRadialGradient(x,cy,4,x,cy,r);g.addColorStop(0,`rgba(255,232,150,${Math.min(0.95,0.15+0.8*Math.sqrt(b))})`);g.addColorStop(0.45,`rgba(255,200,80,${Math.min(0.45,0.08+0.35*Math.sqrt(b))})`);g.addColorStop(1,'rgba(255,190,60,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,cy,r,0,7);ctx.fill();}
+  // base
+  const g=ctx.createLinearGradient(x-70,0,x+70,0);g.addColorStop(0,'#8d949d');g.addColorStop(0.45,'#eef0f3');g.addColorStop(1,'#7b828b');
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;ctx.beginPath();ctx.ellipse(x,base+8,74,20,0,0,7);ctx.fillStyle='#8a9099';ctx.fill();ctx.restore();
+  ctx.fillStyle=g;ctx.fillRect(x-74,base-4,148,12);ctx.beginPath();ctx.ellipse(x,base-4,74,20,0,0,7);ctx.fill();ctx.fillRect(x-28,base-44,56,40);ctx.beginPath();ctx.ellipse(x,base-44,28,8,0,0,7);ctx.fillStyle='#d9dde2';ctx.fill();
+  ctx.beginPath();ctx.ellipse(x,base-44,18,5,0,0,7);ctx.fillStyle='#2b2f36';ctx.fill();
+  for(const sx of [x-50,x+50]){ctx.beginPath();ctx.arc(sx,base-4,8,0,7);ctx.fillStyle='#2456c4';ctx.fill();ctx.strokeStyle='#cfe0ff';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx-4,base-4);ctx.lineTo(sx+4,base-4);ctx.moveTo(sx,base-8);ctx.lineTo(sx,base);ctx.stroke();}
+  // bulb
+  const y0=base-48+lift,cy=y0-58;const cg=ctx.createLinearGradient(x-14,0,x+14,0);cg.addColorStop(0,'#8e8270');cg.addColorStop(0.5,'#f3e7c8');cg.addColorStop(1,'#7c705e');ctx.fillStyle=cg;ctx.fillRect(x-14,y0-20,28,22);
+  ctx.beginPath();ctx.moveTo(x-13,y0-20);ctx.bezierCurveTo(x-15,y0-32,x-38,y0-38,x-38,cy);ctx.arc(x,cy,38,Math.PI,0);ctx.bezierCurveTo(x+38,y0-38,x+15,y0-32,x+13,y0-20);ctx.closePath();
+  const gg=ctx.createRadialGradient(x-10,cy-12,3,x,cy,44);
+  if(b>0.005){const s=Math.min(1,Math.sqrt(b));gg.addColorStop(0,`rgba(255,255,238,${0.6+0.38*s})`);gg.addColorStop(1,`rgba(255,${190+40*s|0},90,${0.3+0.55*s})`);}
+  else if(burnt){gg.addColorStop(0,'rgba(200,205,212,.55)');gg.addColorStop(1,'rgba(90,96,108,.45)');}
+  else{gg.addColorStop(0,'rgba(240,248,255,.6)');gg.addColorStop(1,'rgba(150,180,215,.25)');}
+  ctx.fillStyle=gg;ctx.fill();ctx.strokeStyle='rgba(220,235,255,.7)';ctx.lineWidth=1.3;ctx.stroke();
+  const s=Math.min(1,Math.sqrt(b));ctx.strokeStyle=b>0.005?`rgb(255,${130+120*s|0},${50+150*s|0})`:'#6e6150';ctx.lineWidth=b>0.005?1.4+1.2*s:1.3;
+  ctx.beginPath();ctx.moveTo(x-5,y0-22);ctx.lineTo(x-8,cy+4);ctx.moveTo(x+5,y0-22);ctx.lineTo(x+8,cy+4);ctx.stroke();
+  ctx.beginPath();for(let i=0;i<=18;i++){const t=i/18;if(burnt&&t>0.42&&t<0.58)continue;const xx=x-8+16*t,yy=cy+4-Math.sin(t*Math.PI*8)*2.4;(i===0||(burnt&&Math.abs(t-0.61)<0.03))?ctx.moveTo(xx,yy):ctx.lineTo(xx,yy);}ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.beginPath();ctx.ellipse(x-19,cy-12,4.5,11,-0.5,0,7);ctx.fill();
+  if(flash[k]>0){ctx.globalAlpha=flash[k];ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,cy,38+50*(1-flash[k]),0,7);ctx.fill();ctx.globalAlpha=1;}
+  if(S.heat[k]>0.05&&!burnt){ctx.globalAlpha=Math.min(1,S.heat[k]);ctx.strokeStyle='#ff6b4a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,cy,46+Math.sin(time*20)*2,0,7);ctx.stroke();ctx.globalAlpha=1;}
+  txt(k,x,cy-62,{font:F(800,22,true),color:'#eaf0fa',dir:'ltr'});
+  if(out)txt('منزوع',x,base+34,{font:F(700,12),color:'#ff8a8a'});else if(burnt)txt('محترق',x,base+34,{font:F(700,12),color:'#ff8a8a'});
+  if(!touched.lamp&&k==='a'&&S.sw&&S.n>1)pulse(x,cy,46,'#ffd27a');}
+function meterTag(x,y,s){ctx.font=F(700,12,true);const w=ctx.measureText(s).width+30,h=24*Math.min(FK,1.3);rr(x-w/2,y-h/2,w,h,6);ctx.fillStyle='#f1d26a';ctx.fill();rr(x-w/2+3,y-h/2+3,w-6,h-6,4);ctx.fillStyle='#0d2a1c';ctx.fill();txt(s,x,y+0.5,{font:F(700,12,true),color:'#8dffb5',dir:'ltr'});}
+const ph=new Map();
+function drawCircuit(dt){const Q=PAN.circ;setPanel('circ');panelBox(Q);txt('الدائرة الكهربائية',Q.w-16,20,{align:'right',font:F(700,13),color:'#a3b3cc'});
+  const path=PATH();
+  path.forEach(p=>drawWire(pts(p.w)));
+  KEYS.forEach(drawLamp);drawBattery();drawSwitch();
+  const I=Id;
+  if(S.showC&&I>0.002){path.forEach((p,i)=>{const q=pts(p.w),L=polyLen(q);if(L<20)return;let q0=(ph.get(i)||0)+I*160*dt;ph.set(i,q0);for(let s=(q0%60+60)%60;s<L;s+=60){if(s<14||s>L-14)continue;const a=along(q,s);chevron(a.x,a.y,Math.atan2(a.dy,a.dx),'#ffe066');}});}
+  // ammeter readings at several points: the same current everywhere in a series circuit
+  if(S.showA){const spots=[[760,330]];const xs=[LX.a,LX.b,LX.c];for(let i=0;i<S.n-1;i++)spots.push([(xs[i]+xs[i+1])/2,BASE-26]);spots.push([70,350]);
+    const s=(S.sw?Id:0).toFixed(2)+' A';spots.forEach(([x,y])=>meterTag(x,y,s));}
+  if(S.showV&&S.sw){for(const k of used()){const v=(S.out[k]||S.burnt[k])?(broken().length===1&&broken()[0]===k?S.V:0):lampV();tag('⁦V = '+v.toFixed(1)+' V⁩',LX[k],BASE+58,'#ff9a7a');}
+    tag('⁦V = '+S.V.toFixed(1)+' V⁩',560,462,'#ffd27a');}
+  label(S.sw?'المفتاح مغلق':'المفتاح مفتوح',190,486,180,452);
+  let st;const br=broken();
+  if(!S.sw)st=['أغلق المفتاح','#a3b3cc'];
+  else if(br.length)st=[(S.burnt[br[0]]?'احترق المصباح '+br[0]:'نُزع المصباح '+br[0])+': انطفأت المصابيح كلها','#ff8a8a'];
+  else{const b=bright();st=[S.n===1?'المصباح متوهج':(b<0.3?'المصابيح متساوية التوهج، خافتة':'المصابيح متساوية التوهج'),b<0.3?'#ffc04d':'#62d98a'];}
+  tag(st[0],380,46,st[1]);}
+
+/* ---------- schematic + calculations (800×320) ---------- */
+function drawGr(){const Q=PAN.gr;setPanel('gr');panelBox(Q);
+  txt('مخطط الدائرة',16,20,{align:'left',font:F(700,13),color:'#a3b3cc'});
+  const X0=40,X1=380,Y0=80,Y1=240,on=Id>0.002,col=on?'#ffd27a':'#cfe4ff';
+  const line=(p,c,w)=>{ctx.strokeStyle=c||col;ctx.lineWidth=w||3;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();};
+  const n=S.n,slot=(X1-X0)/(n+1),lx=i=>X1-slot*(i+1);
+  // top edge carries the lamps a, b, c (current flows right → left), bottom edge has battery and switch
+  let x=X1;line([[X1,Y1],[X1,Y0]]);
+  for(let i=0;i<n;i++){const cx=lx(i);line([[x,Y0],[cx+18,Y0]]);x=cx-18;
+    const k=KEYS[i],bad=S.out[k]||S.burnt[k];ctx.beginPath();ctx.arc(cx,Y0,18,0,7);ctx.fillStyle=on?`rgba(255,214,90,${clamp(0.2+0.6*Math.sqrt(bright()),0.2,0.9)})`:'#10223f';ctx.fill();ctx.strokeStyle=bad?'#ff6b6b':'#eaf0fa';ctx.lineWidth=2.5;if(S.out[k])ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+    if(!S.out[k]){ctx.beginPath();ctx.moveTo(cx-12,Y0-12);ctx.lineTo(cx+12,Y0+12);ctx.moveTo(cx+12,Y0-12);ctx.lineTo(cx-12,Y0+12);ctx.stroke();}
+    txt(k,cx,Y0-32,{font:F(800,15,true),color:'#eaf0fa',dir:'ltr'});txt('R'+(i+1),cx,Y0+32,{font:F(700,12,true),color:'#a3b3cc',dir:'ltr'});}
+  line([[x,Y0],[X0,Y0],[X0,Y1],[150,Y1]]);
+  ctx.fillStyle='#eaf0fa';ctx.beginPath();ctx.arc(150,Y1,4.5,0,7);ctx.fill();ctx.beginPath();ctx.arc(205,Y1,4.5,0,7);ctx.fill();
+  const a=S.sw?0:-0.5;line([[150,Y1],[150+Math.cos(a)*56,Y1+Math.sin(a)*56]],on?'#ffd27a':'#eaf0fa',3);txt('مفتاح',178,Y1+24,{font:F(600,11.5),color:'#a3b3cc'});
+  line([[205,Y1],[262,Y1]]);line([[282,Y1],[X1,Y1]]);
+  ctx.strokeStyle='#eaf0fa';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(262,Y1-11);ctx.lineTo(262,Y1+11);ctx.stroke();ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(282,Y1-22);ctx.lineTo(282,Y1+22);ctx.stroke();
+  txt('−',256,Y1-28,{font:F(800,13),color:'#9ccaff',dir:'ltr'});txt('+',290,Y1-28,{font:F(800,13),color:'#ff7b7b',dir:'ltr'});txt('بطارية',272,Y1+34,{font:F(600,11.5),color:'#a3b3cc'});
+  if(on&&S.showC){const loop=[[282,Y1],[X1,Y1],[X1,Y0],[X0,Y0],[X0,Y1],[262,Y1]];const L=polyLen(loop),p=ph.get(0)||0;
+    for(let s=(p%50+50)%50;s<L;s+=50){const q=along(loop,s);if(Math.abs(q.y-Y0)<1&&used().some((k,i)=>Math.abs(q.x-lx(i))<26))continue;if(Math.abs(q.y-Y1)<1&&q.x>140&&q.x<215)continue;chevron(q.x,q.y,Math.atan2(q.dy,q.dx),'#ffe066');}}
+  // calculations, with this circuit's numbers
+  txt('الحسابات',Q.w-16,20,{align:'right',font:F(700,13),color:'#a3b3cc'});
+  rr(420,40,364,262,12);ctx.fillStyle='rgba(4,16,31,.9)';ctx.fill();ctx.strokeStyle='rgba(255,210,122,.35)';ctx.lineWidth=1;ctx.stroke();
+  const rs=used().map(()=>'12').join(' + ');const I=closed()?S.V/Req():0;
+  const L1=S.n===1?'R_eq = R1 = 12 Ω':'R_eq = '+used().map((k,i)=>'R'+(i+1)).join(' + ')+' = '+rs+' = '+Req()+' Ω';
+  const lines=[[L1,'#ffd27a'],['I = V / R_eq = '+S.V.toFixed(1)+' / '+Req()+' = '+(S.V/Req()).toFixed(2)+' A','#9ff0c0'],
+    ['I = I1 = I2'+(S.n===3?' = I3':''),'#cfe4ff'],[S.n===1?'V1 = V':'V = '+used().map((k,i)=>'V'+(i+1)).join(' + ')+' = '+used().map(()=>(S.V/S.n).toFixed(1)).join(' + '),'#ff9a7a'],
+    ['P (each lamp) = I² R = '+((S.V/Req())**2*RL).toFixed(2)+' W','#ffb36b']];
+  lines.forEach((l,i)=>txt(l[0],764,72+i*38,{align:'right',font:Fi(700,12,true),color:l[1],dir:'ltr'}));
+  txt(closed()?'':'(القيم عند غلق المفتاح)',600,282,{font:F(500,11),color:'#a3b3cc'});}
+
+/* ---------- loop ---------- */
+function update(dt){S.swA+=((S.sw?0:-0.75)-S.swA)*Math.min(1,dt*12);Id+=(current()-Id)*Math.min(1,dt*10);if(Math.abs(Id-current())<1e-4)Id=current();
+  const b=bright();for(const k of KEYS){flash[k]=Math.max(0,flash[k]-dt*2.5);
+    if(closed()&&used().includes(k)&&b>2.2){S.heat[k]+=dt*(b-2.2)/2+dt*0.15*(k==='a'?1.3:k==='b'?1:0.8);if(S.heat[k]>=1){S.burnt[k]=true;S.heat={a:0,b:0,c:0};flash[k]=1;Id=0;syncUI();break;}}else S.heat[k]=Math.max(0,S.heat[k]-dt*0.6);}}
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)arrange();
+  if(W){update(dt);drawBg();if(S.show.circ)drawCircuit(dt);if(S.show.gr)drawGr();}
+  requestAnimationFrame(frame);}
+
+/* ---------- HTML controls ---------- */
+function lampWord(){const b=bright();return b<0.02?'لا تتوهج':b<0.2?'خافتة جداً':b<0.6?'خافتة':b<1.3?'متوهجة':'ساطعة جداً';}
+function renderRows(){$('rows').innerHTML=S.rows.length?S.rows.map(r=>`<tr><td>${r.l}</td><td class="m">${r.R} Ω</td><td class="r">${r.I.toFixed(2)} A</td><td class="m">${r.v.toFixed(1)} V</td></tr>`).join(''):'<tr class="empty"><td colspan="4">أغلق المفتاح وسجّل القراءة لمصباح واحد، ثم لمصباحين، ثم لثلاثة</td></tr>';}
+function syncUI(){document.querySelectorAll('[data-n]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.n===S.n));
+  $('swBtn').setAttribute('aria-pressed',S.sw);$('swBtn').textContent=S.sw?'المفتاح مغلق':'المفتاح مفتوح';$('vVal').textContent=S.V.toFixed(1)+' V';
+  const bad=KEYS.some(k=>S.out[k]||S.burnt[k]);$('fixBtn').disabled=!bad;$('fixBtn').style.opacity=bad?1:0.5;
+  $('tgA').setAttribute('aria-pressed',S.showA);$('tgV').setAttribute('aria-pressed',S.showV);$('tgC').setAttribute('aria-pressed',S.showC);$('tgL').setAttribute('aria-pressed',S.showL);renderRows();}
+function repeatBtn(el,fn){let t1=0,t2=0;const stop=()=>{clearTimeout(t1);clearInterval(t2);};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();fn();t1=setTimeout(()=>{t2=setInterval(fn,170);},450);});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,stop));
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}});}
+repeatBtn($('vMinus'),()=>{S.V=Math.max(1.5,S.V-1.5);syncUI();});repeatBtn($('vPlus'),()=>{S.V=Math.min(18,S.V+1.5);syncUI();});
+const toggleSw=()=>{S.sw=!S.sw;touched.sw=true;syncUI();};
+$('swBtn').addEventListener('click',toggleSw);
+document.querySelectorAll('[data-n]').forEach(b=>b.addEventListener('click',()=>{S.n=+b.dataset.n;syncUI();}));
+$('fixBtn').addEventListener('click',()=>{for(const k of KEYS){S.out[k]=false;S.burnt[k]=false;S.heat[k]=0;}syncUI();});
+$('tgA').addEventListener('click',()=>{S.showA=!S.showA;syncUI();});$('tgV').addEventListener('click',()=>{S.showV=!S.showV;syncUI();});
+$('tgC').addEventListener('click',()=>{S.showC=!S.showC;syncUI();});$('tgL').addEventListener('click',()=>{S.showL=!S.showL;syncUI();});
+$('recBtn').addEventListener('click',()=>{if(!closed())return;const l=used().join(' و ');const row={n:S.n,l,R:Req(),I:current(),v:current()*RL,V:S.V};const i=S.rows.findIndex(r=>r.n===S.n&&r.V===S.V);if(i>=0)S.rows[i]=row;else S.rows.push(row);S.rows.sort((p,q)=>p.V-q.V||p.n-q.n);renderRows();});
+$('clrBtn').addEventListener('click',()=>{S.rows=[];renderRows();});
+document.querySelectorAll('#parts button').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.p;S.show[n]=!S.show[n];b.setAttribute('aria-pressed',S.show[n]);arrange();}));
+
+/* ---------- direct manipulation + camera ---------- */
+function hitApparatus(sx,sy){
+  if(S.show.circ){const p=toDesign('circ',sx,sy);
+    for(const k of used()){const lift=S.out[k]?-56:0;if(Math.abs(p.x-LX[k])<44&&p.y>BASE-170+lift&&p.y<BASE-40)return{t:'lamp',k};}
+    if(p.x>118&&p.x<250&&p.y>360&&p.y<460)return{t:'sw'};}
+  if(S.show.gr){const p=toDesign('gr',sx,sy);if(Math.hypot(p.x-178,p.y-235)<36)return{t:'sw'};}
+  return null;}
+const ptrs=new Map();let drag=null,pinch=null,lastTap=0;
+const scr=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},c0:{...cam}};drag=null;return;}
+  const h=hitApparatus(s.x,s.y);drag={s0:s,c0:{...cam},hit:h,moved:false};cv.style.cursor=h?'pointer':'grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const k=clamp(Math.hypot(a.x-b.x,a.y-b.y)/pinch.d0*pinch.c0.k,0.6,5)/pinch.c0.k,mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    cam={k:pinch.c0.k*k,x:mid.x-(pinch.m0.x-pinch.c0.x)*k,y:mid.y-(pinch.m0.y-pinch.c0.y)*k};return;}
+  if(!drag){cv.style.cursor=hitApparatus(s.x,s.y)?'pointer':'grab';return;}
+  const dx=s.x-drag.s0.x,dy=s.y-drag.s0.y;if(Math.hypot(dx,dy)>5)drag.moved=true;
+  if(drag.moved&&!drag.hit)cam={k:drag.c0.k,x:drag.c0.x+dx,y:drag.c0.y+dy};});
+function pend(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;drag=null;return;}
+  if(drag&&!drag.moved){const h=drag.hit;if(h&&h.t==='sw')toggleSw();else if(h&&h.t==='lamp'){const k=h.k;if(S.burnt[k]){S.burnt[k]=false;S.out[k]=false;}else S.out[k]=!S.out[k];touched.lamp=true;syncUI();}else if(!h){const now=performance.now();if(now-lastTap<320)cam={k:1,x:0,y:0};lastTap=now;}}
+  drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pend);cv.addEventListener('pointercancel',pend);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),k=clamp(cam.k*Math.exp(-e.deltaY*0.0015),0.6,5)/cam.k;cam={k:cam.k*k,x:s.x-(s.x-cam.x)*k,y:s.y-(s.y-cam.y)*k};},{passive:false});
+
+/* ---------- hint lamp ---------- */
+window.__explain=function(){const I=closed()?S.V/Req():0,br=broken();
+  const nums=`<div class="nums"><span>عدد المصابيح ${S.n}</span><span>⁦R_eq = ${Req()} Ω⁩</span><span>التيار ⁦${I.toFixed(2)} A⁩</span><span>جهد كل مصباح ⁦${(closed()?S.V/S.n:0).toFixed(1)} V⁩</span></div>`;
+  const eq=`<p class="m">R_eq = R1 + R2 + R3</p><p class="m">I = V / R_eq</p><p class="m">V = V1 + V2 + V3</p>`;
+  const tryit=`<p class="note">جرّب: سجّل القراءة لمصباح واحد، ثم لمصباحين، ثم لثلاثة، وقارن التيار والتوهج. شغّل «فرق الجهد» لترى كيف يتوزع جهد البطارية على المصابيح. وانقر على أحد المصابيح لتنزعه.</p>`;
+  const rs=S.rows.filter(r=>r.V===S.V);let concl='';
+  if(rs.length>=2){concl=`<p><b>من جدولك:</b> ${rs.map(r=>`مع ${r.n===1?'مصباح واحد':r.n===2?'مصباحين':'ثلاثة مصابيح'} كان التيار ⁦${r.I.toFixed(2)} A⁩`).join('، و')}.</p><p>نستنتج أن تيار الدائرة المتوالية الربط <b>يكون متساوياً في جميع أجزائها</b>، و<b>يقل مقداره بازدياد عدد المصابيح</b> المربوطة على التوالي، بسبب ازدياد مقدار المقاومة المكافئة لمجموعة التوالي.</p>`;}
+  if(!S.sw)return{t:'ربط المصابيح الكهربائية على التوالي',b:`<p>نربط المصابيح بعضها مع بعض ومع المفتاح والبطارية بحيث يمر التيار فيها <b>بمسار واحد</b>، الواحد تلو الآخر (الشكل 33). نبدأ بمصباح واحد، ثم نضيف مصباحاً ثانياً ثم ثالثاً، ونغلق المفتاح في كل مرة ونلاحظ التوهج.</p>${nums}${tryit}`};
+  if(br.length){const k=br[0];return{t:S.burnt[k]?'لماذا انطفأت المصابيح كلها بعد احتراق مصباح؟':'لماذا انطفأت المصابيح كلها؟',b:`<p>في الربط على التوالي يوجد <b>مسار واحد</b> للتيار يمر في جميع المصابيح. ${S.burnt[k]?`احترقت فتيلة المصباح ${k} لأن الجهد عليه كان أكبر بكثير مما صُمّم له ⁦(6 V)⁩`:`عند نزع المصباح ${k}`} انقطع هذا المسار فأصبحت الدائرة مفتوحة، فتوقف التيار في الدائرة كلها وانطفأت جميع المصابيح.</p><p class="note">هذا من عيوب ربط التوالي، لذلك لا تُربط مصابيح البيت على التوالي.</p>${nums}${tryit}`};}
+  let t,b;
+  if(S.n===1){t='مصباح واحد';b=`<p>المصباح ${'a'} مربوط على التوالي مع المفتاح والبطارية. المقاومة المكافئة هي مقاومة المصباح ⁦12 Ω⁩، والتيار ⁦${I.toFixed(2)} A⁩، والمصباح يأخذ جهد البطارية كله ⁦${S.V.toFixed(1)} V⁩.</p>`;}
+  else{t=S.n===2?'لماذا قلّ توهج المصباحين؟':'لماذا قلّ التوهج أكثر مع ثلاثة مصابيح؟';b=`<p>نجد أن توهج المصابيح <b>متساوٍ</b>، وتوهج كل منها <b>أقل</b> من توهج المصباح لو رُبط وحده في الدائرة.</p><p>التيار نفسه ⁦(${I.toFixed(2)} A)⁩ يمر في كل المصابيح لأن للتيار مساراً واحداً، لذلك تتوهج بالتساوي. لكن المقاومة المكافئة ازدادت إلى ⁦${Req()} Ω⁩ (مجموع المقاومات)، فقلّ التيار. وجهد البطارية ⁦${S.V.toFixed(1)} V⁩ يتوزع على المصابيح، فيأخذ كل مصباح ⁦${(S.V/S.n).toFixed(1)} V⁩ فقط.</p>`;}
+  const warn=bright()>2.2?`<p><b>انتبه:</b> الجهد على كل مصباح ⁦${(S.V/S.n).toFixed(1)} V⁩ أكبر بكثير من ⁦6 V⁩، فالفتائل تسخن بشدة وقد يحترق أحدها.</p>`:'';
+  return{t,b:b+warn+concl+eq+nums+tryit};};
+
+(function(){const b=$('tipBtn'),p=$('tipPanel'),t=$('tipTitle'),body=$('tipBody');let iv=0,last='';
+  const fill=()=>{const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));$('tipClose').addEventListener('click',()=>open(false));})();
+
+(function(){const b=$('fsBtn'),ico=$('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+syncUI();arrange();new ResizeObserver(()=>arrange()).observe(cv);new ResizeObserver(()=>arrange()).observe(ctrlEl);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
