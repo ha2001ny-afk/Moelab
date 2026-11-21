@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>محاكاة قياس فرق الجهد بالفولطميتر</title>
+<style>
+
+:root{
+  color-scheme:dark;
+  --deep:#081429; --navy:#10264a; --glow:#1d3d6e; --ink:#eaf0fa; --muted:#a3b3cc; --line:rgba(234,240,250,.14);
+  --accent:#7fd3ff; --amber:#ffd27a; --orange:#ffb36b;
+  --f-body:system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--deep);color:var(--ink)}
+body{font-family:var(--f-body)}
+.stage{position:relative;height:100%}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.topbtn{position:absolute;top:max(10px,env(safe-area-inset-top,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}
+.topbtn:hover{border-color:var(--accent)}
+.topbtn:focus-visible,.ctrl button:focus-visible,.parts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.topbtn svg{width:20px;height:20px}
+#fsBtn{right:max(10px,env(safe-area-inset-right,0px))}
+#tipBtn{right:calc(max(10px,env(safe-area-inset-right,0px)) + 50px);color:var(--amber)}
+#tipBtn svg{width:22px;height:22px}
+#tipBtn.on{border-color:var(--amber);background:rgba(255,210,122,.14)}
+.toast{position:absolute;top:max(62px,calc(env(safe-area-inset-top,0px) + 56px));right:10px;max-width:min(280px,calc(100% - 20px));background:rgba(8,20,41,.92);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.5;z-index:5}
+.tip{box-sizing:border-box;position:absolute;z-index:6;top:max(60px,calc(env(safe-area-inset-top,0px) + 58px));right:max(10px,env(safe-area-inset-right,0px));width:min(380px,calc(100% - 20px));max-height:calc(100% - 80px);overflow:auto;background:rgba(8,20,41,.96);border:1px solid rgba(255,210,122,.35);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.8;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.tip h2{margin:0 0 8px;font-size:16px;font-weight:600;color:var(--amber);padding-left:28px;text-wrap:balance}
+.tip p{margin:0 0 8px}
+.tip .m,.tip b.m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;color:var(--accent)}
+.tip p.m{text-align:center;font-weight:600}
+.tip .note{color:var(--muted);font-size:13px}
+.tip .nums{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.tip .nums span{font-size:12.5px;background:rgba(255,255,255,.07);border-radius:6px;padding:2px 8px}
+.tip .x{position:absolute;top:8px;left:8px;width:30px;height:30px;border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;border-radius:8px}
+.tip .x:hover{color:var(--ink)}
+.parts{position:absolute;top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;gap:6px;direction:rtl;z-index:4}
+.parts button{height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(8,20,41,.6);color:var(--muted);font:600 13px var(--f-body);cursor:pointer;display:flex;align-items:center;gap:7px}
+.parts button i{width:9px;height:9px;border-radius:50%;border:1.6px solid currentColor;box-sizing:border-box;flex:none}
+.parts button[aria-pressed="true"]{color:var(--ink);border-color:rgba(127,211,255,.6);background:rgba(127,211,255,.14)}
+.parts button[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent)}
+.parts button[aria-pressed="false"] span{text-decoration:line-through;text-decoration-thickness:1px}
+.parts button:hover{border-color:var(--accent)}
+.parts .s{display:none}
+@media (max-width:640px){.parts .l{display:none}.parts .s{display:inline}.parts button{padding:0 8px 0 9px;font-size:12px;gap:5px}}
+
+/* control panel: right column in landscape, bottom sheet in portrait */
+.ctrl{box-sizing:border-box;position:absolute;z-index:3;background:rgba(6,14,30,.86);border:1px solid var(--line);border-radius:16px;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.ctrl[hidden]{display:none!important}
+.ctrl.side{right:10px;top:62px;bottom:10px;width:272px}
+.ctrl.bottom{left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom,0px));max-height:44%;padding:9px;gap:8px}
+.ctrl .ttl{font-weight:700;font-size:14px;color:var(--ink)}
+.ctrl.bottom .ttl{display:none}
+.ctrl .h{font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.ctrl .h .m{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;color:var(--accent)}
+.ctrl button{font:600 13px var(--f-body);color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;min-height:36px;padding:0 10px;cursor:pointer;touch-action:manipulation}
+.ctrl button:hover{border-color:var(--accent)}
+.ctrl button[aria-pressed="true"]{background:rgba(127,211,255,.18);border-color:rgba(127,211,255,.7);color:#fff}
+.mats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mats button{display:flex;align-items:center;gap:7px;justify-content:flex-start}
+.mats button i{width:12px;height:12px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.3)}
+.ctrl.bottom .mats{display:flex;overflow-x:auto;padding-bottom:2px}
+.ctrl.bottom .mats button{flex:none}
+.row{display:flex;gap:6px;align-items:stretch}
+.row>button{flex:1}
+.row .pm{flex:none;width:44px;font-size:18px}
+.row .val{flex:1;display:grid;place-items:center;font:700 16px var(--f-mono);direction:ltr;background:#04101f;border:1px solid var(--line);border-radius:10px;color:#9ff0c0;min-height:36px}
+.read{margin-top:8px;background:#04101f;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.75}
+.read div{display:flex;justify-content:space-between;gap:8px}
+.read b{white-space:nowrap;font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate;color:#9ff0c0;font-weight:600}
+.read .big b{color:var(--amber);font-size:14px}
+.ctrl.bottom .sec.grp{display:flex;gap:8px;flex-wrap:wrap}
+.ctrl.bottom .sec.grp>div{flex:1 1 150px}
+.ctrl.bottom .read{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;line-height:1.6;font-size:11.5px}
+.ctrl.bottom button{min-height:32px;font-size:12.5px}
+.ctrl.bottom .read div{flex-direction:column;gap:0}
+#mBtn.run{background:rgba(255,179,107,.2);border-color:var(--orange)}
+
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 auto}
+.ctrl button.bad[aria-pressed="true"]{background:rgba(255,107,107,.18);border-color:rgba(255,107,107,.75)}
+.note2{font-size:11.5px;color:var(--muted);margin-top:5px}
+table.rd{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;background:#04101f;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.rd th,table.rd td{padding:5px 6px;text-align:center;border-bottom:1px solid rgba(234,240,250,.07)}
+table.rd th{color:var(--muted);font-weight:600;font-size:11.5px}
+table.rd td.m{font-family:var(--f-mono);direction:ltr;color:#9ff0c0;white-space:nowrap}
+table.rd td.w{color:#ff8a8a}
+table.rd .empty td{color:var(--muted);font-size:11.5px;padding:10px}
+.ctrl.bottom .note2{display:none}
+.ctrl.bottom .sec.grp>div{flex:1 1 140px}
+</style>
+</head>
+<body>
+<div class="stage" dir="rtl">
+  <canvas id="scene" aria-label="محاكاة قياس فرق الجهد الكهربائي بجهاز الفولطميتر: بطارية ومفتاح ومصباح على التوالي، وفولطميتر يوصل طرفاه بأي نقطتين في الدائرة"></canvas>
+  <div class="parts" id="parts" role="group" aria-label="إظهار أجزاء المحاكاة أو إخفاؤها">
+    <button data-p="circ" aria-pressed="true"><i></i><span class="l">الدائرة الكهربائية</span><span class="s">الدائرة</span></button>
+    <button data-p="sch" aria-pressed="true"><i></i><span class="l">المخطط بالرموز</span><span class="s">المخطط</span></button>
+    <button data-p="ctrl" aria-pressed="true"><i></i><span class="l">لوحة التحكم</span><span class="s">التحكم</span></button>
+  </div>
+  <button class="topbtn" id="tipBtn" aria-label="توضيح" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+  <button class="topbtn" id="fsBtn" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <div class="tip" id="tipPanel" hidden role="dialog" aria-labelledby="tipTitle"><button class="x" id="tipClose" aria-label="إغلاق">×</button><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
+
+  <div class="ctrl side" id="ctrl" role="group" aria-label="لوحة التحكم">
+    <div class="ttl">لوحة التحكم</div>
+    <div class="sec grp">
+      <div><div class="h">المفتاح</div><div class="row"><button id="swBtn" aria-pressed="false">المفتاح مفتوح</button></div></div>
+      <div><div class="h">فرق جهد البطارية</div>
+        <div class="row"><button class="pm" id="vMinus" aria-label="إنقاص الجهد">−</button><div class="val" id="vVal">6.0 V</div><button class="pm" id="vPlus" aria-label="زيادة الجهد">+</button></div></div>
+    </div>
+    <div class="sec"><div class="h">صِل طرفي الفولطميتر</div>
+      <div class="seg" id="quick">
+        <button data-q="lamp">عبر المصباح</button><button data-q="bat">عبر البطارية</button><button data-q="sw">عبر المفتاح</button><button data-q="wire">عبر سلك</button>
+      </div>
+      <div class="row" style="margin-top:6px"><button id="swapBtn">اعكس الطرفين</button></div>
+      <div class="note2">أو اسحب الملقطين الأحمر والأسود إلى أي نقطتين في الدائرة</div></div>
+    <div class="sec"><div class="h">طريقة توصيل الفولطميتر</div><div class="seg"><button id="cPar" aria-pressed="true">على التوازي</button><button id="cSer" class="bad">على التوالي</button></div></div>
+    <div class="sec"><div class="h">إظهار</div>
+      <div class="row"><button id="tgP" aria-pressed="false">جهد النقاط</button><button id="tgC" aria-pressed="true">التيار</button><button id="tgL" aria-pressed="true">التسميات</button></div></div>
+    <div class="sec"><div class="h">سجّل قراءات الفولطميتر</div>
+      <div class="row"><button id="recBtn">سجّل القراءة</button><button id="clrBtn">امسح الجدول</button></div>
+      <table class="rd"><thead><tr><th>#</th><th>بين النقطتين</th><th>المفتاح</th><th>القراءة</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('scene'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ctrlEl=$('ctrl');
+
+/* ---------- physics ---------- */
+const RL=12,RV=10000,VMAX=10;                  // lamp 12 Ω (6 V, 0.5 A); voltmeter resistance 10 kΩ; scale 0–10 V
+const S={V:6,sw:false,swY:0,ser:false,red:'C',black:'B',showP:false,showC:true,showL:true,show:{circ:true,sch:true,ctrl:true},rows:[]};
+const touched={sw:false,probe:false};
+/* the six terminals in conventional-current order: A(+) → D → switch → E → C → lamp → B → F(−) */
+const NAME={A:'القطب الموجب للبطارية',F:'القطب السالب للبطارية',B:'الطرف الأيسر للمصباح',C:'الطرف الأيمن للمصباح',D:'الطرف الأيسر للمفتاح',E:'الطرف الأيمن للمفتاح'};
+function pot(){const V=S.V;   // potentials, with the battery's negative terminal = 0 V
+  if(S.ser){return S.sw?{A:V,D:V,E:V,C:V,B:V*RV/(RV+RL)*1+V*RL/(RV+RL)*0,F:0}:{A:V,D:V,E:0,C:0,B:0,F:0};}
+  return S.sw?{A:V,D:V,E:V,C:V,B:0,F:0}:{A:V,D:V,E:0,C:0,B:0,F:0};}
+const current=()=>!S.sw?0:S.ser?S.V/(RL+RV):S.V/RL;
+function reading(){const p=pot();if(S.ser)return S.sw?S.V*RV/(RV+RL):0;if(!S.red||!S.black)return 0;return p[S.red]-p[S.black];}
+let Id=0;const bright=()=>Id*Id*RL/3;
+
+/* ---------- geometry (circuit panel 800×540) ---------- */
+const P={A:[178,452],D:[343,474],E:[457,474],C:[690,412],B:[550,412],F:[120,250]};
+const MT={p:[480,224],n:[300,224]};
+const PARK={red:[560,300],black:[230,320]};
+const MET={cx:390,cy:180,L:100,a0:-Math.PI*0.86,a1:-Math.PI*0.14};
+let needle={a:MET.a0,v:0};
+const W_={AD:{a:P.A,c1:[240,520],c2:[290,480],b:P.D},EC:{a:P.E,c1:[580,500],c2:[780,470],b:P.C},BF:{a:P.B,c1:[430,350],c2:[110,170],b:P.F}};
+function bez(w,t){const u=1-t;return[u*u*u*w.a[0]+3*u*u*t*w.c1[0]+3*u*t*t*w.c2[0]+t*t*t*w.b[0],u*u*u*w.a[1]+3*u*u*t*w.c1[1]+3*u*t*t*w.c2[1]+t*t*t*w.b[1]];}
+const pts=w=>{const p=[];for(let i=0;i<=48;i++)p.push(bez(w,i/48));return p;};
+function polyLen(p){let l=0;for(let i=1;i<p.length;i++)l+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return l;}
+function along(p,s){for(let i=1;i<p.length;i++){const l=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(s<=l){const t=s/l;return{x:p[i-1][0]+(p[i][0]-p[i-1][0])*t,y:p[i-1][1]+(p[i][1]-p[i-1][1])*t,dx:(p[i][0]-p[i-1][0])/l,dy:(p[i][1]-p[i-1][1])/l};}s-=l;}const n=p.length-1;return{x:p[n][0],y:p[n][1],dx:1,dy:0};}
+let drag=null;
+function clipPos(c){if(drag&&drag.hit&&drag.hit.t==='clip'&&drag.hit.c===c)return drag.pos;const k=S[c];return k?P[k]:PARK[c];}
+function lead(from,to){return{a:from,c1:[from[0],from[1]+90],c2:[to[0],to[1]-90],b:to};}
+
+/* ---------- panels, layout, camera ---------- */
+const PAN={circ:{w:800,h:540,s:1,ox:0,oy:0,fk:1},sch:{w:560,h:350,s:1,ox:0,oy:0,fk:1}};
+let W=0,H=0,DPR=1,portrait=false,cam={k:1,x:0,y:0},FK=1,time=0;
+function arrange(){
+  W=cv.clientWidth;H=cv.clientHeight;if(!W||!H)return;DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  portrait=W<H*0.95||W<560;
+  ctrlEl.className='ctrl '+(portrait?'bottom':'side');ctrlEl.hidden=!S.show.ctrl;
+  let x0=10,x1=W-10,y0=60,y1=H-10;
+  if(S.show.ctrl){const r=ctrlEl.getBoundingClientRect(),cr=cv.getBoundingClientRect();if(portrait)y1=r.top-cr.top-8;else x1=r.left-cr.left-10;}
+  const vis=['circ','sch'].filter(k=>S.show[k]);if(!vis.length)return;
+  const aw=x1-x0,ah=y1-y0,gap=10;
+  const tot=k=>vis.reduce((a,n)=>a+PAN[n].h*Math.min(aw/PAN[n].w,k),0)+gap*(vis.length-1);
+  let lo=0.05,hi=2.2;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(tot(m)>ah)hi=m;else lo=m;}
+  let y=y0+(ah-tot(lo))/2;
+  for(const n of vis){const Q=PAN[n];Q.s=Math.min(aw/Q.w,lo);Q.ox=x0+(aw-Q.w*Q.s)/2;Q.oy=y;y+=Q.h*Q.s+gap;Q.fk=clamp(0.8/Q.s,1,1.75);}
+}
+function toDesign(n,sx,sy){const Q=PAN[n];return{x:((sx-cam.x)/cam.k-Q.ox)/Q.s,y:((sy-cam.y)/cam.k-Q.oy)/Q.s};}
+function setPanel(n){const Q=PAN[n],k=cam.k*Q.s;ctx.setTransform(DPR*k,0,0,DPR*k,DPR*(cam.k*Q.ox+cam.x),DPR*(cam.k*Q.oy+cam.y));FK=Q.fk;}
+
+/* ---------- drawing helpers ---------- */
+const F=(w,s,mono)=>w+' '+(s*FK).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+const Fi=(w,s,mono)=>w+' '+(s*Math.min(FK,1.15)).toFixed(1)+'px '+(mono?'ui-monospace, Menlo, Consolas, monospace':'system-ui, "Segoe UI", Tahoma, sans-serif');
+function txt(s,x,y,o={}){ctx.font=o.font||F(600,13);ctx.fillStyle=o.color||'#eaf0fa';ctx.textAlign=o.align||'center';ctx.textBaseline='middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y);ctx.direction='ltr';}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);}
+function pulse(x,y,r,c){const u=0.5+0.5*Math.sin(time*5);ctx.beginPath();ctx.arc(x,y,r+u*6,0,7);ctx.strokeStyle=c;ctx.globalAlpha=0.3+0.45*u;ctx.lineWidth=2.4;ctx.stroke();ctx.globalAlpha=1;}
+function tag(s,x,y,c){ctx.font=F(700,13);const w=ctx.measureText(s).width+22,h=26*FK;rr(x-w/2,y-h/2,w,h,h/2);ctx.fillStyle='rgba(8,20,41,.92)';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.stroke();txt(s,x,y+0.5,{color:c,font:F(700,13)});}
+function label(s,bx,by,tx,ty){if(!S.showL)return;ctx.font=F(700,12.5);const w=ctx.measureText(s).width+18,h=24*FK;
+  ctx.strokeStyle='#ff5a5a';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(tx,ty);ctx.stroke();ctx.beginPath();ctx.arc(tx,ty,3.5,0,7);ctx.fillStyle='#ff5a5a';ctx.fill();
+  rr(bx-w/2,by-h/2,w,h,7);ctx.fillStyle='rgba(255,246,246,.96)';ctx.fill();ctx.strokeStyle='#e23a3a';ctx.stroke();txt(s,bx,by+0.5,{font:F(700,12.5),color:'#1c2333'});}
+function chevron(x,y,a,c){ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.beginPath();ctx.moveTo(7,0);ctx.lineTo(-6,-7.5);ctx.lineTo(-2,0);ctx.lineTo(-6,7.5);ctx.closePath();ctx.shadowColor='rgba(255,220,80,.9)';ctx.shadowBlur=8;ctx.fillStyle=c;ctx.fill();ctx.restore();}
+function screw(x,y,r){const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,1,x,y,r);g.addColorStop(0,'#fff3c4');g.addColorStop(0.5,'#d6a73c');g.addColorStop(1,'#7a5a12');ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=g;ctx.fill();
+  ctx.strokeStyle='rgba(60,40,5,.8)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-r*0.55,y);ctx.lineTo(x+r*0.55,y);ctx.moveTo(x,y-r*0.55);ctx.lineTo(x,y+r*0.55);ctx.stroke();}
+function drawBg(){ctx.setTransform(DPR,0,0,DPR,0,0);const g=ctx.createRadialGradient(W*0.5,H*0.4,0,W*0.5,H*0.4,Math.max(W,H)*0.75);g.addColorStop(0,'#1d3d6e');g.addColorStop(0.55,'#10264a');g.addColorStop(1,'#081429');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+function panelBox(Q){rr(0,0,Q.w,Q.h,18);ctx.fillStyle='rgba(6,14,30,.42)';ctx.fill();ctx.strokeStyle='rgba(234,240,250,.12)';ctx.lineWidth=1;ctx.stroke();}
+function drawWire(p,col){ctx.lineCap='round';ctx.lineJoin='round';const path=()=>{ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));};
+  const C=col==='r'?['#9c1515','#e23434','rgba(255,190,190,.6)']:col==='k'?['#050608','#2a2e36','rgba(200,205,215,.45)']:['#0f4f9a','#2f8be6','rgba(190,225,255,.6)'];
+  path();ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=11;ctx.stroke();path();ctx.strokeStyle=C[0];ctx.lineWidth=8;ctx.stroke();path();ctx.strokeStyle=C[1];ctx.lineWidth=5.5;ctx.stroke();
+  ctx.save();ctx.translate(-1,-1.5);path();ctx.strokeStyle=C[2];ctx.lineWidth=1.6;ctx.stroke();ctx.restore();}
+
+/* ---------- apparatus ---------- */
+function drawBattery(){const x0=70,x1=170,y0=262,y1=470;ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=16;ctx.shadowOffsetY=7;
+  const g=ctx.createLinearGradient(x0,0,x1,0);g.addColorStop(0,'#9a7414');g.addColorStop(0.45,'#f6d36a');g.addColorStop(1,'#8a6610');rr(x0,y0,x1-x0,y1-y0,16);ctx.fillStyle=g;ctx.fill();ctx.restore();
+  const k=ctx.createLinearGradient(x0,0,x1,0);k.addColorStop(0,'#0c0c0c');k.addColorStop(0.45,'#3c3c3c');k.addColorStop(1,'#0c0c0c');ctx.fillStyle=k;ctx.fillRect(x0,y0+120,x1-x0,26);
+  const r=ctx.createLinearGradient(x0,0,x1,0);r.addColorStop(0,'#8e1010');r.addColorStop(0.45,'#f04040');r.addColorStop(1,'#7e0c0c');ctx.fillStyle=r;rr(x0,y0+146,x1-x0,y1-y0-146,{upperLeft:0,upperRight:0,lowerLeft:16,lowerRight:16});ctx.fill();
+  ctx.beginPath();ctx.ellipse((x0+x1)/2,y0+4,50,12,0,0,7);ctx.fillStyle='#c9a640';ctx.fill();
+  const t=ctx.createLinearGradient(100,0,140,0);t.addColorStop(0,'#7d8590');t.addColorStop(0.5,'#f2f4f6');t.addColorStop(1,'#7d8590');rr(102,240,36,18,5);ctx.fillStyle=t;ctx.fill();
+  txt('−',150,232,{font:F(800,18),color:'#cfe4ff',dir:'ltr'});txt('+',120,440,{font:F(800,26),color:'#fff',dir:'ltr'});
+  rr(84,318,72,40,7);ctx.fillStyle='rgba(4,10,24,.8)';ctx.fill();txt(S.V.toFixed(1)+' V',120,338,{font:Fi(700,14,true),color:'#9ff0c0',dir:'ltr'});
+  screw(P.A[0],P.A[1],6);}
+function drawSwitch(){const cx=400,cy=474;ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=10;ctx.shadowOffsetY=5;ctx.beginPath();ctx.ellipse(cx,cy+6,64,26,0,0,7);ctx.fillStyle='#14448c';ctx.fill();ctx.restore();
+  const g=ctx.createLinearGradient(0,cy-22,0,cy+22);g.addColorStop(0,'#58a6f0');g.addColorStop(1,'#1d5cb8');ctx.beginPath();ctx.ellipse(cx,cy,64,24,0,0,7);ctx.fillStyle=g;ctx.fill();
+  screw(P.D[0],P.D[1],6);screw(P.E[0],P.E[1],6);
+  const dy=S.swY;ctx.fillStyle='#e9e4da';rr(cx-17,cy-30+dy,34,26,7);ctx.fill();ctx.fillStyle='#c9c1b2';rr(cx-17,cy-10+dy,34,8,4);ctx.fill();
+  if(S.sw){ctx.strokeStyle='rgba(255,230,140,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(P.D[0]+8,cy);ctx.lineTo(P.E[0]-8,cy);ctx.stroke();}
+  if(!touched.sw)pulse(cx,cy-16,30,'#7fd3ff');}
+function drawLamp(){const x=620,base=412,b=clamp(bright(),0,2.5);
+  if(b>0.01){const r=50+80*Math.sqrt(Math.min(b,2));const g=ctx.createRadialGradient(x,base-112,4,x,base-112,r);g.addColorStop(0,`rgba(255,232,150,${Math.min(0.95,0.2+0.75*b)})`);g.addColorStop(0.45,`rgba(255,200,80,${Math.min(0.45,0.1+0.3*b)})`);g.addColorStop(1,'rgba(255,190,60,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,base-112,r,0,7);ctx.fill();}
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;ctx.beginPath();ctx.ellipse(x,base+8,82,24,0,0,7);ctx.fillStyle='#0f5e33';ctx.fill();ctx.restore();
+  const g=ctx.createLinearGradient(x-80,0,x+80,0);g.addColorStop(0,'#13703c');g.addColorStop(0.45,'#36b56a');g.addColorStop(1,'#0f5e33');ctx.fillStyle=g;ctx.fillRect(x-80,base-4,160,12);ctx.beginPath();ctx.ellipse(x,base-4,80,24,0,0,7);ctx.fill();
+  ctx.fillRect(x-36,base-48,72,44);ctx.beginPath();ctx.ellipse(x,base-48,36,10,0,0,7);ctx.fillStyle='#45c77a';ctx.fill();
+  screw(P.B[0]+6,P.B[1]-2,8);screw(P.C[0]-6,P.C[1]-2,8);
+  const y0=base-52,cy=y0-66;const cg=ctx.createLinearGradient(x-17,0,x+17,0);cg.addColorStop(0,'#8e8270');cg.addColorStop(0.5,'#f3e7c8');cg.addColorStop(1,'#7c705e');ctx.fillStyle=cg;ctx.fillRect(x-17,y0-20,34,22);
+  ctx.beginPath();ctx.moveTo(x-16,y0-20);ctx.bezierCurveTo(x-18,y0-34,x-44,y0-40,x-44,cy);ctx.arc(x,cy,44,Math.PI,0);ctx.bezierCurveTo(x+44,y0-40,x+18,y0-34,x+16,y0-20);ctx.closePath();
+  const gg=ctx.createRadialGradient(x-12,cy-14,3,x,cy,50);if(b>0.01){gg.addColorStop(0,'rgba(255,255,238,.98)');gg.addColorStop(1,`rgba(255,${190+40*Math.min(1,b)|0},90,${0.45+0.4*Math.min(1,b)})`);}else{gg.addColorStop(0,'rgba(240,248,255,.6)');gg.addColorStop(1,'rgba(150,180,215,.25)');}
+  ctx.fillStyle=gg;ctx.fill();ctx.strokeStyle='rgba(220,235,255,.7)';ctx.lineWidth=1.3;ctx.stroke();
+  ctx.strokeStyle=b>0.01?`rgb(255,${150+100*Math.min(1,b)|0},${60+150*Math.min(1,b/2)|0})`:'#6e6150';ctx.lineWidth=b>0.01?2.2:1.4;
+  ctx.beginPath();ctx.moveTo(x-6,y0-22);ctx.lineTo(x-10,cy+4);ctx.moveTo(x+6,y0-22);ctx.lineTo(x+10,cy+4);ctx.stroke();
+  ctx.beginPath();for(let i=0;i<=20;i++){const t=i/20,xx=x-10+20*t,yy=cy+4-Math.sin(t*Math.PI*9)*2.6;i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.beginPath();ctx.ellipse(x-22,cy-14,5,13,-0.5,0,7);ctx.fill();}
+function drawVoltmeter(){ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=18;ctx.shadowOffsetY=8;const g=ctx.createLinearGradient(270,0,510,0);g.addColorStop(0,'#7b838e');g.addColorStop(0.5,'#d9dde2');g.addColorStop(1,'#6d757f');rr(270,40,240,214,14);ctx.fillStyle=g;ctx.fill();ctx.restore();
+  rr(288,56,204,130,8);ctx.fillStyle='#fbfcfd';ctx.fill();ctx.strokeStyle='#5d656f';ctx.lineWidth=2;ctx.stroke();
+  const M=MET,R=M.L-6;ctx.strokeStyle='#2a2a2a';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(M.cx,M.cy,R,M.a0,M.a1);ctx.stroke();
+  for(let i=0;i<=50;i++){const a=M.a0+(M.a1-M.a0)*i/50,l=i%5===0?12:6;ctx.lineWidth=i%5===0?1.8:1;ctx.beginPath();ctx.moveTo(M.cx+Math.cos(a)*R,M.cy+Math.sin(a)*R);ctx.lineTo(M.cx+Math.cos(a)*(R-l),M.cy+Math.sin(a)*(R-l));ctx.stroke();
+    if(i%10===0)txt(String(i/5),M.cx+Math.cos(a)*(R-25),M.cy+Math.sin(a)*(R-25),{font:Fi(700,11,true),color:'#2a2a2a',dir:'ltr'});}
+  txt('V',M.cx,M.cy-38,{font:Fi(800,19,true),color:'#2a2a2a',dir:'ltr'});
+  const a=needle.a;ctx.strokeStyle='#d21f1f';ctx.lineWidth=2.6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(M.cx-Math.cos(a)*10,M.cy-Math.sin(a)*10);ctx.lineTo(M.cx+Math.cos(a)*(M.L-2),M.cy+Math.sin(a)*(M.L-2));ctx.stroke();
+  ctx.save();ctx.beginPath();ctx.rect(288,56,204,130);ctx.clip();ctx.beginPath();ctx.arc(M.cx,M.cy,11,0,7);ctx.fillStyle='#1c1c1c';ctx.fill();ctx.restore();
+  ctx.fillStyle='#8a929c';rr(286,196,208,50,8);ctx.fill();
+  for(const [k,pos] of [['p',true],['n',false]]){const [x,y]=MT[k];const tg=ctx.createRadialGradient(x-3,y-3,1,x,y,12);tg.addColorStop(0,pos?'#ff8a8a':'#6b7280');tg.addColorStop(1,pos?'#8e1010':'#0e1116');ctx.beginPath();ctx.arc(x,y,12,0,7);ctx.fillStyle=tg;ctx.fill();
+    txt(pos?'+':'−',x+(pos?-28:28),y,{font:F(800,18),color:'#1c2333',dir:'ltr'});}
+  const f=reading()/VMAX;if(f<-0.02||f>1.02){ctx.strokeStyle='#ffd24d';ctx.lineWidth=3;ctx.globalAlpha=0.5+0.5*Math.sin(time*12);rr(280,46,220,202,12);ctx.stroke();ctx.globalAlpha=1;}}
+function drawClip(c){const [x,y]=clipPos(c),red=c==='red';ctx.save();ctx.translate(x,y);
+  ctx.fillStyle=red?'#d62828':'#1b1d22';ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;
+  rr(-9,-34,18,26,5);ctx.fill();ctx.stroke();
+  const g=ctx.createLinearGradient(-8,0,8,0);g.addColorStop(0,'#8d96a2');g.addColorStop(0.5,'#f1f3f6');g.addColorStop(1,'#7d8590');ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(-8,-10);ctx.lineTo(-3,0);ctx.lineTo(3,0);ctx.lineTo(8,-10);ctx.closePath();ctx.fill();ctx.restore();
+  if(!S[c]&&!(drag&&drag.hit&&drag.hit.c===c))txt('غير موصول',x,y+16,{font:F(600,11),color:'#ffc04d'});}
+
+function flows(){const out=[];const add=(w,I)=>out.push({p:pts(w),I});
+  if(!S.ser){add(W_.AD,1);add(W_.EC,1);add(W_.BF,1);}
+  else{add(W_.AD,1);add(W_.EC,1);add(lead(P.B,MT.p),1);add(lead(MT.n,P.F),1);}
+  return out;}
+const ph=new Map();
+function drawCircuit(dt){const Q=PAN.circ;setPanel('circ');panelBox(Q);txt('الدائرة الكهربائية',Q.w-16,20,{align:'right',font:F(700,13),color:'#a3b3cc'});
+  drawVoltmeter();drawBattery();drawSwitch();drawLamp();
+  drawWire(pts(W_.AD),'b');drawWire(pts(W_.EC),'b');
+  if(!S.ser){drawWire(pts(W_.BF),'b');
+    for(const c of ['black','red']){const from=c==='red'?MT.p:MT.n,to=clipPos(c);drawWire(pts(lead(from,[to[0],to[1]-30])),c==='red'?'r':'k');}
+    drawClip('black');drawClip('red');
+    if(!touched.probe){const q=clipPos('red');pulse(q[0],q[1]-18,22,'#ffd27a');}}
+  else{drawWire(pts(lead(P.B,MT.p)),'r');drawWire(pts(lead(MT.n,P.F)),'k');}
+  // conventional current
+  const I=current(),on=I>0.002;
+  if(S.showC&&on){flows().forEach((f,i)=>{const L=polyLen(f.p);let p=(ph.get(i)||0)+Math.min(I,1)*110*dt;ph.set(i,p);for(let s=(p%64+64)%64;s<L;s+=64){if(s<12||s>L-12)continue;const q=along(f.p,s);chevron(q.x,q.y,Math.atan2(q.dy,q.dx),'#ffe066');}});}
+  // terminal letters and potentials
+  const pv=pot();
+  for(const k in P){const [x,y]=P[k];const off={A:[22,18],F:[-34,4],B:[-6,30],C:[8,30],D:[-6,30],E:[6,30]}[k];
+    txt(k,x+off[0],y+off[1],{font:F(800,13,true),color:'#bfe9ff',dir:'ltr'});
+    if(S.showP){const v=pv[k],hi=v>0.01,dy=(k==='D'||k==='E')?-48:k==='F'?-30:off[1]+24*FK;tag('⁦'+v.toFixed(1)+' V⁩',x+off[0]+(k==='F'?0:0),y+dy,hi?'#ff9a7a':'#8fc8ff');}}
+  label('فولطميتر',200,60,272,90);
+  label('حمل (مصباح)',740,160,655,250);
+  label('بطارية',230,388,172,360);
+  label(S.sw?'مفتاح مغلق':'مفتاح مفتوح',560,522,450,490);
+  // status
+  const r=reading(),f=r/VMAX;let st;
+  if(S.ser)st=['خطأ: الفولطميتر موصول على التوالي!','#ff6b6b'];
+  else if(!S.red||!S.black)st=['صِل طرفي الفولطميتر بنقطتين','#a3b3cc'];
+  else if(f<-0.02)st=['المؤشر عكسي: اعكس طرفي الجهاز','#ff6b6b'];
+  else st=['قراءة الفولطميتر ⁦'+Math.max(0,r).toFixed(1)+' V⁩','#62d98a'];
+  tag(st[0],470,300,st[1]);}
+
+/* ---------- schematic (560×330) ---------- */
+const SP={F:[70,120],A:[70,270],D:[230,270],E:[300,270],C:[490,220],B:[490,170]};
+function drawSchematic(){const Q=PAN.sch;setPanel('sch');panelBox(Q);txt('المخطط بالرموز',16,20,{align:'left',font:F(700,13),color:'#a3b3cc'});
+  const on=current()>0.002,col=on?'#ffd27a':'#cfe4ff';
+  const line=(p,c,w,dash)=>{ctx.strokeStyle=c||col;ctx.lineWidth=w||3;ctx.lineCap='round';ctx.lineJoin='round';if(dash)ctx.setLineDash(dash);ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();ctx.setLineDash([]);};
+  // loop: F top-left → battery (left edge) → A bottom-left → D → switch → E → bottom-right → C → lamp → B → top-right → F
+  line([[70,120],[70,186]]);line([[70,204],[70,270],[230,270]]);line([[300,270],[490,270],[490,220]]);line([[490,170],[490,120],S.ser?[330,120]:[70,120]]);if(S.ser)line([[230,120],[70,120]]);
+  // battery: long plate (+) below, short plate (−) above
+  ctx.strokeStyle='#eaf0fa';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(59,186);ctx.lineTo(81,186);ctx.stroke();ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(48,204);ctx.lineTo(92,204);ctx.stroke();
+  txt('−',102,180,{font:F(800,14),color:'#9ccaff',dir:'ltr'});txt('+',102,212,{font:F(800,14),color:'#ff7b7b',dir:'ltr'});
+  // switch
+  ctx.fillStyle='#eaf0fa';ctx.beginPath();ctx.arc(230,270,4.5,0,7);ctx.fill();ctx.beginPath();ctx.arc(300,270,4.5,0,7);ctx.fill();
+  const a=S.sw?0:-0.5;line([[230,270],[230+Math.cos(a)*70,270+Math.sin(a)*70]],on?'#ffd27a':'#eaf0fa',3);
+  // lamp
+  ctx.fillStyle=bright()>0.02?`rgba(255,214,90,${clamp(0.25+0.5*bright(),0.25,0.9)})`:'#10223f';ctx.beginPath();ctx.arc(490,195,18,0,7);ctx.fill();ctx.strokeStyle='#eaf0fa';ctx.lineWidth=2.5;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(478,183);ctx.lineTo(502,207);ctx.moveTo(502,183);ctx.lineTo(478,207);ctx.stroke();
+  // voltmeter
+  const vm=(x,y)=>{ctx.beginPath();ctx.arc(x,y,20,0,7);ctx.fillStyle='#10223f';ctx.fill();ctx.strokeStyle=S.ser?'#ff6b6b':'#eaf0fa';ctx.lineWidth=2.5;ctx.stroke();txt('V',x,y+1,{font:F(800,16,true),color:'#eaf0fa',dir:'ltr'});};
+  if(S.ser){vm(280,120);txt('+',318,104,{font:F(800,13),color:'#ff7b7b',dir:'ltr'});txt('−',242,104,{font:F(800,13),color:'#9ccaff',dir:'ltr'});}
+  else{const vx=280,vy=56;
+    for(const c of ['red','black']){const k=S[c];if(!k)continue;const [x,y]=SP[k],sx=c==='red'?vx+20:vx-20;line([[sx,vy],[x,vy],[x,y]],c==='red'?'#ff6b6b':'#9aa3ae',2.2,[6,5]);ctx.fillStyle=c==='red'?'#ff6b6b':'#9aa3ae';ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fill();}
+    vm(vx,vy);txt('+',vx+30,vy-16,{font:F(800,13),color:'#ff7b7b',dir:'ltr'});txt('−',vx-30,vy-16,{font:F(800,13),color:'#9ccaff',dir:'ltr'});}
+  for(const k in SP){const [x,y]=SP[k],o={F:[-18,-12],A:[-18,12],D:[-4,20],E:[4,20],C:[20,12],B:[20,-12]}[k];txt(k,x+o[0],y+o[1],{font:F(800,12.5,true),color:'#bfe9ff',dir:'ltr'});}
+  txt(S.ser?'الفولطميتر يجب أن يوصل على التوازي':'الفولطميتر على التوازي بين النقطتين',Q.w/2,Q.h-20,{font:F(700,12.5),color:S.ser?'#ff8a8a':'#62d98a'});}
+
+/* ---------- loop ---------- */
+function update(dt){S.swY+=((S.sw?7:0)-S.swY)*Math.min(1,dt*14);
+  Id+=(current()-Id)*Math.min(1,dt*10);
+  const f=clamp(reading()/VMAX,-0.06,1.06),tA=MET.a0+(MET.a1-MET.a0)*f;
+  needle.v+=((tA-needle.a)*90-needle.v*11)*dt;needle.a+=needle.v*dt;
+  const lo=MET.a0+(MET.a1-MET.a0)*-0.06,hi=MET.a0+(MET.a1-MET.a0)*1.06;if(needle.a<lo){needle.a=lo;needle.v=-needle.v*0.3;}if(needle.a>hi){needle.a=hi;needle.v=-needle.v*0.3;}}
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;if(!W)arrange();
+  if(W){update(dt);drawBg();if(S.show.circ)drawCircuit(dt);if(S.show.sch)drawSchematic();}
+  requestAnimationFrame(frame);}
+
+/* ---------- HTML controls ---------- */
+const QUICK={lamp:['C','B'],bat:['A','F'],sw:['D','E'],wire:['A','D']};
+function renderRows(){$('rows').innerHTML=S.rows.length?S.rows.map((r,i)=>`<tr><td>${i+1}</td><td class="m">${r.pts}</td><td>${r.sw}</td><td class="${r.c}">${r.v}</td></tr>`).join(''):'<tr class="empty"><td colspan="4">صِل الطرفين بنقطتين ثم اضغط «سجّل القراءة»</td></tr>';}
+function syncUI(){$('swBtn').setAttribute('aria-pressed',S.sw);$('swBtn').textContent=S.sw?'المفتاح مغلق':'المفتاح مفتوح';$('vVal').textContent=S.V.toFixed(1)+' V';
+  $('cPar').setAttribute('aria-pressed',!S.ser);$('cSer').setAttribute('aria-pressed',S.ser);
+  document.querySelectorAll('#quick button').forEach(b=>{const q=QUICK[b.dataset.q];b.setAttribute('aria-pressed',!S.ser&&((S.red===q[0]&&S.black===q[1])||(S.red===q[1]&&S.black===q[0])));b.disabled=S.ser;b.style.opacity=S.ser?0.45:1;});
+  $('swapBtn').disabled=S.ser;$('swapBtn').style.opacity=S.ser?0.45:1;
+  $('tgP').setAttribute('aria-pressed',S.showP);$('tgC').setAttribute('aria-pressed',S.showC);$('tgL').setAttribute('aria-pressed',S.showL);renderRows();}
+function repeatBtn(el,fn){let t1=0,t2=0;const stop=()=>{clearTimeout(t1);clearInterval(t2);};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();fn();t1=setTimeout(()=>{t2=setInterval(fn,160);},450);});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,stop));
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}});}
+repeatBtn($('vMinus'),()=>{S.V=Math.max(1.5,S.V-1.5);syncUI();});repeatBtn($('vPlus'),()=>{S.V=Math.min(9,S.V+1.5);syncUI();});
+const toggleSw=()=>{S.sw=!S.sw;touched.sw=true;syncUI();};
+$('swBtn').addEventListener('click',toggleSw);
+document.querySelectorAll('#quick button').forEach(b=>b.addEventListener('click',()=>{const q=QUICK[b.dataset.q];S.red=q[0];S.black=q[1];touched.probe=true;syncUI();}));
+$('swapBtn').addEventListener('click',()=>{[S.red,S.black]=[S.black,S.red];touched.probe=true;syncUI();});
+$('cPar').addEventListener('click',()=>{S.ser=false;syncUI();});$('cSer').addEventListener('click',()=>{S.ser=true;syncUI();});
+$('tgP').addEventListener('click',()=>{S.showP=!S.showP;syncUI();});$('tgC').addEventListener('click',()=>{S.showC=!S.showC;syncUI();});$('tgL').addEventListener('click',()=>{S.showL=!S.showL;syncUI();});
+$('recBtn').addEventListener('click',()=>{const r=reading(),f=r/VMAX;let v,c='m';
+  if(!S.ser&&(!S.red||!S.black)){v='غير موصول';c='w';}else if(f<-0.02){v='عكسية';c='w';}else v=Math.max(0,r).toFixed(1)+' V';
+  S.rows.push({pts:S.ser?'على التوالي':S.red+' – '+S.black,sw:S.sw?'مغلق':'مفتوح',v,c});if(S.rows.length>10)S.rows.shift();renderRows();});
+$('clrBtn').addEventListener('click',()=>{S.rows=[];renderRows();});
+document.querySelectorAll('#parts button').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.p;S.show[n]=!S.show[n];b.setAttribute('aria-pressed',S.show[n]);arrange();}));
+
+/* ---------- direct manipulation + camera ---------- */
+function hitApparatus(sx,sy){
+  if(S.show.circ){const p=toDesign('circ',sx,sy);
+    if(!S.ser)for(const c of ['red','black']){const q=clipPos(c);if(Math.hypot(p.x-q[0],p.y-(q[1]-18))<28)return{t:'clip',c};}
+    if(Math.hypot((p.x-400)/70,(p.y-470)/34)<1)return{t:'sw'};}
+  if(S.show.sch){const p=toDesign('sch',sx,sy);if(Math.hypot(p.x-265,p.y-262)<42)return{t:'sw'};}
+  return null;}
+const ptrs=new Map();let pinch=null,lastTap=0;
+const scr=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);const s=scr(e);ptrs.set(e.pointerId,s);
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,m0:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},c0:{...cam}};drag=null;return;}
+  const h=hitApparatus(s.x,s.y);drag={s0:s,c0:{...cam},hit:h,moved:false};
+  if(h&&h.t==='clip'){const q=clipPos(h.c);drag.pos=[q[0],q[1]];const d=toDesign('circ',s.x,s.y);drag.off=[q[0]-d.x,q[1]-d.y];touched.probe=true;}
+  cv.style.cursor=h?(h.t==='clip'?'grabbing':'pointer'):'grabbing';});
+cv.addEventListener('pointermove',e=>{const s=scr(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,s);
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const k=clamp(Math.hypot(a.x-b.x,a.y-b.y)/pinch.d0*pinch.c0.k,0.6,5)/pinch.c0.k,mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    cam={k:pinch.c0.k*k,x:mid.x-(pinch.m0.x-pinch.c0.x)*k,y:mid.y-(pinch.m0.y-pinch.c0.y)*k};return;}
+  if(!drag){const h=hitApparatus(s.x,s.y);cv.style.cursor=h?(h.t==='clip'?'grab':'pointer'):'grab';return;}
+  const dx=s.x-drag.s0.x,dy=s.y-drag.s0.y;if(Math.hypot(dx,dy)>5)drag.moved=true;
+  if(drag.hit&&drag.hit.t==='clip'){const d=toDesign('circ',s.x,s.y);drag.pos=[clamp(d.x+drag.off[0],20,780),clamp(d.y+drag.off[1],40,530)];
+    S[drag.hit.c]=null;return;}
+  if(drag.moved&&!drag.hit)cam={k:drag.c0.k,x:drag.c0.x+dx,y:drag.c0.y+dy};});
+function pend(e){ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;drag=null;return;}
+  if(drag&&drag.hit&&drag.hit.t==='clip'){const q=drag.pos;let best=null,bd=46;for(const k in P){const d=Math.hypot(q[0]-P[k][0],q[1]-P[k][1]);if(d<bd){bd=d;best=k;}}
+    const c=drag.hit.c;if(drag.moved)S[c]=best;else if(!S[c]){S[c]=best;}drag=null;syncUI();cv.style.cursor='grab';return;}
+  if(drag&&!drag.moved){const h=drag.hit;if(h&&h.t==='sw')toggleSw();else if(!h){const now=performance.now();if(now-lastTap<320)cam={k:1,x:0,y:0};lastTap=now;}}
+  drag=null;cv.style.cursor='grab';}
+cv.addEventListener('pointerup',pend);cv.addEventListener('pointercancel',pend);
+cv.addEventListener('wheel',e=>{e.preventDefault();const s=scr(e),k=clamp(cam.k*Math.exp(-e.deltaY*0.0015),0.6,5)/cam.k;cam={k:cam.k*k,x:s.x-(s.x-cam.x)*k,y:s.y-(s.y-cam.y)*k};},{passive:false});
+
+/* ---------- hint lamp ---------- */
+window.__explain=function(){const pv=pot(),r=reading(),f=r/VMAX,R=S.red,B=S.black;
+  const nums=`<div class="nums"><span>البطارية ⁦${S.V.toFixed(1)} V⁩</span><span>المفتاح ${S.sw?'مغلق':'مفتوح'}</span>${!S.ser&&R&&B?`<span>جهد ${R} = ⁦${pv[R].toFixed(1)} V⁩</span><span>جهد ${B} = ⁦${pv[B].toFixed(1)} V⁩</span>`:''}<span>القراءة ⁦${Math.max(0,r).toFixed(1)} V⁩</span></div>`;
+  const vm=`<p class="note">الفولطميتر يقيس فرق الجهد بين أي نقطتين في الدائرة، ويوصل <b>على التوازي</b> مع الحمل، ومقاومته <b>كبيرة جداً</b> فلا يسحب إلا تياراً مهملاً. يوصل قطبه الموجب (الأحمر) بالنقطة الأعلى جهداً، أي بجهة القطب الموجب للبطارية. وحدة فرق الجهد <b>الفولط ⁦(V)⁩</b>، ويُستعمل <b>الملي فولطميتر</b> للفروق الصغيرة ⁦(mV)⁩.</p>`;
+  const flow=`<p class="note">فرق الجهد بين نقطتين هو الذي يحدد التيار المنساب بينهما: ينساب التيار من النقطة الأعلى جهداً إلى النقطة الأوطأ جهداً، ويتوقف عندما يتساوى جهدا النقطتين.</p>`;
+  const tryit=`<p class="note">جرّب: شغّل «جهد النقاط» لترى جهد كل نقطة، ثم انقل الملقطين بين النقاط وقارن القراءة بالفرق بين الجهدين. افتح المفتاح وأغلقه، وسجّل القراءات في الجدول.</p>`;
+  const pair=(R&&B)?[R,B].sort().join(''):'';
+  if(S.ser)return{t:'لماذا لا يوصل الفولطميتر على التوالي؟',b:`<p>مقاومة الفولطميتر <b>كبيرة جداً</b> (هنا ⁦10 000 Ω⁩). عند توصيله على التوالي يصبح جزءاً من مسار التيار، فيصغر التيار حتى يكاد يصبح صفراً ⁦(${(current()*1000).toFixed(2)} mA)⁩ و<b>ينطفئ المصباح</b>.</p><p>${S.sw?`ويقرأ الجهاز ⁦${r.toFixed(1)} V⁩ تقريباً، أي جهد البطارية كله، لأن فرق الجهد كله يقع عليه بدلاً من المصباح.`:'والمفتاح مفتوح فلا قراءة.'} لذلك يوصل الفولطميتر <b>على التوازي</b> مع الحمل الذي نريد قياس فرق الجهد بين طرفيه (الشكل 18).</p>${nums}${vm}`};
+  if(!R||!B)return{t:'صِل طرفي الفولطميتر',b:`<p>صِل البطارية والمفتاح والمصباح على التوالي، ثم صِل الفولطميتر <b>على التوازي</b> مع المصباح: الملقط الأحمر ⁦(+)⁩ بأحد طرفي المصباح والملقط الأسود ⁦(−)⁩ بالطرف الآخر (الشكل 18).</p>${nums}${vm}${tryit}`};
+  if(f<-0.02)return{t:'لماذا انحرف المؤشر عكسياً؟',b:`<p>الملقط الأحمر ⁦(+)⁩ موصول بالنقطة ${R} وجهدها ⁦${pv[R].toFixed(1)} V⁩، وهي <b>أوطأ جهداً</b> من النقطة ${B} ⁦(${pv[B].toFixed(1)} V)⁩. فيحاول المؤشر الانحراف إلى ما دون الصفر.</p><p>يجب أن يوصل القطب الموجب للفولطميتر بالنقطة الأعلى جهداً (جهة القطب الموجب للبطارية). اضغط «اعكس الطرفين».</p>${nums}${vm}`};
+  let t,b;
+  if(R===B){t='لماذا القراءة صفر؟';b=`<p>الطرفان على النقطة نفسها، فلا يوجد فرق جهد بينهما.</p>`;}
+  else if(pair==='BC'){if(S.sw){t='ماذا تمثل قراءة الفولطميتر؟';b=`<p>انحراف المؤشر يدل على وجود <b>فرق جهد كهربائي بين طرفي المصباح</b>، والقراءة ⁦${r.toFixed(1)} V⁩ هي مقدار فرق الجهد بين النقطتين C و B، ووحدتها الفولط.</p><p>جهد الطرف C ⁦${pv.C.toFixed(1)} V⁩ أعلى من جهد الطرف B ⁦(0 V)⁩، لذلك ينساب التيار في المصباح من C إلى B فيتوهج.</p>`;}
+    else{t='لماذا القراءة صفر والمفتاح مفتوح؟';b=`<p>المفتاح مفتوح فلا ينساب تيار، وطرفا المصباح كلاهما متصلان بالقطب السالب للبطارية عبر الأسلاك، فجهداهما <b>متساويان</b> ⁦(0 V)⁩. لا يوجد فرق جهد بين طرفي المصباح، فلا ينساب فيه تيار ولا يتوهج.</p>`;}}
+  else if(pair==='AF'){t='فرق الجهد بين قطبي البطارية';b=`<p>الطرفان على قطبي البطارية، فالقراءة ⁦${r.toFixed(1)} V⁩ هي فرق الجهد بين قطبيها، ${S.sw?'وهو يساوي هنا فرق الجهد بين طرفي المصباح لأن الأسلاك لا تأخذ من الجهد شيئاً يُذكر.':'وهي موجودة حتى والمفتاح مفتوح: البطارية تحافظ على فرق جهد بين قطبيها سواء مر تيار أم لم يمر.'}</p>`;}
+  else if(pair==='DE'){if(S.sw){t='لماذا القراءة صفر عبر المفتاح المغلق؟';b=`<p>المفتاح المغلق قطعة موصلة مقاومتها صغيرة جداً، فجهدا طرفيه D و E <b>متساويان تقريباً</b> ⁦(${pv.D.toFixed(1)} V)⁩ والقراءة صفر.</p>`;}
+    else{t='لماذا يظهر جهد البطارية كله عبر المفتاح المفتوح؟';b=`<p>الطرف D متصل بالقطب الموجب ⁦(${pv.D.toFixed(1)} V)⁩، والطرف E متصل عبر المصباح بالقطب السالب ⁦(0 V)⁩. المفتاح المفتوح يقطع المسار، فيقع فرق الجهد كله ⁦(${r.toFixed(1)} V)⁩ بين طرفيه، ولا ينساب تيار فلا يتوهج المصباح.</p>`;}}
+  else if(pair==='AD'||pair==='CE'||pair==='BF'){t='لماذا القراءة صفر عبر سلك التوصيل؟';b=`<p>النقطتان ${R} و ${B} طرفا سلك توصيل واحد، ومقاومة السلك صغيرة جداً، فجهداهما <b>متساويان تقريباً</b> ⁦(${pv[R].toFixed(1)} V)⁩ والقراءة صفر، حتى لو كان التيار ينساب في السلك.</p>`;}
+  else{t='فرق الجهد بين نقطتين';b=`<p>القراءة ⁦${r.toFixed(1)} V⁩ هي فرق الجهد بين النقطة ${R} ⁦(${pv[R].toFixed(1)} V)⁩ والنقطة ${B} ⁦(${pv[B].toFixed(1)} V)⁩. ${Math.abs(r)<0.05?'الجهدان متساويان فلا فرق جهد بينهما.':''}</p>`;}
+  return{t,b:b+nums+flow+vm+tryit};};
+
+(function(){const b=$('tipBtn'),p=$('tipPanel'),t=$('tipTitle'),body=$('tipBody');let iv=0,last='';
+  const fill=()=>{const r=window.__explain(),h=r.t+'|'+r.b;if(h===last)return;last=h;t.textContent=r.t;body.innerHTML=r.b;};
+  const open=v=>{p.hidden=!v;b.setAttribute('aria-expanded',v);b.classList.toggle('on',v);clearInterval(iv);if(v){last='';fill();iv=setInterval(fill,400);}};
+  b.addEventListener('click',()=>open(p.hidden));$('tipClose').addEventListener('click',()=>open(false));})();
+
+(function(){const b=$('fsBtn'),ico=$('fsIco'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen,exit=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const t=document.createElement('div');t.className='toast';t.hidden=true;t.textContent='ملء الشاشة غير متاح هنا. افتح الملف أو الرابط بالمتصفح';document.querySelector('.stage').appendChild(t);
+  let tm=0;const toast=()=>{t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3200);};
+  const sync=()=>{ico.setAttribute('d',isFs()?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');b.setAttribute('aria-label',isFs()?'الخروج من ملء الشاشة':'ملء الشاشة');};
+  b.addEventListener('click',()=>{if(isFs()){try{exit.call(document);}catch(e){}return;}
+    if(!req||document.fullscreenEnabled===false){toast();return;}
+    try{const r=req.call(el,{navigationUI:'hide'});if(r&&r.catch)r.catch(toast);setTimeout(()=>{if(!isFs())toast();},700);}catch(e){toast();}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);})();
+
+syncUI();arrange();new ResizeObserver(()=>arrange()).observe(cv);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
