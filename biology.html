@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <style>
     * {
       box-sizing: border-box;
@@ -1844,10 +1844,14 @@
       verifySubscription(keyVal);
     }
 
-    window.onload = () => {
+    let __moeInit = false;
+    function moeInit() {
+      if (__moeInit) return; __moeInit = true;
       const key = getStoredKey();
       verifySubscription(key);
-    };
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', moeInit);
+    else moeInit();
   </script>
 
   <!-- شريط التأمين الأوفلاين الذكي -->
@@ -1912,7 +1916,10 @@
         for (let i = 0; i < total; i++) {
           const file = files[i];
           try {
-            const res = await fetch(file, { cache: 'reload' });
+            const ac = new AbortController();
+            const tm = setTimeout(() => ac.abort(), 20000);
+            let res;
+            try { res = await fetch(file, { cache: 'reload', signal: ac.signal }); } finally { clearTimeout(tm); }
             if (res.ok) {
               await cache.put(file, res);
               cachedCount++;
@@ -1945,7 +1952,10 @@
       }
     }
 
-    window.addEventListener('load', startAutoSync);
+    let __moeSync = false;
+    function moeStartSync() { if (__moeSync) return; __moeSync = true; startAutoSync(); }
+    if (document.readyState === 'complete') setTimeout(moeStartSync, 500);
+    else { window.addEventListener('load', moeStartSync); setTimeout(moeStartSync, 4000); }
   </script>
   <!-- ===== قفل المختبر: يعمل بدون إنترنت (يقارن بالكود المحفوظ على الجهاز) ===== -->
   <style>
