@@ -26,6 +26,16 @@ svg{width:20px;height:20px}
 .slider{align-items:center;gap:10px;padding:6px 14px;color:#c9d6e8;font:600 13px system-ui,Tahoma,sans-serif}
 .slider input{width:min(46vw,260px);accent-color:#7fd3ff}
 .slider output{min-width:64px;text-align:center;font:700 13px ui-monospace,Consolas,monospace;color:#ffd27a}
+#ink{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none;touch-action:none}
+#ink.on{pointer-events:auto;cursor:crosshair}
+.tools,.dock,.inkbar{z-index:10}
+.inkbar{position:absolute;top:calc(max(10px,env(safe-area-inset-top)) + 52px);right:max(10px,env(safe-area-inset-right));display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid #eaf0fa24;border-radius:14px;background:#081429e6}
+.inkbar .sw{width:26px;height:26px;border-radius:50%;border:2px solid #ffffff40;padding:0;cursor:pointer}
+.inkbar .sw[aria-pressed="true"]{transform:scale(1.2);border-color:#fff}
+.inkbar .sz{width:32px;height:32px;border-radius:9px;border:1px solid transparent;background:transparent;display:grid;place-items:center;cursor:pointer}
+.inkbar .sz i{display:block;border-radius:50%;background:#eaf0fa}
+.inkbar .sz[aria-pressed="true"]{border-color:#7fd3ff88;background:#10264a}
+.inkbar .sep{width:1px;height:24px;background:#eaf0fa24}
 [hidden]{display:none!important}
 @media (max-width:440px){.tools{gap:5px}.tools button{width:38px;height:38px}.seg{flex-wrap:nowrap}.seg button{padding:6px 8px;font-size:12px;min-height:36px}.seg .long{display:none}.seg .short{display:inline}}
 </style>
@@ -33,7 +43,17 @@ svg{width:20px;height:20px}
 <body>
 <div class="stage">
   <canvas id="scene" aria-label="مشهدان: احتراق ورقة (تفاعل غير انعكاسي) ودورق مغلق فيه هيدروجين وبخار اليود (تفاعل انعكاسي)"></canvas>
+  <canvas id="ink" aria-hidden="true"></canvas>
   <div class="tools">
+    <button id="pen" aria-pressed="false" aria-label="قلم للكتابة على الشاشة" title="قلم">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg>
+    </button>
+    <button id="eraser" aria-pressed="false" aria-label="ممحاة" title="ممحاة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h12"/><path d="M4.5 15.5l9-9a2 2 0 012.8 0l3.2 3.2a2 2 0 010 2.8L13 19H8.5z"/><path d="M9 11l5 5"/></svg>
+    </button>
+    <button id="inkclear" aria-label="مسح كل الكتابة" title="مسح كل الكتابة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+    </button>
     <button id="labels" aria-pressed="true" aria-label="إظهار أسماء الأجزاء" title="أسماء الأجزاء">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.4"/></svg>
     </button>
@@ -57,7 +77,39 @@ svg{width:20px;height:20px}
       <button data-v="rev" aria-selected="false">انعكاسي ⇌</button>
     </div>
   </div>
+  <div class="inkbar" id="inkbar" hidden>
+    <button class="sw" data-c="#ffffff" style="background:#ffffff" aria-label="أبيض"></button>
+    <button class="sw" data-c="#ffd27a" style="background:#ffd27a" aria-label="أصفر" aria-pressed="true"></button>
+    <button class="sw" data-c="#ff5a5a" style="background:#ff5a5a" aria-label="أحمر"></button>
+    <button class="sw" data-c="#5ee89a" style="background:#5ee89a" aria-label="أخضر"></button>
+    <button class="sw" data-c="#56c2ff" style="background:#56c2ff" aria-label="أزرق"></button>
+    <span class="sep"></span>
+    <button class="sz" data-w="3" aria-label="خط رفيع" aria-pressed="true"><i style="width:5px;height:5px"></i></button>
+    <button class="sz" data-w="7" aria-label="خط سميك"><i style="width:11px;height:11px"></i></button>
+  </div>
   <div id="toast" class="toast" hidden></div>
+<script>
+(()=>{
+const cv=document.getElementById('ink'), cx=cv.getContext('2d'), $=id=>document.getElementById(id);
+let tool=null, color='#ffd27a', width=3, last=null;
+function size(){const r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1;if(!r.width)return;
+  const o=document.createElement('canvas');o.width=cv.width;o.height=cv.height;if(cv.width)o.getContext('2d').drawImage(cv,0,0);
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cx.setTransform(1,0,0,1,0,0);if(o.width)cx.drawImage(o,0,0,o.width,o.height);cx.setTransform(dpr,0,0,dpr,0,0)}
+new ResizeObserver(size).observe(cv);size();
+function clear(){cx.save();cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);cx.restore()}
+function setTool(t){tool=tool===t?null:t;$('pen').setAttribute('aria-pressed',String(tool==='pen'));$('eraser').setAttribute('aria-pressed',String(tool==='eraser'));
+  cv.classList.toggle('on',!!tool);$('inkbar').hidden=tool!=='pen'}
+$('pen').addEventListener('click',()=>setTool('pen'));$('eraser').addEventListener('click',()=>setTool('eraser'));$('inkclear').addEventListener('click',clear);
+document.querySelectorAll('.inkbar .sw').forEach(b=>b.addEventListener('click',()=>{color=b.dataset.c;document.querySelectorAll('.inkbar .sw').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+document.querySelectorAll('.inkbar .sz').forEach(b=>b.addEventListener('click',()=>{width=+b.dataset.w;document.querySelectorAll('.inkbar .sz').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+const pt=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+function style(){cx.lineCap='round';cx.lineJoin='round';if(tool==='eraser'){cx.globalCompositeOperation='destination-out';cx.strokeStyle=cx.fillStyle='#000';cx.lineWidth=34}else{cx.globalCompositeOperation='source-over';cx.strokeStyle=cx.fillStyle=color;cx.lineWidth=width}}
+cv.addEventListener('pointerdown',e=>{if(!tool)return;e.preventDefault();cv.setPointerCapture(e.pointerId);last=pt(e);style();cx.beginPath();cx.arc(last.x,last.y,cx.lineWidth/2,0,Math.PI*2);cx.fill()});
+cv.addEventListener('pointermove',e=>{if(!last)return;const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];style();for(const ev of evs){const p=pt(ev);cx.beginPath();cx.moveTo(last.x,last.y);cx.lineTo(p.x,p.y);cx.stroke();last=p}});
+const up=()=>{last=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+window.__ink={clear,setTool,count:()=>{const d=cx.getImageData(0,0,cv.width,cv.height).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i])n++;return n}};
+})();
+</script>
 </div>
 
 <script>
@@ -458,7 +510,7 @@ function drawIrr(t,dt){
   spawnFire(dt);stepFire(dt);
   TARGET=V(0,14,0);setupCam();
   dish();drawPaper(t);drawFire();
-  equation([['(C{6}H{10}O{5}){n}','#f3ead4'],['+','#eaf0fa'],['6nO{2}','#ff9a9a'],['⟶','#ffd27a'],['6nCO{2}','#c9d6e8'],['+','#eaf0fa'],['5nH{2}O','#7fd3ff']],layoutName==='port'?150:52);
+  equation([['(C{6}H{10}O{5}){n}','#f3ead4'],['+','#eaf0fa'],['6nO{2}','#ff9a9a'],['⟶','#ffd27a'],['6nCO{2}','#c9d6e8'],['+','#eaf0fa'],['5nH{2}O','#7fd3ff']],layoutName==='port'?150:118);
   const ty=layoutName==='port'?L.H-260:L.H-82;
   if(burnDone)tag(L.W/2,ty,'تفاعل غير انعكاسي: الرماد والدخان لا يرجعان ورقة','#ff9a6b');
 }
@@ -517,7 +569,7 @@ function drawRev(t,dt){
   cylY(0,0,8,FC.y+FR-3,FC.y+FR+20,[200,228,250],{sides:20,alpha:.16,spec:.9,shin:60,line:'rgba(0,0,0,0)'});
   {const a=P(V(-8,FC.y+FR-3,0)),b=P(V(-8,FC.y+FR+16,0)),c2=P(V(8,FC.y+FR-3,0)),d=P(V(8,FC.y+FR+16,0));ctx.strokeStyle='rgba(225,242,255,.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.moveTo(c2.x,c2.y);ctx.lineTo(d.x,d.y);ctx.stroke()}
   cylY(0,0,8.6,FC.y+FR+15,FC.y+FR+25,[178,60,52],{sides:20,spec:.35,amb:.55});
-  equation([['H{2}','#f0f3fa'],['+','#eaf0fa'],['I{2}','#c58bff'],['⇌','#ffd27a'],['2HI','#e08cf0']],layoutName==='port'?150:52);
+  equation([['H{2}','#f0f3fa'],['+','#eaf0fa'],['I{2}','#c58bff'],['⇌','#ffd27a'],['2HI','#e08cf0']],layoutName==='port'?150:118);
   // سطر واحد عند الاتزان
   if(running&&tRun>9){eqShown=Math.min(1,eqShown+dt*1.5)}
   if(eqShown>0){ctx.globalAlpha=eqShown;tag(L.W/2,layoutName==='port'?L.H-260:L.H-82,'تفاعل انعكاسي: المتفاعلات والنواتج موجودة سوية ولا ينتهي أحدها','#7fe8bb');ctx.globalAlpha=1}
