@@ -11,7 +11,7 @@ function stripUrl(url) {
 
 // الصفحات الأساسية تُحفظ فور تثبيت ملف الخدمة، حتى تفتح المنصة والتطبيق بدون إنترنت
 // (أول صفحة يُفتح منها الموقع لا تمر على ملف الخدمة، فلا تُحفظ تلقائياً)
-const CORE_FILES = ['./', './index.html', './app.html', './portal.html', './biology.html', './biology_en.html','./brand.js',
+const CORE_FILES = ['./', './index.html', './app.html', './portal.html', './biology.html', './biology_en.html','./brand.js','./install.js',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
