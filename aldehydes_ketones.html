@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>مختبر الألديهايدات والكيتونات</title>
+<style>
+/* VOICE: مختبر مدرسي واضح وهادئ بنمط PhET
+   IDEA: طاولة مختبر وجزيئات تتحرك أمام الطالب
+   PICTURE: المشهد التفاعلي يملأ الشاشة
+   COLOUR and TYPE: أبيض افتراضياً مع خلفيات غامقة اختيارية، خط Tajawal
+   LAYOUT: تبويبات في الأعلى، المعادلة فوق المشهد، أدوات القلم بجانبها */
+:root{--bg:#fff;--ink:#1b2430;--muted:#5b6877;--line:#dbe2ea;--chip:#f1f4f8;--acc:#1769d1;--pop:#fff}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;background:var(--bg);color:var(--ink);font:500 15px/1.5 Tajawal,system-ui,Tahoma,sans-serif;transition:background .3s}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:18px;white-space:nowrap}
+.brand small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);line-height:1.2}
+.tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:700 14px Tajawal,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.tab b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--line);margin-inline-end:6px;font-size:12px}
+.tab[aria-selected=true]{background:var(--acc);border-color:transparent;color:#fff}
+.tab[aria-selected=true] b{background:rgba(255,255,255,.25)}
+.tools{display:flex;gap:6px;flex:none}
+.ib{width:42px;height:42px;padding:0;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:var(--chip);color:var(--ink);cursor:pointer}
+.ib:hover{border-color:var(--acc);color:var(--acc)}
+.ib[aria-pressed=true]{background:var(--acc);color:#fff;border-color:transparent}
+.ib svg{width:20px;height:20px}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.sub{display:flex;gap:10px;align-items:center;padding:6px 12px;overflow-x:auto;border-bottom:1px solid var(--line);min-height:48px;scrollbar-width:thin}
+.grp{display:flex;gap:5px;flex:none;padding-inline-end:10px;border-inline-end:1px solid var(--line)}
+.chip{height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:700 13px Tajawal,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:transparent}
+.hint{color:var(--muted);font-size:13px;white-space:nowrap}
+#stage{flex:1;position:relative;min-height:0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+#ink{z-index:2;pointer-events:none}
+#ink.on{pointer-events:auto;cursor:crosshair}
+#eq{position:absolute;z-index:3;top:8px;left:50%;transform:translateX(-50%);direction:ltr;unicode-bidi:isolate;white-space:nowrap;max-width:96%;overflow:hidden;font:700 clamp(15px,2.1vw,22px)/1.25 Tajawal,system-ui,sans-serif;padding:7px 16px;border-radius:12px;background:var(--chip);border:1px solid var(--line);pointer-events:none;display:flex;align-items:center}
+#eq .p{opacity:0;transition:opacity .7s;display:inline-flex;align-items:center}
+#eq .p.on{opacity:1}
+.arr{display:inline-flex;flex-direction:column;align-items:center;margin:0 10px}
+.arr small{font-size:.56em;line-height:1.15;color:var(--muted);unicode-bidi:plaintext}
+.arr i{display:block;width:74px;height:2px;background:currentColor;position:relative;margin:2px 0}
+.arr i::after{content:"";position:absolute;right:-2px;top:-5px;border-left:10px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
+#rxbar{position:absolute;z-index:4;bottom:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:5px 12px 5px 6px;border-radius:999px;background:var(--chip);border:1px solid var(--line)}
+#rxbar .ib{width:38px;height:38px;border-radius:50%}
+#rxbar input{width:min(240px,40vw);accent-color:var(--acc)}
+#rxbar span{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.pop{position:absolute;z-index:6;top:8px;left:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;border-radius:14px;background:var(--pop);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:calc(100% - 20px)}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed=true]{outline:3px solid var(--acc);outline-offset:2px}
+.pop .lbl{font-size:12px;color:var(--muted);padding:0 4px}
+.th{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--chip);display:grid;place-items:center;cursor:pointer;padding:0}
+.th[aria-pressed=true]{outline:3px solid var(--acc)}
+.th i{display:block;background:var(--ink);border-radius:9px}
+#toast{position:absolute;z-index:7;left:50%;bottom:62px;transform:translateX(-50%);max-width:min(92vw,560px);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;text-align:center;transition:opacity .4s;pointer-events:none}
+[hidden]{display:none!important}
+header{background:#137a4c;color:#fff;border-bottom-color:#0f6340}
+header .brand small{color:rgba(255,255,255,.78)}
+header .tab,header .ib{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+header .tab b{background:rgba(255,255,255,.2)}
+header .tab[aria-selected=true]{background:#fff;color:#137a4c}
+header .tab[aria-selected=true] b{background:#137a4c;color:#fff}
+header .ib:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.22)}
+header .ib[aria-pressed=true]{background:#fff;color:#137a4c;border-color:transparent}
+header button:focus-visible{outline-color:#fff}
+@media(max-width:760px){.brand small{display:none}.brand{font-size:15px}.tab{padding:0 10px;font-size:13px}.ib{width:38px;height:38px}}
+@media(max-width:520px){.brand{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">الألديهايدات والكيتونات<small>كيمياء السادس العلمي · الفصل السابع</small></div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="واجهات المحاكاة"></nav>
+  <div class="tools">
+    <button class="ib" id="bBg" aria-pressed="false" title="لون الخلفية" aria-label="لون الخلفية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-1.8 0-1.2-1-1.5-1-2.6 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.2" r="1.2"/></svg></button>
+    <button class="ib" id="bPen" aria-pressed="false" title="القلم" aria-label="القلم"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+    <button class="ib" id="bEr" aria-pressed="false" title="الممحاة" aria-label="الممحاة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h12"/><path d="M4.5 15.5l9-9a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8l-3.5-3.5z"/><path d="M9 11l5 5"/></svg></button>
+    <button class="ib" id="bClr" title="مسح الكتابة" aria-label="مسح الكتابة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+    <button class="ib" id="bReset" title="إعادة التجربة" aria-label="إعادة التجربة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg></button>
+    <button class="ib" id="bFs" aria-pressed="false" title="ملء الشاشة" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+</header>
+<div class="sub" id="sub"></div>
+<main id="stage">
+  <canvas id="cv" aria-label="مشهد المحاكاة"></canvas>
+  <canvas id="ink" aria-hidden="true"></canvas>
+  <div id="eq"></div>
+  <div id="rxbar" hidden><button class="ib" id="rxPlay" aria-label="تشغيل التفاعل" title="تشغيل / إيقاف"><svg viewBox="0 0 24 24" fill="currentColor"><path id="rxIco" d="M8 5v14l11-7z"/></svg></button><input id="rxRange" dir="ltr" type="range" min="0" max="1" step="0.01" value="0" aria-label="مراحل التفاعل"><span>حرّك الشريط لمتابعة الخطوات</span></div>
+  <div class="pop" id="bgPop" hidden></div>
+  <div class="pop" id="penPop" hidden></div>
+  <div id="toast" hidden></div>
+</main>
+<script>
+{
+const $=s=>document.querySelector(s);
+const TAU=Math.PI*2,D2R=Math.PI/180;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t,ease=t=>t<.5?2*t*t:1-((-2*t+2)**2)/2;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const sm=(t,a,b)=>{const x=clamp((t-a)/(b-a),0,1);return x*x*(3-2*x)};
+function seeded(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const cv=$('#cv'),ctx=cv.getContext('2d'),ink=$('#ink'),ic=ink.getContext('2d'),stage=$('#stage'),eqEl=$('#eq');
+const VW=1000,VH=600;let W=1,H=1,dpr=1;const fit={s:1,ox:0,oy:0},view={k:1,x:0,y:0};let T=0;
+
+/* ---------- الألوان والخلفيات ---------- */
+const THEMES=[['أبيض','#ffffff'],['كحلي','#0f1e38'],['أخضر غامق','#0f2a21'],['فحمي','#1c2026'],['بنفسجي غامق','#221a38'],['بني غامق','#2a1d15'],['بترولي','#0b2a33'],['أسود','#0a0a0c']];
+let TH={},themeI=0;
+function applyTheme(i){themeI=i;const bg=THEMES[i][1],d=i>0;
+ TH={bg,d,ink:d?'#eef2f7':'#1b2430',muted:d?'#a9b6c6':'#5b6877',line:d?'rgba(255,255,255,.14)':'#dbe2ea',panel:d?'rgba(255,255,255,.05)':'#f5f8fb',panelB:d?'rgba(255,255,255,.2)':'#cfd8e2',
+ glass:d?'rgba(215,232,255,.75)':'rgba(55,80,110,.62)',gfill:d?'rgba(200,225,255,.07)':'rgba(205,225,245,.28)',bond:d?'#c9d2dd':'#6f7b88',acc:d?'#6cc4ff':'#1769d1',gold:d?'#ffcf5a':'#d08f00',grn:d?'#6fe0a5':'#14935a',red:d?'#ff8a80':'#d43a2f',water:d?'rgba(110,170,255,.34)':'rgba(90,160,235,.3)',hb:d?'#8fd3ff':'#1769d1'};
+ const r=document.documentElement.style;r.setProperty('--bg',bg);r.setProperty('--ink',TH.ink);r.setProperty('--muted',TH.muted);r.setProperty('--line',TH.line);r.setProperty('--chip',d?'rgba(255,255,255,.07)':'#f1f4f8');r.setProperty('--acc',TH.acc);r.setProperty('--pop',d?mix(bg,'#ffffff',.08):'#ffffff');
+ document.documentElement.style.colorScheme=d?'dark':'light';
+ try{localStorage.setItem('alc-bg',i)}catch(e){}
+ document.querySelectorAll('.sw').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+}
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(a),y=p(b);return'#'+x.map((v,i)=>Math.round(lerp(v,y[i],t)).toString(16).padStart(2,'0')).join('')}
+function rgba(a,b,t){return`rgba(${a.map((v,i)=>i<3?Math.round(lerp(v,b[i],t)):lerp(v,b[i],t).toFixed(2)).join(',')})`}
+
+/* ---------- أدوات الرسم ---------- */
+function txt(s,x,y,o={}){ctx.font=`${o.w||700} ${o.s||16}px Tajawal,system-ui,Tahoma,sans-serif`;ctx.fillStyle=o.c||TH.ink;ctx.textAlign=o.a||'center';ctx.textBaseline=o.b||'middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y)}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else{ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}}
+function panel(x,y,w,h,title,o={}){rr(x,y,w,h,16);ctx.fillStyle=TH.panel;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=TH.panelB;if(o.dash)ctx.setLineDash([8,6]);ctx.stroke();ctx.setLineDash([]);
+ if(title){if(o.lens){ctx.save();ctx.translate(x+w-24,y+22);ctx.strokeStyle=TH.muted;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,7,0,TAU);ctx.stroke();ctx.beginPath();ctx.moveTo(-5,5);ctx.lineTo(-11,11);ctx.stroke();ctx.restore()}
+ txt(title,x+w-(o.lens?40:16),y+22,{a:'right',s:14,c:TH.muted})}}
+const EL={C:['#4d535c',15],H:['#f3f5f8',10],O:['#e4473d',15],Na:['#8f5fd6',18],Br:['#a9462a',19],Cl:['#33b56c',17],N:['#3b6fd8',15]};
+const LT={};const light=c=>LT[c]||(LT[c]=mix(c,'#ffffff',.55));
+function atom(x,y,el,o={}){const e=EL[el],s=o.s||1,r=e[1]*s;ctx.save();ctx.globalAlpha=o.a??1;
+ if(o.glow){ctx.beginPath();ctx.arc(x,y,r+7*s,0,TAU);ctx.fillStyle=o.glow;ctx.fill()}
+ const g=ctx.createRadialGradient(x-r*.35,y-r*.4,r*.12,x,y,r);g.addColorStop(0,light(e[0]));g.addColorStop(1,e[0]);
+ ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fillStyle=g;ctx.fill();ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,0,0,.38)';ctx.stroke();
+ const lab=o.t||el;if(r>5)txt(lab,x,y+r*.07,{s:r*(lab.length>2?.6:lab.length>1?.82:1.02),c:el==='H'?'#3b4653':'#fff',w:800,dir:'ltr'});
+ if(o.q){const bx=x+r*.82,by=y-r*.82,br=Math.max(5,6.5*s);ctx.beginPath();ctx.arc(bx,by,br,0,TAU);ctx.fillStyle='#fff';ctx.fill();const qc=o.q==='+'?'#d43a2f':'#1769d1';ctx.strokeStyle=qc;ctx.lineWidth=1.4;ctx.stroke();txt(o.q,bx,by+.5,{s:br*1.7,c:qc,w:800,dir:'ltr'})}
+ ctx.restore()}
+function bond(a,b,ord,o={}){const s=o.s||1,dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;ctx.save();ctx.globalAlpha=o.a??1;ctx.lineCap='round';if(o.dash)ctx.setLineDash([5*s,5*s]);
+ const offs=ord===2?[-3.8,3.8]:ord===3?[-5.5,0,5.5]:[0];
+ for(const f of offs){ctx.beginPath();ctx.moveTo(a.x+nx*f*s,a.y+ny*f*s);ctx.lineTo(b.x+nx*f*s,b.y+ny*f*s);ctx.strokeStyle=o.c||TH.bond;ctx.lineWidth=(ord>1?3.2:5)*s;ctx.stroke()}ctx.restore()}
+function ring(x,y,r,c,lw=2.5,dash){ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.strokeStyle=c;ctx.lineWidth=lw;if(dash)ctx.setLineDash(dash);ctx.stroke();ctx.restore()}
+function hbLine(a,b,al=1){ctx.save();ctx.globalAlpha=al;ctx.setLineDash([3,4]);ctx.strokeStyle=TH.hb;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore()}
+
+/* ---------- الزجاجيات ---------- */
+function beaker(x,yb,w,h,layers,inner){const x0=x-w/2,x1=x+w/2,y0=yb-h,r=12;
+ const path=()=>{ctx.beginPath();ctx.moveTo(x0-6,y0);ctx.lineTo(x0,y0+8);ctx.lineTo(x0,yb-r);ctx.quadraticCurveTo(x0,yb,x0+r,yb);ctx.lineTo(x1-r,yb);ctx.quadraticCurveTo(x1,yb,x1,yb-r);ctx.lineTo(x1,y0+4);ctx.lineTo(x1+3,y0)};
+ path();ctx.fillStyle=TH.gfill;ctx.fill();ctx.save();path();ctx.clip();let y=yb;
+ for(const L of layers){const lh=L.f*h;ctx.fillStyle=L.c;ctx.fillRect(x0-8,y-lh,w+16,lh);ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillRect(x0,y-lh,w,1.6);y-=lh}
+ inner&&inner(x0,y0,w,h,y);ctx.restore();path();ctx.strokeStyle=TH.glass;ctx.lineWidth=2.4;ctx.lineJoin='round';ctx.stroke();
+ ctx.lineWidth=1.2;for(let i=1;i<=4;i++){const gy=yb-h*i/5;ctx.beginPath();ctx.moveTo(x1-3,gy);ctx.lineTo(x1-(i%2?13:22),gy);ctx.stroke()}
+ ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0+9,y0+16);ctx.lineTo(x0+9,yb-18);ctx.stroke();return y}
+function tube(x,yt,w,h,layers,inner){const r=w/2,yb=yt+h;
+ const path=()=>{ctx.beginPath();ctx.moveTo(x-r,yt);ctx.lineTo(x-r,yb-r);ctx.arc(x,yb-r,r,Math.PI,0,true);ctx.lineTo(x+r,yt)};
+ path();ctx.fillStyle=TH.gfill;ctx.fill();ctx.save();path();ctx.closePath();ctx.clip();let y=yb;
+ for(const L of layers){const lh=L.f*h;ctx.fillStyle=L.c;ctx.fillRect(x-r-2,y-lh,w+4,lh);ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillRect(x-r,y-lh,w,1.5);y-=lh}
+ inner&&inner(x-r,yt,w,h,y);ctx.restore();path();ctx.strokeStyle=TH.glass;ctx.lineWidth=2.2;ctx.stroke();
+ ctx.beginPath();ctx.ellipse(x,yt,r+3,3,0,0,TAU);ctx.stroke();
+ ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x-r+6,yt+12);ctx.lineTo(x-r+6,yb-r-4);ctx.stroke();return y}
+function bottleDraw(d){const k=d.k||1.25;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.rot||0);ctx.scale(k,k);
+ if(d.held){ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=16;ctx.shadowOffsetY=6}
+ rr(-27,-26,54,74,10);ctx.fillStyle=TH.d?'rgba(40,55,75,.85)':'rgba(235,243,250,.95)';ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ ctx.save();rr(-27,-26,54,74,10);ctx.clip();ctx.fillStyle=d.liq;ctx.fillRect(-30,8,60,45);ctx.restore();
+ rr(-27,-26,54,74,10);ctx.strokeStyle=TH.glass;ctx.lineWidth=2;ctx.stroke();
+ rr(-10,-40,20,15,3);ctx.fillStyle=TH.gfill;ctx.fill();ctx.stroke();
+ rr(-12,-50,24,11,3);ctx.fillStyle=d.cap||'#3b5b8c';ctx.fill();
+ rr(-23,-17,46,31,4);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='rgba(0,0,0,.15)';ctx.lineWidth=1;ctx.stroke();
+ txt(d.name,0,-7,{s:d.name.length>7?9:11.5,c:'#1b2430',w:800,dir:'ltr'});txt(d.sub,0,6.5,{s:d.sub.length>9?7:8.5,c:'#5b6877',w:700});
+ ctx.restore()}
+const mouth=d=>{const k=(d.k||1.25)*50;return{x:d.x+k*Math.sin(d.rot),y:d.y-k*Math.cos(d.rot)}};
+function dropperDraw(d){ctx.save();ctx.translate(d.x,d.y);ctx.scale(1.2,1.2);if(d.held){ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=14}
+ ctx.beginPath();ctx.ellipse(0,-42,11,17,0,0,TAU);const g=ctx.createLinearGradient(-11,0,11,0);g.addColorStop(0,'#e0564a');g.addColorStop(1,'#9b2a20');ctx.fillStyle=g;ctx.fill();ctx.shadowBlur=0;
+ rr(-9,-28,18,6,2);ctx.fillStyle='#5a2520';ctx.fill();
+ const p=()=>{ctx.beginPath();ctx.moveTo(-6,-22);ctx.lineTo(-6,28);ctx.lineTo(-2,48);ctx.lineTo(2,48);ctx.lineTo(6,28);ctx.lineTo(6,-22);ctx.closePath()};
+ p();ctx.fillStyle=TH.gfill;ctx.fill();ctx.save();p();ctx.clip();ctx.fillStyle=d.liq;ctx.fillRect(-7,2,14,48);ctx.restore();p();ctx.strokeStyle=TH.glass;ctx.lineWidth=1.6;ctx.stroke();ctx.restore();
+ if(d.lab)txt(d.lab,d.x,d.y+76,{s:12.5,c:TH.muted})}
+function flame(x,y,k=1){const f=1+Math.sin(T*23)*.06+Math.sin(T*37)*.04;ctx.save();ctx.translate(x,y);ctx.scale(k,k*f);
+ ctx.beginPath();ctx.moveTo(0,-46);ctx.bezierCurveTo(17,-22,15,0,0,0);ctx.bezierCurveTo(-15,0,-17,-22,0,-46);const g=ctx.createLinearGradient(0,0,0,-46);g.addColorStop(0,'rgba(60,120,255,.95)');g.addColorStop(.4,'rgba(255,150,40,.92)');g.addColorStop(1,'rgba(255,225,90,.15)');ctx.fillStyle=g;ctx.fill();ctx.restore()}
+function burner(x,y,on){const g=ctx.createLinearGradient(x-14,0,x+14,0);g.addColorStop(0,'#7d8794');g.addColorStop(.5,'#d6dce3');g.addColorStop(1,'#6c7580');rr(x-13,y-44,26,40,3);ctx.fillStyle=g;ctx.fill();rr(x-32,y-6,64,9,4);ctx.fillStyle='#59616b';ctx.fill();if(on)flame(x,y-44,.85)}
+function lcd(x,y,w,h,s){rr(x-w/2,y-h/2,w,h,7);const g=ctx.createLinearGradient(0,y-h/2,0,y+h/2);g.addColorStop(0,'#bdcdb0');g.addColorStop(1,'#93ab90');ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='#4b5a48';ctx.lineWidth=2;ctx.stroke();txt(s,x,y+1,{s:h*.48,c:'#1f2a1a',w:800,dir:'ltr'})}
+function naPiece(x,y,s){if(s<=0)return;const w=24*s,h=18*s;rr(x-w/2,y-h/2,w,h,4*s);const g=ctx.createLinearGradient(x-w/2,y-h/2,x+w/2,y+h/2);g.addColorStop(0,'#e5e9ee');g.addColorStop(1,'#8d96a1');ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='#5a636e';ctx.lineWidth=1;ctx.stroke()}
+
+/* ---------- الجزيئات ---------- */
+function Mol(){return{atoms:[],bonds:[]}}
+function A(m,el,x,y,o={}){m.atoms.push({el,x,y,q:o.q||'',v:o.v??1,t:o.t||''});return m.atoms.length-1}
+function B(m,i,j,o=1){m.bonds.push([i,j,o])}
+function bl(a,b){if(a==='H'||b==='H')return(a==='O'||b==='O')?32:36;if(a==='Br'||b==='Br')return 60;if(a==='Cl'||b==='Cl')return 58;return 52}
+function Tt(m,i,el,deg,len,o){const a=m.atoms[i],L=len||bl(a.el,el),r=deg*D2R;const j=A(m,el,a.x+Math.cos(r)*L,a.y-Math.sin(r)*L,o);B(m,i,j);return j}
+function Me(m,i,deg){const c=Tt(m,i,'C',deg);[deg-55,deg,deg+55].forEach(d=>Tt(m,c,'H',d));return c}
+function ethanol(m,x,y){const Cm=A(m,'C',x-52,y),Ca=A(m,'C',x,y);B(m,Cm,Ca);const Hm=[125,180,235].map(d=>Tt(m,Cm,'H',d));const Hu=Tt(m,Ca,'H',90),Hd=Tt(m,Ca,'H',270),O=Tt(m,Ca,'O',0),Ho=Tt(m,O,'H',40);return{Cm,Ca,O,Ho,Hu,Hd,Hm}}
+function drawMol(m,X,Y,S,o={}){const P=m.atoms.map(a=>({x:X+a.x*S,y:Y+a.y*S}));
+ m.bonds.forEach(([i,j,ord])=>{const k=Math.min(o.sc?.[i]??1,o.sc?.[j]??1);if(k>.05)bond(P[i],P[j],ord,{s:S,a:k})});
+ m.atoms.forEach((a,i)=>{const k=o.sc?.[i]??1;if(k>.03)atom(P[i].x,P[i].y,a.el,{s:S*k,q:a.q,t:a.t,glow:o.glow?.[i]})});return P}
+/* محرك التفاعل: إطارات مفتاحية للمواقع والأواصر */
+function Rx(m){return{el:m.atoms.map(a=>a.el),fr:[{p:m.atoms.map(a=>[a.x,a.y]),b:m.bonds.map(b=>b.slice()),q:m.atoms.map(a=>a.q),v:m.atoms.map(a=>a.v),tg:m.atoms.map(a=>a.t),lab:[]}],t:0,goal:0,playing:false,stops:[],min:0,hl:[],spd:.5}}
+function key(rx,fn){const L=rx.fr[rx.fr.length-1];const f={p:L.p.map(q=>q.slice()),b:L.b.map(b=>b.slice()),q:L.q.slice(),v:L.v.slice(),tg:L.tg.slice(),lab:[]};
+ const k={mv(ids,dx,dy){ids.forEach(i=>{f.p[i][0]+=dx;f.p[i][1]+=dy})},put(i,x,y){f.p[i]=[x,y]},cut(i,j){f.b=f.b.filter(b=>!((b[0]===i&&b[1]===j)||(b[0]===j&&b[1]===i)))},bd(i,j,o=1){k.cut(i,j);f.b.push([i,j,o])},q(i,s){f.q[i]=s},show(ids,v=1){ids.forEach(i=>f.v[i]=v)},tag(i,s){f.tg[i]=s},lab(s,x,y,c){f.lab.push({s,x,y,c})},at(i,j,deg,len){const r=deg*D2R;f.p[j]=[f.p[i][0]+Math.cos(r)*len,f.p[i][1]-Math.sin(r)*len]},pos:i=>f.p[i]};
+ fn(k);rx.fr.push(f);return rx}
+function lab0(rx,s,x,y,c){rx.fr[0].lab.push({s,x,y,c})}
+const kb=b=>Math.min(b[0],b[1])+'-'+Math.max(b[0],b[1]);
+function drawRx(rx,X,Y,S){const n=rx.fr.length-1,t=clamp(rx.t,0,n);let i=n?Math.min(Math.floor(t),n-1):0;const f=n?ease(t-i):0,F0=rx.fr[i],F1=n?rx.fr[i+1]:F0;
+ const P=F0.p.map((p,j)=>({x:X+S*lerp(p[0],F1.p[j][0],f),y:Y+S*lerp(p[1],F1.p[j][1],f)})),vis=F0.v.map((v,j)=>lerp(v,F1.v[j],f));
+ const mp=new Map();F0.b.forEach(b=>mp.set(kb(b),{i:b[0],j:b[1],o0:b[2],o1:0}));F1.b.forEach(b=>{const e=mp.get(kb(b));if(e)e.o1=b[2];else mp.set(kb(b),{i:b[0],j:b[1],o0:0,o1:b[2]})});
+ const mid=f>.03&&f<.97;
+ for(const e of mp.values()){const a=P[e.i],b=P[e.j],va=Math.min(vis[e.i],vis[e.j]);if(va<.03)continue;
+  if(e.o0&&e.o1){if(e.o0===e.o1)bond(a,b,e.o0,{s:S,a:va});else bond(a,b,f<.5?e.o0:e.o1,{s:S,a:va,c:mid?(e.o1>e.o0?TH.grn:TH.red):null})}
+  else if(e.o0){if(f<.97)bond(a,b,e.o0,{s:S,a:va*(1-f*.85),dash:mid,c:mid?TH.red:null})}
+  else if(f>.03)bond(a,b,e.o1,{s:S,a:va*f,c:mid?TH.grn:null})}
+ (rx.hh||[]).forEach(j=>{if(vis[j]>.5&&t<1.5)ring(P[j].x,P[j].y,EL[rx.el[j]][1]*S+6,TH.red,2.5)});
+ rx.hl.forEach(j=>{if(vis[j]>.5)ring(P[j].x,P[j].y,EL[rx.el[j]][1]*S+7,TH.gold,2.5,[5,4])});
+ rx.el.forEach((el,j)=>{if(vis[j]>.03)atom(P[j].x,P[j].y,el,{s:S,a:vis[j],q:f<.5?F0.q[j]:F1.q[j],t:f<.5?F0.tg[j]:F1.tg[j]})});
+ const L=(arr,al)=>arr.forEach(l=>{if(al>.02){ctx.globalAlpha=al;txt(l.s,X+l.x*S,Y+l.y*S,{s:15,c:l.c||TH.muted});ctx.globalAlpha=1}});
+ L(F0.lab,n?1-f:1);if(n)L(F1.lab,f);return P}
+function rxPlay(rx,goal){rx.goal=goal??(rx.stops.find(s=>s>rx.t+1e-3)??rx.fr.length-1);rx.playing=rx.goal>rx.t}
+const rxEnd=rx=>rx.fr.length-1;
+
+/* ---------- الحركة والمؤقتات ---------- */
+const tws=[],tms=[];let drops=[],bubs=[];
+function tween(o,to,dur,cb){const fr={};for(const k in to)fr[k]=o[k];tws.push({o,to,fr,dur,t:0,cb})}
+function after(s,fn){tms.push({t:s,fn})}
+function clearAnims(){tws.length=0;tms.length=0;drops=[];bubs=[]}
+function Dg(o){return Object.assign({w:70,h:125,rot:0,k:1.25,busy:false,hide:false,held:false,draw:bottleDraw},o,{x:o.hx,y:o.hy})}
+function pourAnim(d,x,y,dur,start){d.busy=true;tween(d,{x,y,rot:-1.1},.45,()=>{start&&start();after(dur,()=>tween(d,{x:d.hx,y:d.hy,rot:0},.45,()=>{d.busy=false}))})}
+function drawFx(){drops.forEach(d=>{ctx.beginPath();ctx.ellipse(d.x,d.y,3.4,4.8,0,0,TAU);ctx.fillStyle=d.c;ctx.fill()});
+ bubs.forEach(b=>{ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fillStyle='rgba(255,255,255,.35)';ctx.fill();ctx.strokeStyle=TH.d?'rgba(255,255,255,.85)':'rgba(60,100,140,.7)';ctx.lineWidth=1.1;ctx.stroke()})}
+function bubble(x,y,top,r){bubs.push({x,y,top,r:r||rnd(2,4.5),vy:rnd(50,110),ph:rnd(0,6)})}
+
+/* ---------- المعادلة ---------- */
+let eqKey='';
+function setEq(r,a,p,on){const k=r+'|'+(a||'')+'|'+p;if(k!==eqKey){eqKey=k;eqEl.innerHTML=`<span>${r}</span>${p?`<span class="p">${a?`<span class="arr"><small dir="auto">${a[0]||'&nbsp;'}</small><i></i><small dir="auto">${a[1]||'&nbsp;'}</small></span>`:''}<span>${p}</span></span>`:''}`}
+ const pe=eqEl.querySelector('.p');if(pe)pe.classList.toggle('on',!!on)}
+
+/* ================= أدوات مشتركة ================= */
+const inZoneX=(d,x0,x1)=>d.x>x0&&d.x<x1&&d.y>90&&d.y<540;
+function ZoneRx(c){return{c,reset(){this.rx=c.rx();this.added={};this.ready=false;
+  this.drags=c.bottles.map(b=>{const d=Dg(b);d.tap=()=>this.add(d);d.drop=dd=>inZoneX(dd,100,790)?(this.add(dd),true):false;return d})},
+ add(d){if(this.added[d.id]){toast('تمت إضافة هذه المادة');return}this.added[d.id]=1;pourAnim(d,640,165,.7);
+  after(.5,()=>{this.ready=true;this.rx.min=1;rxPlay(this.rx,c.stop??rxEnd(this.rx))})},
+ draw(){panel(110,100,670,430,c.title,{lens:1,dash:1});drawRx(this.rx,c.X,c.Y,c.S);
+  if(!this.ready)txt(c.wait,445,505,{s:14,c:TH.muted})},
+ eq(){setEq(this.ready?c.r:c.r0,c.a,c.p,this.rx.t>rxEnd(this.rx)-.35)}}}
+
+/* ================= الواجهة 1: التركيب ================= */
+const GR={H:'H',CH3:'CH₃',C2H5:'C₂H₅'};
+const CN={'H|H':['ميثانال','HCHO',0],'CH3|H':['إيثانال','CH₃CHO',0],'C2H5|H':['بروبانال','CH₃CH₂CHO',0],'CH3|CH3':['بروبانون (أسيتون)','CH₃COCH₃',1],'C2H5|CH3':['بيوتانون','CH₃COCH₂CH₃',1],'C2H5|C2H5':['3-بنتانون','CH₃CH₂COCH₂CH₃',1]};
+function grp(m,c,g,L){const base=L?210:330;
+ if(g==='H')return Tt(m,c,'H',base);
+ if(g==='CH3')return Me(m,c,base);
+ const c1=Tt(m,c,'C',base);(L?[250,300]:[290,240]).forEach(d=>Tt(m,c1,'H',d));const cd=L?150:30,c2=Tt(m,c1,'C',cd);[cd-55,cd,cd+55].forEach(d=>Tt(m,c2,'H',d));return c1}
+function tokDraw(d){const x=d.x,y=d.y;rr(x-48,y-36,96,72,14);ctx.fillStyle=TH.panel;ctx.fill();ctx.strokeStyle=d.held?TH.acc:TH.panelB;ctx.lineWidth=1.6;ctx.stroke();
+ if(d.g==='H')atom(x,y-6,'H',{s:1.5});
+ else if(d.g==='CH3'){atom(x,y-6,'C',{s:1.1});[[-14,-18],[14,-18],[0,10]].forEach(p=>{bond({x,y:y-6},{x:x+p[0],y:y-6+p[1]},1,{s:.6});atom(x+p[0],y-6+p[1],'H',{s:.7})});atom(x,y-6,'C',{s:1.1})}
+ else{[[-14,-6],[14,-6]].forEach(p=>atom(x+p[0],y+p[1],'C',{s:.95}));bond({x:x-14,y:y-6},{x:x+14,y:y-6},1,{s:.8});atom(x-14,y-6,'C',{s:.95});atom(x+14,y-6,'C',{s:.95})}
+ txt(GR[d.g],x,y+24,{s:14,dir:'ltr',c:TH.muted})}
+const S1={MX:610,MY:255,MS:1.75,
+ hint(){return'اسحب H أو مجموعة ألكيل إلى الموقعين الفارغين على ذرة الكاربون · اضغط على مجموعة مثبّتة لإزالتها'},
+ reset(){clearAnims();this.sl=[null,null];this.an=[1,1];
+  this.drags=['H','CH3','C2H5'].map((g,i)=>{const d=Dg({g,hx:780-i*170,hy:520,w:100,h:76,draw:tokDraw});d.tap=()=>{const k=this.sl[1]?this.sl[0]?-1:0:1;k<0?toast('الموقعان ممتلئان؛ اضغط على مجموعة لإزالتها'):this.fill(k,g)};
+   d.drop=dd=>{const k=this.nearSlot(dd);if(k<0)return false;this.fill(k,g);return true};return d});this.pulse=this.drags[0];this.build()},
+ slotPos(k){const a=(k?330:210)*D2R;return{x:this.MX+Math.cos(a)*52*this.MS,y:this.MY-Math.sin(a)*52*this.MS}},
+ nearSlot(p){let b=-1,bd=70;[0,1].forEach(k=>{const q=this.slotPos(k),d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;b=k}});return b},
+ fill(k,g){this.sl[k]=g;this.an[k]=0;this.build();this.touched=true},
+ build(){const m=Mol();const c=A(m,'C',0,0),o=Tt(m,c,'O',90);m.bonds[0][2]=2;this.c=c;this.o=o;this.rng=[null,null];
+  [0,1].forEach(k=>{if(!this.sl[k])return;const a=m.atoms.length;grp(m,c,this.sl[k],k===0);this.rng[k]=[a,m.atoms.length]});this.m=m},
+ down(p){const k=this.nearSlot(p);if(k>=0&&this.sl[k]&&Math.hypot(this.slotPos(k).x-p.x,this.slotPos(k).y-p.y)<40){this.sl[k]=null;this.build();return true}return false},
+ update(dt){this.an=this.an.map(v=>Math.min(1,v+dt*2.2))},
+ key(){return this.sl[0]&&this.sl[1]?[this.sl[0],this.sl[1]].sort().join('|'):null},
+ eq(){const k=this.key();if(!k){setEq('C=O',null,'',false);return}const n=CN[k];setEq(n[1],null,'&nbsp;&nbsp;'+n[0],true)},
+ draw(){const S=this.MS,X=this.MX,Y=this.MY;panel(380,95,460,370,'',{});
+  const sc={};[0,1].forEach(k=>{if(this.rng[k]){const e=ease(this.an[k]);for(let i=this.rng[k][0];i<this.rng[k][1];i++)sc[i]=e}});
+  const P=drawMol(this.m,X,Y,S,{sc});
+  // مجموعة الكاربونيل
+  const pc=P[this.c],po=P[this.o];ctx.save();ctx.setLineDash([7,5]);ctx.strokeStyle=TH.gold;ctx.lineWidth=2.5;rr(pc.x-38,po.y-38,76,pc.y-po.y+76,30);ctx.stroke();ctx.restore();
+  txt('مجموعة الكاربونيل',pc.x+52,po.y-4,{a:'left',s:14,c:TH.gold});
+  [0,1].forEach(k=>{if(this.sl[k])return;const q=this.slotPos(k),r=24+Math.sin(T*4)*3;ctx.save();ctx.setLineDash([5,4]);ring(q.x,q.y,r,TH.acc,2.5);ctx.restore();txt('+',q.x,q.y+1,{s:24,c:TH.acc,dir:'ltr'});
+   ctx.save();ctx.strokeStyle=TH.acc;ctx.globalAlpha=.5;ctx.setLineDash([4,4]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(pc.x,pc.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.restore();atom(pc.x,pc.y,'C',{s:S})});
+  // البطاقة
+  panel(40,95,310,370,'');const key=this.key();
+  if(!key){txt('ألديهايد',195,150,{s:24,c:TH.grn});txt('R–CHO',195,188,{s:22,dir:'ltr'});txt('H واحدة على الأقل على الكاربونيل',195,220,{s:13,c:TH.muted,w:500});
+   ctx.strokeStyle=TH.line;ctx.beginPath();ctx.moveTo(70,265);ctx.lineTo(320,265);ctx.stroke();
+   txt('كيتون',195,310,{s:24,c:TH.acc});txt('R–CO–R′',195,348,{s:22,dir:'ltr'});txt('مجموعتا ألكيل على الكاربونيل',195,380,{s:13,c:TH.muted,w:500})}
+  else{const n=CN[key],al=sm(Math.min(...this.an),.3,1);ctx.globalAlpha=al;
+   txt(n[2]?'كيتون':'ألديهايد',195,155,{s:36,c:n[2]?TH.acc:TH.grn,w:800});txt(n[2]?'R–CO–R′':'R–CHO',195,205,{s:24,dir:'ltr'});
+   ctx.strokeStyle=TH.line;ctx.beginPath();ctx.moveTo(70,245);ctx.lineTo(320,245);ctx.stroke();
+   txt(n[0],195,295,{s:24});txt(n[1],195,340,{s:21,c:TH.muted,dir:'ltr'});ctx.globalAlpha=1}
+ }};
+
+/* ================= الواجهة 2: التحضير ================= */
+function rxAld(){const m=Mol();const E=ethanol(m,-20,30);const X=A(m,'O',100,-110,{v:0,t:'[O]'});const rx=Rx(m);rx.hl=[E.Ca];rx.hh=[E.Ho,E.Hu];lab0(rx,'إيثانول',-40,110);
+ key(rx,k=>{k.show([X]);k.lab('إيثانول',-40,110)});
+ key(rx,k=>{k.put(X,125,-60);k.put(E.Ho,97,-78);k.put(E.Hu,153,-78);k.cut(E.O,E.Ho);k.cut(E.Ca,E.Hu);k.bd(X,E.Ho);k.bd(X,E.Hu);k.bd(E.Ca,E.O,2);k.tag(X,'');k.lab('إيثانال',-40,110);k.lab('H₂O',125,-112)});
+ rx.stops=[2];rx.spd=.45;return rx}
+function rxKet(){const m=Mol();const Ca=A(m,'C',0,30);Me(m,Ca,210);Me(m,Ca,330);const O=Tt(m,Ca,'O',90),Ho=Tt(m,O,'H',30),Hu=Tt(m,Ca,'H',270);const X=A(m,'O',115,-110,{v:0,t:'[O]'});const rx=Rx(m);rx.hl=[Ca];rx.hh=[Ho,Hu];lab0(rx,'2-بروبانول',0,125);
+ key(rx,k=>{k.show([X]);k.lab('2-بروبانول',0,125)});
+ key(rx,k=>{k.put(X,120,-60);k.put(Ho,92,-78);k.put(Hu,148,-78);k.cut(O,Ho);k.cut(Ca,Hu);k.bd(X,Ho);k.bd(X,Hu);k.bd(Ca,O,2);k.tag(X,'');k.lab('بروبانون',0,125);k.lab('H₂O',120,-112)});
+ rx.stops=[2];rx.spd=.45;return rx}
+const S2={
+ hint(){return'اسحب العامل المؤكسد إلى أي نصف من الشاشة أو اضغط عليه'},
+ reset(){clearAnims();this.P=[{x0:575,x1:970,cx:772,t:'كحول أولي ← ألديهايد',rx:rxAld(),on:0,r:'CH₃CH₂OH + [O]',p:'CH₃CHO + H₂O'},{x0:30,x1:425,cx:228,t:'كحول ثانوي ← كيتون',rx:rxKet(),on:0,r:'CH₃CH(OH)CH₃ + [O]',p:'CH₃COCH₃ + H₂O'}];this.cur=0;
+  const d=Dg({id:'ox',hx:500,hy:300,name:'K₂Cr₂O₇',sub:'H₂SO₄ مخفف',liq:'rgba(240,128,28,.85)',cap:'#7a3b10'});
+  d.tap=()=>{const i=this.P.findIndex(p=>!p.on);i<0?toast('أُضيف العامل المؤكسد إلى الجانبين'):this.add(d,i)};d.drop=dd=>{if(Math.abs(dd.x-500)<50)return false;const i=dd.x>500?0:1;if(this.P[i].on)return false;this.add(dd,i);return true};this.drags=[d];this.pulse=d},
+ add(d,i){const p=this.P[i];p.on=1;this.cur=i;pourAnim(d,p.cx+(i?40:-40)+80,150,.7);after(.5,()=>{p.rx.min=1;rxPlay(p.rx)})},
+ update(dt){this.P.forEach((p,i)=>{const r=p.rx;if(i!==this.cur&&r.playing){r.t=Math.min(r.goal,r.t+dt*r.spd);if(r.t>=r.goal)r.playing=false}})},
+ get rx(){return this.P&&this.P[this.cur].rx},get ready(){return this.P&&!!this.P[this.cur].on},
+ down(p){const i=this.P.findIndex(q=>p.x>q.x0&&p.x<q.x1&&p.y>100&&p.y<470);if(i>=0){this.cur=i;return true}return false},
+ eq(){const p=this.P[this.cur];setEq(p.r,['K₂Cr₂O₇ / H⁺',''],p.p,p.rx.t>1.65)},
+ draw(){this.P.forEach((p,i)=>{panel(p.x0,100,p.x1-p.x0,370,p.t,{dash:!p.on});if(i===this.cur){rr(p.x0,100,p.x1-p.x0,370,16);ctx.strokeStyle=TH.acc;ctx.lineWidth=2.5;ctx.stroke()}
+  drawRx(p.rx,p.cx,300,.98);if(!p.on)txt('أضف العامل المؤكسد',p.cx,440,{s:14,c:TH.muted})})}};
+
+/* ================= الواجهة 3: القطبية والتفاعلات ================= */
+function carbAld(m){const c=A(m,'C',0,0),o=Tt(m,c,'O',90);m.bonds[m.bonds.length-1][2]=2;const me=Me(m,c,210),h=Tt(m,c,'H',330);return{c,o}}
+function carbKet(m){const c=A(m,'C',0,0),o=Tt(m,c,'O',90);m.bonds[m.bonds.length-1][2]=2;Me(m,c,210);Me(m,c,330);return{c,o}}
+function rxNuc(){const m=Mol();const E=carbAld(m);const Hx=A(m,'H',150,20),Cn=A(m,'C',186,20),N=A(m,'N',232,20);B(m,Hx,Cn);B(m,Cn,N,3);
+ const rx=Rx(m);rx.hl=[E.c];lab0(rx,'إيثانال',-10,105);lab0(rx,'HCN',190,65);
+ key(rx,k=>{k.cut(Hx,Cn);k.put(Hx,150,-110);k.q(Hx,'+');k.put(Cn,170,40);k.put(N,216,40);k.q(Cn,'−');k.lab('إيثانال',-10,105)});
+ key(rx,k=>{k.bd(E.c,Cn);k.bd(E.c,E.o,1);k.q(E.o,'−');k.q(Cn,'');k.put(Cn,0,52);k.put(N,0,98);k.put(Hx,110,-90);k.lab('هجوم CN⁻ على Cδ+',0,135,TH.acc)});
+ key(rx,k=>{k.bd(E.o,Hx);k.q(E.o,'');k.q(Hx,'');k.at(E.o,Hx,30,32);k.lab('2-هيدروكسي بروبان نتريل',0,135)});
+ rx.stops=[1,2,3];rx.spd=.4;return rx}
+function rxRed(ket){const m=Mol();const E=ket?carbKet(m):carbAld(m);const Ha=A(m,'H',150,-60),Hb=A(m,'H',150,-24);B(m,Ha,Hb);
+ const rx=Rx(m);rx.hl=[E.c];lab0(rx,ket?'بروبانون':'إيثانال',0,105);lab0(rx,'H₂',190,-42);
+ key(rx,k=>{k.put(Ha,70,-78);k.put(Hb,70,-42);k.lab(ket?'بروبانون':'إيثانال',0,105)});
+ key(rx,k=>{k.cut(Ha,Hb);k.bd(E.o,Ha);k.bd(E.c,Hb);k.bd(E.c,E.o,1);k.at(E.o,Ha,30,32);k.at(E.c,Hb,270,36);k.lab(ket?'2-بروبانول (كحول ثانوي)':'إيثانول (كحول أولي)',0,105,TH.grn)});
+ rx.stops=[2];rx.spd=.45;return rx}
+const S3={sub:'pol',red:'ald',
+ bar(){const g=[{items:[['pol','قطبية الكاربونيل',this.sub==='pol'],['nuc','الإضافة النيوكليوفيلية',this.sub==='nuc'],['red','الاختزال',this.sub==='red']],on:id=>{this.sub=id;this.reset()}}];
+  if(this.sub==='red')g.push({items:[['ald','ألديهايد',this.red==='ald'],['ket','كيتون',this.red==='ket']],on:id=>{this.red=id;this.reset()}});return g},
+ hint(){return{pol:'الإلكترونات تقضي وقتاً أطول قرب الأوكسجين الأعلى سالبية كهربائية',nuc:'أضف HCN إلى منطقة التفاعل',red:'أضف الهيدروجين بوجود النيكل'}[this.sub]},
+ reset(){clearAnims();this.z=null;this.rx=null;this.ready=false;this.drags=[];this.pulse=null;
+  if(this.sub==='pol'){this.el=Array.from({length:14},(_,i)=>({th:i/14*TAU,k:i%2?1:0,ph:rnd(0,6)}));return}
+  const c=this.sub==='nuc'?{title:'الإضافة النيوكليوفيلية',rx:rxNuc,X:400,Y:310,S:1.45,wait:'أضف HCN',bottles:[{id:'hcn',hx:900,hy:290,name:'HCN',sub:'سيانيد الهيدروجين',liq:'rgba(220,230,240,.6)',cap:'#355'}],r0:'CH₃CHO + ؟',r:'CH₃CHO + HCN',a:['',''],p:'CH₃CH(OH)CN'}
+   :{title:'الاختزال',rx:()=>rxRed(this.red==='ket'),X:400,Y:320,S:1.5,wait:'أضف H₂',bottles:[{id:'h2',hx:900,hy:290,name:'H₂',sub:'بوجود Ni',liq:'rgba(220,235,250,.4)',cap:'#556'}],r0:(this.red==='ket'?'CH₃COCH₃':'CH₃CHO')+' + ؟',r:(this.red==='ket'?'CH₃COCH₃':'CH₃CHO')+' + H₂',a:['Ni',''],p:this.red==='ket'?'CH₃CH(OH)CH₃':'CH₃CH₂OH'};
+  this.z=ZoneRx(c);this.z.reset();this.drags=this.z.drags;this.pulse=this.drags[0]},
+ update(dt){if(this.z){this.rx=this.z.rx;this.ready=this.z.ready;return}
+  this.el.forEach(e=>{const v=1.6*(1+.75*Math.cos(e.th));e.th=(e.th+v*dt)%TAU})},
+ eq(){if(this.z)return this.z.eq();setEq('C<sup>δ+</sup>=O<sup>δ−</sup>',null,'',false)},
+ draw(){if(this.z)return this.z.draw();
+  const cx=500,cy=300,xc=390,xo=610;panel(150,100,700,420,'',{});
+  // مجاميع ملحقة باهتة
+  ctx.globalAlpha=.45;[[300,230,'H'],[300,370,'C']].forEach(([x,y,e])=>{bond({x:xc,y:cy},{x,y},1,{s:1.6});atom(x,y,e,{s:1.6})});ctx.globalAlpha=1;
+  // سحابة الكثافة الإلكترونية
+  const g=ctx.createRadialGradient(xo,cy,10,xo-40,cy,230);g.addColorStop(0,'rgba(60,120,255,.42)');g.addColorStop(.55,'rgba(60,120,255,.14)');g.addColorStop(1,'rgba(60,120,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx+10,cy,200,95,0,0,TAU);ctx.fill();
+  bond({x:xc,y:cy},{x:xo,y:cy},2,{s:2.4});
+  // الإلكترونات
+  this.el.forEach(e=>{const ry=e.k?62:34,x=cx-150*Math.cos(e.th),y=cy+(e.k?-1:1)*ry*Math.sin(e.th)*(e.k?1:1)+Math.sin(T*3+e.ph)*2;ctx.beginPath();ctx.arc(x,y,4.5,0,TAU);ctx.fillStyle=TH.d?'#ffe066':'#f0a500';ctx.fill();ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=1;ctx.stroke()});
+  atom(xc,cy,'C',{s:2.4});atom(xo,cy,'O',{s:2.4});
+  txt('δ+',xc,cy-58,{s:30,c:TH.red,dir:'ltr',w:800});txt('δ−',xo,cy-58,{s:30,c:TH.acc,dir:'ltr',w:800});
+  // سهم ثنائي القطب
+  const ay=cy+80;ctx.strokeStyle=TH.ink;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(xc,ay);ctx.lineTo(xo-14,ay);ctx.stroke();ctx.beginPath();ctx.moveTo(xc+18,ay-10);ctx.lineTo(xc+18,ay+10);ctx.stroke();
+  ctx.fillStyle=TH.ink;ctx.beginPath();ctx.moveTo(xo,ay);ctx.lineTo(xo-16,ay-8);ctx.lineTo(xo-16,ay+8);ctx.closePath();ctx.fill();
+  // مواقع الهجوم
+  const nx=xc+20,ny=cy+170;atom(nx,ny+10,'N',{s:1.3,t:'Nu'});txt('⁻',nx+22,ny-6,{s:22,c:TH.acc,dir:'ltr'});ctx.strokeStyle=TH.grn;ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(nx,ny-12);ctx.quadraticCurveTo(nx-40,cy+90,xc-6,cy+38);ctx.stroke();ctx.setLineDash([]);
+  const ex=xo+20,ey=cy-160;atom(ex,ey,'H',{s:1.5,q:'+'});ctx.strokeStyle=TH.grn;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(ex,ey+18);ctx.quadraticCurveTo(ex+40,cy-90,xo+8,cy-40);ctx.stroke();ctx.setLineDash([])}
+};
+
+/* ================= مختبر الكشف (تولن وفهلنك) ================= */
+const BATH={x:420,yb:505,w:290,h:150},SLOT_B=[360,480],SLOT_R=[880,775],TUBE_IN=375,TUBE_RACK=360;
+function LabScene(kind){const F=kind==='f';return{
+ hint(){return F?'امزج فهلنك A و B ← أضف المزيج للأنبوبين ← ضعهما في الحمام المائي ← شغّل التسخين':'أضف كاشف تولن للأنبوبين ← ضعهما في الحمام المائي ← شغّل التسخين'},
+ reset(){clearAnims();this.heat=false;this.Tb=25;this.mix={a:0,b:0,lv:0};
+  const mkT=(id,i,n,f)=>{const d=Dg({id,n,f,hx:SLOT_R[i],hy:TUBE_RACK,w:74,h:250,k:1,lv:.22,reag:0,t:0,inBath:false,draw:dd=>this.drawTube(dd),
+    ps:Array.from({length:70},()=>{const a=rnd(.22,.78)*Math.PI,r=rnd(6,21);return{x:rnd(-20,20),y:rnd(0,1),bx:Math.cos(a)*r,by:Math.sin(a)*r,dl:rnd(0,3),p:rnd(0,6)}})});
+   d.drop=dd=>this.placeTube(dd);return d};
+  this.tubes=[mkT('al',0,'بروبانال','CH₃CH₂CHO'),mkT('ke',1,'بروبانون','CH₃COCH₃')];
+  const dr=Dg({id:'drop',hx:150,hy:F?195:345,w:50,h:140,draw:dropperDraw,liq:F?'rgba(30,90,210,.9)':'rgba(225,235,245,.9)',lab:F?'مزيج فهلنك':'كاشف تولن',hide:F});
+  dr.tap=()=>{const t=this.tubes.find(t=>!t.reag);t?this.addReag(dr,t):toast('أُضيف الكاشف إلى الأنبوبين')};
+  dr.drop=dd=>{const t=this.tubes.find(t=>Math.abs(dd.x-t.x)<50&&dd.y<t.y-30&&dd.y>t.y-280);if(!t||t.reag)return false;this.addReag(dd,t);return true};this.dr=dr;
+  this.drags=[...this.tubes,dr];this.pulse=dr;
+  if(F){const mk=(id,hx,name,sub,liq)=>{const d=Dg({id,hx,hy:505,name,sub,liq,k:1.05});d.tap=()=>this.pourMix(d);d.drop=dd=>Math.abs(dd.x-150)<90&&dd.y<440&&dd.y>200?(this.pourMix(dd),true):false;return d};
+   const a=mk('a',85,'فهلنك A','CuSO₄','rgba(60,130,230,.75)'),b=mk('b',215,'فهلنك B','قلوي + طرطرات','rgba(225,235,245,.6)');this.drags.unshift(a,b);this.pulse=a}},
+ pourMix(d){if(this.mix[d.id]){toast('تمت إضافته');return}this.mix[d.id]=1;pourAnim(d,212,250,1,()=>{this.mix.pd=d;after(1,()=>{this.mix.pd=null;if(this.mix.a&&this.mix.b){this.dr.hide=false;this.pulse=this.dr;this.touched=false}})})},
+ addReag(d,t){d.busy=true;t.busy=true;tween(d,{x:t.x,y:t.y-205},.45,()=>{for(let j=0;j<5;j++)after(j*.2,()=>drops.push({x:t.x,y:t.y-145,vy:0,ey:t.y+110-t.lv*235,c:d.liq}));after(1.05,()=>{t.reag=1;t.busy=false;tween(d,{x:d.hx,y:d.hy},.45,()=>{d.busy=false})})})},
+ placeTube(d){const inB=Math.abs(d.x-BATH.x)<170&&d.y>200&&d.y<560,inR=d.x>690&&d.y>200&&d.y<560;
+  const other=this.tubes.find(t=>t!==d);
+  if(inB){let s=SLOT_B.reduce((a,b)=>Math.abs(b-d.x)<Math.abs(a-d.x)?b:a);if(other.inBath&&other.hx===s)s=SLOT_B.find(x=>x!==s);d.hx=s;d.hy=TUBE_IN;d.inBath=true;return false}
+  if(inR){let s=SLOT_R.reduce((a,b)=>Math.abs(b-d.x)<Math.abs(a-d.x)?b:a);if(!other.inBath&&other.hx===s)s=SLOT_R.find(x=>x!==s);d.hx=s;d.hy=TUBE_RACK;d.inBath=false;return false}return false},
+ down(p){if(Math.abs(p.x-300)<34&&Math.abs(p.y-548)<26){this.heat=!this.heat;this.touched=true;return true}return false},
+ update(dt){const tgt=F?100:60;this.Tb=this.heat?Math.min(tgt,this.Tb+dt*14):Math.max(25,this.Tb-dt*5);const ok=this.Tb>=(F?90:55);
+  this.tubes.forEach(t=>{if(t.reag)t.lv=Math.min(.45,t.lv+dt*.15);if(t.inBath&&t.reag&&ok&&!t.held&&Math.abs(t.x-t.hx)<2)t.t+=dt});
+  if(this.heat&&this.Tb>=(F?96:58)&&Math.random()<dt*(F?22:6))bubble(BATH.x+rnd(-130,130),BATH.yb-6,BATH.yb-BATH.h*.72+4);
+  if(this.mix.pd)this.mix.lv=Math.min(.55,this.mix.lv+dt*.28)},
+ res(t){if(t.id!=='al'||!t.reag)return 0;return F?sm(t.t,9,16):sm(t.t,4,14)},
+ eq(){const al=this.tubes[0];if(F)setEq('CH₃CH₂CHO + 2CuO',['تسخين',''],'CH₃CH₂COOH + Cu₂O↓',this.res(al)>.3);else setEq('CH₃CH₂CHO + Ag₂O',['تسخين',''],'CH₃CH₂COOH + 2Ag↓',this.res(al)>.4)},
+ drawTube(d){const yt=d.y-120,h=240,w=50,F2=F;let col='rgba(215,232,245,.45)';const t=d.t,al=d.id==='al';
+  if(d.reag){if(F2){const b=[30,90,210,.72];if(al){const f1=sm(t,1.5,6),f2=sm(t,9,16);const gC=[70,150,90,.72],rC=[185,75,40,.78],pale=[150,175,200,.35];col=f2>0?rgba(rC,pale,f2):f1<.5?rgba(b,gC,f1*2):rgba(gC,rC,(f1-.5)*2)}else col=rgba(b,b,0)}
+   else{const gC=[110,110,115,.55];col=al?rgba([225,235,245,.45],gC,sm(t,1,5)):'rgba(225,235,245,.45)'}}
+  tube(d.x,yt,w,h,[{f:d.lv,c:col}],(x0,y0,ww,hh,top)=>{const yb=y0+hh,r=ww/2;
+   if(F2&&al&&d.reag){const f1=sm(t,2,7);d.ps.forEach(p=>{const s=sm(t,9+p.dl,15+p.dl);const fx=d.x+p.x+Math.sin(T*.8+p.p)*2*(1-s),fy=top+p.y*(yb-top-6);const x=lerp(fx,d.x+p.bx,s),y=lerp(fy,yb-r+p.by,s);
+     if(f1>0){ctx.globalAlpha=Math.min(1,f1*1.3);ctx.fillStyle=s>.9?'#a63c22':'#c4532e';ctx.beginPath();ctx.arc(x,y,1.8+s*1.6,0,TAU);ctx.fill();ctx.globalAlpha=1}});
+    const st=sm(t,11,19);if(st>0){ctx.save();ctx.beginPath();ctx.rect(x0,yb-6-st*16,ww,30);ctx.clip();ctx.beginPath();ctx.arc(d.x,yb-r,r-1,0,Math.PI);ctx.fillStyle=`rgba(166,60,34,${.92*st})`;ctx.fill();ctx.restore()}}
+   if(!F2&&al){const m=this.res(d);if(m>0){const g=ctx.createLinearGradient(x0,0,x0+ww,0);[['#55595f',0],['#eef1f4',.18],['#8d9399',.38],['#f7f9fb',.55],['#6c7279',.78],['#c9ced3',1]].forEach(([c,o])=>g.addColorStop(o,c));
+     ctx.globalAlpha=m;ctx.fillStyle=g;const ty=top-14;ctx.fillRect(x0,ty,ww,yb-ty);const hx=x0+((T*30)%(ww+30))-15;ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(hx,ty,5,yb-ty);ctx.globalAlpha=1}}});
+  txt(d.n,d.x,yt-30,{s:15});txt(d.f,d.x,yt-12,{s:11.5,c:TH.muted,dir:'ltr'});
+  const m=this.res(d);if(d.reag&&(m>.9||(d.id==='ke'&&d.t>(F?14:10)))){const ok=d.id==='al';txt(ok?(F?'راسب أحمر آجري':'مرآة فضية'):(F?'يبقى أزرق':'لا تغيير'),d.x,yt-52,{s:14,c:ok?TH.grn:TH.red})}},
+ draw(){// الحامل
+  rr(700,420,240,14,5);ctx.fillStyle=TH.d?'#6b5440':'#c9a27a';ctx.fill();ctx.fillStyle=TH.d?'#4d3b2c':'#a8825c';ctx.fillRect(712,434,10,70);ctx.fillRect(918,434,10,70);rr(700,500,240,12,5);ctx.fill();
+  // الحمام المائي (الخلف)
+  beaker(BATH.x,BATH.yb,BATH.w,BATH.h,[],()=>{});
+  rr(265,BATH.yb+3,310,16,5);ctx.fillStyle=TH.d?'#3a414b':'#7d8794';ctx.fill();if(this.heat){ctx.fillStyle=`rgba(255,80,30,${.35+.45*clamp((this.Tb-25)/60,0,1)})`;rr(275,BATH.yb+6,290,8,4);ctx.fill()}
+  ctx.beginPath();ctx.arc(300,548,20,0,TAU);ctx.fillStyle=this.heat?'#e5562b':(TH.d?'#555c66':'#c2c9d1');ctx.fill();ctx.strokeStyle=TH.ink;ctx.lineWidth=2;ctx.beginPath();ctx.arc(300,549,8,-1.1,4.25);ctx.stroke();ctx.beginPath();ctx.moveTo(300,538);ctx.lineTo(300,548);ctx.stroke();
+  txt(this.heat?'إيقاف التسخين':'تسخين',300,580,{s:12.5,c:this.heat?TH.red:TH.gold});
+  lcd(470,548,110,36,`${this.Tb.toFixed(0)} °C`);
+  // الكواشف
+  if(F){beaker(150,375,104,92,[{f:this.mix.lv,c:this.mix.a&&this.mix.b?'rgba(30,90,210,.8)':this.mix.a?'rgba(60,130,230,.7)':'rgba(225,235,245,.6)'}]);if(!this.mix.a||!this.mix.b)txt('للمزج',150,395,{s:12,c:TH.muted});
+   if(this.mix.pd){const m=mouth(this.mix.pd);ctx.strokeStyle=this.mix.pd.liq;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(m.x,m.y);ctx.lineTo(m.x-4,375-this.mix.lv*92);ctx.stroke()}}
+  else bottleDraw({x:150,y:500,rot:0,k:1.25,name:'Tollens',sub:'كاشف تولن',liq:'rgba(225,235,245,.6)',cap:'#444'})},
+ drawTop(){// الماء أمام الأنابيب
+  const x0=BATH.x-BATH.w/2,top=BATH.yb-BATH.h*.72;ctx.save();ctx.beginPath();ctx.rect(x0+1,top,BATH.w-2,BATH.yb-top-1);ctx.fillStyle=rgba([110,175,255,.16],[255,150,80,.13],clamp((this.Tb-25)/75,0,1));ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillRect(x0+1,top,BATH.w-2,1.6);ctx.restore();
+  if(this.heat&&this.Tb>50)for(let i=0;i<4;i++){const x=BATH.x-90+i*60,y=top-12-((T*22+i*13)%40);ctx.globalAlpha=.35*(1-((T*22+i*13)%40)/40);ctx.strokeStyle=TH.muted;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+12);ctx.quadraticCurveTo(x+8,y+6,x,y);ctx.stroke();ctx.globalAlpha=1}
+  txt('حمام مائي',BATH.x+100,BATH.yb-14,{s:12.5,c:TH.muted})}
+}}
+const S4=LabScene('t'),S5=LabScene('f');
+
+/* ================= المشاهد والتنقل ================= */
+const scenes=[{n:'التركيب والفرق بينهما',s:S1},{n:'التحضير',s:S2},{n:'القطبية والتفاعلات',s:S3},{n:'كاشف تولن',s:S4},{n:'محلول فهلنك',s:S5}];
+let cur=0;const S=()=>scenes[cur].s;
+$('#tabs').innerHTML=scenes.map((q,i)=>`<button class="tab" role="tab" data-i="${i}" aria-selected="${i===0}"><b>${i+1}</b>${q.n}</button>`).join('');
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+function go(i){cur=i;document.querySelectorAll('.tab').forEach((b,j)=>b.setAttribute('aria-selected',j===i));view.k=1;view.x=view.y=0;S().reset();renderSub();clearInk();eqKey=''}
+function renderSub(){const sc=S(),el=$('#sub');const g=sc.bar?sc.bar():[];
+ el.innerHTML=g.map((q,gi)=>`<div class="grp">${q.items.map(([id,n,on])=>`<button class="chip" data-g="${gi}" data-id="${id}" aria-pressed="${!!on}">${n}</button>`).join('')}</div>`).join('')+`<span class="hint">${sc.hint?sc.hint():''}</span>`;
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{sc.bar()[+b.dataset.g].on(b.dataset.id);renderSub();eqKey=''})}
+
+/* ---------- الحجم والرسم ---------- */
+function resize(){const r=stage.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;
+ const tmp=document.createElement('canvas');tmp.width=ink.width;tmp.height=ink.height;if(ink.width>1)tmp.getContext('2d').drawImage(ink,0,0);ink.width=W*dpr;ink.height=H*dpr;ic.drawImage(tmp,0,0);
+ const top=Math.min(64,H*.11),bot=Math.min(54,H*.09);fit.s=Math.min(W/VW,(H-top-bot)/VH);fit.ox=(W-VW*fit.s)/2;fit.oy=top+(H-top-bot-VH*fit.s)/2}
+new ResizeObserver(resize).observe(stage);
+const toV=(px,py)=>{const a=fit.s*view.k;return{x:(px-fit.ox-view.x)/a,y:(py-fit.oy-view.y)/a}};
+function zoomAt(px,py,f){const a0=fit.s*view.k,nk=clamp(view.k*f,1,4),a1=fit.s*nk,vx=(px-fit.ox-view.x)/a0,vy=(py-fit.oy-view.y)/a0;view.k=nk;view.x=px-fit.ox-a1*vx;view.y=py-fit.oy-a1*vy;if(nk<=1.001){view.k=1;view.x=view.y=0}}
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;try{update(dt);draw()}catch(e){console.error(e)}requestAnimationFrame(frame)}
+function update(dt){for(let i=tms.length-1;i>=0;i--){tms[i].t-=dt;if(tms[i].t<=0){const f=tms[i].fn;tms.splice(i,1);f()}}
+ for(let i=tws.length-1;i>=0;i--){const w=tws[i];w.t+=dt;const f=ease(Math.min(1,w.t/w.dur));for(const k in w.to)w.o[k]=lerp(w.fr[k],w.to[k],f);if(w.t>=w.dur){tws.splice(i,1);w.cb&&w.cb()}}
+ drops=drops.filter(d=>{d.vy+=900*dt;d.y+=d.vy*dt;return d.y<d.ey});bubs=bubs.filter(b=>{b.y-=b.vy*dt;b.x+=Math.sin(T*6+b.ph)*.3;return b.y>b.top});
+ const sc=S();(sc.drags||[]).forEach(d=>{if(!d.held&&!d.busy&&!d.free&&!d.hide){const k=Math.min(1,dt*12);d.x+=(d.hx-d.x)*k;d.y+=(d.hy-d.y)*k;d.rot+=(0-d.rot)*k}});
+ sc.update&&sc.update(dt);const rx=sc.rx;if(rx&&rx.playing){rx.t=Math.min(rx.goal,rx.t+dt*rx.spd);if(rx.t>=rx.goal)rx.playing=false}
+ sc.eq&&sc.eq();syncBar()}
+function draw(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);ctx.fillStyle=TH.bg;ctx.fillRect(0,0,W,H);const a=fit.s*view.k;ctx.setTransform(dpr*a,0,0,dpr*a,dpr*(fit.ox+view.x),dpr*(fit.oy+view.y));
+ const sc=S();sc.draw();(sc.drags||[]).forEach(d=>{if(!d.hide)d.draw(d)});sc.drawTop&&sc.drawTop();drawFx();
+ if(sc.pulse&&!sc.touched&&!sc.pulse.hide){const p=sc.pulse,r=Math.max(p.w,p.h)*.55+Math.sin(T*4)*6;ctx.save();ctx.globalAlpha=.55+.3*Math.sin(T*4);ring(p.x,p.y,r,TH.gold,3);ctx.restore()}}
+
+/* ---------- شريط التفاعل ---------- */
+const rxbar=$('#rxbar'),rng=$('#rxRange'),rxIco=$('#rxIco');let barRx=null;
+function syncBar(){const sc=S(),rx=sc.rx,show=!!(rx&&sc.ready&&rx.fr.length>1);rxbar.hidden=!show;if(!show)return;if(barRx!==rx){barRx=rx;rng.max=rxEnd(rx)}if(document.activeElement!==rng)rng.value=rx.t;rxIco.setAttribute('d',rx.playing?'M7 5h4v14H7zM13 5h4v14h-4z':'M8 5v14l11-7z')}
+rng.oninput=()=>{const rx=S().rx;if(!rx)return;rx.playing=false;rx.t=Math.max(rx.min||0,+rng.value)};
+$('#rxPlay').onclick=()=>{const rx=S().rx;if(!rx)return;if(rx.playing){rx.playing=false;return}if(rx.t>=rxEnd(rx)-.01)rx.t=rx.min||0;rxPlay(rx)};
+
+/* ---------- المؤشر واللمس ---------- */
+const ptrs=new Map();let drag=null,pan=null,pinch=null,lastTap=0;
+function touch(){S().touched=true}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+ if(ptrs.size===2){if(drag){drag.d.held=false;drag=null}pan=null;const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),m:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}};return}
+ const p=toV(e.offsetX,e.offsetY),sc=S();const d=(sc.drags||[]).slice().reverse().find(d=>!d.hide&&!d.busy&&Math.abs(p.x-d.x)<d.w/2+14&&Math.abs(p.y-d.y)<d.h/2+14);
+ if(d){drag={d,dx:p.x-d.x,dy:p.y-d.y,sx:e.offsetX,sy:e.offsetY,moved:false};d.held=true;touch();return}
+ if(sc.down&&sc.down(p)){touch();return}
+ const now=performance.now();if(now-lastTap<320){view.k=1;view.x=view.y=0}lastTap=now;pan={x:e.offsetX,y:e.offsetY,vx:view.x,vy:view.y}});
+cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+ if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};zoomAt(m.x,m.y,d/pinch.d);if(view.k>1){view.x+=m.x-pinch.m.x;view.y+=m.y-pinch.m.y}pinch={d,m};return}
+ if(drag){const p=toV(e.offsetX,e.offsetY),d=drag.d;d.x=p.x-drag.dx;d.y=p.y-drag.dy;d.constrain&&d.constrain(d);if(Math.hypot(e.offsetX-drag.sx,e.offsetY-drag.sy)>6)drag.moved=true;return}
+ if(pan&&view.k>1){view.x=pan.vx+e.offsetX-pan.x;view.y=pan.vy+e.offsetY-pan.y}});
+function endP(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(drag){const d=drag.d;d.held=false;if(!drag.moved){d.tap&&d.tap()}else if(!(d.drop&&d.drop(d))){}drag=null}if(!ptrs.size)pan=null}
+cv.addEventListener('pointerup',endP);cv.addEventListener('pointercancel',endP);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,e.deltaY<0?1.12:1/1.12)},{passive:false});
+
+/* ---------- القلم ---------- */
+let penMode=null,penCol='#ffffff',penW=4,stroke=null;const PCOL=['#ffffff','#ffd400','#ff3b30','#22c55e','#2f7cf6'];
+const penPop=$('#penPop'),bgPop=$('#bgPop');
+function renderPen(){penPop.innerHTML='<span class="lbl">لون القلم</span>'+PCOL.map(c=>`<button class="sw" data-c="${c}" style="background:${c}" aria-label="لون" aria-pressed="${c===penCol}"></button>`).join('')+'<span class="lbl">السُمك</span>'+[3,8].map(w=>`<button class="th" data-w="${w}" aria-label="سمك ${w}" aria-pressed="${w===penW}"><i style="width:${w+4}px;height:${w+4}px"></i></button>`).join('');
+ penPop.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{penCol=b.dataset.c;renderPen()});penPop.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{penW=+b.dataset.w;renderPen()})}
+function setPen(m){penMode=penMode===m?null:m;$('#bPen').setAttribute('aria-pressed',penMode==='pen');$('#bEr').setAttribute('aria-pressed',penMode==='er');ink.classList.toggle('on',!!penMode);penPop.hidden=penMode!=='pen';if(penMode==='pen'){if(penCol==='#ffffff'&&!TH.d)penCol='#ff3b30';renderPen();bgPop.hidden=true;$('#bBg').setAttribute('aria-pressed',false)}}
+$('#bPen').onclick=()=>setPen('pen');$('#bEr').onclick=()=>setPen('er');
+function clearInk(){ic.setTransform(1,0,0,1,0,0);ic.clearRect(0,0,ink.width,ink.height)}
+$('#bClr').onclick=clearInk;
+ink.addEventListener('pointerdown',e=>{if(!penMode)return;ink.setPointerCapture(e.pointerId);stroke={x:e.offsetX,y:e.offsetY};dot(e)});
+ink.addEventListener('pointermove',e=>{if(!stroke)return;ic.setTransform(dpr,0,0,dpr,0,0);ic.globalCompositeOperation=penMode==='er'?'destination-out':'source-over';ic.strokeStyle=penCol;ic.lineWidth=penMode==='er'?26:penW;ic.lineCap=ic.lineJoin='round';ic.beginPath();ic.moveTo(stroke.x,stroke.y);ic.lineTo(e.offsetX,e.offsetY);ic.stroke();stroke={x:e.offsetX,y:e.offsetY}});
+function dot(e){ic.setTransform(dpr,0,0,dpr,0,0);ic.globalCompositeOperation=penMode==='er'?'destination-out':'source-over';ic.fillStyle=penCol;ic.beginPath();ic.arc(e.offsetX,e.offsetY,(penMode==='er'?26:penW)/2,0,TAU);ic.fill()}
+const endInk=()=>{stroke=null};ink.addEventListener('pointerup',endInk);ink.addEventListener('pointercancel',endInk);
+
+/* ---------- الخلفية وبقية الأدوات ---------- */
+bgPop.innerHTML='<span class="lbl">لون الخلفية</span>'+THEMES.map((t,i)=>`<button class="sw" data-i="${i}" style="background:${t[1]}" title="${t[0]}" aria-label="${t[0]}"></button>`).join('');
+bgPop.querySelectorAll('.sw').forEach(b=>b.onclick=()=>applyTheme(+b.dataset.i));
+$('#bBg').onclick=()=>{bgPop.hidden=!bgPop.hidden;$('#bBg').setAttribute('aria-pressed',!bgPop.hidden);if(!bgPop.hidden){penPop.hidden=true}};
+$('#bReset').onclick=()=>{S().reset();renderSub();eqKey='';view.k=1;view.x=view.y=0};
+$('#bFs').onclick=async()=>{try{const de=document.documentElement;if(!document.fullscreenElement&&!document.webkitFullscreenElement){await(de.requestFullscreen?de.requestFullscreen():de.webkitRequestFullscreen())}else{await(document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen())}}catch(e){toast('ملء الشاشة غير متاح في هذا العرض')}};
+document.addEventListener('fullscreenchange',()=>$('#bFs').setAttribute('aria-pressed',!!document.fullscreenElement));
+let toastT=0;function toast(s,ms=3200){const t=$('#toast');t.textContent=s;t.hidden=false;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>{t.style.opacity=0;setTimeout(()=>t.hidden=true,400)},ms)}
+
+let bi=0;try{bi=+(localStorage.getItem('alc-bg')||0)}catch(e){}applyTheme(THEMES[bi]?bi:0);
+resize();go(0);requestAnimationFrame(frame);
+if(W<H)toast('أدر الجهاز أفقياً لعرض أوضح، ويمكنك التكبير بالإصبعين',6500);else toast('اختر الواجهة من الأعلى • اسحب المواد أو اضغط عليها • كبّر بالإصبعين أو بعجلة الفأرة • نقرتان لإعادة المنظر',6500);
+window.__sim={scenes,go,S,view,TH,applyTheme};
+}
+</script>
+</body>
+</html>
