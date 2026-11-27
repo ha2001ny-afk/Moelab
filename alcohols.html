@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>مختبر الكحولات</title>
+<style>
+/* VOICE: مختبر مدرسي واضح وهادئ بنمط PhET
+   IDEA: طاولة مختبر وجزيئات تتحرك أمام الطالب
+   PICTURE: المشهد التفاعلي يملأ الشاشة
+   COLOUR and TYPE: أبيض افتراضياً مع خلفيات غامقة اختيارية، خط Tajawal
+   LAYOUT: تبويبات في الأعلى، المعادلة فوق المشهد، أدوات القلم بجانبها */
+:root{--bg:#fff;--ink:#1b2430;--muted:#5b6877;--line:#dbe2ea;--chip:#f1f4f8;--acc:#1769d1;--pop:#fff}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;background:var(--bg);color:var(--ink);font:500 15px/1.5 Tajawal,system-ui,Tahoma,sans-serif;transition:background .3s}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:18px;white-space:nowrap}
+.brand small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);line-height:1.2}
+.tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:700 14px Tajawal,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.tab b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--line);margin-inline-end:6px;font-size:12px}
+.tab[aria-selected=true]{background:var(--acc);border-color:transparent;color:#fff}
+.tab[aria-selected=true] b{background:rgba(255,255,255,.25)}
+.tools{display:flex;gap:6px;flex:none}
+.ib{width:42px;height:42px;padding:0;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:var(--chip);color:var(--ink);cursor:pointer}
+.ib:hover{border-color:var(--acc);color:var(--acc)}
+.ib[aria-pressed=true]{background:var(--acc);color:#fff;border-color:transparent}
+.ib svg{width:20px;height:20px}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.sub{display:flex;gap:10px;align-items:center;padding:6px 12px;overflow-x:auto;border-bottom:1px solid var(--line);min-height:48px;scrollbar-width:thin}
+.grp{display:flex;gap:5px;flex:none;padding-inline-end:10px;border-inline-end:1px solid var(--line)}
+.chip{height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:700 13px Tajawal,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:transparent}
+.hint{color:var(--muted);font-size:13px;white-space:nowrap}
+#stage{flex:1;position:relative;min-height:0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+#ink{z-index:2;pointer-events:none}
+#ink.on{pointer-events:auto;cursor:crosshair}
+#eq{position:absolute;z-index:3;top:8px;left:50%;transform:translateX(-50%);direction:ltr;unicode-bidi:isolate;white-space:nowrap;max-width:96%;overflow:hidden;font:700 clamp(15px,2.1vw,22px)/1.25 Tajawal,system-ui,sans-serif;padding:7px 16px;border-radius:12px;background:var(--chip);border:1px solid var(--line);pointer-events:none;display:flex;align-items:center}
+#eq .p{opacity:0;transition:opacity .7s;display:inline-flex;align-items:center}
+#eq .p.on{opacity:1}
+.arr{display:inline-flex;flex-direction:column;align-items:center;margin:0 10px}
+.arr small{font-size:.56em;line-height:1.15;color:var(--muted);direction:rtl}
+.arr i{display:block;width:74px;height:2px;background:currentColor;position:relative;margin:2px 0}
+.arr i::after{content:"";position:absolute;right:-2px;top:-5px;border-left:10px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
+#rxbar{position:absolute;z-index:4;bottom:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:5px 12px 5px 6px;border-radius:999px;background:var(--chip);border:1px solid var(--line)}
+#rxbar .ib{width:38px;height:38px;border-radius:50%}
+#rxbar input{width:min(240px,40vw);accent-color:var(--acc)}
+#rxbar span{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.pop{position:absolute;z-index:6;top:8px;left:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;border-radius:14px;background:var(--pop);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:calc(100% - 20px)}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed=true]{outline:3px solid var(--acc);outline-offset:2px}
+.pop .lbl{font-size:12px;color:var(--muted);padding:0 4px}
+.th{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--chip);display:grid;place-items:center;cursor:pointer;padding:0}
+.th[aria-pressed=true]{outline:3px solid var(--acc)}
+.th i{display:block;background:var(--ink);border-radius:9px}
+#toast{position:absolute;z-index:7;left:50%;bottom:62px;transform:translateX(-50%);max-width:min(92vw,560px);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;text-align:center;transition:opacity .4s;pointer-events:none}
+[hidden]{display:none!important}
+header{background:#137a4c;color:#fff;border-bottom-color:#0f6340}
+header .brand small{color:rgba(255,255,255,.78)}
+header .tab,header .ib{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+header .tab b{background:rgba(255,255,255,.2)}
+header .tab[aria-selected=true]{background:#fff;color:#137a4c}
+header .tab[aria-selected=true] b{background:#137a4c;color:#fff}
+header .ib:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.22)}
+header .ib[aria-pressed=true]{background:#fff;color:#137a4c;border-color:transparent}
+header button:focus-visible{outline-color:#fff}
+@media(max-width:760px){.brand small{display:none}.brand{font-size:15px}.tab{padding:0 10px;font-size:13px}.ib{width:38px;height:38px}}
+@media(max-width:520px){.brand{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">الكحولات<small>كيمياء السادس العلمي · الفصل السابع</small></div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="واجهات المحاكاة"></nav>
+  <div class="tools">
+    <button class="ib" id="bBg" aria-pressed="false" title="لون الخلفية" aria-label="لون الخلفية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-1.8 0-1.2-1-1.5-1-2.6 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.2" r="1.2"/></svg></button>
+    <button class="ib" id="bPen" aria-pressed="false" title="القلم" aria-label="القلم"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+    <button class="ib" id="bEr" aria-pressed="false" title="الممحاة" aria-label="الممحاة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h12"/><path d="M4.5 15.5l9-9a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 19H8l-3.5-3.5z"/><path d="M9 11l5 5"/></svg></button>
+    <button class="ib" id="bClr" title="مسح الكتابة" aria-label="مسح الكتابة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+    <button class="ib" id="bReset" title="إعادة التجربة" aria-label="إعادة التجربة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg></button>
+    <button class="ib" id="bFs" aria-pressed="false" title="ملء الشاشة" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+</header>
+<div class="sub" id="sub"></div>
+<main id="stage">
+  <canvas id="cv" aria-label="مشهد المحاكاة"></canvas>
+  <canvas id="ink" aria-hidden="true"></canvas>
+  <div id="eq"></div>
+  <div id="rxbar" hidden><button class="ib" id="rxPlay" aria-label="تشغيل التفاعل" title="تشغيل / إيقاف"><svg viewBox="0 0 24 24" fill="currentColor"><path id="rxIco" d="M8 5v14l11-7z"/></svg></button><input id="rxRange" dir="ltr" type="range" min="0" max="1" step="0.01" value="0" aria-label="مراحل التفاعل"><span>حرّك الشريط لمتابعة الخطوات</span></div>
+  <div class="pop" id="bgPop" hidden></div>
+  <div class="pop" id="penPop" hidden></div>
+  <div id="toast" hidden></div>
+</main>
+<script>
+{
+const $=s=>document.querySelector(s);
+const TAU=Math.PI*2,D2R=Math.PI/180;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t,ease=t=>t<.5?2*t*t:1-((-2*t+2)**2)/2;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const sm=(t,a,b)=>{const x=clamp((t-a)/(b-a),0,1);return x*x*(3-2*x)};
+function seeded(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const cv=$('#cv'),ctx=cv.getContext('2d'),ink=$('#ink'),ic=ink.getContext('2d'),stage=$('#stage'),eqEl=$('#eq');
+const VW=1000,VH=600;let W=1,H=1,dpr=1;const fit={s:1,ox:0,oy:0},view={k:1,x:0,y:0};let T=0;
+
+/* ---------- الألوان والخلفيات ---------- */
+const THEMES=[['أبيض','#ffffff'],['كحلي','#0f1e38'],['أخضر غامق','#0f2a21'],['فحمي','#1c2026'],['بنفسجي غامق','#221a38'],['بني غامق','#2a1d15'],['بترولي','#0b2a33'],['أسود','#0a0a0c']];
+let TH={},themeI=0;
+function applyTheme(i){themeI=i;const bg=THEMES[i][1],d=i>0;
+ TH={bg,d,ink:d?'#eef2f7':'#1b2430',muted:d?'#a9b6c6':'#5b6877',line:d?'rgba(255,255,255,.14)':'#dbe2ea',panel:d?'rgba(255,255,255,.05)':'#f5f8fb',panelB:d?'rgba(255,255,255,.2)':'#cfd8e2',
+ glass:d?'rgba(215,232,255,.75)':'rgba(55,80,110,.62)',gfill:d?'rgba(200,225,255,.07)':'rgba(205,225,245,.28)',bond:d?'#c9d2dd':'#6f7b88',acc:d?'#6cc4ff':'#1769d1',gold:d?'#ffcf5a':'#d08f00',grn:d?'#6fe0a5':'#14935a',red:d?'#ff8a80':'#d43a2f',water:d?'rgba(110,170,255,.34)':'rgba(90,160,235,.3)',hb:d?'#8fd3ff':'#1769d1'};
+ const r=document.documentElement.style;r.setProperty('--bg',bg);r.setProperty('--ink',TH.ink);r.setProperty('--muted',TH.muted);r.setProperty('--line',TH.line);r.setProperty('--chip',d?'rgba(255,255,255,.07)':'#f1f4f8');r.setProperty('--acc',TH.acc);r.setProperty('--pop',d?mix(bg,'#ffffff',.08):'#ffffff');
+ document.documentElement.style.colorScheme=d?'dark':'light';
+ try{localStorage.setItem('alc-bg',i)}catch(e){}
+ document.querySelectorAll('.sw').forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+}
+function mix(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(a),y=p(b);return'#'+x.map((v,i)=>Math.round(lerp(v,y[i],t)).toString(16).padStart(2,'0')).join('')}
+function rgba(a,b,t){return`rgba(${a.map((v,i)=>i<3?Math.round(lerp(v,b[i],t)):lerp(v,b[i],t).toFixed(2)).join(',')})`}
+
+/* ---------- أدوات الرسم ---------- */
+function txt(s,x,y,o={}){ctx.font=`${o.w||700} ${o.s||16}px Tajawal,system-ui,Tahoma,sans-serif`;ctx.fillStyle=o.c||TH.ink;ctx.textAlign=o.a||'center';ctx.textBaseline=o.b||'middle';ctx.direction=o.dir||'rtl';ctx.fillText(s,x,y)}
+function rr(x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else{ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}}
+function panel(x,y,w,h,title,o={}){rr(x,y,w,h,16);ctx.fillStyle=TH.panel;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=TH.panelB;if(o.dash)ctx.setLineDash([8,6]);ctx.stroke();ctx.setLineDash([]);
+ if(title){if(o.lens){ctx.save();ctx.translate(x+w-24,y+22);ctx.strokeStyle=TH.muted;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,7,0,TAU);ctx.stroke();ctx.beginPath();ctx.moveTo(-5,5);ctx.lineTo(-11,11);ctx.stroke();ctx.restore()}
+ txt(title,x+w-(o.lens?40:16),y+22,{a:'right',s:14,c:TH.muted})}}
+const EL={C:['#4d535c',15],H:['#f3f5f8',10],O:['#e4473d',15],Na:['#8f5fd6',18],Br:['#a9462a',19],Cl:['#33b56c',17]};
+const LT={};const light=c=>LT[c]||(LT[c]=mix(c,'#ffffff',.55));
+function atom(x,y,el,o={}){const e=EL[el],s=o.s||1,r=e[1]*s;ctx.save();ctx.globalAlpha=o.a??1;
+ if(o.glow){ctx.beginPath();ctx.arc(x,y,r+7*s,0,TAU);ctx.fillStyle=o.glow;ctx.fill()}
+ const g=ctx.createRadialGradient(x-r*.35,y-r*.4,r*.12,x,y,r);g.addColorStop(0,light(e[0]));g.addColorStop(1,e[0]);
+ ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fillStyle=g;ctx.fill();ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,0,0,.38)';ctx.stroke();
+ const lab=o.t||el;if(r>5)txt(lab,x,y+r*.07,{s:r*(lab.length>2?.6:lab.length>1?.82:1.02),c:el==='H'?'#3b4653':'#fff',w:800,dir:'ltr'});
+ if(o.q){const bx=x+r*.82,by=y-r*.82,br=Math.max(5,6.5*s);ctx.beginPath();ctx.arc(bx,by,br,0,TAU);ctx.fillStyle='#fff';ctx.fill();const qc=o.q==='+'?'#d43a2f':'#1769d1';ctx.strokeStyle=qc;ctx.lineWidth=1.4;ctx.stroke();txt(o.q,bx,by+.5,{s:br*1.7,c:qc,w:800,dir:'ltr'})}
+ ctx.restore()}
+function bond(a,b,ord,o={}){const s=o.s||1,dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;ctx.save();ctx.globalAlpha=o.a??1;ctx.lineCap='round';if(o.dash)ctx.setLineDash([5*s,5*s]);
+ const offs=ord===2?[-3.8,3.8]:ord===3?[-5.5,0,5.5]:[0];
+ for(const f of offs){ctx.beginPath();ctx.moveTo(a.x+nx*f*s,a.y+ny*f*s);ctx.lineTo(b.x+nx*f*s,b.y+ny*f*s);ctx.strokeStyle=o.c||TH.bond;ctx.lineWidth=(ord>1?3.2:5)*s;ctx.stroke()}ctx.restore()}
+function ring(x,y,r,c,lw=2.5,dash){ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.strokeStyle=c;ctx.lineWidth=lw;if(dash)ctx.setLineDash(dash);ctx.stroke();ctx.restore()}
+function hbLine(a,b,al=1){ctx.save();ctx.globalAlpha=al;ctx.setLineDash([3,4]);ctx.strokeStyle=TH.hb;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore()}
+
+/* ---------- الزجاجيات ---------- */
+function beaker(x,yb,w,h,layers,inner){const x0=x-w/2,x1=x+w/2,y0=yb-h,r=12;
+ const path=()=>{ctx.beginPath();ctx.moveTo(x0-6,y0);ctx.lineTo(x0,y0+8);ctx.lineTo(x0,yb-r);ctx.quadraticCurveTo(x0,yb,x0+r,yb);ctx.lineTo(x1-r,yb);ctx.quadraticCurveTo(x1,yb,x1,yb-r);ctx.lineTo(x1,y0+4);ctx.lineTo(x1+3,y0)};
+ path();ctx.fillStyle=TH.gfill;ctx.fill();ctx.save();path();ctx.clip();let y=yb;
+ for(const L of layers){const lh=L.f*h;ctx.fillStyle=L.c;ctx.fillRect(x0-8,y-lh,w+16,lh);ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillRect(x0,y-lh,w,1.6);y-=lh}
+ inner&&inner(x0,y0,w,h,y);ctx.restore();path();ctx.strokeStyle=TH.glass;ctx.lineWidth=2.4;ctx.lineJoin='round';ctx.stroke();
+ ctx.lineWidth=1.2;for(let i=1;i<=4;i++){const gy=yb-h*i/5;ctx.beginPath();ctx.moveTo(x1-3,gy);ctx.lineTo(x1-(i%2?13:22),gy);ctx.stroke()}
+ ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0+9,y0+16);ctx.lineTo(x0+9,yb-18);ctx.stroke();return y}
+function tube(x,yt,w,h,layers,inner){const r=w/2,yb=yt+h;
+ const path=()=>{ctx.beginPath();ctx.moveTo(x-r,yt);ctx.lineTo(x-r,yb-r);ctx.arc(x,yb-r,r,Math.PI,0,true);ctx.lineTo(x+r,yt)};
+ path();ctx.fillStyle=TH.gfill;ctx.fill();ctx.save();path();ctx.closePath();ctx.clip();let y=yb;
+ for(const L of layers){const lh=L.f*h;ctx.fillStyle=L.c;ctx.fillRect(x-r-2,y-lh,w+4,lh);ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillRect(x-r,y-lh,w,1.5);y-=lh}
+ inner&&inner(x-r,yt,w,h,y);ctx.restore();path();ctx.strokeStyle=TH.glass;ctx.lineWidth=2.2;ctx.stroke();
+ ctx.beginPath();ctx.ellipse(x,yt,r+3,3,0,0,TAU);ctx.stroke();
+ ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x-r+6,yt+12);ctx.lineTo(x-r+6,yb-r-4);ctx.stroke();return y}
+function bottleDraw(d){const k=d.k||1.25;ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.rot||0);ctx.scale(k,k);
+ if(d.held){ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=16;ctx.shadowOffsetY=6}
+ rr(-27,-26,54,74,10);ctx.fillStyle=TH.d?'rgba(40,55,75,.85)':'rgba(235,243,250,.95)';ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ ctx.save();rr(-27,-26,54,74,10);ctx.clip();ctx.fillStyle=d.liq;ctx.fillRect(-30,8,60,45);ctx.restore();
+ rr(-27,-26,54,74,10);ctx.strokeStyle=TH.glass;ctx.lineWidth=2;ctx.stroke();
+ rr(-10,-40,20,15,3);ctx.fillStyle=TH.gfill;ctx.fill();ctx.stroke();
+ rr(-12,-50,24,11,3);ctx.fillStyle=d.cap||'#3b5b8c';ctx.fill();
+ rr(-23,-17,46,31,4);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='rgba(0,0,0,.15)';ctx.lineWidth=1;ctx.stroke();
+ txt(d.name,0,-7,{s:d.name.length>7?9:11.5,c:'#1b2430',w:800,dir:'ltr'});txt(d.sub,0,6.5,{s:d.sub.length>9?7:8.5,c:'#5b6877',w:700});
+ ctx.restore()}
+const mouth=d=>{const k=(d.k||1.25)*50;return{x:d.x+k*Math.sin(d.rot),y:d.y-k*Math.cos(d.rot)}};
+function dropperDraw(d){ctx.save();ctx.translate(d.x,d.y);ctx.scale(1.2,1.2);if(d.held){ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=14}
+ ctx.beginPath();ctx.ellipse(0,-42,11,17,0,0,TAU);const g=ctx.createLinearGradient(-11,0,11,0);g.addColorStop(0,'#e0564a');g.addColorStop(1,'#9b2a20');ctx.fillStyle=g;ctx.fill();ctx.shadowBlur=0;
+ rr(-9,-28,18,6,2);ctx.fillStyle='#5a2520';ctx.fill();
+ const p=()=>{ctx.beginPath();ctx.moveTo(-6,-22);ctx.lineTo(-6,28);ctx.lineTo(-2,48);ctx.lineTo(2,48);ctx.lineTo(6,28);ctx.lineTo(6,-22);ctx.closePath()};
+ p();ctx.fillStyle=TH.gfill;ctx.fill();ctx.save();p();ctx.clip();ctx.fillStyle=d.liq;ctx.fillRect(-7,2,14,48);ctx.restore();p();ctx.strokeStyle=TH.glass;ctx.lineWidth=1.6;ctx.stroke();ctx.restore();
+ if(d.lab)txt(d.lab,d.x,d.y+76,{s:12.5,c:TH.muted})}
+function flame(x,y,k=1){const f=1+Math.sin(T*23)*.06+Math.sin(T*37)*.04;ctx.save();ctx.translate(x,y);ctx.scale(k,k*f);
+ ctx.beginPath();ctx.moveTo(0,-46);ctx.bezierCurveTo(17,-22,15,0,0,0);ctx.bezierCurveTo(-15,0,-17,-22,0,-46);const g=ctx.createLinearGradient(0,0,0,-46);g.addColorStop(0,'rgba(60,120,255,.95)');g.addColorStop(.4,'rgba(255,150,40,.92)');g.addColorStop(1,'rgba(255,225,90,.15)');ctx.fillStyle=g;ctx.fill();ctx.restore()}
+function burner(x,y,on){const g=ctx.createLinearGradient(x-14,0,x+14,0);g.addColorStop(0,'#7d8794');g.addColorStop(.5,'#d6dce3');g.addColorStop(1,'#6c7580');rr(x-13,y-44,26,40,3);ctx.fillStyle=g;ctx.fill();rr(x-32,y-6,64,9,4);ctx.fillStyle='#59616b';ctx.fill();if(on)flame(x,y-44,.85)}
+function lcd(x,y,w,h,s){rr(x-w/2,y-h/2,w,h,7);const g=ctx.createLinearGradient(0,y-h/2,0,y+h/2);g.addColorStop(0,'#bdcdb0');g.addColorStop(1,'#93ab90');ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='#4b5a48';ctx.lineWidth=2;ctx.stroke();txt(s,x,y+1,{s:h*.48,c:'#1f2a1a',w:800,dir:'ltr'})}
+function naPiece(x,y,s){if(s<=0)return;const w=24*s,h=18*s;rr(x-w/2,y-h/2,w,h,4*s);const g=ctx.createLinearGradient(x-w/2,y-h/2,x+w/2,y+h/2);g.addColorStop(0,'#e5e9ee');g.addColorStop(1,'#8d96a1');ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='#5a636e';ctx.lineWidth=1;ctx.stroke()}
+
+/* ---------- الجزيئات ---------- */
+function Mol(){return{atoms:[],bonds:[]}}
+function A(m,el,x,y,o={}){m.atoms.push({el,x,y,q:o.q||'',v:o.v??1,t:o.t||''});return m.atoms.length-1}
+function B(m,i,j,o=1){m.bonds.push([i,j,o])}
+function bl(a,b){if(a==='H'||b==='H')return(a==='O'||b==='O')?32:36;if(a==='Br'||b==='Br')return 60;if(a==='Cl'||b==='Cl')return 58;return 52}
+function Tt(m,i,el,deg,len,o){const a=m.atoms[i],L=len||bl(a.el,el),r=deg*D2R;const j=A(m,el,a.x+Math.cos(r)*L,a.y-Math.sin(r)*L,o);B(m,i,j);return j}
+function Me(m,i,deg){const c=Tt(m,i,'C',deg);[deg-55,deg,deg+55].forEach(d=>Tt(m,c,'H',d));return c}
+function ethanol(m,x,y){const Cm=A(m,'C',x-52,y),Ca=A(m,'C',x,y);B(m,Cm,Ca);const Hm=[125,180,235].map(d=>Tt(m,Cm,'H',d));const Hu=Tt(m,Ca,'H',90),Hd=Tt(m,Ca,'H',270),O=Tt(m,Ca,'O',0),Ho=Tt(m,O,'H',40);return{Cm,Ca,O,Ho,Hu,Hd,Hm}}
+function drawMol(m,X,Y,S,o={}){const P=m.atoms.map(a=>({x:X+a.x*S,y:Y+a.y*S}));
+ m.bonds.forEach(([i,j,ord])=>{const k=Math.min(o.sc?.[i]??1,o.sc?.[j]??1);if(k>.05)bond(P[i],P[j],ord,{s:S,a:k})});
+ m.atoms.forEach((a,i)=>{const k=o.sc?.[i]??1;if(k>.03)atom(P[i].x,P[i].y,a.el,{s:S*k,q:a.q,t:a.t,glow:o.glow?.[i]})});return P}
+/* محرك التفاعل: إطارات مفتاحية للمواقع والأواصر */
+function Rx(m){return{el:m.atoms.map(a=>a.el),fr:[{p:m.atoms.map(a=>[a.x,a.y]),b:m.bonds.map(b=>b.slice()),q:m.atoms.map(a=>a.q),v:m.atoms.map(a=>a.v),tg:m.atoms.map(a=>a.t),lab:[]}],t:0,goal:0,playing:false,stops:[],min:0,hl:[],spd:.5}}
+function key(rx,fn){const L=rx.fr[rx.fr.length-1];const f={p:L.p.map(q=>q.slice()),b:L.b.map(b=>b.slice()),q:L.q.slice(),v:L.v.slice(),tg:L.tg.slice(),lab:[]};
+ const k={mv(ids,dx,dy){ids.forEach(i=>{f.p[i][0]+=dx;f.p[i][1]+=dy})},put(i,x,y){f.p[i]=[x,y]},cut(i,j){f.b=f.b.filter(b=>!((b[0]===i&&b[1]===j)||(b[0]===j&&b[1]===i)))},bd(i,j,o=1){k.cut(i,j);f.b.push([i,j,o])},q(i,s){f.q[i]=s},show(ids,v=1){ids.forEach(i=>f.v[i]=v)},tag(i,s){f.tg[i]=s},lab(s,x,y,c){f.lab.push({s,x,y,c})},at(i,j,deg,len){const r=deg*D2R;f.p[j]=[f.p[i][0]+Math.cos(r)*len,f.p[i][1]-Math.sin(r)*len]},pos:i=>f.p[i]};
+ fn(k);rx.fr.push(f);return rx}
+function lab0(rx,s,x,y,c){rx.fr[0].lab.push({s,x,y,c})}
+const kb=b=>Math.min(b[0],b[1])+'-'+Math.max(b[0],b[1]);
+function drawRx(rx,X,Y,S){const n=rx.fr.length-1,t=clamp(rx.t,0,n);let i=n?Math.min(Math.floor(t),n-1):0;const f=n?ease(t-i):0,F0=rx.fr[i],F1=n?rx.fr[i+1]:F0;
+ const P=F0.p.map((p,j)=>({x:X+S*lerp(p[0],F1.p[j][0],f),y:Y+S*lerp(p[1],F1.p[j][1],f)})),vis=F0.v.map((v,j)=>lerp(v,F1.v[j],f));
+ const mp=new Map();F0.b.forEach(b=>mp.set(kb(b),{i:b[0],j:b[1],o0:b[2],o1:0}));F1.b.forEach(b=>{const e=mp.get(kb(b));if(e)e.o1=b[2];else mp.set(kb(b),{i:b[0],j:b[1],o0:0,o1:b[2]})});
+ const mid=f>.03&&f<.97;
+ for(const e of mp.values()){const a=P[e.i],b=P[e.j],va=Math.min(vis[e.i],vis[e.j]);if(va<.03)continue;
+  if(e.o0&&e.o1){if(e.o0===e.o1)bond(a,b,e.o0,{s:S,a:va});else bond(a,b,f<.5?e.o0:e.o1,{s:S,a:va,c:mid?(e.o1>e.o0?TH.grn:TH.red):null})}
+  else if(e.o0){if(f<.97)bond(a,b,e.o0,{s:S,a:va*(1-f*.85),dash:mid,c:mid?TH.red:null})}
+  else if(f>.03)bond(a,b,e.o1,{s:S,a:va*f,c:mid?TH.grn:null})}
+ rx.hl.forEach(j=>{if(vis[j]>.5)ring(P[j].x,P[j].y,EL[rx.el[j]][1]*S+7,TH.gold,2.5,[5,4])});
+ rx.el.forEach((el,j)=>{if(vis[j]>.03)atom(P[j].x,P[j].y,el,{s:S,a:vis[j],q:f<.5?F0.q[j]:F1.q[j],t:f<.5?F0.tg[j]:F1.tg[j]})});
+ const L=(arr,al)=>arr.forEach(l=>{if(al>.02){ctx.globalAlpha=al;txt(l.s,X+l.x*S,Y+l.y*S,{s:15,c:l.c||TH.muted});ctx.globalAlpha=1}});
+ L(F0.lab,n?1-f:1);if(n)L(F1.lab,f);return P}
+function rxPlay(rx,goal){rx.goal=goal??(rx.stops.find(s=>s>rx.t+1e-3)??rx.fr.length-1);rx.playing=rx.goal>rx.t}
+const rxEnd=rx=>rx.fr.length-1;
+
+/* ---------- الحركة والمؤقتات ---------- */
+const tws=[],tms=[];let drops=[],bubs=[];
+function tween(o,to,dur,cb){const fr={};for(const k in to)fr[k]=o[k];tws.push({o,to,fr,dur,t:0,cb})}
+function after(s,fn){tms.push({t:s,fn})}
+function clearAnims(){tws.length=0;tms.length=0;drops=[];bubs=[]}
+function Dg(o){return Object.assign({w:70,h:125,rot:0,k:1.25,busy:false,hide:false,held:false,draw:bottleDraw},o,{x:o.hx,y:o.hy})}
+function pourAnim(d,x,y,dur,start){d.busy=true;tween(d,{x,y,rot:-1.1},.45,()=>{start&&start();after(dur,()=>tween(d,{x:d.hx,y:d.hy,rot:0},.45,()=>{d.busy=false}))})}
+function drawFx(){drops.forEach(d=>{ctx.beginPath();ctx.ellipse(d.x,d.y,3.4,4.8,0,0,TAU);ctx.fillStyle=d.c;ctx.fill()});
+ bubs.forEach(b=>{ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,TAU);ctx.fillStyle='rgba(255,255,255,.35)';ctx.fill();ctx.strokeStyle=TH.d?'rgba(255,255,255,.85)':'rgba(60,100,140,.7)';ctx.lineWidth=1.1;ctx.stroke()})}
+function bubble(x,y,top,r){bubs.push({x,y,top,r:r||rnd(2,4.5),vy:rnd(50,110),ph:rnd(0,6)})}
+
+/* ---------- المعادلة ---------- */
+let eqKey='';
+function setEq(r,a,p,on){const k=r+'|'+(a||'')+'|'+p;if(k!==eqKey){eqKey=k;eqEl.innerHTML=`<span>${r}</span>${p?`<span class="p">${a?`<span class="arr"><small dir="auto">${a[0]||'&nbsp;'}</small><i></i><small dir="auto">${a[1]||'&nbsp;'}</small></span>`:''}<span>${p}</span></span>`:''}`}
+ const pe=eqEl.querySelector('.p');if(pe)pe.classList.toggle('on',!!on)}
+
+/* ================= الواجهة 1: التركيب والتصنيف ================= */
+function baseMol(kind){const m=Mol();
+ if(kind==='methane'){const c=A(m,'C',0,0);[45,135,225,315].forEach(d=>Tt(m,c,'H',d))}
+ else if(kind==='ethane'){const a=A(m,'C',-26,0),b=A(m,'C',26,0);B(m,a,b);[120,180,240].forEach(d=>Tt(m,a,'H',d));[60,0,-60].forEach(d=>Tt(m,b,'H',d))}
+ else if(kind==='propane'){const c=A(m,'C',0,-12);Me(m,c,210);Me(m,c,330);Tt(m,c,'H',62);Tt(m,c,'H',118)}
+ else{const c=A(m,'C',0,0);Me(m,c,90);Me(m,c,200);Me(m,c,340);Tt(m,c,'H',270)}
+ return m}
+const NAMES={methane:{0:['ميثانول','CH₃OH']},ethane:{1:['إيثانول','CH₃CH₂OH']},propane:{1:['1-بروبانول','CH₃CH₂CH₂OH'],2:['2-بروبانول','CH₃CH(OH)CH₃']},isobutane:{1:['2-مثيل-1-بروبانول','(CH₃)₂CHCH₂OH'],3:['2-مثيل-2-بروبانول','(CH₃)₃COH']}};
+const BASEF={methane:['ميثان','CH₄'],ethane:['إيثان','CH₃CH₃'],propane:['بروبان','CH₃CH₂CH₃'],isobutane:['2-مثيل بروبان','(CH₃)₃CH']};
+function ohTok(d){const x=d.x,y=d.y;rr(x-58,y-38,116,76,14);ctx.fillStyle=TH.panel;ctx.fill();ctx.setLineDash([6,5]);ctx.strokeStyle=TH.gold;ctx.lineWidth=1.6;ctx.stroke();ctx.setLineDash([]);
+ bond({x:x-10,y:y-6},{x:x+18,y:y-20},1,{s:1.4});atom(x-10,y-6,'O',{s:1.4});atom(x+18,y-20,'H',{s:1.4});txt('مجموعة الهيدروكسيل',x,y+24,{s:12,c:TH.muted})}
+function polyMols(){
+ const e=Mol();{const a=A(e,'C',-26,0),b=A(e,'C',26,0);B(e,a,b);[90,180,270].forEach(d=>Tt(e,a,'H',d));Tt(e,b,'H',90);Tt(e,b,'H',270);const o=Tt(e,b,'O',0);Tt(e,o,'H',50)}
+ const g=Mol();{const a=A(g,'C',-26,0),b=A(g,'C',26,0);B(g,a,b);Tt(g,a,'H',90);Tt(g,a,'H',270);const o=Tt(g,a,'O',180);Tt(g,o,'H',130);Tt(g,b,'H',90);Tt(g,b,'H',270);const o2=Tt(g,b,'O',0);Tt(g,o2,'H',50)}
+ const c=Mol();{const a=A(c,'C',-52,0),b=A(c,'C',0,0),d=A(c,'C',52,0);B(c,a,b);B(c,b,d);Tt(c,a,'H',90);Tt(c,a,'H',270);const o=Tt(c,a,'O',180);Tt(c,o,'H',130);Tt(c,b,'H',90);const o2=Tt(c,b,'O',270);Tt(c,o2,'H',320);Tt(c,d,'H',90);Tt(c,d,'H',270);const o3=Tt(c,d,'O',0);Tt(c,o3,'H',50)}
+ return[{m:e,x:810,n:'إيثانول',k:'أحادي الهيدروكسيل',c:1,f:'CH₃CH₂OH',iu:'إيثانول'},{m:g,x:505,n:'إثيلين كلايكول',k:'ثنائي الهيدروكسيل',c:2,f:'HOCH₂–CH₂OH',iu:'1،2-إيثان دايول'},{m:c,x:195,n:'كلسرين (كليسرول)',k:'ثلاثي الهيدروكسيل',c:3,f:'HOCH₂–CH(OH)–CH₂OH',iu:'1،2،3-بروبان ترايول'}]}
+const S1={mode:'build',kind:'propane',MX:610,MY:285,
+ get MS(){return this.kind==='methane'?2.1:1.75},
+ bar(){const g=[{items:[['build','بناء الكحول وتصنيفه',this.mode==='build'],['poly','أحادية وثنائية وثلاثية الهيدروكسيل',this.mode==='poly']],on:id=>{this.mode=id;this.reset()}}];
+  if(this.mode==='build')g.push({items:Object.keys(BASEF).map(k=>[k,BASEF[k][0],this.kind===k]),on:id=>{this.kind=id;this.reset()}});return g},
+ hint(){return this.mode==='build'?'اسحب مجموعة OH إلى أي ذرة هيدروجين متوهجة، أو اضغط على ذرة H مباشرة':'اضغط على أي مركب لعرض صيغته واسمه النظامي'},
+ reset(){clearAnims();this.b0=baseMol(this.kind);this.m=this.b0;this.pl=null;this.an=1;this.sel=0;this.P=polyMols();
+  if(this.mode==='build'){const tok=Dg({hx:885,hy:510,w:120,h:80,draw:ohTok,tap:()=>toast('اسحب مجموعة OH إلى إحدى ذرات الهيدروجين المتوهجة، أو اضغط على ذرة H'),drop:d=>{const h=this.hitH(d);if(h<0)return false;d.x=d.hx;d.y=d.hy;this.place(h);return true}});this.drags=[tok];this.pulse=tok}else{this.drags=[];this.pulse=null}},
+ hitH(p){let best=-1,bd=26;this.b0.atoms.forEach((a,i)=>{if(a.el!=='H')return;const d=Math.hypot(this.MX+a.x*this.MS-p.x,this.MY+a.y*this.MS-p.y);if(d<bd){bd=d;best=i}});return best},
+ down(p){if(this.mode==='build'){const h=this.hitH(p);if(h>=0){this.place(h);return true}return false}
+  if(p.y>120&&p.y<470){let b=0,bd=1e9;this.P.forEach((q,i)=>{const d=Math.abs(q.x-p.x);if(d<bd){bd=d;b=i}});if(bd<150){this.sel=b;return true}}return false},
+ place(h){const m=JSON.parse(JSON.stringify(this.b0));const c=m.bonds.find(b=>b.includes(h)).find(i=>i!==h);const a=m.atoms[c],hA=m.atoms[h];const th=Math.atan2(-(hA.y-a.y),hA.x-a.x);
+  hA.el='O';hA.x=a.x+Math.cos(th)*50;hA.y=a.y-Math.sin(th)*50;let best=null;
+  for(const dd of[40,-40,75,-75]){const r=th+dd*D2R,x=hA.x+Math.cos(r)*32,y=hA.y-Math.sin(r)*32;const md=Math.min(...m.atoms.map((q,i)=>i===h?99:Math.hypot(q.x-x,q.y-y)));if(!best||md>best.d+4)best={x,y,d:md}}
+  const ho=A(m,'H',best.x,best.y);B(m,h,ho);const nb=m.bonds.filter(b=>b.includes(c)).map(b=>b[0]===c?b[1]:b[0]).filter(i=>m.atoms[i].el==='C');
+  this.m=m;this.pl={c,o:h,h:ho,nb,n:nb.length};this.an=0;this.touched=true},
+ update(dt){this.an=Math.min(1,this.an+dt*1.6)},
+ eq(){if(this.mode==='poly'){const q=this.P[this.sel];setEq(q.f,null,`(${q.iu})`,true);return}
+  const bf=BASEF[this.kind];if(!this.pl){setEq(`${bf[1]}`,['استبدال H بـ OH',''],'؟',false);return}
+  const nm=NAMES[this.kind][this.pl.n]||NAMES[this.kind][1];setEq(bf[1],['استبدال H بـ OH',''],nm[1],this.an>.6)},
+ draw(){if(this.mode==='poly')return this.drawPoly();
+  const S=this.MS,X=this.MX,Y=this.MY,pl=this.pl,e=ease(this.an);
+  panel(380,95,460,385,'نموذج الجزيئة',{lens:1});
+  const sc={},glow={};if(pl){sc[pl.o]=e;sc[pl.h]=e}else{const g=.25+.2*Math.sin(T*4);this.b0.atoms.forEach((a,i)=>{if(a.el==='H')glow[i]=`rgba(240,180,0,${g})`})}
+  const P=drawMol(this.m,X,Y,S,{sc,glow});
+  if(pl&&this.an>.5){const al=sm(this.an,.5,1);ctx.globalAlpha=al;ring(P[pl.c].x,P[pl.c].y,15*S+8,TH.gold,3,[6,4]);
+   pl.nb.forEach((i,j)=>{ring(P[i].x,P[i].y,15*S+6,TH.acc,2.5);txt(String(j+1),P[i].x+15*S+10,P[i].y-15*S-6,{s:14,c:TH.acc,w:800,dir:'ltr'})});ctx.globalAlpha=1}
+  txt(BASEF[this.kind][0]+(pl?' ← '+(NAMES[this.kind][pl.n]||NAMES[this.kind][1])[0]:''),610,455,{s:17});
+  // بطاقة النوع
+  panel(40,95,310,385,'نوع الكحول');
+  if(!pl){const L=[['أولي','ذرة الكاربون الحاملة لـ OH ترتبط بذرة كاربون واحدة','R–CH₂–OH'],['ثانوي','ترتبط بذرتي كاربون','R₂CH–OH'],['ثالثي','ترتبط بثلاث ذرات كاربون','R₃C–OH']];
+   L.forEach((r,i)=>{const y=150+i*100;txt(r[0],330,y,{a:'right',s:20,c:[TH.grn,TH.acc,TH.red][i]});txt(r[1],330,y+28,{a:'right',s:13,c:TH.muted,w:500});txt(r[2],60,y,{a:'left',s:17,dir:'ltr'})});
+   txt('اسحب OH إلى ذرة هيدروجين لتعرف النوع',195,455,{s:13,c:TH.gold})}
+  else{const al=sm(this.an,.4,1);ctx.globalAlpha=al;const n=pl.n,ty=n<=1?0:n===2?1:2,nm=NAMES[this.kind][n]||NAMES[this.kind][1];
+   txt('كحول '+['أولي','ثانوي','ثالثي'][ty],195,160,{s:34,c:[TH.grn,TH.acc,TH.red][ty],w:800});
+   txt(n===0?'ذرة الكاربون الحاملة لـ OH غير مرتبطة':'ذرة الكاربون الحاملة لـ OH مرتبطة',195,212,{s:14,w:500,c:TH.muted});
+   txt(n===0?'بأي ذرة كاربون (حالة خاصة تُعدّ أولية)':['','بذرة كاربون واحدة','بذرتي كاربون','بثلاث ذرات كاربون'][n],195,234,{s:14,w:500,c:TH.muted});
+   txt(['R–CH₂–OH','R₂CH–OH','R₃C–OH'][ty],195,285,{s:24,dir:'ltr'});
+   ctx.strokeStyle=TH.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(70,320);ctx.lineTo(320,320);ctx.stroke();
+   txt(nm[0],195,355,{s:22});txt(nm[1],195,393,{s:20,dir:'ltr',c:TH.muted});ctx.globalAlpha=1;
+   ring(70,448,9,TH.gold,2.5,[4,3]);txt('ذرة الكاربون الحاملة لـ OH',90,448,{a:'left',s:12.5,c:TH.muted,dir:'rtl'})}
+ },
+ drawPoly(){this.P.forEach((q,i)=>{const on=i===this.sel;panel(q.x-148,110,296,370,'',{});if(on){rr(q.x-148,110,296,370,16);ctx.strokeStyle=TH.acc;ctx.lineWidth=3;ctx.stroke()}
+  const glow={};q.m.atoms.forEach((a,j)=>{if(a.el==='O')glow[j]=`rgba(228,71,61,${.18+.14*Math.sin(T*4+i)})`});drawMol(q.m,q.x,255,1.15,{glow});
+  txt(q.n,q.x,370,{s:20});txt(q.k,q.x,400,{s:15,c:[TH.grn,TH.acc,TH.red][i]});
+  for(let j=0;j<q.c;j++){const bx=q.x+(j-(q.c-1)/2)*34;atom(bx,442,'O',{s:.8});txt('H',bx+13,434,{s:10,c:TH.muted,dir:'ltr'})}
+  txt(`عدد مجاميع OH = ${q.c}`,q.x,145,{s:14,c:TH.muted})})}
+};
+
+/* ================= منطقة تفاعل جزيئية عامة ================= */
+const inZone=d=>d.x>100&&d.x<790&&d.y>90&&d.y<540;
+function ZoneRx(c){return{c,reset(){this.rx=c.rx();this.added={};this.ready=false;
+  this.drags=c.bottles.map(b=>{const d=Dg(b);d.tap=()=>this.add(d);d.drop=dd=>inZone(dd)?(this.add(dd),true):false;return d})},
+ add(d){if(this.added[d.id]){toast('تمت إضافة هذه المادة');return}this.added[d.id]=1;pourAnim(d,640,165,.7);const st=c.onAdd&&c.onAdd[d.id];if(st!=null)after(.5,()=>rxPlay(this.rx,st));
+  if(c.need.every(i=>this.added[i]))after(c.need.length>1?1.4:.5,()=>{this.ready=true;this.rx.min=c.min??1;rxPlay(this.rx,c.stop??rxEnd(this.rx))})},
+ draw(){panel(110,100,670,430,c.title,{lens:1,dash:1});drawRx(this.rx,c.X,c.Y,c.S);
+  const run=this.ready&&this.rx.t<rxEnd(this.rx)-.02;if(c.heat&&run){burner(445,525,true);txt('تسخين',505,505,{s:13,c:TH.red})}
+  if(c.cat&&this.added[c.cat]){rr(130,120,190,34,10);ctx.fillStyle=TH.d?'rgba(255,207,90,.15)':'#fff6dc';ctx.fill();txt('H₂SO₄ عامل مساعد (H⁺)',225,138,{s:13,c:TH.gold})}
+  if(!c.need.every(i=>this.added[i]))txt(c.wait,445,500,{s:14,c:TH.muted})},
+ eq(){const all=c.need.every(i=>this.added[i]);setEq(all?c.r:c.r0,c.a,c.p,this.rx.t>rxEnd(this.rx)-.35)}}}
+function rxHyd(){const m=Mol();const C1=A(m,'C',-20,0),C2=A(m,'C',-72,0);B(m,C1,C2);[120,180,240].forEach(d=>Tt(m,C2,'H',d));Tt(m,C1,'H',90);Tt(m,C1,'H',270);const Br=Tt(m,C1,'Br',0);
+ const O=A(m,'O',230,40,{q:'−',v:0}),Ho=A(m,'H',262,40,{v:0});B(m,O,Ho);const Na=A(m,'Na',240,-50,{q:'+',v:0});
+ const rx=Rx(m);lab0(rx,'بروموإيثان C₂H₅Br',-40,70);
+ key(rx,k=>{k.show([O,Ho,Na]);k.lab('بروموإيثان C₂H₅Br',-40,70);k.lab('هيدروكسيد الصوديوم',245,95)});
+ key(rx,k=>{k.put(O,110,48);k.put(Ho,142,48);k.put(Na,175,-55);k.lab('هجوم ⁻OH على ذرة الكاربون',60,110,TH.acc)});
+ key(rx,k=>{k.cut(C1,Br);k.bd(C1,O);k.put(O,30,0);k.put(Ho,54,-21);k.put(Br,175,-35);k.q(Br,'−');k.q(O,'');k.put(Na,232,-35);k.lab('إيثانول C₂H₅OH',-30,70);k.lab('بروميد الصوديوم NaBr',205,20)});
+ rx.stops=[1,3];return rx}
+function rxHydr(){const m=Mol();const C1=A(m,'C',-26,0),C2=A(m,'C',26,0);B(m,C1,C2,2);const h1=Tt(m,C1,'H',120),h2=Tt(m,C1,'H',240),h3=Tt(m,C2,'H',60),h4=Tt(m,C2,'H',-60);
+ const O=A(m,'O',0,-140,{v:0});const r1=215*D2R,r2=325*D2R;const Ha=A(m,'H',Math.cos(r1)*32,-140-Math.sin(r1)*32,{v:0}),Hb=A(m,'H',Math.cos(r2)*32,-140-Math.sin(r2)*32,{v:0});B(m,O,Ha);B(m,O,Hb);
+ const rx=Rx(m);lab0(rx,'إيثين CH₂=CH₂',0,70);
+ key(rx,k=>{k.show([O,Ha,Hb]);k.lab('إيثين CH₂=CH₂',0,70);k.lab('ماء H₂O',0,-185)});
+ key(rx,k=>{k.mv([O,Ha,Hb],10,58);k.lab('تنكسر الآصرة المزدوجة',0,70,TH.acc)});
+ key(rx,k=>{k.bd(C1,C2,1);k.cut(O,Ha);k.bd(C1,Ha);k.bd(C2,O);k.at(C1,Ha,90,36);k.at(C1,h1,180,36);k.at(C1,h2,270,36);k.at(C2,h3,90,36);k.at(C2,h4,270,36);k.at(C2,O,0,50);k.put(Hb,100,-21);k.lab('إيثانول CH₃CH₂OH',20,70)});
+ rx.stops=[1,3];return rx}
+function rxHx(){const m=Mol();const E=ethanol(m,-20,0);const Hh=A(m,'H',210,-80,{v:0}),Br=A(m,'Br',266,-80,{v:0});B(m,Hh,Br);
+ const rx=Rx(m);rx.hl=[E.Ca];lab0(rx,'إيثانول C₂H₅OH',-40,70);
+ key(rx,k=>{k.show([Hh,Br]);k.lab('إيثانول C₂H₅OH',-40,70);k.lab('بروميد الهيدروجين HBr',240,-125)});
+ key(rx,k=>{k.put(Hh,95,-38);k.put(Br,150,-50);k.lab('اقتراب HBr',60,90,TH.acc)});
+ key(rx,k=>{k.cut(E.Ca,E.O);k.cut(Hh,Br);k.bd(E.O,Hh);k.bd(E.Ca,Br);k.put(Br,40,0);k.put(E.O,165,75);k.put(E.Ho,190,55);k.put(Hh,140,55);k.lab('بروموإيثان C₂H₅Br',-30,70);k.lab('ماء H₂O',165,120);k.lab('غادرت مجموعة OH وحلّ Br محلها',40,-80,TH.grn)});
+ rx.stops=[1,3];return rx}
+const ZC={
+ hyd:{title:'التحلل المائي لهاليد الألكيل',rx:rxHyd,X:400,Y:330,S:1.3,need:['naoh'],heat:1,wait:'أضف محلول NaOH المائي',bottles:[{id:'naoh',hx:900,hy:280,name:'NaOH',sub:'محلول مائي',liq:'rgba(150,200,255,.55)'}],r0:'C₂H₅Br + ؟',r:'C₂H₅Br + NaOH',a:['H₂O','حرارة'],p:'C₂H₅OH + NaBr'},
+ hydr:{title:'إضافة الماء إلى الألكين',rx:rxHydr,X:445,Y:345,S:1.45,need:['w','acid'],onAdd:{w:1},cat:'acid',wait:'أضف الماء وحامض الكبريتيك',bottles:[{id:'w',hx:900,hy:210,name:'H₂O',sub:'ماء',liq:'rgba(120,180,240,.5)'},{id:'acid',hx:900,hy:430,name:'H₂SO₄',sub:'عامل مساعد',liq:'rgba(240,228,180,.7)',cap:'#8c3b3b'}],r0:'CH₂=CH₂ + H₂O',r:'CH₂=CH₂ + H₂O',a:['H₂SO₄','عامل مساعد'],p:'CH₃CH₂OH'},
+ hx:{title:'تكوين هاليد الألكيل',rx:rxHx,X:380,Y:320,S:1.4,need:['hbr'],wait:'أضف بروميد الهيدروجين HBr',bottles:[{id:'hbr',hx:900,hy:300,name:'HBr',sub:'بروميد الهيدروجين',liq:'rgba(230,200,170,.6)',cap:'#7a4a2a'}],r0:'C₂H₅OH + ؟',r:'C₂H₅OH + HBr',a:['',''],p:'C₂H₅Br + H₂O'}};
+
+const S2={sub:'hyd',
+ bar(){return[{items:[['hyd','التحلل المائي لهاليدات الألكيل',this.sub==='hyd'],['hydr','إضافة الماء إلى الألكينات (وسط حامضي)',this.sub==='hydr']],on:id=>{this.sub=id;this.reset()}}]},
+ hint(){return this.sub==='hyd'?'اسحب القنينة إلى منطقة التفاعل أو اضغط عليها':'أضف الماء ثم حامض الكبريتيك (عامل مساعد)'},
+ reset(){clearAnims();this.z=ZoneRx(ZC[this.sub]);this.z.reset();this.drags=this.z.drags;this.pulse=this.drags[0]},
+ update(){this.rx=this.z.rx;this.ready=this.z.ready},draw(){this.z.draw()},eq(){this.z.eq()}};
+
+/* ================= الواجهة 3: الخواص الفيزيائية ================= */
+function miniWater(x,y,a){const p=[];for(const s of[-1,1]){const r=a+s*.92;p.push({x:x+Math.cos(r)*12,y:y+Math.sin(r)*12})}p.forEach(q=>{ctx.strokeStyle=TH.bond;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(q.x,q.y);ctx.stroke()});atom(x,y,'O',{s:.48});p.forEach(q=>atom(q.x,q.y,'H',{s:.45}));return{O:{x,y},H:p}}
+function miniEth(x,y,a){const c=Math.cos(a),s=Math.sin(a),R=(dx,dy)=>({x:x+dx*c-dy*s,y:y+dx*s+dy*c});const p=[R(-16,3),R(-4,-5),R(8,2),R(16,-5)];
+ ctx.strokeStyle=TH.bond;ctx.lineWidth=2.5;ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();atom(p[0].x,p[0].y,'C',{s:.42});atom(p[1].x,p[1].y,'C',{s:.42});atom(p[2].x,p[2].y,'O',{s:.45});atom(p[3].x,p[3].y,'H',{s:.45});return{O:p[2],H:[p[3]]}}
+function miniOct(x,y,a){const c=Math.cos(a),s=Math.sin(a),R=(dx,dy)=>({x:x+dx*c-dy*s,y:y+dx*s+dy*c});const p=[];for(let i=0;i<8;i++)p.push(R(-44+i*10.5,i%2?-4:4));p.push(R(41,4));p.push(R(48,-2));
+ ctx.strokeStyle=TH.bond;ctx.lineWidth=2.5;ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();p.forEach((q,i)=>atom(q.x,q.y,i<8?'C':i===8?'O':'H',{s:i===9?.42:.38}))}
+const S3={sub:'hb',hbMix:false,dq:false,
+ bar(){const g=[{items:[['hb','الآصرة الهيدروجينية',this.sub==='hb'],['sol','الذوبان في الماء',this.sub==='sol'],['bp','درجة الغليان',this.sub==='bp']],on:id=>{this.sub=id;this.reset()}}];
+  if(this.sub==='hb')g.push({items:[['a','كحول فقط',!this.hbMix],['m','كحول + ماء',this.hbMix]],on:id=>{this.hbMix=id==='m';this.reset()}},{items:[['q','إظهار δ+ و δ−',this.dq]],on:()=>{this.dq=!this.dq}});return g},
+ hint(){return{hb:'الخط المنقط = آصرة هيدروجينية بين H مجموعة OH وذرة O في جزيئة مجاورة',sol:'اسحب الإيثانول إلى الكأس 1 والأوكتانول إلى الكأس 2، أو اضغط على القنينة',bp:'اسحب مؤشر الحرارة: الكتلتان المولية متقاربتان لكن الإيثانول يكوّن آصرات هيدروجينية'}[this.sub]},
+ reset(){clearAnims();this.drags=[];this.pulse=null;const s=this.sub;
+  if(s==='hb'){this.ms=[];const R=seeded(7),n=this.hbMix?6:11;for(let i=0;i<n+(this.hbMix?9:0);i++)this.ms.push({k:i<n?'e':'w',x:180+R()*640,y:150+R()*330,a:R()*TAU,vx:0,vy:0,va:0})}
+  if(s==='sol'){this.bk=[{x:640,lab:'الكأس 1',alc:null,av:0,mt:0},{x:300,lab:'الكأس 2',alc:null,av:0,mt:0}];this.pour=null;
+   const mk=(id,hy,name,sub,liq)=>{const d=Dg({id,hx:905,hy,name,sub,liq});d.tap=()=>{const b=this.bk.find(b=>!b.alc&&(id==='eth'?b===this.bk[0]:b===this.bk[1]))||this.bk.find(b=>!b.alc);b?this.pourIn(d,b):toast('أعد التجربة لاستخدام الكأسين من جديد')};d.drop=dd=>{const b=this.bk.find(b=>Math.abs(dd.x-b.x)<120&&dd.y>260&&dd.y<580);if(!b)return false;if(b.alc){toast('هذه الكأس تحتوي كحولاً بالفعل');return false}this.pourIn(dd,b);return true};return d};
+   this.drags=[mk('eth',235,'C₂H₅OH','إيثانول','rgba(200,220,240,.5)'),mk('oct',445,'C₈H₁₇OH','1-أوكتانول','rgba(245,225,150,.6)')];this.pulse=this.drags[0];
+   const R=seeded(11);this.wp=[];while(this.wp.length<15){const x=(R()*2-1)*80,y=(R()*2-1)*80;if(Math.hypot(x,y)<78&&this.wp.every(q=>Math.hypot(q.x-x,q.y-y)>30))this.wp.push({x,y,a:R()*TAU})}
+   this.ep=this.wp.filter((q,i)=>i%3===1).map(q=>({x:q.x,y:q.y,a:q.a}));}
+  if(s==='bp'){this.T=-60;const tubes=[{x:650,n:'بروبان',f:'C₃H₈',M:44,bp:-42,k:'p'},{x:350,n:'إيثانول',f:'C₂H₅OH',M:46,bp:78.4,k:'e'}];
+   tubes.forEach(t=>{t.parts=[];for(let i=0;i<24;i++)t.parts.push({g:0,x:0,y:0,vx:0,vy:0,ph:rnd(0,6),gone:0});t.acc=0});this.tubes=tubes;
+   const kn=Dg({id:'knob',hx:260,hy:560,w:44,h:44,free:true,draw:d=>{},constrain:d=>{d.y=560;d.x=clamp(d.x,260,740)}});this.drags=[kn];this.knob=kn;this.pulse=kn}},
+ pourIn(d,b){b.alc=d.id;pourAnim(d,b.x+78,330-62,1.6,()=>{b.pd=d;after(1.6,()=>{b.pd=null})})},
+ update(dt){const s=this.sub;
+  if(s==='hb'){const M=this.ms,at=m=>{const c=Math.cos(m.a),sn=Math.sin(m.a);if(m.k==='e'){const O={x:m.x+c*30,y:m.y+sn*30},r=m.a+1.25;return{c:{x:m.x,y:m.y,r:22},O,H:[{x:O.x+Math.cos(r)*24,y:O.y+Math.sin(r)*24}]}}const O={x:m.x,y:m.y};return{c:null,O,H:[-.92,.92].map(d=>({x:m.x+Math.cos(m.a+d)*22,y:m.y+Math.sin(m.a+d)*22}))}};
+   this.geo=M.map(at);
+   M.forEach((m,i)=>{m.vx+=rnd(-1,1)*200*dt;m.vy+=rnd(-1,1)*200*dt;m.va+=rnd(-1,1)*3*dt;const g=this.geo[i];
+    M.forEach((n,j)=>{if(i===j)return;const h=this.geo[j];g.H.forEach(H=>{const dx=h.O.x-H.x,dy=h.O.y-H.y,d=Math.hypot(dx,dy);if(d<80&&d>1){const f=(d-48)*.6*dt;m.vx+=dx/d*f;m.vy+=dy/d*f;n.vx-=dx/d*f;n.vy-=dy/d*f;const cx=H.x-m.x,cy=H.y-m.y;m.va+=Math.sign(cx*dy-cy*dx)*.9*dt}});
+     const dx=n.x-m.x,dy=n.y-m.y,d=Math.hypot(dx,dy)||1;if(d<60){const f=(60-d)*9*dt;m.vx-=dx/d*f;m.vy-=dy/d*f}});
+   });
+   M.forEach(m=>{m.vx*=.94;m.vy*=.94;m.va*=.9;m.vx=clamp(m.vx,-60,60);m.vy=clamp(m.vy,-60,60);m.x+=m.vx*dt;m.y+=m.vy*dt;m.a+=m.va*dt;if(m.x<190){m.x=190;m.vx=Math.abs(m.vx)}if(m.x>810){m.x=810;m.vx=-Math.abs(m.vx)}if(m.y<150){m.y=150;m.vy=Math.abs(m.vy)}if(m.y>470){m.y=470;m.vy=-Math.abs(m.vy)}})}
+  if(s==='sol'){this.bk.forEach(b=>{if(b.pd)b.av=Math.min(22,b.av+dt*15);if(b.av>0)b.mt+=dt})}
+  if(s==='bp'){this.T=lerp(-60,100,(this.knob.x-260)/480);const amp=clamp((this.T+80)/180,.15,1);
+   this.tubes.forEach(t=>{const liq=t.parts.filter(p=>!p.g);if(this.T>=t.bp&&liq.length){t.acc+=dt*(.9+(this.T-t.bp)*.08);while(t.acc>=1&&liq.length){t.acc--;const p=liq.pop();p.g=1;p.vx=rnd(-25,25);p.vy=rnd(-110,-70)}
+     if(Math.random()<dt*14)bubble(t.x+rnd(-22,22),468,470-liq.length/24*190+4)}
+    t.parts.forEach(p=>{if(p.g&&!p.gone){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx+=rnd(-1,1)*80*dt;if(p.y<40)p.gone=1}});t.amp=amp})}},
+ eq(){const s=this.sub;if(s==='hb')setEq(this.hbMix?'R–O–H ··· O–H₂':'R–O–H ··· O(H)–R',null,'',false);
+  if(s==='sol'){const a=this.bk[0].alc||this.bk[1].alc;setEq('ذوبان الكحولات في الماء',null,'',false)}
+  if(s==='bp')setEq('C₃H₈ : −42 °C',null,'&nbsp;&nbsp;|&nbsp;&nbsp;C₂H₅OH : 78 °C',true)},
+ draw(){const s=this.sub;if(s==='hb')this.drawHB();if(s==='sol')this.drawSol();if(s==='bp')this.drawBP()},
+ drawHB(){panel(150,110,700,400,'نافذة التكبير الجزيئي',{lens:1});const G=this.geo||[];
+  G.forEach((g,i)=>G.forEach((h,j)=>{if(i===j)return;g.H.forEach(H=>{const d=Math.hypot(h.O.x-H.x,h.O.y-H.y);if(d<64)hbLine(H,h.O,clamp((64-d)/14,0,1))})}));
+  this.ms.forEach((m,i)=>{const g=G[i];if(!g)return;ctx.strokeStyle=TH.bond;ctx.lineWidth=5;ctx.lineCap='round';
+   if(g.c){ctx.beginPath();ctx.moveTo(g.c.x,g.c.y);ctx.lineTo(g.O.x,g.O.y);ctx.stroke()}g.H.forEach(H=>{ctx.beginPath();ctx.moveTo(g.O.x,g.O.y);ctx.lineTo(H.x,H.y);ctx.stroke()});
+   if(g.c){ctx.beginPath();ctx.arc(g.c.x,g.c.y,22,0,TAU);const gr=ctx.createRadialGradient(g.c.x-7,g.c.y-8,3,g.c.x,g.c.y,22);gr.addColorStop(0,'#8a919b');gr.addColorStop(1,'#4d535c');ctx.fillStyle=gr;ctx.fill();txt('C₂H₅',g.c.x,g.c.y+1,{s:11,c:'#fff',dir:'ltr'})}
+   atom(g.O.x,g.O.y,'O',{s:.95});g.H.forEach(H=>atom(H.x,H.y,'H',{s:.85}));
+   if(this.dq){txt('δ−',g.O.x+12,g.O.y-15,{s:12,c:TH.red,dir:'ltr'});g.H.forEach(H=>txt('δ+',H.x+9,H.y-12,{s:11,c:TH.acc,dir:'ltr'}))}});
+  hbLine({x:700,y:540},{x:760,y:540});txt('آصرة هيدروجينية',690,540,{a:'right',s:14,c:TH.muted});
+  if(this.hbMix){atom(560,540,'O',{s:.6});txt('ماء',540,540,{a:'right',s:14,c:TH.muted})}
+  ctx.beginPath();ctx.arc(440,540,10,0,TAU);ctx.fillStyle='#4d535c';ctx.fill();txt('جزيئة كحول',420,540,{a:'right',s:14,c:TH.muted})},
+ drawSol(){this.bk.forEach((b,bi)=>{const yb=520,h=190,w=175;const eth=b.av>0&&b.alc==='eth',oct=b.av>0&&b.alc==='oct';
+  const layers=oct?[{f:.45,c:TH.water},{f:b.av/100,c:'rgba(240,205,95,.5)'}]:[{f:.45+b.av/100,c:TH.water}];
+  const sy=beaker(b.x,yb,w,h,layers,(x0,y0,ww,hh,top)=>{if(eth&&b.mt<3.5){ctx.strokeStyle=`rgba(255,255,255,${.6*(1-b.mt/3.5)})`;ctx.lineWidth=2;for(let i=0;i<5;i++){ctx.beginPath();for(let x=x0;x<x0+ww;x+=6){const y=top+18+i*16+Math.sin(x*.07+T*3+i)*6;x===x0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()}}
+   if(oct){ctx.strokeStyle='rgba(170,130,30,.7)';ctx.lineWidth=2;const iy=yb-.45*h;ctx.beginPath();for(let x=x0;x<x0+ww;x+=5)ctx.lineTo(x,iy+Math.sin(x*.12+T*2)*1.2);ctx.stroke()}});
+  if(b.pd){const m=mouth(b.pd);ctx.strokeStyle=b.pd.liq.replace(/[\d.]+\)$/,'.9)');ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(m.x,m.y);ctx.quadraticCurveTo(m.x-6,(m.y+sy)/2,m.x-8,sy);ctx.stroke()}
+  txt(b.lab,b.x,555,{s:16});if(b.av>0&&b.mt>1.5){ctx.globalAlpha=sm(b.mt,1.5,2.5);txt(eth?'ذاب تماماً: محلول متجانس':'لم يذب: طبقتان منفصلتان',b.x,580,{s:14,c:eth?TH.grn:TH.red});ctx.globalAlpha=1}
+  // نافذة التكبير
+  const cx=b.x,cy=175,R=98;ctx.strokeStyle=TH.muted;ctx.lineWidth=1.2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx-40,cy+R-10);ctx.lineTo(cx-30,yb-60);ctx.moveTo(cx+40,cy+R-10);ctx.lineTo(cx+30,yb-60);ctx.stroke();ctx.setLineDash([]);
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.fillStyle=TH.bg;ctx.fill();ctx.clip();
+  const j=i=>({x:Math.sin(T*2.3+i*1.7)*2.5,y:Math.cos(T*2.1+i*1.3)*2.5});const wO=[];
+  if(oct){const sep=sm(b.mt,0,2);this.wp.forEach((q,i)=>{if(q.y<-5&&sep>.5)return;const o=j(i);wO.push(miniWater(cx+q.x+o.x,cy+q.y+o.y+(q.y<-5?0:0),q.a+Math.sin(T+i)*.3).O)});
+   ctx.fillStyle='rgba(240,205,95,.18)';ctx.fillRect(cx-R,cy-R,2*R,R*.95*sep);ctx.strokeStyle='rgba(170,130,30,.8)';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(cx-R,cy-R+R*.95*sep);ctx.lineTo(cx+R,cy-R+R*.95*sep);ctx.stroke();ctx.setLineDash([]);
+   [[-20,-70],[10,-45],[-30,-22]].forEach((p,i)=>{const o=j(i+20);miniOct(cx+p[0]+o.x,cy+p[1]+o.y-(1-sep)*60,Math.sin(T*.8+i)*.12)})}
+  else{this.wp.forEach((q,i)=>{if(eth&&i%3===1)return;const o=j(i);wO.push(miniWater(cx+q.x+o.x,cy+q.y+o.y,q.a+Math.sin(T+i)*.3).O)});
+   if(eth){const f=sm(b.mt,0,2.5);this.ep.forEach((q,i)=>{const o=j(i+30),x=cx+lerp(-20+i*8,q.x,f)+o.x,y=cy+lerp(-R-20,q.y,f)+o.y;const g=miniEth(x,y,q.a);if(f>.7){let best=null,bd=46;wO.forEach(w=>{const d=Math.hypot(w.x-g.O.x,w.y-g.O.y);if(d<bd){bd=d;best=w}});if(best)hbLine(g.O,best,sm(f,.7,1))}})}}
+  ctx.restore();ring(cx,cy,R,TH.ink,3);ctx.strokeStyle=TH.ink;ctx.lineWidth=7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(cx+R*.72,cy+R*.72);ctx.lineTo(cx+R*.72+22,cy+R*.72+22);ctx.stroke();
+  txt(!(eth||oct)?'ماء':eth?'آصرات هيدروجينية بين الإيثانول والماء':'السلسلة الكاربونية الطويلة غير قطبية',cx,cy+R+16,{s:12.5,c:TH.muted})})},
+ drawBP(){const T0=this.T;const warm=clamp((T0+60)/160,0,1),cold=clamp(-T0/60,0,1);
+  beaker(500,505,560,190,[{f:.82,c:rgba([110,175,255,.32],[255,150,80,.28],warm)}],(x0,y0,w,h,top)=>{if(cold>0){ctx.fillStyle=`rgba(255,255,255,${.25*cold})`;for(let i=0;i<30;i++){ctx.beginPath();ctx.arc(x0+((i*53)%w),top+((i*37)%(h*.8)),2,0,TAU);ctx.fill()}}});
+  rr(210,507,580,16,5);ctx.fillStyle=TH.d?'#3a414b':'#7d8794';ctx.fill();if(T0>25){ctx.fillStyle=`rgba(255,80,30,${clamp((T0-25)/75,0,1)*.85})`;rr(220,509,560,8,4);ctx.fill()}
+  txt('حمام حراري',760,330,{a:'right',s:13,c:TH.muted});
+  this.tubes.forEach(t=>{const liq=t.parts.filter(p=>!p.g),n=liq.length,lv=n/24*.6,yt=150,h=320;
+   const sy=tube(t.x,yt,70,h,[{f:lv,c:t.k==='e'?'rgba(205,225,245,.45)':'rgba(215,230,240,.4)'}],(x0,y0,w,hh,top)=>{const pos=[];liq.forEach((p,i)=>{const col=i%3,row=Math.floor(i/3);const x=x0+14+col*21+Math.sin(T*(6+t.amp*14)+p.ph)*t.amp*5,y=yt+hh-14-row*23+Math.cos(T*(5+t.amp*12)+p.ph*2)*t.amp*5;pos.push({x,y})});
+     if(t.k==='e')pos.forEach((a,i)=>pos.forEach((b,j)=>{if(j>i&&Math.hypot(a.x-b.x,a.y-b.y)<27)hbLine(a,b,.9)}));pos.forEach(q=>this.part(t.k,q.x,q.y))});
+   t.parts.forEach(p=>{if(p.g&&!p.gone){if(!p.x){p.x=t.x+rnd(-15,15);p.y=sy}ctx.globalAlpha=clamp((p.y-40)/80,0,1);this.part(t.k,p.x,p.y);ctx.globalAlpha=1}});
+   txt(t.n+'  '+t.f,t.x,62,{s:17});txt(`M = ${t.M} g/mol   ·   bp = ${t.bp<0?'−'+Math.abs(t.bp):t.bp} °C`,t.x,88,{s:13,c:TH.muted,dir:'ltr'});
+   const st=n===0?'تبخّر كلياً':T0>=t.bp?'يغلي':'سائل';txt(st,t.x,118,{s:15,c:n===0?TH.muted:T0>=t.bp?TH.red:TH.grn})});
+  lcd(500,240,132,48,`${T0<0?'−':''}${Math.abs(T0).toFixed(1)} °C`);txt('درجة الحرارة',500,205,{s:13,c:TH.muted});
+  // المنزلق
+  rr(260,555,480,10,5);const g=ctx.createLinearGradient(260,0,740,0);g.addColorStop(0,'#5aa9ff');g.addColorStop(1,'#ff6a3d');ctx.fillStyle=g;ctx.fill();
+  [-42,0,78.4].forEach(v=>{const x=260+(v+60)/160*480;ctx.fillStyle=TH.muted;ctx.fillRect(x-1,568,2,8);txt(v===78.4?'78':String(v).replace('-','−'),x,586,{s:11,c:TH.muted,dir:'ltr'})});
+  const k=this.knob;ctx.beginPath();ctx.arc(k.x,560,16,0,TAU);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=TH.acc;ctx.lineWidth=3;ctx.stroke();ctx.fillStyle=TH.acc;ctx.fillRect(k.x-1,553,2,14);
+  txt('بارد',230,560,{s:13,c:'#3c8ce8'});txt('ساخن',775,560,{s:13,c:'#e5562b'})},
+ part(k,x,y){if(k==='p'){ctx.strokeStyle=TH.bond;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-7,y+2);ctx.lineTo(x,y-3);ctx.lineTo(x+7,y+2);ctx.stroke();[[-7,2],[0,-3],[7,2]].forEach(p=>atom(x+p[0],y+p[1],'C',{s:.36}))}
+  else{ctx.strokeStyle=TH.bond;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-6,y+1);ctx.lineTo(x+3,y-2);ctx.stroke();atom(x-6,y+1,'C',{s:.4});atom(x+4,y-2,'O',{s:.4})}}
+};
+
+/* ================= الواجهة 4: الخواص الكيميائية ================= */
+function rxNa(){const m=Mol();const E1=ethanol(m,-60,-90),E2=ethanol(m,-60,90);const N1=A(m,'Na',160,-90,{v:0}),N2=A(m,'Na',160,90,{v:0});
+ const rx=Rx(m);lab0(rx,'إيثانول',-60,-140);lab0(rx,'إيثانول',-60,145);
+ key(rx,k=>{k.show([N1,N2]);k.lab('Na',160,-130);k.lab('Na',160,130)});
+ key(rx,k=>{k.put(N1,80,-112);k.put(N2,80,68)});
+ key(rx,k=>{[[E1,N1,-90],[E2,N2,90]].forEach(([E,N,y])=>{k.cut(E.O,E.Ho);k.put(N,36,y);k.q(N,'+');k.q(E.O,'−')});k.put(E1.Ho,150,-18);k.put(E2.Ho,150,18);k.bd(E1.Ho,E2.Ho);
+  k.lab('إيثوكسيد الصوديوم',-50,-145);k.lab('إيثوكسيد الصوديوم',-50,150);k.lab('H₂↑',150,52,TH.acc)});
+ rx.stops=[3];rx.spd=.4;return rx}
+function rxDh(){const m=Mol();const E=ethanol(m,26,0);const rx=Rx(m);rx.hl=[E.Ca];lab0(rx,'إيثانول',0,-75);const h=E.Hm[2];
+ key(rx,k=>{k.cut(E.Ca,E.O);k.cut(E.Cm,h);k.bd(E.Cm,E.Ca,2);k.put(E.O,20,115);k.put(E.Ho,48,132);k.put(h,-8,132);k.bd(E.O,h);k.at(E.Cm,E.Hm[0],120,36);k.at(E.Cm,E.Hm[1],240,36);k.at(E.Ca,E.Hu,60,36);k.at(E.Ca,E.Hd,300,36);
+  k.lab('إيثين CH₂=CH₂',0,-75);k.lab('ماء H₂O',20,170)});rx.stops=[1];rx.spd=.35;return rx}
+function rxOxP(){const m=Mol();const E=ethanol(m,-40,10);const X1=A(m,'O',90,-125,{v:0,t:'[O]'}),X2=A(m,'O',100,150,{v:0,t:'[O]'});const rx=Rx(m);rx.hl=[E.Ca];lab0(rx,'إيثانول (أولي)',-50,-60);
+ key(rx,k=>{k.show([X1]);k.lab('إيثانول (أولي)',-50,-60);k.lab('أكسجين من العامل المؤكسد',90,-160)});
+ key(rx,k=>{k.put(X1,115,-80);k.put(E.Ho,87,-98);k.put(E.Hu,143,-98);k.cut(E.O,E.Ho);k.cut(E.Ca,E.Hu);k.bd(X1,E.Ho);k.bd(X1,E.Hu);k.bd(E.Ca,E.O,2);k.tag(X1,'');k.lab('إيثانال CH₃CHO',-40,95);k.lab('H₂O',115,-130)});
+ key(rx,k=>{k.show([X2]);k.lab('إيثانال CH₃CHO',-40,-50);k.lab('أكسدة إضافية',100,195)});
+ key(rx,k=>{k.cut(E.Ca,E.Hd);k.bd(E.Ca,X2);k.bd(X2,E.Hd);k.put(X2,-40,60);k.put(E.Hd,-12,78);k.tag(X2,'');k.lab('حامض الإيثانويك CH₃COOH',-40,120)});
+ rx.stops=[2,4];return rx}
+function rxOxS(){const m=Mol();const Ca=A(m,'C',0,20);Me(m,Ca,210);Me(m,Ca,330);const O=Tt(m,Ca,'O',90),Ho=Tt(m,O,'H',30),Hu=Tt(m,Ca,'H',270);const X=A(m,'O',120,-120,{v:0,t:'[O]'});const rx=Rx(m);rx.hl=[Ca];lab0(rx,'2-بروبانول (ثانوي)',0,120);
+ key(rx,k=>{k.show([X]);k.lab('2-بروبانول (ثانوي)',0,120)});
+ key(rx,k=>{k.put(X,125,-75);k.put(Ho,97,-93);k.put(Hu,153,-93);k.cut(O,Ho);k.cut(Ca,Hu);k.bd(X,Ho);k.bd(X,Hu);k.bd(Ca,O,2);k.tag(X,'');k.lab('بروبانون (أسيتون)',0,120);k.lab('H₂O',125,-125)});
+ rx.stops=[2];return rx}
+function rxOxT(){const m=Mol();const Ca=A(m,'C',0,20);Me(m,Ca,200);Me(m,Ca,340);Me(m,Ca,270);const O=Tt(m,Ca,'O',90);Tt(m,O,'H',30);const X=A(m,'O',130,-120,{v:0,t:'[O]'});const rx=Rx(m);rx.hl=[Ca];lab0(rx,'2-مثيل-2-بروبانول (ثالثي)',0,150);
+ key(rx,k=>{k.show([X]);k.lab('2-مثيل-2-بروبانول (ثالثي)',0,150)});
+ key(rx,k=>{k.put(X,60,-35);k.lab('لا توجد ذرة H على ذرة الكاربون الحاملة لـ OH',0,150,TH.red)});
+ key(rx,k=>{k.put(X,140,-125);k.lab('لا يحدث تفاعل',0,150,TH.red)});rx.stops=[3];return rx}
+const ORANGE=[240,128,28,.82],GREEN=[38,150,92,.78],CLEAR=[215,232,245,.4];
+const S4={sub:'na',
+ bar(){const g=[{items:[['na','التفاعل مع الصوديوم',this.sub==='na'],['dh','نزع الماء',this.sub==='dh'],['ox','أكسدة الكحولات',this.sub==='ox'],['hx','تكوين هاليدات الألكيل',this.sub==='hx']],on:id=>{this.sub=id;this.reset()}}];
+  if(this.sub==='ox')g.push({items:this.tubes.map((t,i)=>[String(i),'عرض جزيئات: '+t.k,this.sel===i]),on:id=>{this.sel=+id}});return g},
+ hint(){return{na:'اسحب قطعة الصوديوم إلى الكأس أو اضغط عليها',dh:'أضف حامض الكبريتيك المركز ثم اضغط على الموقد للتسخين',ox:'اسحب القطارة إلى أي أنبوب (أو اضغط عليها) ثم اضغط على الأنبوب لعرض جزيئاته',hx:'أضف HBr إلى منطقة التفاعل لتشاهد مغادرة OH وحلول Br محلها'}[this.sub]},
+ reset(){clearAnims();this.ready=false;const s=this.sub;this.z=null;
+  if(s==='hx'){this.z=ZoneRx(ZC.hx);this.z.reset();this.drags=this.z.drags;this.pulse=this.drags[0];return}
+  if(s==='na'){this.rx=rxNa();this.na=null;const p=Dg({id:'na',hx:905,hy:380,w:60,h:50,draw:d=>{naPiece(d.x,d.y,1.4);txt('Na',d.x,d.y-24,{s:13,c:TH.muted,dir:'ltr'})}});p.tap=()=>this.dropNa(p);p.drop=d=>Math.abs(d.x-690)<110&&d.y>300?(this.dropNa(d),true):false;this.drags=[p];this.pulse=p}
+  if(s==='dh'){this.rx=rxDh();this.acid=false;this.heat=false;this.Tf=25;const b=Dg({id:'acid',hx:530,hy:215,name:'H₂SO₄',sub:'مركز',liq:'rgba(240,228,180,.75)',cap:'#8c3b3b'});b.tap=()=>this.addAcid(b);b.drop=d=>Math.abs(d.x-660)<120&&d.y>250&&d.y<520?(this.addAcid(d),true):false;this.drags=[b];this.pulse=b}
+  if(s==='ox'){this.sel=0;this.tubes=[{x:880,k:'أولي',n:'إيثانول',rx:rxOxP()},{x:750,k:'ثانوي',n:'2-بروبانول',rx:rxOxS()},{x:620,k:'ثالثي',n:'2-مثيل-2-بروبانول',rx:rxOxT()}].map(t=>Object.assign(t,{ox:0,c:0,lv:.35}));
+   const d=Dg({id:'drop',hx:510,hy:300,w:50,h:140,draw:dropperDraw,liq:'rgba(240,128,28,.9)',lab:'K₂Cr₂O₇ / H₂SO₄'});d.tap=()=>{const i=this.tubes.findIndex(t=>!t.ox);i<0?toast('أُضيف العامل المؤكسد إلى كل الأنابيب'):this.addOx(d,i)};
+   d.drop=dd=>{const i=this.tubes.findIndex(t=>Math.abs(dd.x-t.x)<50&&dd.y>200&&dd.y<520);if(i<0||this.tubes[i].ox)return false;this.addOx(dd,i);return true};this.drags=[d];this.pulse=d}},
+ dropNa(d){d.hide=true;this.na={x:690,y:345,s:1,vy:0};this.ready=true;this.rx.min=1;rxPlay(this.rx,3);this.touched=true},
+ addAcid(d){if(this.acid)return;pourAnim(d,720,190,.8,()=>{});after(.6,()=>{this.acid=true})},
+ addOx(d,i){const t=this.tubes[i];d.busy=true;tween(d,{x:t.x,y:110},.45,()=>{for(let j=0;j<4;j++)after(j*.22,()=>drops.push({x:t.x,y:175,vy:0,ey:470-t.lv*270,c:'rgba(240,128,28,.95)'}));
+  after(1,()=>{t.ox=1;this.sel=i;this.ready=true;t.rx.min=1;rxPlay(t.rx,t.rx.stops[0]);tween(d,{x:d.hx,y:d.hy},.45,()=>{d.busy=false})})})},
+ down(p){if(this.sub==='dh'&&Math.abs(p.x-660)<40&&p.y>490&&p.y<560){this.heat=!this.heat;this.touched=true;return true}
+  if(this.sub==='ox'){const i=this.tubes.findIndex(t=>Math.abs(p.x-t.x)<38&&p.y>200&&p.y<500);if(i>=0){this.sel=i;renderSub();return true}}return false},
+ update(dt){const s=this.sub;if(this.z){this.rx=this.z.rx;this.ready=this.z.ready;return}
+  if(s==='na'&&this.na){const n=this.na;n.y=Math.min(505,n.y+dt*70);if(n.s>0){n.s=Math.max(0,n.s-dt/24);if(Math.random()<dt*26*Math.max(.2,n.s))bubble(n.x+rnd(-8,8),n.y-6,525-.55*170+3)}}
+  if(s==='dh'){this.Tf=this.heat?Math.min(this.acid?180:78.4,this.Tf+dt*28):Math.max(25,this.Tf-dt*10);const boil=this.Tf>=78&&!this.acid,react=this.acid&&this.Tf>=170;
+   if((boil||react)&&Math.random()<dt*20)bubble(660+rnd(-40,40),470,395);if(react&&Math.random()<dt*10)bubble(880+rnd(-10,10),500,370,3);
+   if(react&&!this.ready){this.ready=true;rxPlay(this.rx,1)}}
+  if(s==='ox'){this.tubes.forEach(t=>{if(t.ox){t.lv=Math.min(.45,t.lv+dt*.1);if(t.k!=='ثالثي')t.c=Math.min(1,t.c+dt/4.5)}});const t=this.tubes[this.sel];this.rx=t.rx;this.ready=!!t.ox}},
+ eq(){const s=this.sub;if(this.z)return this.z.eq();const end=this.rx.t>rxEnd(this.rx)-.35;
+  if(s==='na')setEq('2C₂H₅OH + 2Na',['',''],'2C₂H₅ONa + H₂↑',end);
+  if(s==='dh')setEq('CH₃CH₂OH',['H₂SO₄ مركز','180 °C'],'CH₂=CH₂ + H₂O',end);
+  if(s==='ox'){const t=this.tubes[this.sel],x=t.rx.t,A2=['K₂Cr₂O₇ / H⁺',''];
+   if(t.k==='أولي'){if(x<2.5)setEq('CH₃CH₂OH + [O]',A2,'CH₃CHO + H₂O',x>1.65);else setEq('CH₃CHO + [O]',A2,'CH₃COOH',x>3.65)}
+   else if(t.k==='ثانوي')setEq('CH₃CH(OH)CH₃ + [O]',A2,'CH₃COCH₃ + H₂O',x>1.65);else setEq('(CH₃)₃COH + [O]',A2,'لا يحدث تفاعل',x>2.6)}},
+ draw(){const s=this.sub;if(this.z)return this.z.draw();
+  panel(30,95,420,440,'نافذة التكبير الجزيئي',{lens:1});
+  if(s==='na'){drawRx(this.rx,240,325,.85);
+   const sy=beaker(690,525,170,170,[{f:.55,c:'rgba(205,225,245,.45)'}]);txt('إيثانول',690,550,{s:15});if(this.na){naPiece(this.na.x,this.na.y,this.na.s);if(this.na.s>0){ctx.globalAlpha=.6+.4*Math.sin(T*4);txt('H₂↑',690,325+Math.sin(T*2)*4,{s:18,c:TH.acc,dir:'ltr'});ctx.globalAlpha=1}}
+   beaker(905,525,100,115,[{f:.6,c:'rgba(240,220,150,.4)'}],(x0,y0,w,h)=>{naPiece(890,512,1);naPiece(918,505,.8)});txt('صوديوم في الكيروسين',905,550,{s:12.5,c:TH.muted});
+   if(!this.na)txt('الصوديوم أكثف من الإيثانول فيستقر في القاع',690,300,{s:12.5,c:TH.muted});else if(this.na.s<=0)txt('ذاب الصوديوم وتكوّن إيثوكسيد الصوديوم',690,300,{s:13,c:TH.grn})}
+  if(s==='dh'){drawRx(this.rx,230,300,1.25);if(!this.ready)txt(this.acid?'سخّن إلى 180 °C':'أضف H₂SO₄ المركز وسخّن',240,500,{s:14,c:TH.muted});
+   const cx=660,cy=420,r=62;ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,TAU);ctx.fillStyle=TH.gfill;ctx.fill();ctx.clip();ctx.fillStyle=this.acid?'rgba(225,215,180,.55)':'rgba(205,225,245,.45)';ctx.fillRect(cx-r,cy-8,2*r,r+10);ctx.restore();
+   ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2+.22,Math.PI*1.5-.22);ctx.strokeStyle=TH.glass;ctx.lineWidth=2.4;ctx.stroke();ctx.beginPath();ctx.moveTo(cx-14,cy-r+3);ctx.lineTo(cx-14,290);ctx.moveTo(cx+14,cy-r+3);ctx.lineTo(cx+14,290);ctx.stroke();
+   rr(cx-17,278,34,16,3);ctx.fillStyle='#7a5a3a';ctx.fill();
+   ctx.fillStyle=TH.d?'#ddd':'#999';ctx.fillRect(cx-4,230,3,215);ctx.fillStyle='#d43a2f';ctx.fillRect(cx-4,445-clamp(this.Tf/200,0,1)*120,3,clamp(this.Tf/200,0,1)*120);
+   lcd(cx+80,225,104,38,`${this.Tf.toFixed(0)} °C`);
+   ctx.strokeStyle=TH.glass;ctx.lineWidth=5;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(cx+8,285);ctx.lineTo(cx+8,262);ctx.lineTo(880,262);ctx.lineTo(880,500);ctx.stroke();ctx.strokeStyle=TH.bg;ctx.lineWidth=2;ctx.stroke();
+   tube(880,360,50,160,[{f:.5,c:TH.water}]);txt('تجميع الغاز',880,545,{s:12.5,c:TH.muted});if(this.acid&&this.Tf>=170)txt('إيثين',880,340,{s:14,c:TH.grn});
+   ctx.fillStyle=TH.d?'#555c66':'#8a929c';ctx.fillRect(cx-40,485,80,6);burner(cx,560,this.heat);txt(this.heat?'إطفاء':'اضغط للتسخين',cx-62,545,{a:'right',s:12.5,c:this.heat?TH.red:TH.gold});
+   if(this.heat&&!this.acid&&this.Tf>=78)txt('يغلي الإيثانول فقط (78 °C) ولا يتكوّن إيثين بدون H₂SO₄',660,198,{s:12.5,c:TH.red})}
+  if(s==='ox'){const t=this.tubes[this.sel];drawRx(t.rx,240,320,1.05);if(!t.ox)txt('أضف العامل المؤكسد إلى هذا الأنبوب',240,505,{s:13.5,c:TH.muted});
+   this.tubes.forEach((q,i)=>{const col=q.ox?rgba(ORANGE,GREEN,q.c):rgba(CLEAR,CLEAR,0);tube(q.x,200,58,270,[{f:q.lv,c:col}]);if(i===this.sel){rr(q.x-40,193,80,322,12);ctx.strokeStyle=TH.acc;ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.stroke();ctx.setLineDash([])}
+    txt(q.k,q.x,532,{s:16,c:[TH.grn,TH.acc,TH.red][i]});txt(q.n,q.x,555,{s:12,c:TH.muted});
+    if(q.ox){const done=q.k==='ثالثي'?q.lv>.44:q.c>.95;if(done){txt(q.k==='ثالثي'?'يبقى برتقالياً':'برتقالي ← أخضر',q.x,160,{s:13,c:q.k==='ثالثي'?TH.red:TH.grn});txt(q.k==='أولي'?'ألديهايد ثم حامض':q.k==='ثانوي'?'كيتون':'لا يتأكسد',q.x,180,{s:12,c:TH.muted})}}})}
+ }};
+
+/* ================= الواجهة 5: كاشف لوكاس ================= */
+const S5={spd:10,
+ bar(){return[{items:[['1','زمن حقيقي ×1',this.spd===1],['10','تسريع ×10',this.spd===10],['30','تسريع ×30',this.spd===30]],on:id=>{this.spd=+id}}]},
+ hint(){return'اسحب قطارة كاشف لوكاس إلى كل أنبوب (أو اضغط عليها) وراقب زمن التعكر'},
+ reset(){clearAnims();this.tubes=[{x:760,k:'أولي',n:'1-بيوتانول',f:'CH₃(CH₂)₃OH',e:'CH₃(CH₂)₃OH + HCl'},{x:530,k:'ثانوي',n:'2-بيوتانول',f:'CH₃CH(OH)CH₂CH₃',e:'CH₃CH(OH)CH₂CH₃ + HCl'},{x:300,k:'ثالثي',n:'2-مثيل-2-بروبانول',f:'(CH₃)₃COH',e:'(CH₃)₃COH + HCl'}].map((t,i)=>Object.assign(t,{i,on:0,t:0,lv:.3,dots:Array.from({length:46},()=>({x:rnd(-24,24),y:rnd(0,1),p:rnd(0,6)}))}));this.last=-1;
+  const d=Dg({id:'lucas',hx:915,hy:290,w:50,h:140,draw:dropperDraw,liq:'rgba(230,240,250,.8)',lab:'كاشف لوكاس'});d.tap=()=>{const i=this.tubes.findIndex(t=>!t.on);i<0?toast('أُضيف الكاشف إلى كل الأنابيب'):this.add(d,i)};
+  d.drop=dd=>{const i=this.tubes.findIndex(t=>Math.abs(dd.x-t.x)<55&&dd.y>150&&dd.y<520);if(i<0||this.tubes[i].on)return false;this.add(dd,i);return true};this.drags=[d];this.pulse=d},
+ add(d,i){const t=this.tubes[i];d.busy=true;tween(d,{x:t.x,y:95},.45,()=>{for(let j=0;j<5;j++)after(j*.2,()=>drops.push({x:t.x,y:160,vy:0,ey:470-t.lv*280,c:'rgba(190,215,240,.95)'}));after(1.05,()=>{t.on=1;this.last=i;tween(d,{x:d.hx,y:d.hy},.45,()=>{d.busy=false})})})},
+ cl(t){return t.k==='ثالثي'?sm(t.t,2,20):t.k==='ثانوي'?sm(t.t,180,300):0},
+ ly(t){return t.k==='ثالثي'?sm(t.t,90,240):t.k==='ثانوي'?sm(t.t,600,900):0},
+ update(dt){this.tubes.forEach(t=>{if(t.on){t.t+=dt*this.spd;t.lv=Math.min(.55,t.lv+dt*.25)}})},
+ eq(){const r=[...this.tubes].filter(t=>t.on&&this.cl(t)>.05).sort((a,b)=>this.cl(b)-this.cl(a))[0];const lt=this.tubes[this.last];
+  if(r)setEq(r.e,['ZnCl₂',''],r.f.replace('OH','Cl').replace('(OH)','(Cl)').replace('(Cl)','(Cl)')+' + H₂O',true);
+  else if(lt&&lt.k==='أولي'&&lt.on)setEq(lt.e,['ZnCl₂','درجة حرارة الغرفة'],'تفاعل بطيء جداً',lt.t>20);
+  else setEq('R–OH + HCl',['ZnCl₂',''],'R–Cl + H₂O',false)},
+ draw(){rr(200,395,660,16,5);ctx.fillStyle=TH.d?'#6b5440':'#c9a27a';ctx.fill();ctx.fillStyle=TH.d?'#4d3b2c':'#a8825c';ctx.fillRect(215,411,10,90);ctx.fillRect(835,411,10,90);rr(200,495,660,14,5);ctx.fill();
+  this.tubes.forEach(t=>{const c=this.cl(t),L=this.ly(t);
+   tube(t.x,170,64,300,[{f:t.lv,c:'rgba(215,232,245,.45)'}],(x0,y0,w,h,top)=>{const yb=y0+h,lh=t.lv*h;
+    if(c>0){ctx.fillStyle=`rgba(250,250,248,${.85*c*(1-L*.6)})`;ctx.fillRect(x0,top,w,lh);t.dots.forEach(d=>{const y=top+d.y*lh+Math.sin(T*.7+d.p)*3;ctx.fillStyle=`rgba(255,255,255,${c*.9})`;ctx.beginPath();ctx.arc(t.x+d.x+Math.sin(T+d.p)*2,y,1.6,0,TAU);ctx.fill()})}
+    if(L>0){const th=lh*.28*L;ctx.fillStyle=`rgba(245,235,200,${.9*L})`;ctx.fillRect(x0,top,w,th);ctx.strokeStyle=`rgba(170,140,60,${L})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,top+th);ctx.lineTo(x0+w,top+th);ctx.stroke()}});
+   txt(t.k,t.x,532,{s:18,c:[TH.grn,TH.acc,TH.red][t.i]});txt(t.n,t.x,556,{s:13,c:TH.muted});txt(t.f,t.x,578,{s:12,c:TH.muted,dir:'ltr'});
+   const mm=Math.floor(t.t/60),ss=Math.floor(t.t%60);lcd(t.x,135,96,32,`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`);
+   let st='',sc=TH.muted;if(t.on){if(L>.3){st='انفصال طبقة هاليد الألكيل';sc=TH.gold}else if(c>.9){st='تعكر كامل';sc=TH.red}else if(c>.05){st='بدأ التعكر';sc=TH.acc}else st='يبقى شفافاً'}
+   txt(st,t.x,100,{s:14,c:sc})});
+  txt('الزمن داخل الأنبوب (دقيقة:ثانية)',105,135,{s:12,c:TH.muted});
+  txt('التعكر سببه تكوّن هاليد الألكيل غير الذائب في الوسط المائي، ويختلف الزمن الفعلي باختلاف المركب وظروف التجربة',530,62,{s:13,c:TH.muted})}
+};
+
+/* ================= المشاهد والتنقل ================= */
+const scenes=[{n:'التركيب والتصنيف',s:S1},{n:'تحضير الكحولات',s:S2},{n:'الخواص الفيزيائية',s:S3},{n:'الخواص الكيميائية',s:S4},{n:'كاشف لوكاس',s:S5}];
+let cur=0;const S=()=>scenes[cur].s;
+$('#tabs').innerHTML=scenes.map((q,i)=>`<button class="tab" role="tab" data-i="${i}" aria-selected="${i===0}"><b>${i+1}</b>${q.n}</button>`).join('');
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+function go(i){cur=i;document.querySelectorAll('.tab').forEach((b,j)=>b.setAttribute('aria-selected',j===i));view.k=1;view.x=view.y=0;S().reset();renderSub();clearInk();eqKey=''}
+function renderSub(){const sc=S(),el=$('#sub');const g=sc.bar?sc.bar():[];
+ el.innerHTML=g.map((q,gi)=>`<div class="grp">${q.items.map(([id,n,on])=>`<button class="chip" data-g="${gi}" data-id="${id}" aria-pressed="${!!on}">${n}</button>`).join('')}</div>`).join('')+`<span class="hint">${sc.hint?sc.hint():''}</span>`;
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{sc.bar()[+b.dataset.g].on(b.dataset.id);renderSub();eqKey=''})}
+
+/* ---------- الحجم والرسم ---------- */
+function resize(){const r=stage.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;
+ const tmp=document.createElement('canvas');tmp.width=ink.width;tmp.height=ink.height;if(ink.width>1)tmp.getContext('2d').drawImage(ink,0,0);ink.width=W*dpr;ink.height=H*dpr;ic.drawImage(tmp,0,0);
+ const top=Math.min(64,H*.11),bot=Math.min(54,H*.09);fit.s=Math.min(W/VW,(H-top-bot)/VH);fit.ox=(W-VW*fit.s)/2;fit.oy=top+(H-top-bot-VH*fit.s)/2}
+new ResizeObserver(resize).observe(stage);
+const toV=(px,py)=>{const a=fit.s*view.k;return{x:(px-fit.ox-view.x)/a,y:(py-fit.oy-view.y)/a}};
+function zoomAt(px,py,f){const a0=fit.s*view.k,nk=clamp(view.k*f,1,4),a1=fit.s*nk,vx=(px-fit.ox-view.x)/a0,vy=(py-fit.oy-view.y)/a0;view.k=nk;view.x=px-fit.ox-a1*vx;view.y=py-fit.oy-a1*vy;if(nk<=1.001){view.k=1;view.x=view.y=0}}
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;try{update(dt);draw()}catch(e){console.error(e)}requestAnimationFrame(frame)}
+function update(dt){for(let i=tms.length-1;i>=0;i--){tms[i].t-=dt;if(tms[i].t<=0){const f=tms[i].fn;tms.splice(i,1);f()}}
+ for(let i=tws.length-1;i>=0;i--){const w=tws[i];w.t+=dt;const f=ease(Math.min(1,w.t/w.dur));for(const k in w.to)w.o[k]=lerp(w.fr[k],w.to[k],f);if(w.t>=w.dur){tws.splice(i,1);w.cb&&w.cb()}}
+ drops=drops.filter(d=>{d.vy+=900*dt;d.y+=d.vy*dt;return d.y<d.ey});bubs=bubs.filter(b=>{b.y-=b.vy*dt;b.x+=Math.sin(T*6+b.ph)*.3;return b.y>b.top});
+ const sc=S();(sc.drags||[]).forEach(d=>{if(!d.held&&!d.busy&&!d.free&&!d.hide){const k=Math.min(1,dt*12);d.x+=(d.hx-d.x)*k;d.y+=(d.hy-d.y)*k;d.rot+=(0-d.rot)*k}});
+ sc.update&&sc.update(dt);const rx=sc.rx;if(rx&&rx.playing){rx.t=Math.min(rx.goal,rx.t+dt*rx.spd);if(rx.t>=rx.goal)rx.playing=false}
+ sc.eq&&sc.eq();syncBar()}
+function draw(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);ctx.fillStyle=TH.bg;ctx.fillRect(0,0,W,H);const a=fit.s*view.k;ctx.setTransform(dpr*a,0,0,dpr*a,dpr*(fit.ox+view.x),dpr*(fit.oy+view.y));
+ const sc=S();sc.draw();drawFx();(sc.drags||[]).forEach(d=>{if(!d.hide)d.draw(d)});
+ if(sc.pulse&&!sc.touched&&!sc.pulse.hide){const p=sc.pulse,r=Math.max(p.w,p.h)*.55+Math.sin(T*4)*6;ctx.save();ctx.globalAlpha=.55+.3*Math.sin(T*4);ring(p.x,p.y,r,TH.gold,3);ctx.restore()}}
+
+/* ---------- شريط التفاعل ---------- */
+const rxbar=$('#rxbar'),rng=$('#rxRange'),rxIco=$('#rxIco');let barRx=null;
+function syncBar(){const sc=S(),rx=sc.rx,show=!!(rx&&sc.ready&&rx.fr.length>1);rxbar.hidden=!show;if(!show)return;if(barRx!==rx){barRx=rx;rng.max=rxEnd(rx)}if(document.activeElement!==rng)rng.value=rx.t;rxIco.setAttribute('d',rx.playing?'M7 5h4v14H7zM13 5h4v14h-4z':'M8 5v14l11-7z')}
+rng.oninput=()=>{const rx=S().rx;if(!rx)return;rx.playing=false;rx.t=Math.max(rx.min||0,+rng.value)};
+$('#rxPlay').onclick=()=>{const rx=S().rx;if(!rx)return;if(rx.playing){rx.playing=false;return}if(rx.t>=rxEnd(rx)-.01)rx.t=rx.min||0;rxPlay(rx)};
+
+/* ---------- المؤشر واللمس ---------- */
+const ptrs=new Map();let drag=null,pan=null,pinch=null,lastTap=0;
+function touch(){S().touched=true}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+ if(ptrs.size===2){if(drag){drag.d.held=false;drag=null}pan=null;const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),m:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}};return}
+ const p=toV(e.offsetX,e.offsetY),sc=S();const d=(sc.drags||[]).slice().reverse().find(d=>!d.hide&&!d.busy&&Math.abs(p.x-d.x)<d.w/2+14&&Math.abs(p.y-d.y)<d.h/2+14);
+ if(d){drag={d,dx:p.x-d.x,dy:p.y-d.y,sx:e.offsetX,sy:e.offsetY,moved:false};d.held=true;touch();return}
+ if(sc.down&&sc.down(p)){touch();return}
+ const now=performance.now();if(now-lastTap<320){view.k=1;view.x=view.y=0}lastTap=now;pan={x:e.offsetX,y:e.offsetY,vx:view.x,vy:view.y}});
+cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+ if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),m={x:(a.x+b.x)/2,y:(a.y+b.y)/2};zoomAt(m.x,m.y,d/pinch.d);if(view.k>1){view.x+=m.x-pinch.m.x;view.y+=m.y-pinch.m.y}pinch={d,m};return}
+ if(drag){const p=toV(e.offsetX,e.offsetY),d=drag.d;d.x=p.x-drag.dx;d.y=p.y-drag.dy;d.constrain&&d.constrain(d);if(Math.hypot(e.offsetX-drag.sx,e.offsetY-drag.sy)>6)drag.moved=true;return}
+ if(pan&&view.k>1){view.x=pan.vx+e.offsetX-pan.x;view.y=pan.vy+e.offsetY-pan.y}});
+function endP(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(drag){const d=drag.d;d.held=false;if(!drag.moved){d.tap&&d.tap()}else if(!(d.drop&&d.drop(d))){}drag=null}if(!ptrs.size)pan=null}
+cv.addEventListener('pointerup',endP);cv.addEventListener('pointercancel',endP);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,e.deltaY<0?1.12:1/1.12)},{passive:false});
+
+/* ---------- القلم ---------- */
+let penMode=null,penCol='#ffffff',penW=4,stroke=null;const PCOL=['#ffffff','#ffd400','#ff3b30','#22c55e','#2f7cf6'];
+const penPop=$('#penPop'),bgPop=$('#bgPop');
+function renderPen(){penPop.innerHTML='<span class="lbl">لون القلم</span>'+PCOL.map(c=>`<button class="sw" data-c="${c}" style="background:${c}" aria-label="لون" aria-pressed="${c===penCol}"></button>`).join('')+'<span class="lbl">السُمك</span>'+[3,8].map(w=>`<button class="th" data-w="${w}" aria-label="سمك ${w}" aria-pressed="${w===penW}"><i style="width:${w+4}px;height:${w+4}px"></i></button>`).join('');
+ penPop.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{penCol=b.dataset.c;renderPen()});penPop.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{penW=+b.dataset.w;renderPen()})}
+function setPen(m){penMode=penMode===m?null:m;$('#bPen').setAttribute('aria-pressed',penMode==='pen');$('#bEr').setAttribute('aria-pressed',penMode==='er');ink.classList.toggle('on',!!penMode);penPop.hidden=penMode!=='pen';if(penMode==='pen'){if(penCol==='#ffffff'&&!TH.d)penCol='#ff3b30';renderPen();bgPop.hidden=true;$('#bBg').setAttribute('aria-pressed',false)}}
+$('#bPen').onclick=()=>setPen('pen');$('#bEr').onclick=()=>setPen('er');
+function clearInk(){ic.setTransform(1,0,0,1,0,0);ic.clearRect(0,0,ink.width,ink.height)}
+$('#bClr').onclick=clearInk;
+ink.addEventListener('pointerdown',e=>{if(!penMode)return;ink.setPointerCapture(e.pointerId);stroke={x:e.offsetX,y:e.offsetY};dot(e)});
+ink.addEventListener('pointermove',e=>{if(!stroke)return;ic.setTransform(dpr,0,0,dpr,0,0);ic.globalCompositeOperation=penMode==='er'?'destination-out':'source-over';ic.strokeStyle=penCol;ic.lineWidth=penMode==='er'?26:penW;ic.lineCap=ic.lineJoin='round';ic.beginPath();ic.moveTo(stroke.x,stroke.y);ic.lineTo(e.offsetX,e.offsetY);ic.stroke();stroke={x:e.offsetX,y:e.offsetY}});
+function dot(e){ic.setTransform(dpr,0,0,dpr,0,0);ic.globalCompositeOperation=penMode==='er'?'destination-out':'source-over';ic.fillStyle=penCol;ic.beginPath();ic.arc(e.offsetX,e.offsetY,(penMode==='er'?26:penW)/2,0,TAU);ic.fill()}
+const endInk=()=>{stroke=null};ink.addEventListener('pointerup',endInk);ink.addEventListener('pointercancel',endInk);
+
+/* ---------- الخلفية وبقية الأدوات ---------- */
+bgPop.innerHTML='<span class="lbl">لون الخلفية</span>'+THEMES.map((t,i)=>`<button class="sw" data-i="${i}" style="background:${t[1]}" title="${t[0]}" aria-label="${t[0]}"></button>`).join('');
+bgPop.querySelectorAll('.sw').forEach(b=>b.onclick=()=>applyTheme(+b.dataset.i));
+$('#bBg').onclick=()=>{bgPop.hidden=!bgPop.hidden;$('#bBg').setAttribute('aria-pressed',!bgPop.hidden);if(!bgPop.hidden){penPop.hidden=true}};
+$('#bReset').onclick=()=>{S().reset();renderSub();eqKey='';view.k=1;view.x=view.y=0};
+$('#bFs').onclick=async()=>{try{const de=document.documentElement;if(!document.fullscreenElement&&!document.webkitFullscreenElement){await(de.requestFullscreen?de.requestFullscreen():de.webkitRequestFullscreen())}else{await(document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen())}}catch(e){toast('ملء الشاشة غير متاح في هذا العرض')}};
+document.addEventListener('fullscreenchange',()=>$('#bFs').setAttribute('aria-pressed',!!document.fullscreenElement));
+let toastT=0;function toast(s,ms=3200){const t=$('#toast');t.textContent=s;t.hidden=false;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>{t.style.opacity=0;setTimeout(()=>t.hidden=true,400)},ms)}
+
+let bi=0;try{bi=+(localStorage.getItem('alc-bg')||0)}catch(e){}applyTheme(THEMES[bi]?bi:0);
+resize();go(0);requestAnimationFrame(frame);
+if(W<H)toast('أدر الجهاز أفقياً لعرض أوضح، ويمكنك التكبير بالإصبعين',6500);else toast('اختر الواجهة من الأعلى • اسحب المواد أو اضغط عليها • كبّر بالإصبعين أو بعجلة الفأرة • نقرتان لإعادة المنظر',6500);
+window.__sim={scenes,go,S,view,TH,applyTheme};
+}
+</script>
+</body>
+</html>
