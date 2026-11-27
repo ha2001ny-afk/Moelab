@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>مختبر الكاربوهيدرات</title>
+<style>
+/* VOICE: هادئ وعلمي، مختبر مدرسي نظيف
+   IDEA: طاولة مختبر بيضاء تُعرض على السبورة الذكية
+   PICTURE: ذرات وحلقات وأنابيب اختبار SVG تتحرك باليد
+   COLOUR and TYPE: أبيض، حبر كحلي، كهرماني للسكر، أحمر للأوكسجين؛ Tajawal
+   LAYOUT: شريط تبويب علوي، مسرح كامل، شريط تحكم سفلي */
+:root{color-scheme:light;--bg:#ffffff;--btn:#fff;--ink:#1e293b;--mut:#64748b;--line:#e2e8f0;--acc:#d97706}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Tajawal,system-ui,sans-serif}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;background:var(--bg);transition:background .3s}
+#pal{position:absolute;top:8px;left:8px;z-index:5;display:none;gap:8px;flex-wrap:wrap;max-width:300px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.14)}
+#pal.open{display:flex}
+.sw{width:44px;height:44px;border-radius:50%;border:2px solid #cbd5e1;cursor:pointer}
+.sw.sel{border:3px solid var(--ink);box-shadow:0 0 0 2px #fff inset}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+h1{font-size:20px;margin:0;font-weight:800;white-space:nowrap}
+#tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none}
+.tab{flex:none;height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);color:var(--ink);font:700 16px Tajawal,system-ui,sans-serif;cursor:pointer}
+.tab[aria-selected=true]{border-color:var(--ink)}
+#tools{display:flex;gap:6px;flex:none}
+.ib{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.ib svg{width:22px;height:22px}
+.ib.on{border-color:#f59e0b;box-shadow:inset 0 0 0 2px #f59e0b}
+button:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+#wrap{flex:1;position:relative;min-height:0}
+#stage{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;display:block}
+#bar{display:flex;gap:8px;justify-content:center;align-items:center;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap;min-height:62px}
+.btn{height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line);color:var(--ink);font:700 16px Tajawal,system-ui,sans-serif;cursor:pointer}
+.btn.sel{border-color:var(--ink)}
+.sep{width:1px;height:28px;background:var(--line);margin:0 4px}
+#stat{font-weight:800;color:var(--mut);font-size:16px;min-width:60px;text-align:center}
+svg text{font-family:Tajawal,system-ui,sans-serif}
+.lb{font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round;pointer-events:none}
+.at{font-weight:800;text-anchor:middle;pointer-events:none}
+.tx{text-anchor:middle;pointer-events:none}
+[data-h]{cursor:grab}
+.dk text.lb[fill="#334155"],.dk text.tx[fill="#334155"]{fill:#e2e8f0}
+.dk text.lb[fill="#1e293b"],.dk text.tx[fill="#1e293b"]{fill:#f8fafc}
+.dk text.lb[fill="#475569"],.dk text.tx[fill="#475569"]{fill:#cbd5e1}
+.dk text.lb[fill="#64748b"],.dk text.tx[fill="#64748b"]{fill:#a7b4c6}
+.dk text.lb[fill="#2563eb"],.dk text.tx[fill="#2563eb"]{fill:#93c5fd}
+.dk text.lb[fill="#1d4ed8"],.dk text.tx[fill="#1d4ed8"]{fill:#93c5fd}
+.dk text.lb[fill="#92400e"],.dk text.tx[fill="#92400e"]{fill:#fcd34d}
+.dk text.lb[fill="#b45309"],.dk text.tx[fill="#b45309"]{fill:#fbbf24}
+.dk text.lb[fill="#b91c1c"],.dk text.tx[fill="#b91c1c"]{fill:#fca5a5}
+.dk text.lb[fill="#1e3a8a"],.dk text.tx[fill="#1e3a8a"]{fill:#a5b4fc}
+.dk text.lb[fill="#dc2626"],.dk text.tx[fill="#dc2626"]{fill:#f87171}
+.dk text.lb[fill="#ea580c"],.dk text.tx[fill="#ea580c"]{fill:#fdba74}
+.dk ellipse[fill="#dbeafe"]{fill:rgba(59,130,246,.2)}
+.dk line[stroke="#526072"]{stroke:#cbd5e1}.dk line[stroke="#64748b"]{stroke:#94a3b8}
+.dk rect[fill="#fff"]{fill:rgba(255,255,255,.08)}.dk rect[fill="#fffbeb"]{fill:rgba(252,211,77,.1)}
+.dk path[fill="#f8fafc"]{fill:transparent}.dk path[fill^="rgba(241,245,249"]{fill:rgba(255,255,255,.05)}
+.dk{--ink:#f1f5f9;--mut:#a7b4c6;--line:rgba(255,255,255,.18);--btn:rgba(255,255,255,.07)}
+.tab,.btn,.ib{background:var(--btn)}.tab[aria-selected=true],.btn.sel{background:var(--ink);color:var(--bg)}
+#pal{background:var(--bg)}
+@media(max-width:760px){h1{display:none}header{flex-wrap:wrap}#tabs{order:2;flex-basis:100%}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>مختبر الكاربوهيدرات</h1>
+  <nav id="tabs" role="tablist">
+    <button class="tab" data-lab="0">التصنيف</button>
+    <button class="tab" data-lab="1">الكلوكوز والفركتوز</button>
+    <button class="tab" data-lab="2">السكريات الثنائية</button>
+    <button class="tab" data-lab="3">السكريات المتعددة</button>
+    <button class="tab" data-lab="4">الكشف المختبري</button>
+  </nav>
+  <div id="tools">
+    <button class="ib on" id="bLab" title="التأشيرات" aria-label="إظهار أو إخفاء التأشيرات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></button>
+    <button class="ib" id="bBg" title="لون الخلفية" aria-label="لون الخلفية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.8 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10" cy="7" r="1.2" fill="currentColor"/><circle cx="15" cy="7" r="1.2" fill="currentColor"/></svg></button>
+    <button class="ib" id="bIn" title="تكبير" aria-label="تكبير"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 7.5v6M7.5 10.5h6"/></svg></button>
+    <button class="ib" id="bOut" title="تصغير" aria-label="تصغير"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M7.5 10.5h6"/></svg></button>
+    <button class="ib" id="bFit" title="الحجم الأصلي" aria-label="الحجم الأصلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg></button>
+    <button class="ib" id="bFs" title="ملء الشاشة" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+</header>
+<div id="wrap">
+<div id="pal" role="dialog" aria-label="لون الخلفية"></div>
+<svg id="stage" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <radialGradient id="gC" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#7b8390"/><stop offset="1" stop-color="#1f2630"/></radialGradient>
+    <radialGradient id="gO" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#ff8a80"/><stop offset="1" stop-color="#c62828"/></radialGradient>
+    <radialGradient id="gH" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d3dbe5"/></radialGradient>
+    <linearGradient id="glass" x1="0" x2="1"><stop offset="0" stop-color="#cbd5e1" stop-opacity=".45"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#cbd5e1" stop-opacity=".4"/></linearGradient>
+    <linearGradient id="silver" x1="0" x2="1"><stop offset="0" stop-color="#6b7280"/><stop offset=".3" stop-color="#f1f5f9"/><stop offset=".55" stop-color="#9ca3af"/><stop offset="1" stop-color="#4b5563"/></linearGradient>
+    <linearGradient id="metal" x1="0" x2="1"><stop offset="0" stop-color="#64748b"/><stop offset=".4" stop-color="#e2e8f0"/><stop offset="1" stop-color="#475569"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity=".12"/></filter>
+  </defs>
+  <g id="world"><rect x="-3000" y="-3000" width="7200" height="6700" style="fill:var(--bg);transition:fill .3s"/><g id="dyn"></g></g>
+</svg>
+</div>
+<div id="bar"></div>
+</div>
+<script>
+{
+const svg=document.getElementById('stage'),world=document.getElementById('world'),dyn=document.getElementById('dyn'),bar=document.getElementById('bar');
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,ease=t=>t*t*(3-2*t),D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const P2=(a,b,t)=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t)});
+const f1=v=>(+v).toFixed(1);
+let view={k:1,tx:0,ty:0},showL=true,age=0,li=0,now=0,cur=0;
+
+/* ---------- drawing helpers ---------- */
+function lb(x,y,t,o={}){const i=li++;let op=showL?clamp((age-.35-i*.18)/.5):0;op*=(o.m===undefined?1:o.m);if(op<=.01)return'';
+  return `<text class="lb" x="${f1(x)}" y="${f1(y)}" font-size="${o.s||17}" fill="${o.f||'#334155'}" opacity="${op.toFixed(2)}"${o.ltr?' direction="ltr" unicode-bidi="embed"':''}>${t}</text>`}
+function labOp(i=0,m=1){return showL?clamp((age-.35-i*.18)/.5)*m:0}
+const AT={C:[15,'gC','#fff',14],O:[15,'gO','#fff',14],H:[10,'gH','#475569',11]};
+function atom(x,y,e,op=1,r){const a=AT[e];const rr=r||a[0],fs=a[3]*rr/a[0];if(op<=.01)return'';
+  return `<g opacity="${op.toFixed(2)}"><circle cx="${f1(x)}" cy="${f1(y)}" r="${rr}" fill="url(#${a[1]})"${e==='H'?' stroke="#94a3b8" stroke-width="1"':''}/><text class="at" x="${f1(x)}" y="${f1(y+fs*.36)}" font-size="${f1(fs)}" fill="${a[2]}">${e}</text></g>`}
+function bond(a,b,op=1,w=4,c='#526072',dash=''){if(op<=.01)return'';return `<line x1="${f1(a.x)}" y1="${f1(a.y)}" x2="${f1(b.x)}" y2="${f1(b.y)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" opacity="${op.toFixed(2)}"${dash?` stroke-dasharray="${dash}"`:''}/>`}
+const poly=(cx,cy,r,n,rot=0)=>Array.from({length:n},(_,i)=>{const a=rot+i*2*Math.PI/n;return f1(cx+r*Math.cos(a))+','+f1(cy+r*Math.sin(a))}).join(' ');
+function ring(cx,cy,r,n,col,rot){const ro=rot!==undefined?rot:(n===6?Math.PI/6:-Math.PI/2);const a=ro+(n===6?-Math.PI/3:0);
+  return `<polygon points="${poly(cx,cy,r,n,ro)}" fill="${col}26" stroke="${col}" stroke-width="2.6" stroke-linejoin="round"/><circle cx="${f1(cx+r*Math.cos(a))}" cy="${f1(cy+r*Math.sin(a))}" r="${f1(r*.2)}" fill="#e53935"/>`}
+
+/* ================= 1. CLASSIFICATION ================= */
+const SUG=[
+ {n:'كلوكوز',k:0,f:'C₆H₁₂O₆',i:'h',c:'#f59e0b'},{n:'فركتوز',k:0,f:'C₆H₁₂O₆',i:'p',c:'#ef4444'},{n:'كالكتوز',k:0,f:'C₆H₁₂O₆',i:'h',c:'#8b5cf6'},
+ {n:'سكروز',k:1,f:'C₁₂H₂₂O₁₁',i:'hp',c:'#ef4444'},{n:'مالتوز',k:1,f:'C₁₂H₂₂O₁₁',i:'hh',c:'#f59e0b'},{n:'لاكتوز',k:1,f:'C₁₂H₂₂O₁₁',i:'hh',c:'#8b5cf6'},
+ {n:'نشأ',k:2,f:'(C₆H₁₀O₅)n',i:'chain',c:'#f59e0b'},{n:'كلايكوجين',k:2,f:'(C₆H₁₀O₅)n',i:'branch',c:'#d97706'},{n:'سليلوز',k:2,f:'(C₆H₁₀O₅)n',i:'straight',c:'#16a34a'}];
+const BINS=[{k:0,x:215,n:'سكريات أحادية',s:'وحدة سكرية واحدة',c:'#f59e0b'},{k:1,x:600,n:'سكريات ثنائية',s:'وحدتان',c:'#3b82f6'},{k:2,x:985,n:'سكريات متعددة',s:'وحدات كثيرة',c:'#16a34a'}];
+function icon(k,c){
+  if(k==='h')return ring(0,-16,23,6,c);
+  if(k==='p')return ring(0,-14,23,5,c);
+  if(k==='hh'||k==='hp')return `<line x1="-22" y1="-12" x2="22" y2="-12" stroke="#64748b" stroke-width="2.5"/>`+ring(-26,-14,17,6,k==='hp'?'#f59e0b':c)+ring(27,-12,17,k==='hp'?5:6,k==='hh'?'#f59e0b':c)+`<circle cx="0" cy="-12" r="4" fill="#e53935"/>`;
+  let s='';const xs=[-39,-13,13,39];
+  if(k==='branch'){const pts=[[-36,0],[-12,0],[12,0],[36,0],[-8,-26],[14,-40]];s+=`<polyline points="-36,0 36,0" stroke="#64748b" stroke-width="2" fill="none"/><polyline points="-12,0 -8,-26 14,-40" stroke="#64748b" stroke-width="2" fill="none"/>`;pts.forEach(p=>s+=ring(p[0],p[1],10,6,c));return s}
+  s+=`<line x1="-39" y1="-14" x2="39" y2="-14" stroke="#64748b" stroke-width="2"/>`;
+  xs.forEach((x,i)=>s+=ring(x,k==='chain'?-14+(i%2?6:-6):-14,11,6,c,k==='straight'&&i%2?Math.PI/6+Math.PI:undefined));return s}
+const L1={
+ init(){const o=[...SUG.keys()].sort(()=>Math.random()-.5);this.cards=SUG.map((s,i)=>{const j=o.indexOf(i);const h={x:85+j*129,y:150};return Object.assign({},s,{hx:h.x,hy:h.y,x:h.x,y:h.y-260,placed:-1,ok:0,err:0,drag:0})})},
+ tick(dt){for(const c of this.cards){c.ok=Math.max(0,c.ok-dt);c.err=Math.max(0,c.err-dt*1.6);if(c.drag)continue;let tx=c.hx,ty=c.hy;
+   if(c.placed>=0){const b=BINS[c.k];tx=b.x+(c.placed-1)*114;ty=530}c.x+=(tx-c.x)*Math.min(1,dt*9);c.y+=(ty-c.y)*Math.min(1,dt*9)}},
+ render(){let s='';
+  BINS.forEach((b,i)=>{s+=`<rect x="${b.x-178}" y="320" width="356" height="350" rx="24" fill="${b.c}0d" stroke="${b.c}" stroke-opacity=".45" stroke-width="2" stroke-dasharray="10 7"/><text class="tx" x="${b.x}" y="366" font-size="24" font-weight="800" fill="${b.c}">${b.n}</text>`;s+=lb(b.x,398,b.s,{s:16,f:'#64748b'})});
+  const ord=this.cards.filter(c=>!c.drag).concat(this.cards.filter(c=>c.drag));
+  for(const c of ord){const i=this.cards.indexOf(c);const rot=c.err?Math.sin(now*42)*7*c.err:0;const st=c.ok?'#16a34a':c.err?'#dc2626':'#e2e8f0';const sc=c.drag?1.07:1;
+   s+=`<g data-h="c${i}" transform="translate(${f1(c.x)} ${f1(c.y)}) rotate(${f1(rot)}) scale(${sc})" filter="url(#sh)"><rect x="-58" y="-68" width="116" height="136" rx="16" fill="#fff" stroke="${st}" stroke-width="${c.ok||c.err?3:1.5}"/>${icon(c.i,c.c)}<text class="tx" x="0" y="36" font-size="18" font-weight="800" fill="#1e293b">${c.n}</text>`;
+   s+=lb(0,58,c.f,{s:13,f:'#64748b',ltr:1})+`</g>`}
+  return s},
+ down(h,p){if(h[0]!=='c')return;const c=this.cards[+h.slice(1)];if(c.placed>=0)return;const o={x:c.x-p.x,y:c.y-p.y};c.drag=1;
+  return{move:q=>{c.x=q.x+o.x;c.y=q.y+o.y},up:()=>{c.drag=0;const b=BINS.find(b=>Math.abs(c.x-b.x)<178&&c.y>300&&c.y<690);
+   if(!b)return;if(b.k===c.k){c.placed=this.cards.filter(d=>d.k===c.k&&d.placed>=0).length;c.ok=1.2}else c.err=1}}},
+ bar(){return `<button class="btn" data-a="reset">إعادة الترتيب</button><span id="stat"></span>`},
+ act(a){if(a==='reset')this.init()},
+ stat(){const n=this.cards.filter(c=>c.placed>=0).length;return n===9?'أحسنت ✓ 9 / 9':`${n} / 9`}
+};
+
+/* ================= 2. GLUCOSE & FRUCTOSE STRUCTURE ================= */
+const GLU={ring:['O5','C1','C2','C3','C4','C5'],ano:'O1',grp:['C1','O1'],gl:'مجموعة ألديهايد',gy:92,rn:'حلقة بايرانوز',rc:[600,332],
+ n:[['C1','C',600,110,740,330],['O1','O',665,80,{a:[740,395],b:[740,265]}],['H1','H',538,88,{a:[740,278],b:[740,382]}],
+ ['C2','C',600,180,670,410],['O2','O',665,180,670,468],['h2','H',698,168,698,490],['H2','H',538,180,670,362],
+ ['C3','C',600,250,530,410],['O3','O',535,250,530,352],['h3','H',502,238,502,330],['H3','H',662,250,530,460],
+ ['C4','C',600,320,460,330],['O4','O',665,320,460,390],['h4','H',698,308,432,412],['H4','H',538,320,460,280],
+ ['C5','C',600,390,530,250],['O5','O',665,390,680,250],['H5','H',538,390,530,300],['hx','H',700,402,{a:[772,416],b:[772,243]}],
+ ['C6','C',600,460,530,170],['O6','O',665,478,468,140],['h6','H',698,466,438,122]],
+ b:[['C1','C2'],['C2','C3'],['C3','C4'],['C4','C5'],['C5','C6'],['C1','O1','d'],['C1','H1'],['C2','O2'],['O2','h2'],['C2','H2'],['C3','O3'],['O3','h3'],['C3','H3'],
+ ['C4','O4'],['O4','h4'],['C4','H4'],['C5','O5'],['C5','H5'],['C6','O6'],['O6','h6'],['O5','hx','g'],['O1','hx','n'],['O5','C1','r']]};
+const FRU={ring:['O5','C2','C3','C4','C5'],ano:'O2',grp:['C2','O2'],gl:'مجموعة كيتون',gy:182,rn:'حلقة فيورانوز',rc:[600,322],
+ n:[['C1','C',600,110,{a:[705,228],b:[742,372]}],['O1','O',665,98,{a:[765,200],b:[800,396]}],['h1','H',698,84,{a:[800,186],b:[832,410]}],
+ ['C2','C',600,180,690,300],['O2','O',665,180,{a:[748,358],b:[748,242]}],['hx','H',700,402,{a:[782,382],b:[782,222]}],
+ ['C3','C',600,250,650,400],['O3','O',535,250,650,345],['h3','H',502,238,622,330],['H3','H',662,250,650,452],
+ ['C4','C',600,320,550,400],['O4','O',665,320,550,458],['h4','H',698,308,522,480],['H4','H',538,320,550,350],
+ ['C5','C',600,390,510,300],['O5','O',665,390,600,250],['H5','H',538,390,510,352],
+ ['C6','C',600,460,505,228],['O6','O',665,478,445,205],['h6','H',698,466,412,190]],
+ b:[['C1','C2'],['C2','C3'],['C3','C4'],['C4','C5'],['C5','C6'],['C1','O1'],['O1','h1'],['C2','O2','d'],['C3','O3'],['O3','h3'],['C3','H3'],
+ ['C4','O4'],['O4','h4'],['C4','H4'],['C5','O5'],['C5','H5'],['C6','O6'],['O6','h6'],['O5','hx','g'],['O2','hx','n'],['O5','C2','r']]};
+const L2={mol:'glu',ano:'a',t:0,
+ init(){this.t=0;this.snap()},
+ M(){return this.mol==='glu'?GLU:FRU},
+ rp(n){const r=n[4]!==undefined&&typeof n[4]==='object'?(this.ano==='a'?n[4].a:n[4].b):[n[4],n[5]];return{x:r[0],y:r[1]}},
+ fold(u){const M=this.M(),F=M===GLU?{ch:['C1','C2','C3','C4','C5'],turn:60}:{ch:['C2','C3','C4','C5'],turn:72};
+  if(!M.own){M.own={};M.op={};M.n.forEach(n=>M.op[n[0]]={x:n[2],y:n[3]});const q=[...F.ch];F.ch.forEach((c,k)=>M.own[c]=k);
+   while(q.length){const a=q.shift();for(const b of M.b){if(b[2]==='n'||b[2]==='r')continue;const o=b[0]===a?b[1]:b[1]===a?b[0]:null;if(o&&M.own[o]===undefined){M.own[o]=M.own[a];q.push(o)}}}}
+  const R=Math.PI/180,ch=F.ch,L=ch.length,pts=[{...M.op[ch[0]]}];for(let k=1;k<L;k++){const h=(90+(k-1)*F.turn*u)*R;pts.push({x:pts[k-1].x+70*Math.cos(h),y:pts[k-1].y+70*Math.sin(h)})}
+  const hl=(90+(L-1)*F.turn*u)*R,pv={x:pts[L-1].x+70*Math.cos(hl),y:pts[L-1].y+70*Math.sin(hl)};
+  const all=pts.concat([pv]),cx=all.reduce((a,p)=>a+p.x,0)/all.length,cy=all.reduce((a,p)=>a+p.y,0)/all.length;
+  const ring=M.ring.map(id=>this.rp(M.n.find(n=>n[0]===id))),rx=ring.reduce((a,p)=>a+p.x,0)/ring.length,ry=ring.reduce((a,p)=>a+p.y,0)/ring.length;
+  const ox=M.op[ch[0]].x,oy=M.op[ch[0]].y+35*L,dx=lerp(ox,rx,u)-cx,dy=lerp(oy,ry,u)-cy;
+  const out={};for(const n of M.n){const id=n[0],k=M.own[id];let p;
+   if(ch[k]===id)p=pts[k];else{const a=k?(k-.5)*F.turn*u*R:0,ow=M.op[ch[k]],vx=n[2]-ow.x,vy=n[3]-ow.y;p={x:pts[k].x+vx*Math.cos(a)-vy*Math.sin(a),y:pts[k].y+vx*Math.sin(a)+vy*Math.cos(a)}}
+   out[id]=p}
+  const w=u*u*u,sx=(pv.x-out.O5.x)*w,sy=(pv.y-out.O5.y)*w;out.O5={x:out.O5.x+sx,y:out.O5.y+sy};out.hx={x:out.hx.x+sx,y:out.hx.y+sy};
+  for(const id in out){out[id].x+=dx;out[id].y+=dy}return out},
+ tgt(n){return this.F[n[0]]},
+ prep(){const t=this.t;if(t<=.75){this.F=this.fold(ease(t/.75))}else{const a=this.fold(1),e=ease((t-.75)/.25);this.F={};for(const n of this.M().n)this.F[n[0]]=P2(a[n[0]],this.rp(n),e)}},
+ snap(){this.prep();this.cur={};for(const n of this.M().n)this.cur[n[0]]=this.tgt(n)},
+ tick(dt){this.prep();const k=Math.min(1,dt*11);for(const n of this.M().n){const t=this.tgt(n),c=this.cur[n[0]];c.x+=(t.x-c.x)*k;c.y+=(t.y-c.y)*k}},
+ render(){const M=this.M(),P=this.cur,t=this.t,e=ease(t);let s='';
+  const rop=clamp((t-.7)/.3);
+  if(rop>0)s+=`<polygon points="${M.ring.map(id=>f1(P[id].x)+','+f1(P[id].y)).join(' ')}" fill="${this.mol==='glu'?'#fde68a':'#fecaca'}" opacity="${(rop*.5).toFixed(2)}"/>`;
+  // functional group highlight
+  const go=labOp(0,1-clamp(t/.3));if(go>.01){const a=P[M.grp[0]],b=P[M.grp[1]];s+=`<ellipse cx="${f1((a.x+b.x)/2)}" cy="${f1((a.y+b.y)/2)}" rx="62" ry="34" transform="rotate(${f1(Math.atan2(b.y-a.y,b.x-a.x)*57.3)} ${f1((a.x+b.x)/2)} ${f1((a.y+b.y)/2)})" fill="#dbeafe" stroke="#3b82f6" stroke-dasharray="6 5" stroke-width="2" opacity="${go.toFixed(2)}"/>`}
+  for(const b of M.b){const A=P[b[0]],B=P[b[1]],ty=b[2];let op=1;
+   if(ty==='g')op=1-clamp((t-.72)/.12);else if(ty==='n')op=clamp((t-.8)/.12);else if(ty==='r')op=clamp((t-.62)/.15);
+   s+=bond(A,B,op,ty==='r'?5:4,ty==='r'?'#b45309':'#526072');
+   if(ty==='d'){const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy)||1,ox=-dy/L*7,oy=dx/L*7;s+=bond({x:A.x+ox,y:A.y+oy},{x:B.x+ox,y:B.y+oy},1-clamp((t-.72)/.12),3.5)}}
+  for(const n of M.n)s+=atom(P[n[0]].x,P[n[0]].y,n[1]);
+  // labels
+  li=0;s+=lb(600,42,this.mol==='glu'?'كلوكوز  C₆H₁₂O₆':'فركتوز  C₆H₁₂O₆',{s:22,f:'#1e293b'});
+  for(let i=1;i<=6;i++){const c=P['C'+i];s+=lb(c.x-25,c.y-16,i,{s:14,f:'#2563eb'})}
+  s+=lb(805,M.gy,M.gl,{s:17,f:'#2563eb',m:1-clamp(t/.3)});
+  const ao=P[M.ano];s+=lb(ao.x+36,ao.y+8,this.ano==='a'?'α':'β',{s:26,f:'#b45309',m:clamp((t-.85)/.15)});
+  s+=lb(M.rc[0],M.rc[1]+6,M.rn,{s:15,f:'#92400e',m:clamp((t-.85)/.15)});
+  // slider (RTL: open on the right)
+  const hx=820-400*t;
+  s+=`<rect data-h="sl" x="400" y="625" width="420" height="40" fill="transparent"/><line x1="420" y1="645" x2="820" y2="645" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round" pointer-events="none"/><line x1="${f1(hx)}" y1="645" x2="820" y2="645" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" pointer-events="none"/>`;
+  s+=`<text class="tx" x="900" y="651" font-size="17" font-weight="700" fill="#475569">سلسلة مفتوحة</text><text class="tx" x="360" y="651" font-size="17" font-weight="700" fill="#475569">حلقة</text>`;
+  s+=`<g data-h="sl"><circle cx="${f1(hx)}" cy="645" r="34" fill="transparent"/><circle cx="${f1(hx)}" cy="645" r="19" fill="#fff" stroke="#f59e0b" stroke-width="5" filter="url(#sh)"/></g>`;
+  return s},
+ down(h,p){if(h!=='sl')return;const f=q=>{this.t=clamp((820-q.x)/400)};f(p);return{move:f}},
+ bar(){const b=(a,t,on)=>`<button class="btn${on?' sel':''}" data-a="${a}">${t}</button>`;
+  return b('glu','كلوكوز',this.mol==='glu')+b('fru','فركتوز',this.mol==='fru')+'<span class="sep"></span>'+b('a','α',this.ano==='a')+b('b','β',this.ano==='b')},
+ act(a){if(a==='glu'||a==='fru'){this.mol=a;this.snap();age=0}else this.ano=a}
+};
+
+/* ================= 3. DISACCHARIDES ================= */
+const UN={glu:{n:'كلوكوز',sh:6,col:'#f59e0b'},gal:{n:'كالكتوز',sh:6,col:'#8b5cf6'},fru:{n:'فركتوز',sh:5,col:'#ef4444'}};
+const HEXV={O:[45,-42],C1:[90,0],C2:[45,42],C3:[-45,42],C4:[-90,0],C5:[-45,-42]},PENV={O:[0,-46],C2:[-75,-8],C3:[-46,50],C4:[46,50],C5:[75,-8]};
+const PAIRS={mal:{L:'glu',R:'glu',dir:1,p:'مالتوز',ln:'α(1→4)'},suc:{L:'glu',R:'fru',dir:1,p:'سكروز',ln:'α,β(1→2)'},lac:{L:'gal',R:'glu',dir:-1,p:'لاكتوز',ln:'β(1→4)'}};
+function stub(x,y,dy,t){return `<line x1="${f1(x)}" y1="${f1(y)}" x2="${f1(x)}" y2="${f1(y+dy)}" stroke="#94a3b8" stroke-width="2.5"/><text class="tx" x="${f1(x)}" y="${f1(y+dy+(dy>0?15:-6))}" font-size="14" font-weight="700" fill="#64748b" direction="ltr">${t}</text>`}
+function unitSVG(key,cx,cy,role,dir){const u=UN[key],six=u.sh===6,V=six?HEXV:PENV,ord=six?['O','C1','C2','C3','C4','C5']:['O','C2','C3','C4','C5'];const v=k=>({x:cx+V[k][0],y:cy+V[k][1]});
+ let s=`<polygon points="${ord.map(k=>f1(v(k).x)+','+f1(v(k).y)).join(' ')}" fill="${u.col}1f" stroke="${u.col}" stroke-width="3.5" stroke-linejoin="round"/>`;
+ const fr=six?['C2','C3']:['C3','C4'];s+=bond(v(fr[0]),v(fr[1]),1,9,u.col);
+ if(six){const c5=v('C5'),c2=v('C2'),c3=v('C3'),c4=v('C4'),c1=v('C1');s+=stub(c5.x,c5.y,-34,'CH₂OH')+stub(c2.x,c2.y,34,'OH')+stub(c3.x,c3.y,-34,'OH');
+  if(role==='L')s+=stub(c4.x,c4.y,key==='gal'?-34:34,'OH');else s+=stub(c1.x,c1.y,34,'OH')}
+ else{const c5=v('C5'),c2=v('C2'),c3=v('C3'),c4=v('C4');s+=stub(c5.x,c5.y,-34,'CH₂OH')+stub(c2.x,c2.y,-34*dir,'CH₂OH')+stub(c3.x,c3.y,-34,'OH')+stub(c4.x,c4.y,34,'OH')}
+ const o=v('O');s+=atom(o.x,o.y,'O',1,12);return s}
+const L3={pair:'mal',
+ init(){this.st='free';this.r=0;this.R={x:900,y:360};this.park=null},
+ geo(){const P=PAIRS[this.pair],dir=P.dir,rv=UN[P.R].sh===6?HEXV.C4:PENV.C2;const LC1={x:450,y:360},br={x:505,y:360+dir*48};const bonded={x:560-rv[0],y:360-rv[1]};
+  const W={x:505,y:360+dir*140};if(!this.park)this.park={x:880,y:W.y+dir*70};return{P,dir,rv,LC1,br,bonded,W}},
+ tick(dt){if(this.st==='react'){this.r=Math.min(1,this.r+dt/1.9);if(this.r>=1)this.st='done'}
+  else if(this.st==='split'){this.r=Math.max(0,this.r-dt/1.9);if(this.r<=0){this.st='free';this.R={...this.sR}}}},
+ render(){const g=this.geo(),{P,dir,LC1,br,bonded,W}=g,r=this.r;let s='';
+  const Rc=this.st==='free'?this.R:P2(this.sR,bonded,ease(clamp(r/.35)));const RL={x:Rc.x+g.rv[0],y:Rc.y+g.rv[1]};
+  const k1=ease(clamp((r-.25)/.4)),k2=ease(clamp((r-.65)/.35));const Wc=P2(W,this.park,k2);
+  const O1=P2({x:LC1.x,y:LC1.y+55*dir},Wc,k1),H1=P2({x:LC1.x+28,y:LC1.y+74*dir},{x:Wc.x+25,y:Wc.y+17},k1);
+  const Or=P2({x:RL.x,y:RL.y+55*dir},br,k1),Hr=P2({x:RL.x-28,y:RL.y+74*dir},{x:Wc.x-25,y:Wc.y+17},k1);
+  if(this.st==='free'){const pu=.5+.5*Math.sin(now*4);s+=`<circle cx="560" cy="360" r="${f1(26+pu*8)}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 6" opacity="${f1(.4+.4*pu)}"/>`}
+  s+=unitSVG(P.L,360,360,'L',dir);
+  const cut=1-clamp((r-.2)/.15);
+  s+=bond(LC1,O1,cut)+bond(O1,H1)+bond(O1,Hr,clamp((r-.5)/.2))+bond(LC1,Or,clamp((r-.35)/.25),5,'#b45309');
+  s+=`<g${this.st==='free'?' data-h="R"':''}>${unitSVG(P.R,Rc.x,Rc.y,'R',dir)}${bond(RL,Or,1,Math.round(4+clamp((r-.35)/.25)),r>.35?'#b45309':'#526072')}${bond(Or,Hr,cut)}${atom(Or.x,Or.y,'O')}${atom(Hr.x,Hr.y,'H')}<circle cx="${f1(Rc.x)}" cy="${f1(Rc.y)}" r="100" fill="transparent"/></g>`;
+  const wg=this.st==='done'?' data-h="W"':'';s+=`<g${wg}>${atom(O1.x,O1.y,'O')}${atom(H1.x,H1.y,'H')}${this.st==='done'?`<circle cx="${f1(O1.x)}" cy="${f1(O1.y)}" r="44" fill="transparent"/>`:''}</g>`;
+  li=0;const done=this.st==='done';
+  s+=lb(600,64,UN[P.L].n+' + '+UN[P.R].n+(done?'  ←  '+P.p+' + ماء':''),{s:24,f:'#1e293b'});
+  s+=lb(360,360+dir*128,UN[P.L].n,{s:17,f:UN[P.L].col})+lb(Rc.x,Rc.y+dir*128,UN[P.R].n,{s:17,f:UN[P.R].col});
+  s+=lb(br.x,360-dir*22,P.ln,{s:18,f:'#b45309',ltr:1,m:clamp((r-.6)/.4)})+lb(br.x,360+dir*90,'رابطة كلايكوسيدية',{s:16,f:'#b45309',m:done?1:0});
+  s+=lb(Wc.x+48,Wc.y-14,'H₂O',{s:17,f:'#dc2626',ltr:1,m:k1});
+  return s},
+ down(h,p){const g=this.geo();
+  if(h==='R'&&this.st==='free'){const o={x:this.R.x-p.x,y:this.R.y-p.y};let live=1;
+   return{move:q=>{if(!live)return;this.R={x:q.x+o.x,y:q.y+o.y};const RL={x:this.R.x+g.rv[0],y:this.R.y+g.rv[1]};
+    if(D(RL,{x:560,y:360})<110){live=0;this.sR={...this.R};this.park={x:880,y:g.W.y+g.dir*70};this.st='react';this.r=0}}}}
+  if(h==='W'&&this.st==='done'){const o={x:this.park.x-p.x,y:this.park.y-p.y};
+   return{move:q=>{this.park={x:q.x+o.x,y:q.y+o.y}},up:()=>{if(D(this.park,g.br)<95){this.st='split';this.sR={x:g.bonded.x+230,y:g.bonded.y}}}}}},
+ bar(){const b=(a,t)=>`<button class="btn${this.pair===a?' sel':''}" data-a="${a}">${t}</button>`;return b('mal','مالتوز')+b('suc','سكروز')+b('lac','لاكتوز')+'<span class="sep"></span><button class="btn" data-a="reset">إعادة</button>'},
+ act(a){if(PAIRS[a]){this.pair=a;age=0}this.init()}
+};
+
+/* ================= 4. POLYSACCHARIDES ================= */
+const GLY=(()=>{const out=[],bases=[2,6,10],bl={},bi={},mi=[];for(let j=0;j<14;j++){out.push({x:130+j*72,y:440,p:j?mi[j-1]:-1,b:0});mi[j]=out.length-1;
+  for(const b of bases){if(b<j){const k=bl[b]||0;if(k<4){out.push({x:130+b*72+(k+1)*44,y:440-(k+1)*68,p:k?bi[b]:mi[b],b:k===0?1:0});bl[b]=k+1;bi[b]=out.length-1}}}}return out})();
+const MODES={sta:{n:'نشأ (أميلوز) — سلسلة حلزونية',ln:'α(1→4)',max:21},gly:{n:'كلايكوجين — سلسلة متفرعة',ln:'α(1→4)',max:GLY.length},cel:{n:'سليلوز — سلاسل مستقيمة',ln:'β(1→4)',max:15}};
+const L4={mode:'sta',
+ init(){this.u=[];this.w=[];this.dg=null},
+ slot(i){const m=this.mode;if(m==='sta'){const a=i*1.05;return{x:190+i*46,y:320+70*Math.sin(a),s:.8+.24*Math.cos(a),r:0,p:i-1}}
+  if(m==='cel')return{x:150+i*68,y:340,s:1,r:i%2?180:0,p:i-1};const g=GLY[i];return{x:g.x,y:g.y,s:.92,r:0,p:g.p,b:g.b}},
+ tick(dt){this.u.forEach((u,i)=>{const t=this.slot(i);u.x+=(t.x-u.x)*Math.min(1,dt*8);u.y+=(t.y-u.y)*Math.min(1,dt*8)});
+  this.w.forEach(w=>{w.a+=dt;w.y-=dt*38;w.x+=Math.sin(w.a*3)*.4});this.w=this.w.filter(w=>w.a<2.6)},
+ unit(x,y,s,r,op=1){return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${r}) scale(${f1(s)})" opacity="${op}"><polygon points="${poly(0,0,25,6,Math.PI/6)}" fill="#fde68a" stroke="#d97706" stroke-width="3" stroke-linejoin="round"/><circle cx="21.6" cy="-12.5" r="5.5" fill="#e53935"/></g>`},
+ render(){let s='';const n=this.u.length,M=MODES[this.mode];
+  if(this.mode==='cel'&&n>1){for(const dy of[-105,105]){for(let i=1;i<n;i++)s+=bond({x:this.u[i-1].x,y:this.u[i-1].y+dy},{x:this.u[i].x,y:this.u[i].y+dy},.25,3,'#64748b');
+    this.u.forEach((u,i)=>{s+=this.unit(u.x,u.y+dy,1,i%2?180:0,.28);s+=bond({x:u.x,y:u.y+(dy>0?28:-28)},{x:u.x,y:u.y+dy+(dy>0?-28:28)},.55,2,'#3b82f6','4 5')})}}
+  for(let i=1;i<n;i++){const sl=this.slot(i),a=this.u[sl.p],b=this.u[i];s+=bond(a,b,1,3.5,'#64748b');s+=`<circle cx="${f1((a.x+b.x)/2)}" cy="${f1((a.y+b.y)/2)}" r="6.5" fill="url(#gO)"/>`}
+  const ord=this.u.map((u,i)=>[u,i]);if(this.mode==='sta')ord.sort((a,b)=>this.slot(a[1]).s-this.slot(b[1]).s);
+  for(const[u,i]of ord){const sl=this.slot(i);s+=this.unit(u.x,u.y,sl.s,sl.r)}
+  for(const w of this.w){const o=clamp(1-w.a/2.6);s+=atom(w.x,w.y,'O',o,9)+atom(w.x-14,w.y+9,'H',o,6)+atom(w.x+14,w.y+9,'H',o,6)}
+  if(n<M.max){const t=this.slot(n),pu=.5+.5*Math.sin(now*5);s+=`<circle cx="${f1(t.x)}" cy="${f1(t.y)}" r="${f1(28+pu*6)}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="5 6" opacity="${f1(this.dg?.9:.35+.25*pu)}"/>`}
+  s+=`<g data-h="tray"><rect x="40" y="560" width="170" height="110" rx="20" fill="#fffbeb" stroke="#fcd34d" stroke-width="2"/>${this.unit(125,603,1.15,0)}<text class="tx" x="125" y="656" font-size="16" font-weight="700" fill="#92400e">كلوكوز</text></g>`;
+  if(this.dg)s+=this.unit(this.dg.x,this.dg.y,1.1,0,.92);
+  li=0;s+=lb(600,46,M.n,{s:22,f:'#1e293b'})+lb(600,78,'(C₆H₁₀O₅)n',{s:16,f:'#64748b',ltr:1});
+  if(n>1){const a=this.u[0],b=this.u[1];s+=lb((a.x+b.x)/2,(a.y+b.y)/2-30,M.ln,{s:16,f:'#b45309',ltr:1})}
+  if(this.mode==='gly'){const k=GLY.findIndex(g=>g.b);if(k<n&&k>0){const a=this.u[GLY[k].p],b=this.u[k];s+=lb((a.x+b.x)/2+44,(a.y+b.y)/2+8,'α(1→6)',{s:16,f:'#b45309',ltr:1})}}
+  if(this.mode==='cel'&&n>1)s+=lb(600,600,'روابط هيدروجينية بين السلاسل',{s:15,f:'#3b82f6'});
+  return s},
+ down(h,p){if(h!=='tray')return;const M=MODES[this.mode];if(this.u.length>=M.max)return;this.dg={x:p.x,y:p.y};
+  return{move:q=>{this.dg={x:q.x,y:q.y}},up:()=>{const n=this.u.length,t=this.slot(n);if(D(this.dg,t)<110){this.u.push({x:this.dg.x,y:this.dg.y});
+    if(n>0){const a=this.slot(t.p);this.w.push({x:(a.x+t.x)/2,y:(a.y+t.y)/2-14,a:0})}}this.dg=null}}},
+ bar(){const b=(a,t)=>`<button class="btn${this.mode===a?' sel':''}" data-a="${a}">${t}</button>`;return b('sta','نشأ')+b('gly','كلايكوجين')+b('cel','سليلوز')+'<span class="sep"></span><button class="btn" data-a="undo">تراجع</button><button class="btn" data-a="reset">إعادة</button><span id="stat"></span>'},
+ act(a){if(MODES[a]){this.mode=a;age=0;this.init()}else if(a==='undo')this.u.pop();else this.init()},
+ stat(){const n=this.u.length;return `كلوكوز: ${n}  ·  ماء: ${Math.max(0,n-1)}`}
+};
+
+/* ================= 5. LAB TESTS ================= */
+const SB=[{id:'glu',n:'كلوكوز',c:[226,236,246,.22],red:1},{id:'fru',n:'فركتوز',c:[226,236,246,.22],red:1},{id:'suc',n:'سكروز',c:[226,236,246,.22]},
+ {id:'mal',n:'مالتوز',c:[226,236,246,.22],red:1},{id:'lac',n:'لاكتوز',c:[226,236,246,.22],red:1},{id:'sta',n:'نشأ',c:[238,238,228,.5]},{id:'wat',n:'ماء مقطر',c:[220,234,248,.18]},
+ {id:'ben',n:'بندكت',c:[37,99,235,.85],rg:1},{id:'feh',n:'فهلنك',c:[29,78,216,.9],rg:1},{id:'iod',n:'يود',c:[180,105,25,.85],rg:1},{id:'tol',n:'تولنز',c:[232,232,236,.25],rg:1}];
+const SBI={};SB.forEach((b,i)=>{SBI[b.id]=b;b.x=60+i*108});
+const BS=[[0,[37,99,235]],[.3,[34,150,90]],[.55,[214,190,30]],[.8,[226,120,30]],[1,[168,50,28]]];
+function bstop(e){for(let i=1;i<BS.length;i++)if(e<=BS[i][0]){const a=BS[i-1],b=BS[i],t=(e-a[0])/(b[0]-a[0]);return a[1].map((v,j)=>v+(b[1][j]-v)*t)}return BS[4][1]}
+const TL=210,TR=19,SLOTX=[300,380,460,540,620,700],HOLD={x:1000,y:285};
+const L5={
+ init(){this.tubes=SLOTX.map((x,i)=>({home:i,x,y:330,c:{},T:25,maxT:25,pB:0,pI:0,pT:0,eB:0,eI:0,eT:0,ppt:0,held:0,drag:0}));this.on=0;this.dp=null;this.drops=[];this.waste=0;this.squeeze=0},
+ vol(t){let v=0;for(const k in t.c)v+=t.c[k];return v},
+ surf(t){return t.y+TL-Math.min(1,this.vol(t))*175},
+ tick(dt){
+  for(const t of this.tubes){const c=t.c;let red=0;for(const k in c)if(SBI[k].red)red+=c[k];const cu=(c.ben||0)+(c.feh||0),st=c.sta||0,io=c.iod||0,tl=c.tol||0;
+   const hot=t.held&&this.on;t.T=hot?Math.min(100,t.T+dt*10):t.T+(25-t.T)*Math.min(1,dt*.12);t.maxT=Math.max(t.maxT,t.T);
+   if(cu>0&&red>0&&t.T>65)t.pB=Math.min(1,t.pB+dt*.17*(t.T-65)/35);
+   if(io>0&&st>0)t.pI=Math.min(1,t.pI+dt*1.6);
+   if(tl>0&&red>0&&t.T>40)t.pT=Math.min(1,t.pT+dt*.13*clamp((t.T-40)/30));
+   t.eB=t.pB*Math.min(1,red/.1)*Math.min(1,cu/.05);t.eI=t.pI*Math.min(1,st/.05)*Math.min(1,io/.03)*(1-clamp((t.T-60)/30));t.eT=t.pT*Math.min(1,red/.1)*Math.min(1,tl/.05);
+   t.ppt+=(t.eB-t.ppt)*Math.min(1,dt*.45);t.red=red;t.cu=cu;t.st=st;t.io=io;t.tl=tl;
+   if(!t.drag){const tg=t.held?HOLD:{x:SLOTX[t.home],y:330};t.x+=(tg.x-t.x)*Math.min(1,dt*10);t.y+=(tg.y-t.y)*Math.min(1,dt*10)}}
+  const d=this.dp;this.squeeze=Math.max(0,this.squeeze-dt*4);
+  if(d){if(d.hold){d.cool-=dt;const t=this.tubes.find(t=>Math.abs(d.x-t.x)<26&&d.y>t.y-90&&d.y<t.y+70);if(t&&d.cool<=0){d.cool=.3;this.squeeze=1;this.drops.push({x:d.x,y:d.y+4,vy:60,id:SB[d.bi].id,t})}}
+   else{const r={x:SB[d.bi].x,y:120};d.x+=(r.x-d.x)*Math.min(1,dt*10);d.y+=(r.y-d.y)*Math.min(1,dt*10);if(D(d,r)<1.5)this.dp=null}}
+  for(const p of this.drops){p.vy+=1500*dt;p.y+=p.vy*dt;const t=p.t;if(Math.abs(p.x-t.x)<TR&&p.y>=this.surf(t)-2&&p.y>t.y-10){if(this.vol(t)<1)t.c[p.id]=(t.c[p.id]||0)+.05;p.gone=1}else if(p.y>720)p.gone=1}
+  this.drops=this.drops.filter(p=>!p.gone)},
+ color(t){let r=0,g=0,b=0,w=0,aS=0,V=0;for(const k in t.c){const v=t.c[k];let c=SBI[k].c.slice();
+   if(k==='ben'||k==='feh'){c=bstop(t.eB).concat([.85+.1*t.eB])}
+   else if(k==='iod'){const e=t.eI;c=[lerp(180,22,e),lerp(105,24,e),lerp(25,70,e),lerp(.85,.97,e)]}
+   else if(k==='sta'){c[3]=.5*(1-t.eI)+.04}
+   else if(k==='tol'){const e=t.eT;c=[lerp(232,100,e),lerp(232,100,e),lerp(236,106,e),lerp(.25,.65,e)]}
+   const wt=v*c[3];r+=c[0]*wt;g+=c[1]*wt;b+=c[2]*wt;w+=wt;aS+=v*c[3];V+=v}
+  if(!V)return null;return `rgba(${Math.round(r/w)},${Math.round(g/w)},${Math.round(b/w)},${clamp(aS/V+.08,.15,.94).toFixed(2)})`},
+ tubeSVG(t,i){const x=t.x,y=t.y,V=Math.min(1,this.vol(t)),bot=y+TL,d=`M${f1(x-TR)},${f1(y)} V${f1(bot-TR)} A${TR},${TR} 0 0 0 ${f1(x+TR)},${f1(bot-TR)} V${f1(y)} Z`;
+  let s=`<g data-h="t${i}"><clipPath id="cp${i}"><path d="${d}"/></clipPath><path d="${d}" fill="#f8fafc" opacity=".7"/>`;
+  if(V>0){const yl=bot-V*175,h=bot-yl,col=this.color(t);s+=`<g clip-path="url(#cp${i})"><rect x="${f1(x-TR)}" y="${f1(yl)}" width="${TR*2}" height="${f1(h+2)}" fill="${col}"/><ellipse cx="${f1(x)}" cy="${f1(yl)}" rx="${TR}" ry="3" fill="#fff" opacity=".45"/>`;
+   if(t.eT>.02)s+=`<rect x="${f1(x-TR)}" y="${f1(yl-4)}" width="${TR*2}" height="${f1(h+6)}" fill="url(#silver)" opacity="${f1(t.eT*.9)}"/>`;
+   const sus=clamp((t.eB-t.ppt)*3);if(sus>.02)for(let k=0;k<22;k++){const py=yl+((k*41+now*22)%Math.max(8,h));s+=`<circle cx="${f1(x-14+(k*37)%28)}" cy="${f1(py)}" r="1.8" fill="#a8321c" opacity="${f1(sus)}"/>`}
+   if(t.ppt>.03){const ph=4+t.ppt*24;s+=`<rect x="${f1(x-TR)}" y="${f1(bot-ph)}" width="${TR*2}" height="${f1(ph)}" fill="#a8321c"/>`;for(let k=0;k<10;k++)s+=`<circle cx="${f1(x-13+(k*29)%26)}" cy="${f1(bot-ph+3+(k*7)%Math.max(3,ph-4))}" r="1.6" fill="#7f1d1d"/>`}
+   if(t.T>88)for(let k=0;k<7;k++){const by=bot-6-((now*70+k*31)%Math.max(10,h-8));s+=`<circle cx="${f1(x+Math.sin(k*2.3+now*4)*9)}" cy="${f1(by)}" r="${f1(1.5+(k%3))}" fill="none" stroke="#fff" stroke-width="1.3" opacity=".85"/>`}
+   s+=`</g>`}
+  if(t.T>40)s+=`<ellipse cx="${f1(x)}" cy="${f1(bot-8)}" rx="${TR+4}" ry="14" fill="#f97316" opacity="${f1(clamp((t.T-40)/150))}"/>`;
+  s+=`<path d="${d}" fill="url(#glass)" stroke="#94a3b8" stroke-width="1.6"/><line x1="${f1(x-TR+6)}" y1="${f1(y+12)}" x2="${f1(x-TR+6)}" y2="${f1(bot-28)}" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`;
+  s+=`<rect x="${f1(x-TR-4)}" y="${f1(y-5)}" width="${TR*2+8}" height="8" rx="4" fill="#fff" stroke="#94a3b8" stroke-width="1.6"/><rect x="${f1(x-TR-8)}" y="${f1(y-20)}" width="${TR*2+16}" height="${TL+30}" fill="transparent"/></g>`;
+  return s},
+ tubeLabels(t){const lx=t.held?880:t.x,ly=t.held?330:585;const sm=[],rg=[];for(const k in t.c)(SBI[k].rg?rg:sm).push(SBI[k].n);if(!sm.length&&!rg.length)return'';
+  let s=lb(lx,ly,sm.join(' + '),{s:13,f:'#475569'})+lb(lx,ly+18,rg.join(' + '),{s:13,f:'#2563eb'});
+  let ob='',oc='#64748b';const has=sm.length>0;
+  if(t.cu>0){if(t.red>0&&t.eB>.8){ob='راسب أحمر آجري';oc='#b91c1c'}else if(t.red===0&&has&&t.maxT>85)ob='لا يتكون راسب'}
+  if(t.io>0){if(t.st>0&&t.eI>.5){ob='لون أزرق غامق';oc='#1e3a8a'}else if(t.st===0&&has)ob='لا تغيّر'}
+  if(t.tl>0){if(t.eT>.75){ob='مرآة فضية';oc='#475569'}else if(t.red===0&&has&&t.maxT>60)ob='لا تتكون مرآة'}
+  if(ob)s+=lb(lx,ly+40,ob,{s:15,f:oc});if(t.T>32)s+=lb(lx,ly+(ob?60:40),Math.round(t.T)+'°C',{s:13,f:'#ea580c',ltr:1});return s},
+ dropper(x,y,bi,sq){const c=SB[bi].c,col=`rgba(${c[0]},${c[1]},${c[2]},${Math.max(.45,c[3])})`,bw=11*(1-sq*.25);
+  return `<g data-h="d${bi}"><path d="M${f1(x-5)},${f1(y-64)} V${f1(y-12)} L${f1(x-1.5)},${f1(y)} H${f1(x+1.5)} L${f1(x+5)},${f1(y-12)} V${f1(y-64)} Z" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.3"/><path d="M${f1(x-4)},${f1(y-34)} V${f1(y-12)} L${f1(x-1)},${f1(y-1)} H${f1(x+1)} L${f1(x+4)},${f1(y-12)} V${f1(y-34)} Z" fill="${col}"/><rect x="${f1(x-bw)}" y="${f1(y-104)}" width="${f1(bw*2)}" height="42" rx="${f1(bw)}" fill="#3f3f46"/><rect x="${f1(x-bw+3)}" y="${f1(y-99)}" width="3.5" height="28" rx="2" fill="#fff" opacity=".35"/><rect x="${f1(x-16)}" y="${f1(y-110)}" width="32" height="112" fill="transparent"/></g>`},
+ render(){let s='';const z=now;
+  s+=`<rect x="20" y="168" width="1160" height="10" rx="5" fill="#e5e7eb"/><rect x="20" y="664" width="1160" height="6" rx="3" fill="#f1f5f9"/>`;
+  SB.forEach((b,i)=>{const x=b.x,c=b.c;if(!(this.dp&&this.dp.bi===i))s+=this.dropper(x,120,i,0);
+   s+=`<g data-h="d${i}"><path d="M${x-12},58 V78 Q${x-32},80 ${x-32},96 V158 Q${x-32},166 ${x-24},166 H${x+24} Q${x+32},166 ${x+32},158 V96 Q${x+32},80 ${x+12},78 V58 Z" fill="rgba(241,245,249,.55)" stroke="#94a3b8" stroke-width="1.5"/><path d="M${x-31},108 H${x+31} V158 Q${x+31},165 ${x+24},165 H${x-24} Q${x-31},165 ${x-31},158 Z" fill="rgba(${c[0]},${c[1]},${c[2]},${Math.max(.3,c[3])})"/><rect x="${x-29}" y="124" width="58" height="24" rx="5" fill="#fff" stroke="${b.rg?'#93c5fd':'#e2e8f0'}"/><text class="tx" x="${x}" y="141" font-size="${b.n.length>6?12:14}" font-weight="800" fill="${b.rg?'#1d4ed8':'#334155'}">${b.n}</text></g>`});
+  // waste beaker
+  const wl=Math.min(60,this.waste*14);s+=`<path d="M48,480 L54,486 V650 Q54,660 64,660 H156 Q166,660 166,650 V486 L172,480" fill="rgba(241,245,249,.6)" stroke="#94a3b8" stroke-width="2"/>${wl>1?`<rect x="56" y="${f1(658-wl)}" width="108" height="${f1(wl)}" fill="rgba(120,113,108,.25)"/>`:''}`;
+  // stand + burner
+  s+=`<rect x="1080" y="652" width="90" height="12" rx="4" fill="#94a3b8"/><rect x="1116" y="240" width="8" height="414" rx="3" fill="url(#metal)"/><rect x="1018" y="341" width="100" height="7" rx="3" fill="#94a3b8"/>`;
+  s+=`<g data-h="burn"><rect x="986" y="560" width="28" height="84" rx="3" fill="url(#metal)"/><rect x="960" y="642" width="80" height="18" rx="6" fill="#64748b"/><circle cx="1052" cy="651" r="13" fill="${this.on?'#f97316':'#cbd5e1'}" stroke="#475569" stroke-width="2"/><rect x="950" y="550" width="110" height="115" fill="transparent"/></g>`;
+  if(this.on){const f=Math.sin(z*17)*3,g=Math.cos(z*23)*2;s+=`<path d="M984,561 Q${f1(978+g)},522 ${f1(1000+f)},${f1(468+g)} Q${f1(1022+g)},522 1016,561 Z" fill="#93c5fd" opacity=".7"/><path d="M991,561 Q${f1(989+g)},538 ${f1(1000+f*.5)},${f1(510+g)} Q${f1(1011-g)},538 1009,561 Z" fill="#2563eb" opacity=".9"/>`}
+  // rack back
+  s+=`<rect x="255" y="540" width="490" height="18" rx="5" fill="#cbd5e1"/><rect x="262" y="420" width="8" height="125" fill="#cbd5e1"/><rect x="730" y="420" width="8" height="125" fill="#cbd5e1"/>`;
+  const order=this.tubes.map((t,i)=>[t,i]).sort((a,b)=>a[0].drag-b[0].drag);
+  for(const[t,i]of order){if(!t.drag)s+=this.tubeSVG(t,i)}
+  s+=`<rect x="255" y="410" width="490" height="16" rx="5" fill="#e2e8f0" stroke="#cbd5e1"/><rect x="980" y="336" width="40" height="16" rx="5" fill="none" stroke="#64748b" stroke-width="3"/>`;
+  for(const[t,i]of order){if(t.drag)s+=this.tubeSVG(t,i)}
+  for(const p of this.drops){const c=SBI[p.id].c;s+=`<ellipse cx="${f1(p.x)}" cy="${f1(p.y)}" rx="3.4" ry="4.4" fill="rgba(${c[0]},${c[1]},${c[2]},${Math.max(.5,c[3])})" stroke="#94a3b8" stroke-width=".6"/>`}
+  if(this.dp)s+=this.dropper(this.dp.x,this.dp.y,this.dp.bi,this.dp.hold?this.squeeze:0);
+  li=0;s+=lb(110,505,'النفايات',{s:14,f:'#64748b'});s+=lb(1000,690,this.on?'الموقد مشتعل':'اضغط لإشعال الموقد',{s:13,f:'#64748b'});
+  this.tubes.forEach(t=>{if(!t.drag)s+=this.tubeLabels(t)});
+  return s},
+ down(h,p){
+  if(h==='burn'){this.on=!this.on;renderBar();return{move(){}}}
+  if(h[0]==='d'){const bi=+h.slice(1);if(this.dp&&this.dp.hold)return;const r={x:SB[bi].x,y:120};this.dp={bi,x:r.x,y:r.y,hold:1,cool:.2};const o={x:r.x-p.x,y:r.y-p.y};
+   return{move:q=>{this.dp.x=q.x+o.x;this.dp.y=q.y+o.y},up:()=>{this.dp.hold=0}}}
+  if(h[0]==='t'){const t=this.tubes[+h.slice(1)];const o={x:t.x-p.x,y:t.y-p.y};t.drag=1;t.held=0;
+   return{move:q=>{t.x=q.x+o.x;t.y=q.y+o.y},up:()=>{t.drag=0;const b={x:t.x,y:t.y+TL};
+    if(D(b,{x:1000,y:500})<120&&!this.tubes.some(u=>u!==t&&u.held)){t.held=1;return}
+    if(b.x>30&&b.x<190&&b.y>430&&b.y<700){this.waste+=this.vol(t);Object.assign(t,{c:{},pB:0,pI:0,pT:0,eB:0,eI:0,eT:0,ppt:0,maxT:t.T});return}
+    let best=-1,bd=60;SLOTX.forEach((x,k)=>{const dd=Math.abs(x-t.x);if(dd<bd&&b.y>420&&b.y<650&&!this.tubes.some(u=>u!==t&&u.home===k&&!u.held)){bd=dd;best=k}});if(best>=0)t.home=best}}}},
+ bar(){return `<button class="btn${this.on?' sel':''}" data-a="burn">${this.on?'إطفاء الموقد':'إشعال الموقد'}</button><button class="btn" data-a="reset">أنابيب نظيفة</button>`},
+ act(a){if(a==='burn')this.on=!this.on;else this.init()}
+};
+
+/* ================= core ================= */
+const LABS=[L1,L2,L3,L4,L5],HASH=['classify','structure','disaccharides','polysaccharides','tests'];
+LABS.forEach(l=>l.init());
+const tabs=[...document.querySelectorAll('.tab')];
+function renderBar(){bar.innerHTML=LABS[cur].bar()}
+function go(i){cur=i;age=0;view={k:1,tx:0,ty:0};applyView();tabs.forEach((t,j)=>t.setAttribute('aria-selected',j===i));renderBar();try{history.replaceState(null,'','#'+HASH[i])}catch(_){}}
+tabs.forEach((t,i)=>t.onclick=()=>go(i));
+bar.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;LABS[cur].act(b.dataset.a);renderBar()});
+function applyView(){world.setAttribute('transform',`translate(${f1(view.tx)} ${f1(view.ty)}) scale(${view.k.toFixed(3)})`)}
+function zoomAt(f,qx,qy){const k2=clamp(view.k*f,.5,4);view.tx=qx-(qx-view.tx)*k2/view.k;view.ty=qy-(qy-view.ty)*k2/view.k;view.k=k2;applyView()}
+function toVB(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;const r=p.matrixTransform(svg.getScreenCTM().inverse());return{x:r.x,y:r.y}}
+function toW(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;const r=p.matrixTransform(world.getScreenCTM().inverse());return{x:r.x,y:r.y}}
+document.getElementById('bIn').onclick=()=>zoomAt(1.25,600,350);
+document.getElementById('bOut').onclick=()=>zoomAt(1/1.25,600,350);
+document.getElementById('bFit').onclick=()=>{view={k:1,tx:0,ty:0};applyView()};
+const bLab=document.getElementById('bLab');bLab.onclick=()=>{showL=!showL;if(showL)age=0;bLab.classList.toggle('on',showL)};
+document.getElementById('bFs').onclick=()=>{const a=document.getElementById('app');try{if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{const r=(a.requestFullscreen||a.webkitRequestFullscreen).call(a);if(r&&r.catch)r.catch(()=>{})}}catch(_){}};
+const ptrs=new Map();let drag=null,pan=null,pinch=null;
+svg.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});try{svg.setPointerCapture(e.pointerId)}catch(_){}
+ if(ptrs.size===2&&!drag){pan=null;const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,k:view.k,tx:view.tx,ty:view.ty,c:toVB((a.x+b.x)/2,(a.y+b.y)/2)};return}
+ if(ptrs.size>1)return;const el=e.target.closest&&e.target.closest('[data-h]');
+ if(el){const h=LABS[cur].down&&LABS[cur].down(el.dataset.h,toW(e.clientX,e.clientY));if(h){drag=h;drag.id=e.pointerId;e.preventDefault();return}}
+ const v=toVB(e.clientX,e.clientY);pan={x:v.x,y:v.y,tx:view.tx,ty:view.ty}});
+svg.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(drag&&drag.id===e.pointerId){drag.move&&drag.move(toW(e.clientX,e.clientY));return}
+ if(pinch&&ptrs.size===2){const[a,b]=[...ptrs.values()],k2=clamp(pinch.k*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,.5,4);view.tx=pinch.c.x-(pinch.c.x-pinch.tx)*k2/pinch.k;view.ty=pinch.c.y-(pinch.c.y-pinch.ty)*k2/pinch.k;view.k=k2;applyView();return}
+ if(pan){const v=toVB(e.clientX,e.clientY);view.tx=pan.tx+(v.x-pan.x);view.ty=pan.ty+(v.y-pan.y);applyView()}});
+function endP(e){if(drag&&drag.id===e.pointerId){drag.up&&drag.up(toW(e.clientX,e.clientY));drag=null}ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size)pan=null}
+svg.addEventListener('pointerup',endP);svg.addEventListener('pointercancel',endP);
+svg.addEventListener('wheel',e=>{e.preventDefault();const v=toVB(e.clientX,e.clientY);zoomAt(e.deltaY<0?1.1:1/1.1,v.x,v.y)},{passive:false});
+let last=performance.now(),lastStat='';
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000);last=ts;now+=dt;age+=dt;const L=LABS[cur];L.tick&&L.tick(dt);li=0;dyn.innerHTML=L.render();
+ if(L.stat){const st=document.getElementById('stat');const v=L.stat();if(st&&v!==lastStat){st.textContent=v;lastStat=v}else if(st&&!st.textContent)st.textContent=v}
+ requestAnimationFrame(frame)}
+const BG=[['#ffffff','أبيض'],['#f4efe6','ورقي'],['#0f1b2d','كحلي',1],['#111214','أسود',1],['#23272e','فحمي',1],['#0b2545','أزرق ليلي',1],['#0d3340','بترولي',1],['#0f2e24','أخضر غامق',1],['#241a3a','بنفسجي غامق',1],['#3a1420','عنابي',1],['#2e2018','بني',1],['#1c2a1a','زيتي',1]];
+const pal=document.getElementById('pal'),bBg=document.getElementById('bBg');let bg='#ffffff';try{bg=localStorage.getItem('carbBg')||bg}catch(_){}
+function setBg(c){if(!BG.some(b=>b[0]===c))c='#ffffff';bg=c;document.documentElement.style.setProperty('--bg',c);document.documentElement.classList.toggle('dk',!!(BG.find(b=>b[0]===c)||[])[2]);try{localStorage.setItem('carbBg',c)}catch(_){}pal.querySelectorAll('.sw').forEach(b=>b.classList.toggle('sel',b.dataset.c===c))}
+pal.innerHTML=BG.map(([c,n])=>`<button class="sw" data-c="${c}" title="${n}" aria-label="${n}" style="background:${c}"></button>`).join('');
+pal.addEventListener('click',e=>{const b=e.target.closest('.sw');if(b)setBg(b.dataset.c)});
+bBg.onclick=e=>{e.stopPropagation();pal.classList.toggle('open');bBg.classList.toggle('on',pal.classList.contains('open'))};
+document.addEventListener('pointerdown',e=>{if(pal.classList.contains('open')&&!pal.contains(e.target)&&!bBg.contains(e.target)){pal.classList.remove('open');bBg.classList.remove('on')}});
+setBg(bg);
+const h0=HASH.indexOf(location.hash.slice(1));go(h0<0?0:h0);
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
