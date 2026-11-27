@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('moe_offline_license')||'null');var n=Date.now();if(window.top===window.self||!l||n>l.offlineExpiry||(l.officialExpiry&&n>l.officialExpiry))location.replace('portal.html');}catch(e){location.replace('portal.html');}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>مختبر البروتينات</title>
+<style>
+/* VOICE: هادئ وعلمي، مختبر مدرسي نظيف
+   IDEA: طاولة مختبر بيضاء تُعرض على السبورة الذكية
+   PICTURE: ذرات وحلقات وأنابيب اختبار SVG تتحرك باليد
+   COLOUR and TYPE: أبيض، حبر كحلي، كهرماني للسكر، أحمر للأوكسجين؛ Tajawal
+   LAYOUT: شريط تبويب علوي، مسرح كامل، شريط تحكم سفلي */
+:root{color-scheme:light;--bg:#ffffff;--btn:#fff;--ink:#1e293b;--mut:#64748b;--line:#e2e8f0;--acc:#d97706}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Tajawal,system-ui,sans-serif}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;background:var(--bg);transition:background .3s}
+#pal{position:absolute;top:8px;left:8px;z-index:5;display:none;gap:8px;flex-wrap:wrap;max-width:300px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.14)}
+#pal.open{display:flex}
+.sw{width:44px;height:44px;border-radius:50%;border:2px solid #cbd5e1;cursor:pointer}
+.sw.sel{border:3px solid var(--ink);box-shadow:0 0 0 2px #fff inset}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+h1{font-size:20px;margin:0;font-weight:800;white-space:nowrap}
+#tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none}
+.tab{flex:none;height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);color:var(--ink);font:700 16px Tajawal,system-ui,sans-serif;cursor:pointer}
+.tab[aria-selected=true]{border-color:var(--ink)}
+#tools{display:flex;gap:6px;flex:none}
+.ib{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.ib svg{width:22px;height:22px}
+.ib.on{border-color:#f59e0b;box-shadow:inset 0 0 0 2px #f59e0b}
+button:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+#wrap{flex:1;position:relative;min-height:0}
+#stage{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;display:block}
+#bar{display:flex;gap:8px;justify-content:center;align-items:center;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap;min-height:62px}
+.btn{height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line);color:var(--ink);font:700 16px Tajawal,system-ui,sans-serif;cursor:pointer}
+.btn.sel{border-color:var(--ink)}
+.sep{width:1px;height:28px;background:var(--line);margin:0 4px}
+#stat{font-weight:800;color:var(--mut);font-size:16px;min-width:60px;text-align:center}
+svg text{font-family:Tajawal,system-ui,sans-serif}
+.lb{font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round;pointer-events:none}
+.at{font-weight:800;text-anchor:middle;pointer-events:none}
+.tx{text-anchor:middle;pointer-events:none}
+[data-h]{cursor:grab}
+.dk text.lb[fill="#334155"],.dk text.tx[fill="#334155"]{fill:#e2e8f0}
+.dk text.lb[fill="#1e293b"],.dk text.tx[fill="#1e293b"]{fill:#f8fafc}
+.dk text.lb[fill="#475569"],.dk text.tx[fill="#475569"]{fill:#cbd5e1}
+.dk text.lb[fill="#64748b"],.dk text.tx[fill="#64748b"]{fill:#a7b4c6}
+.dk text.lb[fill="#2563eb"],.dk text.tx[fill="#2563eb"]{fill:#93c5fd}
+.dk text.lb[fill="#1d4ed8"],.dk text.tx[fill="#1d4ed8"]{fill:#93c5fd}
+.dk text.lb[fill="#92400e"],.dk text.tx[fill="#92400e"]{fill:#fcd34d}
+.dk text.lb[fill="#b45309"],.dk text.tx[fill="#b45309"]{fill:#fbbf24}
+.dk text.lb[fill="#b91c1c"],.dk text.tx[fill="#b91c1c"]{fill:#fca5a5}
+.dk text.lb[fill="#1e3a8a"],.dk text.tx[fill="#1e3a8a"]{fill:#a5b4fc}
+.dk text.lb[fill="#dc2626"],.dk text.tx[fill="#dc2626"]{fill:#f87171}
+.dk text.lb[fill="#ea580c"],.dk text.tx[fill="#ea580c"]{fill:#fdba74}
+.dk text.lb[fill="#7e22ce"],.dk text.tx[fill="#7e22ce"]{fill:#d8b4fe}.dk text.lb[fill="#c2410c"]{fill:#fdba74}.dk text.lb[fill="#15803d"]{fill:#86efac}.dk text.lb[fill="#a16207"]{fill:#fde047}.dk rect[fill="#fff7ed"]{fill:rgba(251,146,60,.1)}
+.dk ellipse[fill="#dbeafe"]{fill:rgba(59,130,246,.2)}
+.dk line[stroke="#526072"]{stroke:#cbd5e1}.dk line[stroke="#64748b"]{stroke:#94a3b8}
+.dk rect[fill="#fff"]{fill:rgba(255,255,255,.08)}.dk rect[fill="#fffbeb"]{fill:rgba(252,211,77,.1)}
+.dk path[fill="#f8fafc"]{fill:transparent}.dk path[fill^="rgba(241,245,249"]{fill:rgba(255,255,255,.05)}
+.dk{--ink:#f1f5f9;--mut:#a7b4c6;--line:rgba(255,255,255,.18);--btn:rgba(255,255,255,.07)}
+.tab,.btn,.ib{background:var(--btn)}.tab[aria-selected=true],.btn.sel{background:var(--ink);color:var(--bg)}
+#pal{background:var(--bg)}
+@media(max-width:760px){h1{display:none}header{flex-wrap:wrap}#tabs{order:2;flex-basis:100%}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>مختبر البروتينات</h1>
+  <nav id="tabs" role="tablist">
+    <button class="tab" data-lab="0">الحامض الأميني</button>
+    <button class="tab" data-lab="1">الرابطة الببتيدية</button>
+    <button class="tab" data-lab="2">تراكيب البروتين</button>
+    <button class="tab" data-lab="3">الإنزيمات</button>
+    <button class="tab" data-lab="4">الكشف المختبري</button>
+  </nav>
+  <div id="tools">
+    <button class="ib on" id="bLab" title="التأشيرات" aria-label="إظهار أو إخفاء التأشيرات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></button>
+    <button class="ib" id="bBg" title="لون الخلفية" aria-label="لون الخلفية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.8 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10" cy="7" r="1.2" fill="currentColor"/><circle cx="15" cy="7" r="1.2" fill="currentColor"/></svg></button>
+    <button class="ib" id="bIn" title="تكبير" aria-label="تكبير"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 7.5v6M7.5 10.5h6"/></svg></button>
+    <button class="ib" id="bOut" title="تصغير" aria-label="تصغير"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M7.5 10.5h6"/></svg></button>
+    <button class="ib" id="bFit" title="الحجم الأصلي" aria-label="الحجم الأصلي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg></button>
+    <button class="ib" id="bFs" title="ملء الشاشة" aria-label="ملء الشاشة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+</header>
+<div id="wrap">
+<div id="pal" role="dialog" aria-label="لون الخلفية"></div>
+<svg id="stage" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <radialGradient id="gC" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#7b8390"/><stop offset="1" stop-color="#1f2630"/></radialGradient>
+    <radialGradient id="gO" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#ff8a80"/><stop offset="1" stop-color="#c62828"/></radialGradient>
+    <radialGradient id="gH" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d3dbe5"/></radialGradient>
+    <radialGradient id="gN" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#8fb4ff"/><stop offset="1" stop-color="#1e40af"/></radialGradient>
+    <radialGradient id="gS" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff59d"/><stop offset="1" stop-color="#c49a06"/></radialGradient>
+    <linearGradient id="glass" x1="0" x2="1"><stop offset="0" stop-color="#cbd5e1" stop-opacity=".45"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#cbd5e1" stop-opacity=".4"/></linearGradient>
+    <linearGradient id="silver" x1="0" x2="1"><stop offset="0" stop-color="#6b7280"/><stop offset=".3" stop-color="#f1f5f9"/><stop offset=".55" stop-color="#9ca3af"/><stop offset="1" stop-color="#4b5563"/></linearGradient>
+    <linearGradient id="metal" x1="0" x2="1"><stop offset="0" stop-color="#64748b"/><stop offset=".4" stop-color="#e2e8f0"/><stop offset="1" stop-color="#475569"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity=".12"/></filter>
+  </defs>
+  <g id="world"><rect x="-3000" y="-3000" width="7200" height="6700" style="fill:var(--bg);transition:fill .3s"/><g id="dyn"></g></g>
+</svg>
+</div>
+<div id="bar"></div>
+</div>
+<script>
+{
+const svg=document.getElementById('stage'),world=document.getElementById('world'),dyn=document.getElementById('dyn'),bar=document.getElementById('bar');
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,ease=t=>t*t*(3-2*t),D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const P2=(a,b,t)=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t)});
+const f1=v=>(+v).toFixed(1);
+let view={k:1,tx:0,ty:0},showL=true,age=0,li=0,now=0,cur=0;
+
+/* ---------- drawing helpers ---------- */
+function lb(x,y,t,o={}){const i=li++;let op=showL?clamp((age-.35-i*.18)/.5):0;op*=(o.m===undefined?1:o.m);if(op<=.01)return'';
+  return `<text class="lb" x="${f1(x)}" y="${f1(y)}" font-size="${o.s||17}" fill="${o.f||'#334155'}" opacity="${op.toFixed(2)}"${o.ltr?' direction="ltr" unicode-bidi="embed"':''}>${t}</text>`}
+function labOp(i=0,m=1){return showL?clamp((age-.35-i*.18)/.5)*m:0}
+const AT={C:[15,'gC','#fff',14],O:[15,'gO','#fff',14],H:[10,'gH','#475569',11],N:[15,'gN','#fff',14],S:[16,'gS','#3f3200',14]};
+function atom(x,y,e,op=1,r){const a=AT[e];const rr=r||a[0],fs=a[3]*rr/a[0];if(op<=.01)return'';
+  return `<g opacity="${op.toFixed(2)}"><circle cx="${f1(x)}" cy="${f1(y)}" r="${rr}" fill="url(#${a[1]})"${e==='H'?' stroke="#94a3b8" stroke-width="1"':''}/><text class="at" x="${f1(x)}" y="${f1(y+fs*.36)}" font-size="${f1(fs)}" fill="${a[2]}">${e}</text></g>`}
+function bond(a,b,op=1,w=4,c='#526072',dash=''){if(op<=.01)return'';return `<line x1="${f1(a.x)}" y1="${f1(a.y)}" x2="${f1(b.x)}" y2="${f1(b.y)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" opacity="${op.toFixed(2)}"${dash?` stroke-dasharray="${dash}"`:''}/>`}
+const poly=(cx,cy,r,n,rot=0)=>Array.from({length:n},(_,i)=>{const a=rot+i*2*Math.PI/n;return f1(cx+r*Math.cos(a))+','+f1(cy+r*Math.sin(a))}).join(' ');
+function ring(cx,cy,r,n,col,rot){const ro=rot!==undefined?rot:(n===6?Math.PI/6:-Math.PI/2);const a=ro+(n===6?-Math.PI/3:0);
+  return `<polygon points="${poly(cx,cy,r,n,ro)}" fill="${col}26" stroke="${col}" stroke-width="2.6" stroke-linejoin="round"/><circle cx="${f1(cx+r*Math.cos(a))}" cy="${f1(cy+r*Math.sin(a))}" r="${f1(r*.2)}" fill="#e53935"/>`}
+
+/* ================= 1. AMINO ACID ================= */
+const AAD={
+ gly:{n:'كلايسين',f:'C₂H₅NO₂',R:[['R1','H',0,62]],rb:[['CA','R1']]},
+ ala:{n:'ألانين',f:'C₃H₇NO₂',R:[['R1','C',0,72],['r1','H',-42,108],['r2','H',42,108],['r3','H',0,134]],rb:[['CA','R1'],['R1','r1'],['R1','r2'],['R1','r3']]},
+ ser:{n:'سيرين',f:'C₃H₇NO₃',R:[['R1','C',0,72],['r1','H',-48,84],['r2','H',48,84],['R2','O',0,140],['r3','H',34,162]],rb:[['CA','R1'],['R1','r1'],['R1','r2'],['R1','R2'],['R2','r3']]},
+ cys:{n:'سستئين',f:'C₃H₇NO₂S',R:[['R1','C',0,72],['r1','H',-48,84],['r2','H',48,84],['R2','S',0,142],['r3','H',36,166]],rb:[['CA','R1'],['R1','r1'],['R1','r2'],['R1','R2'],['R2','r3']]}};
+const AAB=[['N','N',-105,0,-105,0],['hn1','H',-140,-32,-152,-26],['hn2','H',-140,32,-142,40],['CA','C',0,0,0,0],['HA','H',0,-62,0,-62],['C','C',105,0,105,0],['O1','O',140,-55,140,-55],['O2','O',140,48,140,48],['hx','H',180,40,-100,-68]];
+const AABB=[['N','CA'],['CA','C'],['CA','HA'],['N','hn1'],['N','hn2'],['C','O1','D'],['C','O2'],['O2','hx','g'],['N','hx','n']];
+function dbl(a,c,op=1){const dx=c.x-a.x,dy=c.y-a.y,L=Math.hypot(dx,dy)||1;return bond({x:a.x-dy/L*7,y:a.y+dx/L*7},{x:c.x-dy/L*7,y:c.y+dx/L*7},op,3.5)}
+function sliderSVG(t,a,b){const hx=820-400*t;return `<rect data-h="sl" x="400" y="625" width="420" height="40" fill="transparent"/><line x1="420" y1="645" x2="820" y2="645" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round" pointer-events="none"/><line x1="${f1(hx)}" y1="645" x2="820" y2="645" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" pointer-events="none"/><text class="tx" x="900" y="651" font-size="17" font-weight="700" fill="#475569">${a}</text><text class="tx" x="335" y="651" font-size="17" font-weight="700" fill="#475569">${b}</text><g data-h="sl"><circle cx="${f1(hx)}" cy="645" r="34" fill="transparent"/><circle cx="${f1(hx)}" cy="645" r="19" fill="#fff" stroke="#f59e0b" stroke-width="5" filter="url(#sh)"/></g>`}
+const L1={aa:'gly',t:0,O:{x:600,y:270},
+ init(){this.t=0;this.snap()},
+ nodes(){return AAB.concat(AAD[this.aa].R.map(r=>[r[0],r[1],r[2],r[3],r[2],r[3]]))},
+ tgt(n){const e=ease(this.t);let x=lerp(n[2],n[4],e),y=lerp(n[3],n[5],e);if(n[0]==='hx')y-=150*Math.sin(Math.PI*e);return{x:this.O.x+x,y:this.O.y+y}},
+ snap(){this.cur={};for(const n of this.nodes())this.cur[n[0]]=this.tgt(n)},
+ tick(dt){const k=Math.min(1,dt*11);for(const n of this.nodes()){const t=this.tgt(n);const c=this.cur[n[0]]||(this.cur[n[0]]={...t});c.x+=(t.x-c.x)*k;c.y+=(t.y-c.y)*k}},
+ render(){const P=this.cur,t=this.t,O=this.O,A=AAD[this.aa],rr=A.R.length>1;let s='';
+  const hl=(cx,cy,rx,ry,col,i)=>{const o=labOp(i);return o>.01?`<ellipse cx="${f1(O.x+cx)}" cy="${f1(O.y+cy)}" rx="${rx}" ry="${ry}" fill="${col}" fill-opacity=".09" stroke="${col}" stroke-dasharray="6 5" stroke-width="2" opacity="${o.toFixed(2)}"/>`:''};
+  s+=hl(-132,0,64,66,'#3b82f6',1)+hl(152,0,74,80,'#ef4444',2)+hl(0,rr?112:62,rr?74:28,rr?78:26,'#16a34a',3);
+  for(const b of AABB.concat(A.rb)){const a=P[b[0]],c=P[b[1]];if(!a||!c)continue;let op=1;if(b[2]==='g')op=1-clamp((t-.15)/.2);if(b[2]==='n')op=clamp((t-.75)/.2);s+=bond(a,c,op);if(b[2]==='D')s+=dbl(a,c)}
+  for(const n of this.nodes())s+=atom(P[n[0]].x,P[n[0]].y,n[1]);
+  li=0;s+=lb(600,44,A.n+'  '+A.f,{s:22,f:'#1e293b'});
+  s+=lb(O.x-132,O.y+96,'مجموعة أمين',{f:'#2563eb'})+lb(O.x+160,O.y+112,'مجموعة كاربوكسيل',{f:'#b91c1c'})+lb(O.x,O.y+(rr?218:116),'السلسلة الجانبية R',{f:'#15803d'});
+  s+=lb(O.x+32,O.y-20,'Cα',{s:16,f:'#1e293b',ltr:1});
+  const zm=clamp((t-.8)/.2);s+=lb(P.N.x+24,P.N.y-20,'+',{s:30,f:'#2563eb',m:zm})+lb(P.O2.x+26,P.O2.y+8,'−',{s:32,f:'#dc2626',m:zm})+lb(600,78,'أيون مزدوج',{s:18,f:'#7e22ce',m:zm});
+  return s+sliderSVG(t,'متعادل','أيون مزدوج')},
+ down(h,p){if(h!=='sl')return;const f=q=>{this.t=clamp((820-q.x)/400)};f(p);return{move:f}},
+ bar(){const b=(a,t)=>`<button class="btn${this.aa===a?' sel':''}" data-a="${a}">${t}</button>`;return b('gly','كلايسين')+b('ala','ألانين')+b('ser','سيرين')+b('cys','سستئين')},
+ act(a){this.aa=a;this.snap();age=0}
+};
+
+/* ================= 2. PEPTIDE BOND ================= */
+const RG={gly:{t:'H'},ala:{t:'CH₃',c:'#16a34a'},ser:{t:'CH₂OH',c:'#0284c7'},cys:{t:'CH₂SH',c:'#ca8a04'}};
+const PPS={ga:['gly','ala'],as:['ala','ser'],gc:['gly','cys']};
+const ATOF={N:'N',hn1:'H',hn2:'H',CA:'C',HA:'H',C:'C',O1:'O',O2:'O',hx:'H'};
+const relAA=id=>{const n=AAB.find(n=>n[0]===id);return{x:n[2],y:n[3]}};
+function skel(F,key,skip,bs,as){
+ for(const b of [['N','CA'],['CA','C'],['CA','HA'],['N','hn1'],['N','hn2'],['C','O1','D'],['C','O2'],['O2','hx']]){if(skip.includes(b[0])||skip.includes(b[1]))continue;const a=F(b[0]),c=F(b[1]);bs.push(bond(a,c));if(b[2])bs.push(dbl(a,c))}
+ const ca=F('CA'),rp={x:ca.x,y:ca.y+66};bs.push(bond(ca,rp));
+ for(const id in ATOF)if(!skip.includes(id)){const p=F(id);as.push(atom(p.x,p.y,ATOF[id]))}
+ const g=RG[key];as.push(g.t==='H'?atom(rp.x,rp.y,'H'):`<g><rect x="${f1(rp.x-36)}" y="${f1(rp.y-14)}" width="72" height="28" rx="14" fill="${g.c}"/><text class="at" x="${f1(rp.x)}" y="${f1(rp.y+5)}" font-size="13" fill="#fff" direction="ltr">${g.t}</text></g>`)}
+const L2={pair:'ga',
+ init(){this.st='free';this.r=0;this.R={x:880,y:330};this.park=null},
+ geo(){const L={x:330,y:330},C={x:435,y:330},bonded={x:615,y:330},W={x:475,y:470};if(!this.park)this.park={x:880,y:570};return{L,C,bonded,W}},
+ tick(dt){if(this.st==='react'){this.r=Math.min(1,this.r+dt/1.9);if(this.r>=1)this.st='done'}
+  else if(this.st==='split'){this.r=Math.max(0,this.r-dt/1.9);if(this.r<=0){this.st='free';this.R={...this.sR}}}},
+ render(){const g=this.geo(),P=PPS[this.pair],r=this.r;let s='';
+  const Rc=this.st==='free'?this.R:P2(this.sR,g.bonded,ease(clamp(r/.35)));
+  const k1=ease(clamp((r-.25)/.4)),k2=ease(clamp((r-.65)/.35)),Wc=P2(g.W,this.park,k2);
+  const A=id=>{const q=relAA(id);return{x:g.L.x+q.x,y:g.L.y+q.y}},B=id=>{const q=relAA(id);return{x:Rc.x+q.x,y:Rc.y+q.y}};
+  const O2=P2(A('O2'),Wc,k1),ho=P2(A('hx'),{x:Wc.x+25,y:Wc.y+17},k1),hn2=P2(B('hn2'),{x:Wc.x-25,y:Wc.y+17},k1);
+  if(this.st==='free'){const pu=.5+.5*Math.sin(now*4);s+=`<circle cx="510" cy="330" r="${f1(26+pu*8)}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 6" opacity="${f1(.4+.4*pu)}"/>`}
+  const done=this.st==='done';
+  if(done){const o=labOp(0);s+=`<rect x="410" y="248" width="135" height="106" rx="14" fill="#f59e0b" fill-opacity=".1" stroke="#d97706" stroke-dasharray="6 5" stroke-width="2" opacity="${o.toFixed(2)}"/>`}
+  const bl=[],al=[];skel(A,P[0],['O2','hx'],bl,al);const cut=1-clamp((r-.2)/.15);
+  s+=bl.join('')+bond(g.C,O2,cut)+bond(O2,ho)+bond(O2,hn2,clamp((r-.5)/.2))+bond(g.C,B('N'),clamp((r-.35)/.25),6,'#d97706')+al.join('');
+  const br=[],ar=[];skel(B,P[1],['hn2'],br,ar);
+  s+=`<g${this.st==='free'?' data-h="R"':''}>${br.join('')}${bond(B('N'),hn2,cut)}${ar.join('')}${atom(hn2.x,hn2.y,'H')}<circle cx="${f1(Rc.x)}" cy="${f1(Rc.y)}" r="120" fill="transparent"/></g>`;
+  s+=`<g${done?' data-h="W"':''}>${atom(O2.x,O2.y,'O')}${atom(ho.x,ho.y,'H')}${done?`<circle cx="${f1(O2.x)}" cy="${f1(O2.y)}" r="44" fill="transparent"/>`:''}</g>`;
+  li=0;s+=lb(600,60,AAD[P[0]].n+' + '+AAD[P[1]].n+(done?'  ←  ثنائي الببتيد + ماء':''),{s:24,f:'#1e293b'});
+  s+=lb(g.L.x,g.L.y+130,AAD[P[0]].n,{s:17,f:'#475569'})+lb(Rc.x,Rc.y+130,AAD[P[1]].n,{s:17,f:'#475569'});
+  s+=lb(478,232,'رابطة ببتيدية',{s:18,f:'#b45309',m:done?1:0})+lb(Wc.x+48,Wc.y-14,'H₂O',{s:17,f:'#dc2626',ltr:1,m:k1});
+  return s},
+ down(h,p){const g=this.geo();
+  if(h==='R'&&this.st==='free'){const o={x:this.R.x-p.x,y:this.R.y-p.y};let live=1;
+   return{move:q=>{if(!live)return;this.R={x:q.x+o.x,y:q.y+o.y};if(D({x:this.R.x-105,y:this.R.y},{x:510,y:330})<110){live=0;this.sR={...this.R};this.park={x:880,y:570};this.st='react';this.r=0}}}}
+  if(h==='W'&&this.st==='done'){const o={x:this.park.x-p.x,y:this.park.y-p.y};
+   return{move:q=>{this.park={x:q.x+o.x,y:q.y+o.y}},up:()=>{if(D(this.park,{x:472,y:330})<100){this.st='split';this.sR={x:g.bonded.x+260,y:g.bonded.y}}}}}},
+ bar(){const b=(a,t)=>`<button class="btn${this.pair===a?' sel':''}" data-a="${a}">${t}</button>`;return b('ga','كلايسين + ألانين')+b('as','ألانين + سيرين')+b('gc','كلايسين + سستئين')+'<span class="sep"></span><button class="btn" data-a="reset">إعادة</button>'},
+ act(a){if(PPS[a]){this.pair=a;age=0}this.init()}
+};
+
+/* ================= 3. PROTEIN STRUCTURE ================= */
+const BEADS=[['Gly','#94a3b8'],['Ala','#22c55e'],['Ser','#0ea5e9'],['Cys','#eab308'],['Val','#15803d'],['Lys','#3b82f6'],['Glu','#ef4444'],['Phe','#a855f7']];
+const TER=[[470,250],[520,215],[580,205],[640,225],[680,270],[650,320],[590,300],[540,330],[500,380],[540,430],[600,450],[660,430],[710,390],[740,330],[730,260],[690,210]];
+const SMODE={pri:'التركيب الأولي — تسلسل الأحماض الأمينية',sec:'التركيب الثانوي — حلزون ألفا',ter:'التركيب الثالثي — التفاف السلسلة'};
+function bead(x,y,k,s=1,op=1){const b=BEADS[k];return `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(s)})" opacity="${op}"><circle r="23" fill="${b[1]}" stroke="#0f172a" stroke-opacity=".25" stroke-width="2"/><circle cx="-8" cy="-9" r="7" fill="#fff" opacity=".35"/><text class="at" y="5" font-size="13" fill="#fff" direction="ltr">${b[0]}</text></g>`}
+const L3={mode:'pri',
+ init(){this.u=[];this.w=[];this.dg=null},
+ slot(i){const m=this.mode;if(m==='pri')return{x:150+i*58,y:330+(i%2?16:-16),s:1};
+  if(m==='sec'){const a=i*1.745;return{x:250+i*42,y:330+78*Math.sin(a),s:.8+.25*Math.cos(a)}}const p=TER[i];return{x:p[0],y:p[1],s:1}},
+ tick(dt){this.u.forEach((u,i)=>{const t=this.slot(i);u.x+=(t.x-u.x)*Math.min(1,dt*7);u.y+=(t.y-u.y)*Math.min(1,dt*7)});
+  this.w.forEach(w=>{w.a+=dt;w.y-=dt*38});this.w=this.w.filter(w=>w.a<2.6)},
+ render(){let s='';const n=this.u.length,U=this.u;
+  if(this.mode==='sec')for(let i=0;i+4<n;i++)s+=bond(U[i],U[i+4],.6,2,'#3b82f6','4 5');
+  for(let i=1;i<n;i++)s+=bond(U[i-1],U[i],1,5,'#64748b');
+  let ss=-1;if(this.mode==='ter'){const cy=U.map((u,i)=>u.k===3?i:-1).filter(i=>i>=0);if(cy.length>1){ss=1;s+=bond(U[cy[0]],U[cy[1]],1,5,'#ca8a04','7 5')}}
+  const ord=U.map((u,i)=>[u,i]);if(this.mode==='sec')ord.sort((a,b)=>this.slot(a[1]).s-this.slot(b[1]).s);
+  for(const[u,i]of ord)s+=bead(u.x,u.y,u.k,this.slot(i).s);
+  for(const w of this.w){const o=clamp(1-w.a/2.6);s+=atom(w.x,w.y,'O',o,9)+atom(w.x-14,w.y+9,'H',o,6)+atom(w.x+14,w.y+9,'H',o,6)}
+  if(n<16){const t=this.slot(n),pu=.5+.5*Math.sin(now*5);s+=`<circle cx="${f1(t.x)}" cy="${f1(t.y)}" r="${f1(25+pu*6)}" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5 6" opacity="${f1(this.dg?.9:.35+.25*pu)}"/>`}
+  s+=`<rect x="270" y="602" width="660" height="78" rx="22" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>`;
+  BEADS.forEach((b,k)=>s+=`<g data-h="b${k}">${bead(330+k*77,641,k)}<circle cx="${330+k*77}" cy="641" r="34" fill="transparent"/></g>`);
+  if(this.dg)s+=bead(this.dg.x,this.dg.y,this.dg.k,1.12,.92);
+  li=0;s+=lb(600,46,SMODE[this.mode],{s:22,f:'#1e293b'});
+  if(n>0){const a=U[0],b=U[n-1];s+=lb(a.x-6,a.y-36,'H₂N',{s:15,f:'#2563eb',ltr:1});if(n>1)s+=lb(b.x+6,b.y-36,'COOH',{s:15,f:'#b91c1c',ltr:1})}
+  if(n>1&&this.mode==='pri'){const a=U[0],b=U[1];s+=lb((a.x+b.x)/2,(a.y+b.y)/2+44,'رابطة ببتيدية',{s:14,f:'#475569'})}
+  if(this.mode==='sec'&&n>4)s+=lb(600,470,'أواصر هيدروجينية',{s:15,f:'#2563eb'});
+  if(ss>0)s+=lb(600,520,'جسر ثنائي الكبريتيد بين جزيئتي سستئين',{s:15,f:'#a16207'});
+  return s},
+ down(h,p){if(h[0]!=='b'||this.u.length>=16)return;const k=+h.slice(1);this.dg={x:p.x,y:p.y,k};
+  return{move:q=>{this.dg.x=q.x;this.dg.y=q.y},up:()=>{const n=this.u.length,t=this.slot(n);if(D(this.dg,t)<100){this.u.push({x:this.dg.x,y:this.dg.y,k});
+   if(n>0){const a=this.slot(n-1);this.w.push({x:(a.x+t.x)/2,y:(a.y+t.y)/2-16,a:0})}}this.dg=null}}},
+ bar(){const b=(a,t)=>`<button class="btn${this.mode===a?' sel':''}" data-a="${a}">${t}</button>`;return b('pri','أولي')+b('sec','ثانوي')+b('ter','ثالثي')+'<span class="sep"></span><button class="btn" data-a="undo">تراجع</button><button class="btn" data-a="reset">إعادة</button><span id="stat"></span>'},
+ act(a){if(SMODE[a]){this.mode=a;age=0}else if(a==='undo')this.u.pop();else this.init()},
+ stat(){const n=this.u.length;return `أحماض أمينية: ${n}  ·  روابط ببتيدية: ${Math.max(0,n-1)}`}
+};
+
+/* ================= 4. ENZYMES ================= */
+const EC={x:600,y:400},PC={x:600,y:280};
+function radE(th,d){let r=150+6*Math.sin(5*th);const dl=Math.abs(Math.atan2(Math.sin(th+Math.PI/2),Math.cos(th+Math.PI/2)));const pr=dl<.16?1:dl<.3?(.3-dl)/.14:0;r-=62*pr*(1-clamp(d*1.3));r+=d*(20*Math.sin(7*th+1.3)+12*Math.sin(11*th+.4));return r}
+const SUBP=(()=>{const pts=[];for(let i=0;i<=24;i++){const th=-Math.PI/2-.3+i*.6/24,r=radE(th,0);pts.push([r*Math.cos(th),EC.y+r*Math.sin(th)-PC.y])}
+ for(let i=0;i<=24;i++){const th=-Math.PI/2+.3-i*.6/24;pts.push([176*Math.cos(th),EC.y+176*Math.sin(th)-PC.y])}
+ return pts.map(p=>f1(p[0]*.94)+','+f1(p[1]*.94+2)).join(' ')})();
+function subSVG(x,y,op=1,clip=''){return `<g transform="translate(${f1(x)} ${f1(y)})" opacity="${f1(op)}"${clip?` clip-path="url(#${clip})"`:''}><polygon points="${SUBP}" fill="#fdba74" stroke="#c2410c" stroke-width="3" stroke-linejoin="round"/><line x1="0" y1="-50" x2="0" y2="30" stroke="#c2410c" stroke-width="2" stroke-dasharray="4 4"/></g>`}
+const L4={
+ init(){this.T=37;this.d=0;this.sub=null;this.prods=[];this.rej=null;this.n=0;this.dg=null},
+ actv(T){return T<=37?.06+.94*(T/37)**2:Math.max(0,1-((T-37)/22)**2)},
+ actN(){return this.actv(this.T)*(1-clamp(this.d*1.6))},
+ tick(dt){if(this.T>55)this.d=Math.min(1,this.d+dt*.22*(this.T-55)/25);
+  if(this.sub){this.sub.p+=dt*this.actN()*.7;if(this.sub.p>=1){this.prods.push({x:PC.x,y:PC.y,a:0});this.sub=null;this.n++}
+   else if(this.d>.5){this.rej={x:PC.x,y:PC.y,a:0};this.sub=null}}
+  this.prods.forEach(p=>p.a+=dt);this.prods=this.prods.filter(p=>p.a<2.2);
+  if(this.rej){this.rej.a+=dt;if(this.rej.a>1.4)this.rej=null}},
+ render(){let s='';const d=this.d,T=this.T;
+  s+=`<clipPath id="hL"><rect x="-200" y="-200" width="200" height="400"/></clipPath><clipPath id="hR"><rect x="0" y="-200" width="200" height="400"/></clipPath>`;
+  // graph
+  const gx=T=>60+T/80*260,gy=a=>230-a*120;let cp='';for(let t=0;t<=80;t+=2)cp+=(t?'L':'M')+f1(gx(t))+','+f1(gy(this.actv(t)));
+  s+=`<rect x="36" y="84" width="300" height="176" rx="14" fill="#fff" stroke="#e2e8f0" stroke-width="2"/><line x1="60" y1="232" x2="322" y2="232" stroke="#94a3b8" stroke-width="2"/><line x1="60" y1="232" x2="60" y2="100" stroke="#94a3b8" stroke-width="2"/><path d="${cp}" fill="none" stroke="#2563eb" stroke-width="3"/><line x1="${f1(gx(37))}" y1="232" x2="${f1(gx(37))}" y2="108" stroke="#94a3b8" stroke-dasharray="4 4"/><circle cx="${f1(gx(T))}" cy="${f1(gy(this.actN()))}" r="8" fill="#dc2626" stroke="#fff" stroke-width="2"/>`;
+  // enzyme
+  const pts=[];for(let i=0;i<120;i++){const th=-Math.PI+i*Math.PI/60,r=radE(th,d);pts.push(f1(EC.x+r*Math.cos(th))+','+f1(EC.y+r*Math.sin(th)*(1-d*.12)))}
+  const ec=`rgb(${Math.round(lerp(96,148,d))},${Math.round(lerp(165,163,d))},${Math.round(lerp(250,184,d))})`;
+  s+=`<polygon points="${pts.join(' ')}" fill="${ec}" fill-opacity=".35" stroke="${ec}" stroke-width="5" stroke-linejoin="round"/>`;
+  if(this.sub){const pu=.5+.5*Math.sin(now*8);s+=`<circle cx="${PC.x}" cy="${PC.y+8}" r="${f1(70+pu*8)}" fill="#f59e0b" opacity="${f1(.12+.1*pu)}"/>`+subSVG(PC.x,PC.y)}
+  for(const p of this.prods){const e=ease(clamp(p.a/1.2)),o=clamp(1-(p.a-1.4)/.8);s+=subSVG(p.x-e*170,p.y-e*120,o,'hL')+subSVG(p.x+e*170,p.y-e*120,o,'hR')}
+  if(this.rej){const a=this.rej.a;s+=subSVG(PC.x+Math.sin(a*40)*10*clamp(1-a),PC.y-a*80,clamp(1.4-a))}
+  // tray
+  s+=`<g data-h="tray"><rect x="930" y="560" width="200" height="120" rx="20" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>${subSVG(1030,620,1)}<rect x="930" y="560" width="200" height="120" fill="transparent"/></g>`;
+  if(this.dg)s+=subSVG(this.dg.x,this.dg.y,.92);
+  // temperature slider
+  const hx=420+T/80*400,tc=`rgb(${Math.round(lerp(59,239,T/80))},${Math.round(lerp(130,68,T/80))},${Math.round(lerp(246,68,T/80))})`;
+  s+=`<defs><linearGradient id="tg"><stop offset="0" stop-color="#3b82f6"/><stop offset=".46" stop-color="#22c55e"/><stop offset=".7" stop-color="#f59e0b"/><stop offset="1" stop-color="#ef4444"/></linearGradient></defs><rect data-h="ts" x="400" y="620" width="440" height="50" fill="transparent"/><rect x="420" y="640" width="400" height="10" rx="5" fill="url(#tg)" pointer-events="none"/>`;
+  s+=`<text class="tx" x="380" y="651" font-size="15" font-weight="700" fill="#475569" direction="ltr">0°C</text><text class="tx" x="866" y="651" font-size="15" font-weight="700" fill="#475569" direction="ltr">80°C</text>`;
+  s+=`<g data-h="ts"><circle cx="${f1(hx)}" cy="645" r="34" fill="transparent"/><circle cx="${f1(hx)}" cy="645" r="19" fill="#fff" stroke="${tc}" stroke-width="5" filter="url(#sh)"/></g><text class="tx" x="${f1(hx)}" y="612" font-size="18" font-weight="800" fill="${tc}" direction="ltr">${Math.round(T)}°C</text>`;
+  li=0;s+=lb(186,76,'نشاط الإنزيم',{s:16,f:'#1e293b'})+lb(gx(37),124,'37°C',{s:13,f:'#475569',ltr:1})+lb(190,254,'درجة الحرارة',{s:13,f:'#64748b'});
+  s+=lb(EC.x,EC.y+30,'إنزيم',{s:22,f:'#1d4ed8'})+lb(740,250,'الموقع الفعّال',{s:16,f:'#1d4ed8',m:1-clamp(d*2)})+lb(1030,548,'مادة التفاعل',{s:15,f:'#c2410c'});
+  s+=lb(EC.x,EC.y+195,'الإنزيم فقد شكله (مسخ)',{s:18,f:'#dc2626',m:clamp((d-.3)*3)});
+  if(this.prods.length)s+=lb(600,120,'نواتج',{s:17,f:'#c2410c'});
+  return s},
+ down(h,p){
+  if(h==='ts'){const f=q=>{this.T=clamp((q.x-420)/400)*80};f(p);return{move:f}}
+  if(h==='tray'){this.dg={x:p.x,y:p.y};return{move:q=>{this.dg={x:q.x,y:q.y}},up:()=>{const g=this.dg;this.dg=null;
+   if(D(g,PC)<90){if(!this.sub&&this.d<=.5)this.sub={p:0};else this.rej={x:g.x,y:g.y,a:0}}}}}},
+ bar(){return `<button class="btn" data-a="t37">37°C</button><button class="btn" data-a="reset">إنزيم جديد</button><span id="stat"></span>`},
+ act(a){if(a==='t37')this.T=37;else this.init()},
+ stat(){return `النواتج: ${this.n}`}
+};
+
+/* ================= 5. LAB TESTS ================= */
+const SB=[{id:'alb',n:'زلال البيض',c:[246,238,205,.45],pr:1},{id:'mlk',n:'حليب',c:[250,250,246,.9],pr:1},{id:'gly',n:'كلايسين',c:[226,236,246,.22],aa:1},{id:'sta',n:'نشأ',c:[238,238,228,.5]},{id:'wat',n:'ماء مقطر',c:[220,234,248,.18]},
+ {id:'biu',n:'بايوريت',c:[40,110,225,.85],rg:1},{id:'hno',n:'حامض النتريك',c:[245,240,205,.3],rg:1},{id:'nh3',n:'أمونيا',c:[232,240,246,.2],rg:1},{id:'nin',n:'نينهيدرين',c:[250,244,214,.32],rg:1}];
+const SBI={};SB.forEach((b,i)=>{SBI[b.id]=b;b.x=70+i*132});
+const TL=210,TR=19,SLOTX=[300,380,460,540,620,700],HOLD={x:1000,y:285};
+const L5={
+ init(){this.tubes=SLOTX.map((x,i)=>this.fresh({home:i,x,y:330,T:25,held:0,drag:0}));this.on=0;this.dp=null;this.drops=[];this.waste=0;this.squeeze=0},
+ fresh(t){return Object.assign(t,{c:{},maxT:t.T||25,pBi:0,pW:0,pX:0,pN:0,pC:0,eBi:0,eW:0,eX:0,eO:0,eN:0,eC:0,floc:0})},
+ vol(t){let v=0;for(const k in t.c)v+=t.c[k];return v},
+ surf(t){return t.y+TL-Math.min(1,this.vol(t))*175},
+ tick(dt){
+  for(const t of this.tubes){const c=t.c,g=k=>c[k]||0;const pr=g('alb')+g('mlk'),aa=g('gly'),biu=g('biu'),hno=g('hno'),nh3=g('nh3'),nin=g('nin'),alb=g('alb');
+   const hot=t.held&&this.on;t.T=hot?Math.min(100,t.T+dt*10):t.T+(25-t.T)*Math.min(1,dt*.12);t.maxT=Math.max(t.maxT,t.T);
+   if(biu>0&&pr>0)t.pBi=Math.min(1,t.pBi+dt*1.2);
+   if(hno>0&&pr>0){t.pW=Math.min(1,t.pW+dt*1.5);if(t.T>60)t.pX=Math.min(1,t.pX+dt*.16*(t.T-60)/40)}
+   if(nin>0&&pr+aa>0&&t.T>70)t.pN=Math.min(1,t.pN+dt*.3*(t.T-70)/30);
+   if(alb>0&&t.T>70)t.pC=Math.min(1,t.pC+dt*.22*(t.T-70)/30);
+   t.eBi=t.pBi*Math.min(1,pr/.08)*Math.min(1,biu/.05);t.eW=t.pW*Math.min(1,pr/.06)*Math.min(1,hno/.04);t.eX=t.pX*Math.min(1,pr/.06)*Math.min(1,hno/.04);
+   t.eO=t.eX*Math.min(1,nh3/.06);t.eN=t.pN*Math.min(1,(pr+aa)/.08)*Math.min(1,nin/.04);t.eC=t.pC*Math.min(1,alb/.08);t.floc=Math.max(t.eW,t.eC);
+   Object.assign(t,{pr,aa,biu,hno,nin});
+   if(!t.drag){const tg=t.held?HOLD:{x:SLOTX[t.home],y:330};t.x+=(tg.x-t.x)*Math.min(1,dt*10);t.y+=(tg.y-t.y)*Math.min(1,dt*10)}}
+  const d=this.dp;this.squeeze=Math.max(0,this.squeeze-dt*4);
+  if(d){if(d.hold){d.cool-=dt;const t=this.tubes.find(t=>Math.abs(d.x-t.x)<26&&d.y>t.y-90&&d.y<t.y+70);if(t&&d.cool<=0){d.cool=.3;this.squeeze=1;this.drops.push({x:d.x,y:d.y+4,vy:60,id:SB[d.bi].id,t})}}
+   else{const r={x:SB[d.bi].x,y:120};d.x+=(r.x-d.x)*Math.min(1,dt*10);d.y+=(r.y-d.y)*Math.min(1,dt*10);if(D(d,r)<1.5)this.dp=null}}
+  for(const p of this.drops){p.vy+=1500*dt;p.y+=p.vy*dt;const t=p.t;if(Math.abs(p.x-t.x)<TR&&p.y>=this.surf(t)-2&&p.y>t.y-10){if(this.vol(t)<1)t.c[p.id]=(t.c[p.id]||0)+.05;p.gone=1}else if(p.y>720)p.gone=1}
+  this.drops=this.drops.filter(p=>!p.gone)},
+ color(t){let r=0,g=0,b=0,w=0,aS=0,V=0;for(const k in t.c){const v=t.c[k];let c=SBI[k].c.slice();
+   if(k==='biu'){const e=t.eBi;c=[lerp(40,125,e),lerp(110,55,e),lerp(225,175,e),.88]}
+   else if(k==='hno'){const e=t.eX,o=t.eO;c=[lerp(lerp(245,232,e),230,o),lerp(lerp(240,200,e),130,o),lerp(lerp(205,40,e),30,o),lerp(.3,.62,e)+o*.12]}
+   else if(k==='nin'){const e=t.eN;c=[lerp(250,90,e),lerp(244,40,e),lerp(214,150,e),lerp(.32,.93,e)]}
+   const wt=v*c[3]*(k==='nin'?1+5*t.eN:k==='biu'?1+2*t.eBi:1);r+=c[0]*wt;g+=c[1]*wt;b+=c[2]*wt;w+=wt;aS+=v*c[3];V+=v}
+  if(!V)return null;return `rgba(${Math.round(r/w)},${Math.round(g/w)},${Math.round(b/w)},${clamp(aS/V+.08,.15,.94).toFixed(2)})`},
+ tubeSVG(t,i){const x=t.x,y=t.y,V=Math.min(1,this.vol(t)),bot=y+TL,d=`M${f1(x-TR)},${f1(y)} V${f1(bot-TR)} A${TR},${TR} 0 0 0 ${f1(x+TR)},${f1(bot-TR)} V${f1(y)} Z`;
+  let s=`<g data-h="t${i}"><clipPath id="cp${i}"><path d="${d}"/></clipPath><path d="${d}" fill="#f8fafc" opacity=".7"/>`;
+  if(V>0){const yl=bot-V*175,h=bot-yl,col=this.color(t);s+=`<g clip-path="url(#cp${i})"><rect x="${f1(x-TR)}" y="${f1(yl)}" width="${TR*2}" height="${f1(h+2)}" fill="${col}"/><ellipse cx="${f1(x)}" cy="${f1(yl)}" rx="${TR}" ry="3" fill="#fff" opacity=".45"/>`;
+   if(t.floc>.03){const fc=`rgb(${Math.round(lerp(lerp(248,228,t.eX),222,t.eO))},${Math.round(lerp(lerp(248,196,t.eX),120,t.eO))},${Math.round(lerp(lerp(244,40,t.eX),30,t.eO))})`;
+    for(let k=0;k<12;k++){const cy=yl+8+((k*37)%Math.max(10,h-16))+Math.sin(now*1.5+k)*2;s+=`<ellipse cx="${f1(x-12+(k*29)%24)}" cy="${f1(cy)}" rx="${3+(k%3)*2}" ry="${2.5+(k%2)*2}" fill="${fc}" stroke="#0f172a" stroke-opacity=".12" opacity="${f1(t.floc)}"/>`}}
+   if(t.T>88)for(let k=0;k<7;k++){const by=bot-6-((now*70+k*31)%Math.max(10,h-8));s+=`<circle cx="${f1(x+Math.sin(k*2.3+now*4)*9)}" cy="${f1(by)}" r="${f1(1.5+(k%3))}" fill="none" stroke="#fff" stroke-width="1.3" opacity=".85"/>`}
+   s+=`</g>`}
+  if(t.T>40)s+=`<ellipse cx="${f1(x)}" cy="${f1(bot-8)}" rx="${TR+4}" ry="14" fill="#f97316" opacity="${f1(clamp((t.T-40)/150))}"/>`;
+  s+=`<path d="${d}" fill="url(#glass)" stroke="#94a3b8" stroke-width="1.6"/><line x1="${f1(x-TR+6)}" y1="${f1(y+12)}" x2="${f1(x-TR+6)}" y2="${f1(bot-28)}" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`;
+  s+=`<rect x="${f1(x-TR-4)}" y="${f1(y-5)}" width="${TR*2+8}" height="8" rx="4" fill="#fff" stroke="#94a3b8" stroke-width="1.6"/><rect x="${f1(x-TR-8)}" y="${f1(y-20)}" width="${TR*2+16}" height="${TL+30}" fill="transparent"/></g>`;
+  return s},
+ tubeLabels(t){const lx=t.held?880:t.x,ly=t.held?330:585;const sm=[],rg=[];for(const k in t.c)(SBI[k].rg?rg:sm).push(SBI[k].n);if(!sm.length&&!rg.length)return'';
+  let s=lb(lx,ly,sm.join(' + '),{s:13,f:'#475569'});rg.forEach((r,j)=>s+=lb(lx,ly+18+j*16,r,{s:13,f:'#2563eb'}));const oy=ly+22+Math.max(1,rg.length)*16;
+  let ob='',oc='#64748b';const has=sm.length>0;
+  if(!rg.length&&t.eC>.6){ob='تخثّر البروتين';oc='#475569'}
+  if(t.biu>0){if(t.pr>0&&t.eBi>.6){ob='لون بنفسجي';oc='#7e22ce'}else if(t.pr===0&&has)ob='يبقى أزرق'}
+  if(t.hno>0){if(t.eO>.6){ob='لون برتقالي';oc='#c2410c'}else if(t.eX>.7){ob='راسب أصفر';oc='#a16207'}else if(t.eW>.5){ob='راسب أبيض';oc='#475569'}else if(t.pr===0&&has)ob='لا تغيّر'}
+  if(t.nin>0){if(t.eN>.7){ob='لون بنفسجي مزرق';oc='#7e22ce'}else if(t.pr+t.aa===0&&has&&t.maxT>80)ob='لا تغيّر'}
+  if(ob)s+=lb(lx,oy,ob,{s:15,f:oc});if(t.T>32)s+=lb(lx,oy+(ob?20:0),Math.round(t.T)+'°C',{s:13,f:'#ea580c',ltr:1});return s},
+ dropper(x,y,bi,sq){const c=SB[bi].c,col=`rgba(${c[0]},${c[1]},${c[2]},${Math.max(.45,c[3])})`,bw=11*(1-sq*.25);
+  return `<g data-h="d${bi}"><path d="M${f1(x-5)},${f1(y-64)} V${f1(y-12)} L${f1(x-1.5)},${f1(y)} H${f1(x+1.5)} L${f1(x+5)},${f1(y-12)} V${f1(y-64)} Z" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.3"/><path d="M${f1(x-4)},${f1(y-34)} V${f1(y-12)} L${f1(x-1)},${f1(y-1)} H${f1(x+1)} L${f1(x+4)},${f1(y-12)} V${f1(y-34)} Z" fill="${col}"/><rect x="${f1(x-bw)}" y="${f1(y-104)}" width="${f1(bw*2)}" height="42" rx="${f1(bw)}" fill="#3f3f46"/><rect x="${f1(x-bw+3)}" y="${f1(y-99)}" width="3.5" height="28" rx="2" fill="#fff" opacity=".35"/><rect x="${f1(x-16)}" y="${f1(y-110)}" width="32" height="112" fill="transparent"/></g>`},
+ render(){let s='';const z=now;
+  s+=`<rect x="20" y="168" width="1160" height="10" rx="5" fill="#e5e7eb"/><rect x="20" y="664" width="1160" height="6" rx="3" fill="#f1f5f9"/>`;
+  SB.forEach((b,i)=>{const x=b.x,c=b.c;if(!(this.dp&&this.dp.bi===i))s+=this.dropper(x,120,i,0);
+   s+=`<g data-h="d${i}"><path d="M${x-12},58 V78 Q${x-36},80 ${x-36},96 V158 Q${x-36},166 ${x-28},166 H${x+28} Q${x+36},166 ${x+36},158 V96 Q${x+36},80 ${x+12},78 V58 Z" fill="rgba(241,245,249,.55)" stroke="#94a3b8" stroke-width="1.5"/><path d="M${x-35},108 H${x+35} V158 Q${x+35},165 ${x+28},165 H${x-28} Q${x-35},165 ${x-35},158 Z" fill="rgba(${c[0]},${c[1]},${c[2]},${Math.max(.3,c[3])})"/><rect x="${x-44}" y="124" width="88" height="24" rx="5" fill="#fff" stroke="${b.rg?'#93c5fd':'#e2e8f0'}"/><text class="tx" x="${x}" y="141" font-size="${b.n.length>9?12:14}" font-weight="800" fill="${b.rg?'#1d4ed8':'#334155'}">${b.n}</text></g>`});
+  const wl=Math.min(60,this.waste*14);s+=`<path d="M48,480 L54,486 V650 Q54,660 64,660 H156 Q166,660 166,650 V486 L172,480" fill="rgba(241,245,249,.6)" stroke="#94a3b8" stroke-width="2"/>${wl>1?`<rect x="56" y="${f1(658-wl)}" width="108" height="${f1(wl)}" fill="rgba(120,113,108,.25)"/>`:''}`;
+  s+=`<rect x="1080" y="652" width="90" height="12" rx="4" fill="#94a3b8"/><rect x="1116" y="240" width="8" height="414" rx="3" fill="url(#metal)"/><rect x="1018" y="341" width="100" height="7" rx="3" fill="#94a3b8"/>`;
+  s+=`<g data-h="burn"><rect x="986" y="560" width="28" height="84" rx="3" fill="url(#metal)"/><rect x="960" y="642" width="80" height="18" rx="6" fill="#64748b"/><circle cx="1052" cy="651" r="13" fill="${this.on?'#f97316':'#cbd5e1'}" stroke="#475569" stroke-width="2"/><rect x="950" y="550" width="110" height="115" fill="transparent"/></g>`;
+  if(this.on){const f=Math.sin(z*17)*3,g=Math.cos(z*23)*2;s+=`<path d="M984,561 Q${f1(978+g)},522 ${f1(1000+f)},${f1(468+g)} Q${f1(1022+g)},522 1016,561 Z" fill="#93c5fd" opacity=".7"/><path d="M991,561 Q${f1(989+g)},538 ${f1(1000+f*.5)},${f1(510+g)} Q${f1(1011-g)},538 1009,561 Z" fill="#2563eb" opacity=".9"/>`}
+  s+=`<rect x="255" y="540" width="490" height="18" rx="5" fill="#cbd5e1"/><rect x="262" y="420" width="8" height="125" fill="#cbd5e1"/><rect x="730" y="420" width="8" height="125" fill="#cbd5e1"/>`;
+  const order=this.tubes.map((t,i)=>[t,i]);
+  for(const[t,i]of order)if(!t.drag)s+=this.tubeSVG(t,i);
+  s+=`<rect x="255" y="410" width="490" height="16" rx="5" fill="#e2e8f0" stroke="#cbd5e1"/><rect x="980" y="336" width="40" height="16" rx="5" fill="none" stroke="#64748b" stroke-width="3"/>`;
+  for(const[t,i]of order)if(t.drag)s+=this.tubeSVG(t,i);
+  for(const p of this.drops){const c=SBI[p.id].c;s+=`<ellipse cx="${f1(p.x)}" cy="${f1(p.y)}" rx="3.4" ry="4.4" fill="rgba(${c[0]},${c[1]},${c[2]},${Math.max(.5,c[3])})" stroke="#94a3b8" stroke-width=".6"/>`}
+  if(this.dp)s+=this.dropper(this.dp.x,this.dp.y,this.dp.bi,this.dp.hold?this.squeeze:0);
+  li=0;s+=lb(110,505,'النفايات',{s:14,f:'#64748b'})+lb(1000,690,this.on?'الموقد مشتعل':'اضغط لإشعال الموقد',{s:13,f:'#64748b'});
+  this.tubes.forEach(t=>{if(!t.drag)s+=this.tubeLabels(t)});
+  return s},
+ down(h,p){
+  if(h==='burn'){this.on=!this.on;renderBar();return{move(){}}}
+  if(h[0]==='d'){const bi=+h.slice(1);if(this.dp&&this.dp.hold)return;const r={x:SB[bi].x,y:120};this.dp={bi,x:r.x,y:r.y,hold:1,cool:.2};const o={x:r.x-p.x,y:r.y-p.y};
+   return{move:q=>{this.dp.x=q.x+o.x;this.dp.y=q.y+o.y},up:()=>{this.dp.hold=0}}}
+  if(h[0]==='t'){const t=this.tubes[+h.slice(1)];const o={x:t.x-p.x,y:t.y-p.y};t.drag=1;t.held=0;
+   return{move:q=>{t.x=q.x+o.x;t.y=q.y+o.y},up:()=>{t.drag=0;const b={x:t.x,y:t.y+TL};
+    if(D(b,{x:1000,y:500})<120&&!this.tubes.some(u=>u!==t&&u.held)){t.held=1;return}
+    if(b.x>30&&b.x<190&&b.y>430&&b.y<700){this.waste+=this.vol(t);this.fresh(t);return}
+    let best=-1,bd=60;SLOTX.forEach((x,k)=>{const dd=Math.abs(x-t.x);if(dd<bd&&b.y>420&&b.y<650&&!this.tubes.some(u=>u!==t&&u.home===k&&!u.held)){bd=dd;best=k}});if(best>=0)t.home=best}}}},
+ bar(){return `<button class="btn${this.on?' sel':''}" data-a="burn">${this.on?'إطفاء الموقد':'إشعال الموقد'}</button><button class="btn" data-a="reset">أنابيب نظيفة</button>`},
+ act(a){if(a==='burn')this.on=!this.on;else this.init()}
+};
+
+/* ================= core ================= */
+const LABS=[L1,L2,L3,L4,L5],HASH=['amino-acid','peptide','structure','enzymes','tests'];
+LABS.forEach(l=>l.init());
+const tabs=[...document.querySelectorAll('.tab')];
+function renderBar(){bar.innerHTML=LABS[cur].bar()}
+function go(i){cur=i;age=0;view={k:1,tx:0,ty:0};applyView();tabs.forEach((t,j)=>t.setAttribute('aria-selected',j===i));renderBar();try{history.replaceState(null,'','#'+HASH[i])}catch(_){}}
+tabs.forEach((t,i)=>t.onclick=()=>go(i));
+bar.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;LABS[cur].act(b.dataset.a);renderBar()});
+function applyView(){world.setAttribute('transform',`translate(${f1(view.tx)} ${f1(view.ty)}) scale(${view.k.toFixed(3)})`)}
+function zoomAt(f,qx,qy){const k2=clamp(view.k*f,.5,4);view.tx=qx-(qx-view.tx)*k2/view.k;view.ty=qy-(qy-view.ty)*k2/view.k;view.k=k2;applyView()}
+function toVB(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;const r=p.matrixTransform(svg.getScreenCTM().inverse());return{x:r.x,y:r.y}}
+function toW(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;const r=p.matrixTransform(world.getScreenCTM().inverse());return{x:r.x,y:r.y}}
+document.getElementById('bIn').onclick=()=>zoomAt(1.25,600,350);
+document.getElementById('bOut').onclick=()=>zoomAt(1/1.25,600,350);
+document.getElementById('bFit').onclick=()=>{view={k:1,tx:0,ty:0};applyView()};
+const bLab=document.getElementById('bLab');bLab.onclick=()=>{showL=!showL;if(showL)age=0;bLab.classList.toggle('on',showL)};
+document.getElementById('bFs').onclick=()=>{const a=document.getElementById('app');try{if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{const r=(a.requestFullscreen||a.webkitRequestFullscreen).call(a);if(r&&r.catch)r.catch(()=>{})}}catch(_){}};
+const ptrs=new Map();let drag=null,pan=null,pinch=null;
+svg.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});try{svg.setPointerCapture(e.pointerId)}catch(_){}
+ if(ptrs.size===2&&!drag){pan=null;const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,k:view.k,tx:view.tx,ty:view.ty,c:toVB((a.x+b.x)/2,(a.y+b.y)/2)};return}
+ if(ptrs.size>1)return;const el=e.target.closest&&e.target.closest('[data-h]');
+ if(el){const h=LABS[cur].down&&LABS[cur].down(el.dataset.h,toW(e.clientX,e.clientY));if(h){drag=h;drag.id=e.pointerId;e.preventDefault();return}}
+ const v=toVB(e.clientX,e.clientY);pan={x:v.x,y:v.y,tx:view.tx,ty:view.ty}});
+svg.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(drag&&drag.id===e.pointerId){drag.move&&drag.move(toW(e.clientX,e.clientY));return}
+ if(pinch&&ptrs.size===2){const[a,b]=[...ptrs.values()],k2=clamp(pinch.k*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,.5,4);view.tx=pinch.c.x-(pinch.c.x-pinch.tx)*k2/pinch.k;view.ty=pinch.c.y-(pinch.c.y-pinch.ty)*k2/pinch.k;view.k=k2;applyView();return}
+ if(pan){const v=toVB(e.clientX,e.clientY);view.tx=pan.tx+(v.x-pan.x);view.ty=pan.ty+(v.y-pan.y);applyView()}});
+function endP(e){if(drag&&drag.id===e.pointerId){drag.up&&drag.up(toW(e.clientX,e.clientY));drag=null}ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size)pan=null}
+svg.addEventListener('pointerup',endP);svg.addEventListener('pointercancel',endP);
+svg.addEventListener('wheel',e=>{e.preventDefault();const v=toVB(e.clientX,e.clientY);zoomAt(e.deltaY<0?1.1:1/1.1,v.x,v.y)},{passive:false});
+let last=performance.now(),lastStat='';
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000);last=ts;now+=dt;age+=dt;const L=LABS[cur];L.tick&&L.tick(dt);li=0;dyn.innerHTML=L.render();
+ if(L.stat){const st=document.getElementById('stat');const v=L.stat();if(st&&v!==lastStat){st.textContent=v;lastStat=v}else if(st&&!st.textContent)st.textContent=v}
+ requestAnimationFrame(frame)}
+const BG=[['#ffffff','أبيض'],['#f4efe6','ورقي'],['#0f1b2d','كحلي',1],['#111214','أسود',1],['#23272e','فحمي',1],['#0b2545','أزرق ليلي',1],['#0d3340','بترولي',1],['#0f2e24','أخضر غامق',1],['#241a3a','بنفسجي غامق',1],['#3a1420','عنابي',1],['#2e2018','بني',1],['#1c2a1a','زيتي',1]];
+const pal=document.getElementById('pal'),bBg=document.getElementById('bBg');let bg='#ffffff';try{bg=localStorage.getItem('carbBg')||bg}catch(_){}
+function setBg(c){if(!BG.some(b=>b[0]===c))c='#ffffff';bg=c;document.documentElement.style.setProperty('--bg',c);document.documentElement.classList.toggle('dk',!!(BG.find(b=>b[0]===c)||[])[2]);try{localStorage.setItem('carbBg',c)}catch(_){}pal.querySelectorAll('.sw').forEach(b=>b.classList.toggle('sel',b.dataset.c===c))}
+pal.innerHTML=BG.map(([c,n])=>`<button class="sw" data-c="${c}" title="${n}" aria-label="${n}" style="background:${c}"></button>`).join('');
+pal.addEventListener('click',e=>{const b=e.target.closest('.sw');if(b)setBg(b.dataset.c)});
+bBg.onclick=e=>{e.stopPropagation();pal.classList.toggle('open');bBg.classList.toggle('on',pal.classList.contains('open'))};
+document.addEventListener('pointerdown',e=>{if(pal.classList.contains('open')&&!pal.contains(e.target)&&!bBg.contains(e.target)){pal.classList.remove('open');bBg.classList.remove('on')}});
+setBg(bg);
+const h0=HASH.indexOf(location.hash.slice(1));go(h0<0?0:h0);
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
