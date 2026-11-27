@@ -174,10 +174,6 @@ const ACIDS={HCl:{f:'HCl',eta:1,K:[1e8],C:[.08,.12],eq:'HCl(aq) + NaOH(aq) → N
 const IND={pp:{f:'فينولفثالين',n:'الفينولفثالين',range:[8.2,10],c0:null,c1:'#e0338f'},mo:{f:'مثيل البرتقالي',n:'المثيل البرتقالي',range:[3.1,4.4],c0:'#e0412e',c1:'#f0c22a'}};
 const STY={Ag:['Ag⁺','#9aa4ae'],Cl:['Cl⁻','#33a352'],Na:['Na⁺','#d9a200'],NO3:['NO₃⁻','#b5bfc9',1,1],Ba:['Ba²⁺','#4f944f'],SO4:['SO₄²⁻','#c9a400',1,1],H:['H⁺','#ef5a5a',0,0,1],Ca:['Ca²⁺','#d98b3a'],C2O4:['C₂O₄²⁻','#7d6bc4',1],NH4:['NH₄⁺','#3f8fbf',1],OH:['OH⁻','#2f6fd6'],H2O:['H₂O','#8fd0ee',1,1],HAc:['CH₃COOH','#c77d3a',2],Ac:['CH₃COO⁻','#a0662a',2],H2Ox:['H₂C₂O₄','#8c6fd0',2],HOx:['HC₂O₄⁻','#7a5cc4',2],Ox:['C₂O₄²⁻','#6a4db8',1]};
 const CHAIN={HAc:'Ac',H2Ox:'HOx',HOx:'Ox'};
-Object.assign(STY,{MnO4:['MnO₄⁻','#7b2d8e',1],Mn:['Mn²⁺','#f0b6c8',0,1],Fe2:['Fe²⁺','#6a9e5c'],Fe3:['Fe³⁺','#c0661a'],CO2:['CO₂','#a9b3bc',1,1]});
-const REDOX={Fe:{f:'FeSO₄',ion:'Fe²⁺',n:'كبريتات الحديد (II)',eta:1,C:[.08,.12],mi:'Fe2',eq:['MnO₄⁻(aq) + 5Fe²⁺(aq) + 8H⁺(aq) → Mn²⁺(aq) + 5Fe³⁺(aq) + 4H₂O(l)','يُختزل البرمنغنات البنفسجي إلى Mn²⁺ عديم اللون تقريباً، ويتأكسد Fe²⁺ إلى Fe³⁺']},
- Ox:{f:'H₂C₂O₄',ion:'H₂C₂O₄',n:'حامض الأوكزاليك',eta:2,C:[.04,.06],heat:1,mi:'H2Ox',eq:['2MnO₄⁻(aq) + 5H₂C₂O₄(aq) + 6H⁺(aq) → 2Mn²⁺(aq) + 10CO₂(g)↑ + 8H₂O(l)','التفاعل بطيء في البداية ويُسرّعه التسخين إلى 60–70 °C وأيونات Mn²⁺ الناتجة (تحفيز ذاتي)']}};
-let redKey='Fe';const isT=()=>mode==='tit'||mode==='red';
 
 /* ================= geometry ================= */
 function rot(x,y,a){const c=Math.cos(a),s=Math.sin(a);return [x*c-y*s,x*s+y*c]}
@@ -332,8 +328,8 @@ function pourStep(v,dt){if(!v.pour||!v.isDrag)return;const t=v.pour.t,side=v.pou
 /* ================= state & build ================= */
 function base(){for(const k in L)if(k!=='bg')L[k].innerHTML='';S={objs:[],vessels:[],drops:[],splash:[],buttons:[],eqSeen:{},once:{},rec:{},F:null,stream:null,squirt:null,focus:null};
  $('#eqL').innerHTML='<div class="empty">ستظهر المعادلات هنا تدريجياً عند حدوث التفاعل.</div>'}
-function build(k){mode=k;base();if(k==='tit')buildTit();else if(k==='red')buildRed();else if(k==='vol')buildGrav('vol');else buildGrav(k);
- document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));$('#curve').style.display=k==='tit'?'':'none';$('#rcol').classList.toggle('half',!isT());
+function build(k){mode=k;base();if(k==='tit')buildTit();else if(k==='vol')buildGrav('vol');else buildGrav(k);
+ document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));$('#curve').style.display=k==='tit'?'':'none';$('#rcol').classList.toggle('half',k!=='tit');
  applyToggles();microBuild(S.focus);renderNB();S.cdirty=1}
 
 /* ======================================================================
@@ -465,7 +461,7 @@ function transfer(v,t,dv){
  if(v.ch.reagent){t.mL+=dv;v.mL-=dv;react(t,dv*S.M.reag.C,(v.pour.side)*(t.mouth-20));if(micro.v===t)microSpawn(S.M.mi[1],dv*S.M.reag.C,false);setFocus(t);if(S.rec.firstReag==null)S.rec.firstReag=1;return true}
  return false}
 function washAt(x,y){const F=S.F;if(F&&F.paper&&Math.abs(x-F.x)<60&&y<F.y+40&&y>F.y-160){F.mL=Math.min(F.cap,F.mL+5);if(F.paper.ppt>0){F.paper.imp*=.45;F.paper.washes++;S.rec.wsh=F.paper.washes;if(F.paper.washes===3)toast('غُسل الراسب ٣ مرات: أُزيلت معظم الشوائب الذائبة')}return}
- for(const v of S.vessels){if(v.stock)continue;if(Math.abs(x-v.x)<v.mouth+4&&y<v.y+20&&y>v.y-170){v.mL=Math.min(v.max,v.mL+5);if(v===S.flask){S.ti.Vw+=5;once('w','إضافة الماء المقطر لا تغيّر عدد مولات الحامض، فلا تؤثر في النتيجة')}return}}}
+ for(const v of S.vessels){if(v.name==='الحامض المجهول')continue;if(Math.abs(x-v.x)<v.mouth+4&&y<v.y+20&&y>v.y-170){v.mL=Math.min(v.max,v.mL+5);if(v===S.flask){S.ti.Vw+=5;once('w','إضافة الماء المقطر لا تغيّر عدد مولات الحامض، فلا تؤثر في النتيجة')}return}}}
 function drainF(dt){const F=S.F;if(!F||F.mL<=0)return;const dv=Math.min(F.mL,4*dt),f=dv/F.mL;const rc=S.vessels.find(o=>o!==S.bk&&o.kind==='beaker'&&Math.abs(o.x-F.x)<20&&!o.isDrag);
  for(const k of ['ion','reag']){const m=F[k]*f;F[k]-=m;if(rc)rc.ch[k]=(rc.ch[k]||0)+m}F.mL-=dv;if(F.mL<.01)F.mL=0;if(rc){rc.mL=Math.min(rc.max,rc.mL+dv);if(!rc.name){rc.name='الراشح'}}
  F.dt=(F.dt||0)-dt;if(F.dt<=0){F.dt=.07;S.drops.push({x:F.x,y:F.y+174,vy:40,col:'rgba(185,212,232,.9)',vis:1,tg:rc})}}
@@ -499,7 +495,7 @@ function buildTit(){const A=ACIDS[acidKey];$('#infoT').textContent='التحلي
  drawBottle(110,'فينولفثالين','دليل',false);drawBottle(215,'مثيل البرتقالي','دليل',true);
  mkDropper(110,'rgba(235,235,240,.9)','فينولفثالين',tg=>{if(tg===S.flask)addInd('pp')});mkDropper(215,'rgba(240,150,60,.85)','مثيل البرتقالي',tg=>{if(tg===S.flask)addInd('mo')});lab(162,800,'الأدلة');
  S.wash=mkWash(300);lab(300,775,'قنينة الغسل');
- const ab=mkVessel('beaker',420,610,{name:'الحامض المجهول',pourable:0});ab.mL=90;ab.color=()=>'rgba(222,238,248,.5)';ab.info=()=>A.f+(T.id?' = '+C.toFixed(4)+' M':' (تركيز مجهول)');ab.drag=()=>{};ab.hit=()=>false;ab.stock=1;
+ const ab=mkVessel('beaker',420,610,{name:'الحامض المجهول',pourable:0});ab.mL=90;ab.color=()=>'rgba(222,238,248,.5)';ab.info=()=>A.f+(T.id?' = '+C.toFixed(4)+' M':' (تركيز مجهول)');ab.drag=()=>{};ab.hit=()=>false;
  // pipette stand
  E('rect',{x:510,y:729,width:60,height:12,rx:3,fill:'url(#gIron)'},L.scene);E('rect',{x:536,y:380,width:8,height:350,fill:'url(#gMetal)'},L.scene);E('rect',{x:528,y:452,width:24,height:8,rx:2,fill:'url(#gMetalH)'},L.scene);
  S.pip=mkPipette(560,720);lab(555,775,'الماصة الحجمية 20 mL');
@@ -510,44 +506,7 @@ function buildTit(){const A=ACIDS[acidKey];$('#infoT').textContent='التحلي
  fl.drag=(nx,ny,g)=>{fl.x=nx;fl.y=Math.min(ny,BENCH-fl.depth);if(g)fl.swirl=Math.min(3,(fl.swirl||0)+Math.hypot(g.vx,g.vy)*.002)};fl.hit=(x,y)=>vHit(fl,x,y);fl.pick=()=>{fl.isDrag=true;fl.prevTX=fl.tx;fl.prevTY=fl.ty;setFocus(fl)};fl.drop=m=>dropVessel(fl,m);
  E('rect',{x:745,y:736,width:150,height:6,rx:2,fill:'#fbfbfb',stroke:'#cfd6dc'},L.scene);lab(820,775,'الدورق المخروطي على بلاطة بيضاء');
  S.focus=fl;S.lens={x:1060,y:225,r:140};renderCurve()}
-function buildRed(){const A=REDOX[redKey];$('#infoT').textContent='التحليل الحجمي: تسحيح التأكسد والاختزال بالبرمنغنات';
- $('#infoB').innerHTML=`<p>يُسحّح محلول مادة مختزلة بمحلول KMnO₄ القياسي في وسط حامضي (H₂SO₄). البرمنغنات دليل ذاتي: يختفي لونه البنفسجي ما دامت المادة المختزلة موجودة، وعند نقطة النهاية يثبت لون وردي فاتح.</p>
- <div class="acids">${Object.keys(REDOX).map(k=>`<button data-r="${k}" aria-pressed="${k===redKey}">${REDOX[k].f}</button>`).join('')}</div>
- <ul><li>انقل 20.00 mL من المحلول المجهول بالماصة إلى الدورق.</li><li>أضف حامض الكبريتيك المخفف بالقطارة (5 قطرات على الأقل). بدونه يتكوّن MnO₂ البني.</li>${A.heat?'<li>حامض الأوكزاليك يحتاج تسخيناً إلى 60–70 °C: شغّل المسخن تحت الدورق.</li>':''}<li>محلول KMnO₄ غامق: اقرأ السحاحة عند الحافة العليا للسطح.</li><li>توقف عند ظهور لون وردي فاتح يثبت مع الرج، ثم سجّل القراءة النهائية.</li></ul>`;
- $('#infoB').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{redKey=b.dataset.r;build('red')});
- const C=+rnd(A.C[0],A.C[1]).toFixed(4);S.ti={A,C,Va:0,Vb:0,Vw:0,trials:[],r1:null,curve:[],lastV:-1,u:0,cons:0,mn:0,acid:0,mno2:0,temp:25,hot:false};
- drawBottle(110,'H₂SO₄','مخفف',false);mkDropper(110,'rgba(200,225,240,.85)','H₂SO₄',tg=>{if(tg===S.flask){if(!S.flask.mL){toast('أضف المحلول المجهول أولاً');return}S.ti.acid++;S.flask.mL+=.05;S.ti.Vw+=.05;if(S.ti.acid===5)toast('أُضيف ما يكفي من الحامض: الوسط حامضي الآن');if(micro.v===S.flask)microSpawn('H',.4,false)}});
- lab(110,775,'حامض الكبريتيك');lab(225,700,'لا يحتاج دليلاً:');lab(225,718,'KMnO₄ دليل ذاتي');
- S.wash=mkWash(300);lab(300,775,'قنينة الغسل');
- const ab=mkVessel('beaker',420,610,{name:'المحلول المجهول',pourable:0});ab.mL=90;ab.color=()=>redKey==='Fe'?'rgba(205,230,200,.55)':'rgba(222,238,248,.5)';ab.info=()=>A.f+(T.id?' = '+C.toFixed(4)+' M':' (تركيز مجهول)');ab.drag=()=>{};ab.hit=()=>false;ab.stock=1;
- E('rect',{x:510,y:729,width:60,height:12,rx:3,fill:'url(#gIron)'},L.scene);E('rect',{x:536,y:380,width:8,height:350,fill:'url(#gMetal)'},L.scene);E('rect',{x:528,y:452,width:24,height:8,rx:2,fill:'url(#gMetalH)'},L.scene);
- S.pip=mkPipette(560,720);lab(555,775,'الماصة الحجمية 20 mL');
- drawBottle(650,'KMnO₄','0.0200 M قياسي',true);
- S.bur=mkBurette(820,'السحاحة: KMnO₄ 0.0200 M','rgba(110,30,120,.92)');
- const fl=mkVessel('flask',820,BENCH-176-8,{name:'الدورق المخروطي',pourable:0});S.flask=fl;fl.tx=820;fl.ty=BENCH-184;fl.t1.setAttribute('x',100);fl.t1.setAttribute('y',120);fl.t2.setAttribute('x',100);fl.t2.setAttribute('y',137);fl.color=()=>redColor();fl.info=()=>{const t=S.ti;return (t.Va?`${A.f} ${f2(t.Va)} mL`:'')+(t.temp>30?` · ${Math.round(t.temp)} °C`:'')};
- fl.drag=(nx,ny,g)=>{fl.x=nx;fl.y=Math.min(ny,BENCH-fl.depth-8);if(g)fl.swirl=Math.min(3,(fl.swirl||0)+Math.hypot(g.vx,g.vy)*.002)};fl.hit=(x,y)=>vHit(fl,x,y);fl.pick=()=>{fl.isDrag=true;fl.prevTX=fl.tx;fl.prevTY=fl.ty;setFocus(fl)};fl.drop=m=>{dropVessel(fl,m);if(Math.abs(fl.tx-820)<2)fl.ty=BENCH-184};
- // hot plate
- E('rect',{x:688,y:724,width:212,height:16,rx:4,fill:'url(#gBal)',stroke:'#8b98a4'},L.scene);S.plateTop=E('rect',{x:748,y:718,width:144,height:8,rx:2,fill:'#e9edf0',stroke:'#9aa5af'},L.scene);
- const sw=E('g',{},L.scene);S.plateBtn=E('rect',{x:693,y:727,width:54,height:11,rx:3,fill:'#5b6976'},sw);const st=E('text',{x:720,y:736,'text-anchor':'middle','font-size':8.5,fill:'#fff',style:'stroke:none'},sw);st.textContent='تسخين';S.plateTxt=st;
- S.buttons.push({btn:1,x:690,y:720,w:60,h:22,fn:()=>{const t=S.ti;t.hot=!t.hot;S.plateBtn.setAttribute('fill',t.hot?'#c0392b':'#5b6976');st.textContent=t.hot?'إيقاف':'تسخين';toast(t.hot?'شُغّل المسخن الكهربائي (60–70 °C)':'أُطفئ المسخن')}});
- lab(820,775,'الدورق المخروطي على مسخن كهربائي');
- S.focus=fl;S.lens={x:1060,y:225,r:140}}
-function landRed(tg,x,amt){const t=S.ti,fl=S.flask;if(tg!==fl)return;t.Vb+=amt;fl.mL+=amt;const mm=amt*.02;t.u+=mm;
- fl.clouds.push({x:rnd(-6,6),y:fl.L-fl.y+4,r:4,a:.95,c:'#7b2d8e',d:.15,sp:10,red:1});if(micro.v===fl)microSpawn('MnO4',mm,false);
- if(!t.Va)once('nov','أضف المحلول المجهول إلى الدورق أولاً')}
-function redK(){const t=S.ti;let k;if(redKey==='Fe')k=3;else{k=(t.temp>55?1.4:t.temp>40?.35:.015)+Math.min(2.5,t.mn*10)}return k*(1+(S.flask.swirl||0)*1.5)}
-function redStep(dt){const t=S.ti,fl=S.flask;const onPlate=Math.abs(fl.x-820)<20&&!fl.isDrag;t.temp+=((t.hot&&onPlate?68:25)-t.temp)*Math.min(1,dt*(t.hot&&onPlate?.12:.03));
- S.plateTop.setAttribute('fill',t.hot?'#f0b9a8':'#e9edf0');
- const eL=Math.max(0,t.C*t.Va*t.A.eta-5*t.cons-3*t.mno2);const k=redK();
- if(t.u>0&&eL>1e-9){if(t.acid>0){const r=Math.min(t.u,eL/5,t.u*k*dt);t.u-=r;t.cons+=r;t.mn+=r;if(r>0){noteEq('red'+redKey,t.A.eq);if(t.acid<5&&t.cons>.05)once('lowa','الحامض قليل: أضف المزيد من H₂SO₄')}}
-  else{const r=Math.min(t.u,eL/3,t.u*k*dt);t.u-=r;t.mno2+=r;if(r>0){spawnPpt(fl,r*87,0,{c:'#6b3d1f',s:6});once('mno2','بدون حامض يتكوّن راسب بني من MnO₂ ولا تُعرف نقطة النهاية. أضف H₂SO₄ المخفف',6);noteEq('mno2',['MnO₄⁻(aq) + 3e⁻ + 2H₂O(l) → MnO₂(s)↓ + 4OH⁻(aq)','في الوسط غير الحامضي يتكوّن MnO₂ البني بدل Mn²⁺'])}}}
- for(const c of fl.clouds)if(c.red)c.d=.25+k*.5;
- if(redKey==='Ox'&&t.Va&&t.u>.0008&&t.temp<45&&t.cons<.01)once('cold','اللون البنفسجي يختفي ببطء شديد: التفاعل يحتاج تسخيناً إلى 60–70 °C',5);
- if(t.Va&&eL<1e-6&&t.u>.0003&&t.acid)once('pink','ثبت اللون الوردي الفاتح: وصلت إلى نقطة نهاية التفاعل. أغلق الصنبور وسجّل القراءة النهائية.',5)}
-function redColor(){const t=S.ti,fl=S.flask;const V=Math.max(.001,(t.Va+t.Vb+t.Vw)/1000);const c=t.u/1000/V;const a=clamp(c/5.5e-5,0,1);
- let r=222,g=238,b=248;if(redKey==='Fe'&&t.Va){const fe3=clamp(5*t.cons/(t.C*t.Va+1e-9),0,1);r=lerp(205,236,fe3);g=lerp(230,225,fe3);b=lerp(200,170,fe3)}
- return `rgba(${lerp(r,196,a)|0},${lerp(g,70,a)|0},${lerp(b,170,a)|0},${.5+.4*a})`}
-function mkBurette(x,lbl,col){const g=E('g',{},L.fstatic);const b={type:'burette',col:col||'rgba(200,222,240,.85)',x,R:[0,0,.1,.2,.5][Math.floor(Math.random()*5)],open:0,el:g,dropT:0};
+function mkBurette(x){const g=E('g',{},L.fstatic);const b={type:'burette',x,R:[0,0,.1,.2,.5][Math.floor(Math.random()*5)],open:0,el:g,dropT:0};
  E('rect',{x:x+75,y:740-12,width:120,height:12,rx:3,fill:'url(#gIron)'},L.scene);E('rect',{x:x+96,y:60,width:8,height:672,fill:'url(#gMetal)'},L.scene);E('rect',{x:x+12,y:300,width:88,height:7,fill:'url(#gMetalH)'},L.scene);E('rect',{x:x+88,y:294,width:18,height:20,rx:3,fill:'url(#gIron)'},L.scene);
  E('path',{d:`M${x-8} 80 L${x-8} 600 L${x+8} 600 L${x+8} 80`,fill:'url(#gGlass)',stroke:'#86a0b2','stroke-width':1.5},g);E('rect',{x:x-5,y:90,width:2.4,height:500,fill:'#fff',opacity:.7},g);
  for(let m=0;m<=50;m++){const y=130+m*9;const big=m%5===0;E('line',{x1:x-8,y1:y,x2:x-8+(big?9:5),y2:y,stroke:'#3c5266','stroke-width':big?1.1:.7},g);if(m%5===0){const t=E('text',{x:x-12,y:y+3.5,'text-anchor':'end','font-size':9,fill:'#3c5266',class:'mut'},g);t.textContent=m}}
@@ -556,8 +515,8 @@ function mkBurette(x,lbl,col){const g=E('g',{},L.fstatic);const b={type:'burette
  b.hit=(px,py)=>Math.abs(px-x)<42&&py>596&&py<628;b.x=x;b.y=612;b.pickAs=()=>b;b.st=null;
  b.pick=()=>{b.st=b.open};b.drag=(nx,ny)=>{b.open=clamp(b.st+(nx-x)/70,0,1)};b.longTap=false;b.tap=()=>{burDrop()};b.drop=()=>{};
  b.upd=()=>{b.cock.setAttribute('transform',`translate(${x} 612) rotate(${b.open*90})`)};
- S.objs.push(b);lab(x,48,lbl||'السحاحة: NaOH 0.1000 M');return b}
-function burDrop(){const b=S.bur;if(b.R>=50){once('emp','السحاحة فارغة: أعد ملأها من الدفتر');return}b.R=Math.min(50,b.R+.05);S.drops.push({x:b.x,y:662,vy:30,col:mode==='red'?'rgba(123,45,142,.95)':'rgba(185,212,232,.95)',fn:mode==='red'?landRed:landBase,amt:.05,tit:1})}
+ S.objs.push(b);lab(x,48,'السحاحة: NaOH 0.1000 M');return b}
+function burDrop(){const b=S.bur;if(b.R>=50){once('emp','السحاحة فارغة: أعد ملأها من الدفتر');return}b.R=Math.min(50,b.R+.05);S.drops.push({x:b.x,y:662,vy:30,col:'rgba(185,212,232,.95)',fn:landBase,amt:.05})}
 function landBase(tg,x,amt){const t=S.ti;if(tg!==S.flask)return;t.Vb+=amt;S.flask.mL+=amt;const fl=S.flask;
  const ind=t.ind;if(ind&&fl.mL>.5){const IP=IND[ind];const life=.6+5*Math.pow(clamp(t.Vb*.1/(t.C*t.Va*t.A.eta||1e9),0,1),8);fl.clouds.push({x:rnd(-6,6),y:fl.L-fl.y+4,r:4,a:.95,c:IP.c1,d:1/life,sp:10})}
  if(micro.v===fl)microSpawn('OH',amt*.1,false);noteEq('n',[t.A.eq,'تفاعل تعادل']);noteEq('ni',['H⁺(aq) + OH⁻(aq) → H₂O(l)','المعادلة الأيونية الصافية'])}
@@ -567,20 +526,19 @@ function mkPipette(x,y){const g=E('g',{},L.tools);const p={type:'pip',x,y,hx:x,h
  p.liq=E('path',{fill:'rgba(190,215,236,.85)'},g);E('line',{x1:-5,y1:-250,x2:5,y2:-250,stroke:'#b8442a','stroke-width':1.4},g);E('path',{d:'M-7 -300 L7 -300 L9 -340 Q0 -350 -9 -340 Z',fill:'url(#gRubber)'},g);
  p.hit=(px,py)=>Math.abs(px-p.x)<14&&py<p.y+4&&py>p.y-348;
  p.drag=(nx,ny)=>{p.x=nx;p.y=Math.min(ny,BENCH-2)};p.drop=()=>{if(Math.abs(p.x-p.hx)<40&&p.y>600){p.x=p.hx;p.y=p.hy}L.tools.appendChild(g)};
- p.upd=dt=>{const A=S.vessels.find(v=>v.stock);const fl=S.flask;
+ p.upd=dt=>{const A=S.vessels.find(v=>v.name==='الحامض المجهول');const fl=S.flask;
   if(A&&Math.abs(p.x-A.x)<40&&p.y>A.L+4&&p.y<A.y+128&&p.fill<1){p.fill=Math.min(1,p.fill+dt*.8);if(p.fill>=1)toast('امتلأت الماصة إلى العلامة: 20.00 mL')}
-  else if(fl&&Math.abs(p.x-fl.x)<14&&p.y>fl.y+20&&p.y<fl.y+170&&p.fill>0){const d=Math.min(p.fill,dt*.6);p.fill-=d;if(p.fill<.003)p.fill=0;S.ti.Va+=d*20;fl.mL+=d*20;if(micro.v===fl)micro.rb=.3;if(p.fill===0){S.ti.Va=Math.round(S.ti.Va*100)/100;toast('أُفرغت الماصة: '+f2(S.ti.Va)+' mL في الدورق');renderNB()}}
+  else if(fl&&Math.abs(p.x-fl.x)<14&&p.y>fl.y+20&&p.y<fl.y+170&&p.fill>0){const d=Math.min(p.fill,dt*.6);p.fill-=d;if(p.fill<.003)p.fill=0;S.ti.Va+=d*20;fl.mL+=d*20;if(micro.v===fl)micro.rb=.3;if(p.fill===0){S.ti.Va=Math.round(S.ti.Va*100)/100;toast('أُفرغت الماصة: '+f2(S.ti.Va)+' mL من الحامض في الدورق');renderNB()}}
   const h=p.fill*250;p.liq.setAttribute('d',h<=1?'':`M-1.2 -2 L-1.9 -70 L-1.9 -80 Q-10.5 -90 -10.5 -120 Q-10.5 -150 -1.9 -160 L-1.9 ${-Math.min(250,h)} L1.9 ${-Math.min(250,h)} L1.9 -160 Q10.5 -150 10.5 -120 Q10.5 -90 1.9 -80 L1.9 -70 L1.2 -2 Z`);
   g.setAttribute('transform',`translate(${p.x} ${p.y})`)};S.objs.push(p);return p}
 function pHof(t){const V=(t.Va+t.Vb+t.Vw)/1000||1e-9;if(!t.Va)return 7;const Ct=t.C*t.Va/1000/V,Na=.1*t.Vb/1000/V,K=t.A.K;let lo=-14.5,hi=1.5;
  for(let i=0;i<60;i++){const m=(lo+hi)/2,h=Math.pow(10,m);let a;if(K.length===1){a=Ct*K[0]/(h+K[0])}else{const D=h*h+K[0]*h+K[0]*K[1];a=Ct*(K[0]*h+2*K[0]*K[1])/D}const f=h+Na-1e-14/h-a;if(f>0)hi=m;else lo=m}return -(lo+hi)/2}
-function flaskColor(){const t=S.ti;if(mode==='red')return redColor();if(!t.ind)return 'rgba(222,238,248,.5)';const pH=pHof(t),IP=IND[t.ind];
+function flaskColor(){const t=S.ti;if(!t.ind)return 'rgba(222,238,248,.5)';const pH=pHof(t),IP=IND[t.ind];
  if(t.ind==='pp'){const a=1/(1+Math.pow(10,9.1-pH));return `rgba(${lerp(222,224,a)|0},${lerp(238,51,a)|0},${lerp(248,143,a)|0},${.5+.35*a})`}
  const a=1/(1+Math.pow(10,3.75-pH));const c0=hx(IP.c0),c1=hx(IP.c1);return `rgba(${lerp(c0[0],c1[0],a)|0},${lerp(c0[1],c1[1],a)|0},${lerp(c0[2],c1[2],a)|0},.62)`}
 function titStep(dt){const b=S.bur,t=S.ti;if(!b)return;
- if(b.open>.06&&b.R<50){if(b.open<.45){b.dropT-=dt;if(b.dropT<=0){b.dropT=1/(b.open*9);burDrop()}}else{const dv=Math.min(50-b.R,(b.open-.3)*5*dt);b.R+=dv;S.stream2={x:b.x,dv};S.flowAcc=(S.flowAcc||0)+dv;if(S.flowAcc>.05){const a=S.flowAcc;S.flowAcc=0;const fl=S.flask;if(Math.abs(fl.x-b.x)<14&&fl.y<662)(mode==='red'?landRed:landBase)(fl,b.x,a);else S.lost=(S.lost||0)+a}}}else S.stream2=null;
+ if(b.open>.06&&b.R<50){if(b.open<.45){b.dropT-=dt;if(b.dropT<=0){b.dropT=1/(b.open*9);burDrop()}}else{const dv=Math.min(50-b.R,(b.open-.3)*5*dt);b.R+=dv;S.stream2={x:b.x,dv};S.flowAcc=(S.flowAcc||0)+dv;if(S.flowAcc>.05){const a=S.flowAcc;S.flowAcc=0;const fl=S.flask;if(Math.abs(fl.x-b.x)<14&&fl.y<662)landBase(fl,b.x,a);else S.lost=(S.lost||0)+a}}}else S.stream2=null;
  const fl=S.flask;fl.swirl=Math.max(0,(fl.swirl||0)-dt*1.5);for(const c of fl.clouds){c.a-=dt*(c.d||.5)*(fl.swirl*2.5);c.r+=fl.swirl*30*dt}
- if(mode==='red'){redStep(dt);return}
  if(t.Va>0&&Math.abs(t.Vb-t.lastV)>=.05){t.lastV=t.Vb;t.curve.push([t.Vb,pHof(t)]);if(t.curve.length>800)t.curve.shift();S.cdirty=1}
  if(t.ind&&!S.once.pink&&t.Va){const pH=pHof(t);if((t.ind==='pp'&&pH>8.6)||(t.ind==='mo'&&pH>4.2)){S.once.pink=1;toast('ثبت لون الدليل: وصلت إلى نقطة نهاية التفاعل. أغلق الصنبور وسجّل القراءة النهائية.',5)}}}
 
@@ -588,8 +546,8 @@ function titStep(dt){const b=S.bur,t=S.ti;if(!b)return;
    notebook
    ====================================================================== */
 function renderNB(){const B=$('#nbB');if(!S)return;
- if(isT()){const t=S.ti,A=t.A,b=S.bur;const RD=mode==='red';let h=`<table><tr><td>${RD?'تركيز المحلول القياسي KMnO₄':'تركيز القاعدة القياسية NaOH'}</td><td class="v">${RD?'0.0200 M = 0.1000 N (η = 5)':'0.1000 M = 0.1000 N'}</td></tr><tr><td>${RD?'المادة المختزلة':'الحامض'}</td><td class="v">${A.f} (η = ${A.eta})</td></tr><tr><td>حجم المحلول المجهول V₁ (الماصة)</td><td class="v">${t.Va?f2(t.Va)+' mL':'—'}</td></tr><tr><td>القراءة الابتدائية</td><td class="v">${t.r1!=null?f2(t.r1)+' mL':'—'}</td></tr><tr><td>القراءة النهائية</td><td class="v">${t.r2!=null?f2(t.r2)+' mL':'—'}</td></tr></table>`;
-  if(t.r1!=null&&t.r2!=null&&t.Va){const V2=t.r2-t.r1,N1=.1*V2/t.Va,M1=N1/A.eta;h+=`<div class="calc"><div>V₂ = ${f2(t.r2)} − ${f2(t.r1)} = ${f2(V2)} mL</div><div>N₁V₁ = N₂V₂</div><div>N₁ × ${f2(t.Va)} = 0.1000 × ${f2(V2)}</div><div class="res">N₁ = ${N1.toFixed(4)} N</div><div>M = N / η = ${N1.toFixed(4)} / ${A.eta} = <span class="res">${M1.toFixed(4)} M</span></div>${T.id?`<p>القيمة الحقيقية: ${t.C.toFixed(4)} M (الخطأ ${(Math.abs(M1-t.C)/t.C*100).toFixed(1)}%)</p>`:''}${RD&&!S.ti.acid?'<p class="warn">لم يُضف H₂SO₄: تكوّن MnO₂ البني فالنتيجة غير صحيحة.</p>':''}${(S.lost||0)>.04?'<p class="warn">انسكب جزء من القاعدة خارج الدورق، فالحجم المقروء أكبر من الحجم المتفاعل.</p>':''}</div>`}
+ if(mode==='tit'){const t=S.ti,A=t.A,b=S.bur;let h=`<table><tr><td>تركيز القاعدة القياسية NaOH</td><td class="v">0.1000 M = 0.1000 N</td></tr><tr><td>الحامض</td><td class="v">${A.f} (η = ${A.eta})</td></tr><tr><td>حجم الحامض V₁ (الماصة)</td><td class="v">${t.Va?f2(t.Va)+' mL':'—'}</td></tr><tr><td>القراءة الابتدائية</td><td class="v">${t.r1!=null?f2(t.r1)+' mL':'—'}</td></tr><tr><td>القراءة النهائية</td><td class="v">${t.r2!=null?f2(t.r2)+' mL':'—'}</td></tr></table>`;
+  if(t.r1!=null&&t.r2!=null&&t.Va){const V2=t.r2-t.r1,N1=.1*V2/t.Va,M1=N1/A.eta;h+=`<div class="calc"><div>V₂ = ${f2(t.r2)} − ${f2(t.r1)} = ${f2(V2)} mL</div><div>N₁V₁ = N₂V₂</div><div>N₁ × ${f2(t.Va)} = 0.1000 × ${f2(V2)}</div><div class="res">N₁ = ${N1.toFixed(4)} N</div><div>M = N / η = ${N1.toFixed(4)} / ${A.eta} = <span class="res">${M1.toFixed(4)} M</span></div>${T.id?`<p>القيمة الحقيقية: ${t.C.toFixed(4)} M (الخطأ ${(Math.abs(M1-t.C)/t.C*100).toFixed(1)}%)</p>`:''}${(S.lost||0)>.04?'<p class="warn">انسكب جزء من القاعدة خارج الدورق، فالحجم المقروء أكبر من الحجم المتفاعل.</p>':''}</div>`}
   if(t.trials.length){h+=`<table style="margin-top:8px"><tr><td><b>المحاولة</b></td><td class="v"><b>V₂ (mL)</b></td><td class="v"><b>M</b></td></tr>${t.trials.map((r,i)=>`<tr><td>${ar(i+1)}</td><td class="v">${f2(r.V2)}</td><td class="v">${r.M.toFixed(4)}</td></tr>`).join('')}<tr><td>المعدل</td><td class="v"></td><td class="v res">${(t.trials.reduce((s,r)=>s+r.M,0)/t.trials.length).toFixed(4)}</td></tr></table>`}
   h+=`<div class="btns"><button data-b="r1">سجّل القراءة الابتدائية</button><button data-b="r2">سجّل القراءة النهائية</button><button data-b="new">محاولة جديدة</button><button data-b="fill">إعادة ملء السحاحة</button></div>`;
   B.innerHTML=h;B.querySelectorAll('[data-b]').forEach(x=>x.onclick=()=>nbBtn(x.dataset.b));return}
@@ -610,7 +568,7 @@ function washWarn(){const p=S.objs.find(o=>o.type==='paper'&&o.ppt>0);const w=p?
 function nbBtn(k){const t=S.ti,b=S.bur;const rd=Math.round(b.R*20)/20;
  if(k==='r1'){t.r1=rd;toast('القراءة الابتدائية: '+f2(rd)+' mL')}
  if(k==='r2'){if(t.r1==null){toast('سجّل القراءة الابتدائية أولاً');return}t.r2=rd;const V2=t.r2-t.r1;if(t.Va&&V2>0){t.trials.push({V2,M:.1*V2/t.Va/t.A.eta})}}
- if(k==='new'){const fl=S.flask;fl.mL=0;fl.clouds=[];fl.grains=[];fl.sed=[];recomputeSed(fl);t.u=0;t.cons=0;t.mn=0;t.acid=0;t.mno2=0;t.temp=25;t.Va=0;t.Vb=0;t.Vw=0;t.ind=null;t.indDrops=0;t.r1=null;t.r2=null;t.curve=[];t.lastV=-1;S.once.pink=0;S.lost=0;S.pip.fill=0;microBuild(fl);toast('دورق نظيف جديد. سجّل القراءة الابتدائية للسحاحة قبل البدء.')}
+ if(k==='new'){const fl=S.flask;fl.mL=0;fl.clouds=[];t.Va=0;t.Vb=0;t.Vw=0;t.ind=null;t.indDrops=0;t.r1=null;t.r2=null;t.curve=[];t.lastV=-1;S.once.pink=0;S.lost=0;S.pip.fill=0;microBuild(fl);toast('دورق نظيف جديد. سجّل القراءة الابتدائية للسحاحة قبل البدء.')}
  if(k==='fill'){b.R=[0,.1,.2,.5][Math.floor(Math.random()*4)];t.r1=null;toast('مُلئت السحاحة. اقرأ القراءة الابتدائية.')}
  renderNB();S.cdirty=1}
 function renderCurve(){const c=$('#cc');if(!c||mode!=='tit')return;const r=c.getBoundingClientRect();if(!r.width)return;const d=Math.min(2.5,devicePixelRatio||1);c.width=r.width*d;c.height=r.height*d;const g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);const w=r.width,h=r.height,t=S.ti;
@@ -631,7 +589,6 @@ function mp(t,x,y,o){return Object.assign({t,x,y,vx:rnd(-20,20),vy:rnd(-20,20),r
 function rpos(){const R=S.lens.r,a=rnd(0,7),d=Math.sqrt(Math.random())*(R-24);return [Math.cos(a)*d,Math.sin(a)*d-10]}
 function microBuild(v){micro.v=v;micro.ps=[];micro.cls=[];micro.acc={};if(!S||!S.lens)return;const R=S.lens.r;micro.floor=[];for(let i=0;i<20;i++){const xi=-R+(i+.5)*R/10;micro.floor.push(Math.sqrt(Math.max(0,R*R-xi*xi))-8)}
  micro.water=[];for(let i=0;i<60;i++){const p=rpos();micro.water.push({x:p[0],y:p[1],a:rnd(0,7)})}if(!v)return;const add=(t,n,o)=>{for(let i=0;i<Math.min(22,Math.round(n));i++){const p=rpos();micro.ps.push(mp(t,p[0],p[1],o))}};
- if(mode==='red'){const t=S.ti;if(!t.Va)return;const k=7,n0=t.C*t.Va,eL=Math.max(0,n0*t.A.eta-5*t.cons);const rem=eL/t.A.eta;add(t.A.mi,rem*k);if(redKey==='Fe')add('Fe3',(n0-rem)*k);add('SO4',(redKey==='Fe'?n0:0)*k*.5+(t.acid?3:0),{spec:1});if(t.acid)add('H',6);add('MnO4',t.u*k);add('Mn',t.mn*k,{spec:1});return}
  if(mode==='tit'){const t=S.ti;if(!t.Va)return;const nA=t.C*t.Va/1000*1000;const nB=.1*t.Vb;const A=t.A;const k=7;
   if(acidKey==='HCl'){add('H',(nA-nB)*k);add('Cl',nA*k,{spec:1})}else if(acidKey==='H2SO4'){add('H',(2*nA-nB)*k);add('SO4',nA*k,{spec:1})}
   else if(acidKey==='CH3COOH'){add('HAc',(nA-nB)*k);add('Ac',Math.min(nB,nA)*k)}else{const x=nB;add('H2Ox',Math.max(0,nA-x)*k);add('HOx',Math.max(0,Math.min(x,2*nA-x))*k);add('Ox',Math.max(0,x-nA)*k)}
@@ -639,29 +596,27 @@ function microBuild(v){micro.v=v;micro.ps=[];micro.cls=[];micro.acc={};if(!S||!S
  if(v===S.bk||v===S.rc){const M=S.M,mi=M.mi;add(mi[0],v.ch.ion*6);add(mi[1],v.ch.reag*6);add(mi[2],(v.ch.sampleG||0)*S.pct/100/M.anM*1000*6*.4,{spec:1});add(mi[3],v.ch.ppt?((v.ch.ppt+v.ch.reag)*6*.4):0,{spec:1});
   if(v.ch.ppt&&v===S.bk){const n=Math.min(16,Math.round(vMg(v)/M.ppt.M*6));const cl={k:mi[4],x:0,y:0,members:[],set:false};for(let i=0;i<n;i++){const p=mp(mi[i%2],0,0,{st:'b',cl});cl.members.push(p);micro.ps.push(p)}layout(cl);micro.cls.push(cl);for(let i=0;i<400&&!cl.set;i++)clStep(cl,.05)}}
  if(v.kind==='cyl'){add(S.M.mi[1],12);add(S.M.mi[3],10,{spec:1})}}
-function microSpawn(t,mmol,sample){const k=6;micro.acc[t]=(micro.acc[t]||0)+mmol*k*(mode==='red'?7/6:mode==='tit'?7/6:1);const R=S.lens.r;
+function microSpawn(t,mmol,sample){const k=6;micro.acc[t]=(micro.acc[t]||0)+mmol*k*(mode==='tit'?7/6:1);const R=S.lens.r;
  while(micro.acc[t]>=1){micro.acc[t]-=1;micro.ps.push(mp(t,rnd(-30,30),-R+22,{vy:rnd(60,90)}));if(mode==='tit'&&Math.random()<.6)micro.ps.push(mp('Na',rnd(-30,30),-R+22,{spec:1,vy:rnd(50,80)}));
-  if(!isT()&&!sample&&Math.random()<.5)micro.ps.push(mp(S.M.mi[3],rnd(-30,30),-R+22,{spec:1,vy:rnd(50,80)}));if(!isT()&&sample&&Math.random()<.5)micro.ps.push(mp(S.M.mi[2],rnd(-30,30),-R+22,{spec:1}))}}
+  if(mode!=='tit'&&!sample&&Math.random()<.5)micro.ps.push(mp(S.M.mi[3],rnd(-30,30),-R+22,{spec:1,vy:rnd(50,80)}));if(mode!=='tit'&&sample&&Math.random()<.5)micro.ps.push(mp(S.M.mi[2],rnd(-30,30),-R+22,{spec:1}))}}
 function layout(cl){const n=cl.members.length,s=17;const cols=Math.max(1,Math.ceil(Math.sqrt(n*1.4))),rows=Math.ceil(n/cols);cl.members.forEach((p,i)=>{p.ox=(i%cols-(cols-1)/2)*s;p.oy=(Math.floor(i/cols)-(rows-1)/2)*s});cl.w=cols*s;cl.h=rows*s}
 function clStep(cl,dt){if(cl.set)return;const R=S.lens.r;cl.vy=Math.min(32,4+cl.members.length*1.5);cl.y+=cl.vy*dt;const lim=R*.72-cl.w/2;cl.x=clamp(cl.x,-Math.max(0,lim),Math.max(0,lim));
  const bw=R/10,i0=clamp(Math.floor((cl.x-cl.w/2+R)/bw),0,19),i1=clamp(Math.floor((cl.x+cl.w/2+R)/bw),0,19);let fy=1e9;for(let i=i0;i<=i1;i++)fy=Math.min(fy,micro.floor[i]);
  if(cl.y+cl.h/2>=fy){cl.y=fy-cl.h/2;cl.set=true;for(let i=i0;i<=i1;i++)micro.floor[i]=cl.y-cl.h/2-1}}
-function pairOK(a,b){if(mode==='red'){if(a.t!=='MnO4')return false;if(b.t==='H2Ox'&&S.ti.temp<50&&S.ti.mn<.02&&Math.random()>.02)return false;return b.t==='Fe2'||b.t==='H2Ox'}if(mode==='tit'){if(a.t!=='OH')return false;return b.t==='H'||!!CHAIN[b.t]}const mi=S.M.mi;return a.t===mi[1]&&b.t===mi[0]}
+function pairOK(a,b){if(mode==='tit'){if(a.t!=='OH')return false;return b.t==='H'||!!CHAIN[b.t]}const mi=S.M.mi;return a.t===mi[1]&&b.t===mi[0]}
 function microStep(dt){if(micro.rb>0){micro.rb-=dt;if(micro.rb<=0)microBuild(micro.v)}if(!T.micro||!S.lens)return;dt=Math.min(dt,.04);const ps=micro.ps,R=S.lens.r;
  for(const w of micro.water){w.a+=dt*.6;w.x+=Math.cos(w.a)*dt*6;w.y+=Math.sin(w.a*1.3)*dt*6}
  const free=ps.filter(p=>p.st==='f'&&!p.spec);
  for(const a of free){if(a.st!=='f')continue;let best=null,bd=1e9;for(const b of free){if(b===a||b.st!=='f'||!pairOK(a,b))continue;const d=Math.hypot(b.x-a.x,b.y-a.y);if(d<bd){bd=d;best=b}}
-  if(!isT())for(const cl of micro.cls){if(cl.set)continue;if(a.t!==S.M.mi[1]&&a.t!==S.M.mi[0])continue;const d=Math.hypot(cl.x-a.x,cl.y-a.y)-cl.w/2;if(d<bd&&d<60){bd=d;best=cl}}
+  if(mode!=='tit')for(const cl of micro.cls){if(cl.set)continue;if(a.t!==S.M.mi[1]&&a.t!==S.M.mi[0])continue;const d=Math.hypot(cl.x-a.x,cl.y-a.y)-cl.w/2;if(d<bd&&d<60){bd=d;best=cl}}
   if(!best)continue;const dx=best.x-a.x,dy=best.y-a.y,d=Math.hypot(dx,dy)||1;a.vx+=dx/d*170*dt;a.vy+=dy/d*170*dt;
   if(best.members){if(d<best.w/2+a.r+4){a.st='b';a.cl=best;best.members.push(a);layout(best)}}
   else{best.vx-=dx/d*60*dt;best.vy-=dy/d*60*dt;if(d<a.r+best.r+1){
-   if(mode==='red'){if(best.t==='Fe2'){best.t='Fe3';best.r=radOf('Fe3');a.e=(a.e==null?5:a.e)-1}else{best.st='x';for(let j=0;j<2;j++)ps.push(mp('CO2',best.x+rnd(-8,8),best.y,{st:'g',vy:-rnd(35,55)}));a.e=(a.e==null?5:a.e)-2}if(a.e<=0){a.t='Mn';a.r=radOf('Mn');a.spec=1}a.vx=-a.vx;a.vy=-a.vy}
-   else if(mode==='tit'){a.st='x';if(best.t==='H'){best.st='x'}else{best.t=CHAIN[best.t];best.r=radOf(best.t)}ps.push(mp('H2O',(a.x+best.x)/2,(a.y+best.y)/2,{st:'w',a:1}))}
+   if(mode==='tit'){a.st='x';if(best.t==='H'){best.st='x'}else{best.t=CHAIN[best.t];best.r=radOf(best.t)}ps.push(mp('H2O',(a.x+best.x)/2,(a.y+best.y)/2,{st:'w',a:1}))}
    else{let cl=micro.cls.find(q=>!q.set&&Math.hypot(q.x-a.x,q.y-a.y)<70);if(!cl){cl={k:S.M.mi[4],x:(a.x+best.x)/2,y:(a.y+best.y)/2,members:[],set:false};micro.cls.push(cl)}for(const p of [best,a]){p.st='b';p.cl=cl;cl.members.push(p)}layout(cl)}}}}
  for(let i=ps.length-1;i>=0;i--){const p=ps[i];
   if(p.st==='x'){p.a-=dt*3;if(p.a<=0)ps.splice(i,1);continue}
   if(p.st==='w'){p.a-=dt*.5;p.y-=8*dt;if(p.a<=0)ps.splice(i,1);continue}
-  if(p.st==='g'){p.y+=p.vy*dt;p.x+=Math.sin(now/200+i)*.4;if(p.y<-R+20){p.a-=dt*2;if(p.a<=0)ps.splice(i,1)}continue}
   if(p.st==='b'){const cl=p.cl;p.x=lerp(p.x,cl.x+p.ox,Math.min(1,dt*7));p.y=lerp(p.y,cl.y+p.oy,Math.min(1,dt*7));continue}
   p.vx+=rnd(-1,1)*110*dt;p.vy+=rnd(-1,1)*110*dt;p.vx*=.97;p.vy*=.97;const s=Math.hypot(p.vx,p.vy),mxs=80;if(s>mxs){p.vx*=mxs/s;p.vy*=mxs/s}
   p.x+=p.vx*dt;p.y+=p.vy*dt;const d=Math.hypot(p.x,p.y),lim=R-p.r-5;if(d>lim){p.x*=lim/d;p.y*=lim/d;const nx=p.x/d,ny=p.y/d,dot=p.vx*nx+p.vy*ny;p.vx-=2*dot*nx;p.vy-=2*dot*ny}}
@@ -677,11 +632,11 @@ function drawLens(){const c=mx,{x:X0,y:Y0,r:R}=S.lens,v=micro.v;
  c.fillStyle='rgba(150,185,210,.35)';for(const w of micro.water){c.beginPath();c.arc(X0+w.x,Y0+w.y,2.2,0,7);c.arc(X0+w.x+4,Y0+w.y+2,1.4,0,7);c.fill()}
  for(const cl of micro.cls){if(!cl.members.length)continue;c.fillStyle='rgba(235,235,228,.6)';c.strokeStyle='rgba(120,130,140,.6)';c.lineWidth=1;rr(c,X0+cl.x-cl.w/2-3,Y0+cl.y-cl.h/2-3,cl.w+6,cl.h+6,6);c.fill();c.stroke()}
  c.textAlign='center';c.textBaseline='middle';c.direction='ltr';for(const p of micro.ps)if(p.st!=='b')drawIon(c,p,X0,Y0);for(const p of micro.ps)if(p.st==='b')drawIon(c,p,X0,Y0);
- if(T.lab&&!isT()){c.font='700 11px '+FONT;c.fillStyle='#1c2733';for(const cl of micro.cls)if(cl.members.length>1)c.fillText(S.M.ppt.f+'(s)',X0+cl.x,Y0+cl.y-cl.h/2-11)}
+ if(T.lab&&mode!=='tit'){c.font='700 11px '+FONT;c.fillStyle='#1c2733';for(const cl of micro.cls)if(cl.members.length>1)c.fillText(S.M.ppt.f+'(s)',X0+cl.x,Y0+cl.y-cl.h/2-11)}
  if(v&&v.mL<.05){c.fillStyle='#5b6976';c.font='13px '+FONT;c.direction='rtl';c.fillText('الوعاء فارغ',X0,Y0)}
  c.restore();const rg=c.createLinearGradient(X0-R,Y0-R,X0+R,Y0+R);rg.addColorStop(0,'#c9d1d8');rg.addColorStop(.5,'#7f8a94');rg.addColorStop(1,'#b6bfc7');c.strokeStyle=rg;c.lineWidth=9;c.beginPath();c.arc(X0,Y0,R+4,0,7);c.stroke();
  c.direction='rtl';c.textAlign='center';c.textBaseline='alphabetic';c.fillStyle=TH.ink;c.font='700 15px '+FONT;c.fillText(v?'المشاهدة المجهرية — داخل: '+(v.name||'الوعاء'):'المشاهدة المجهرية: انقر وعاءً لعرضه',X0,Y0-R-16);
- if(T.lab){c.font='12px '+FONT;c.fillStyle=TH.mut;c.fillText(mode==='red'?'كل MnO₄⁻ يكتسب 5 إلكترونات فيتحول إلى Mn²⁺ عديم اللون تقريباً':mode==='tit'?'كل OH⁻ يتحد مع H⁺ مكوّناً H₂O، والأيونات الباهتة متفرجة':'الأيونات الباهتة متفرجة، والمتجاذبة تكوّن شبكة الراسب وتهبط',X0,Y0+R+24)}}
+ if(T.lab){c.font='12px '+FONT;c.fillStyle=TH.mut;c.fillText(mode==='tit'?'كل OH⁻ يتحد مع H⁺ مكوّناً H₂O، والأيونات الباهتة متفرجة':'الأيونات الباهتة متفرجة، والمتجاذبة تكوّن شبكة الراسب وتهبط',X0,Y0+R+24)}}
 
 /* ======================================================================
    draw (canvas)
@@ -699,9 +654,9 @@ function drawFunnel(){const F=S.F;if(!F)return;const p=F.paper;if(p){ctx.beginPa
  if(p.ppt>0){const h=Math.min(66,Math.sqrt(p.ppt*1.8*73/55));const w=h*55/73;ctx.beginPath();pathOf(ctx,[[FX-w,FY+76-h],[FX,FY+76],[FX+w,FY+76-h]]);ctx.fillStyle=S.M.ppt.c;ctx.fill();ctx.strokeStyle=S.M.ppt.e;ctx.lineWidth=.8;ctx.stroke()}}
  if(F.mL>0){const h=Math.min(72,Math.sqrt(F.mL*110*73/55));const w=h*55/73;ctx.beginPath();pathOf(ctx,[[FX-w,FY+76-h],[FX,FY+76],[FX+w,FY+76-h]]);ctx.fillStyle=F.col;ctx.fill();ctx.fillRect(FX-2.5,FY+78,5,94)}
  if(T.lab&&p&&p.ppt>0&&F.mL<.3){ctx.font='12px '+FONT;ctx.fillStyle=TH.mut;ctx.textAlign='center';ctx.fillText('اسحب ورقة الترشيح بعد الغسل',FX,FY-58)}}
-function drawBur(){const b=S.bur;if(!b)return;const y=130+b.R*9;ctx.fillStyle=b.col;ctx.fillRect(b.x-6.5,y,13,600-y);ctx.fillRect(b.x-1.5,606,3,52);ctx.strokeStyle='rgba(90,130,170,.8)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(b.x-6.5,y+1);ctx.quadraticCurveTo(b.x,y+4,b.x+6.5,y+1);ctx.stroke();
+function drawBur(){const b=S.bur;if(!b)return;const y=130+b.R*9;ctx.fillStyle='rgba(200,222,240,.85)';ctx.fillRect(b.x-6.5,y,13,600-y);ctx.fillRect(b.x-1.5,606,3,52);ctx.strokeStyle='rgba(90,130,170,.8)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(b.x-6.5,y+1);ctx.quadraticCurveTo(b.x,y+4,b.x+6.5,y+1);ctx.stroke();
  if(T.lab){ctx.font='700 12px '+FONT;ctx.fillStyle=TH.blue;ctx.textAlign='left';ctx.direction='ltr';ctx.fillText('← '+f2(Math.round(b.R*20)/20)+' mL',b.x+14,y+4);ctx.direction='rtl';ctx.font='11px '+FONT;ctx.fillStyle=TH.mut;ctx.textAlign='right';ctx.fillText(b.open<.06?'الصنبور مغلق':b.open<.45?'تنقيط':'تدفق',b.x-28,640)}
- if(S.stream2){const fl=S.flask;ctx.strokeStyle=b.col;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(b.x,660);ctx.lineTo(b.x,Math.abs(fl.x-b.x)<14?fl.L:BENCH);ctx.stroke()}}
+ if(S.stream2){const fl=S.flask;ctx.strokeStyle='rgba(185,212,232,.9)';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(b.x,660);ctx.lineTo(b.x,Math.abs(fl.x-b.x)<14?fl.L:BENCH);ctx.stroke()}}
 function draw(){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*view.s,0,0,dpr*view.s,dpr*view.tx,dpr*view.ty);
  drawOven();drawDesic();drawFunnel();drawBur();
  for(const v of S.vessels)drawVessel(v);
@@ -724,12 +679,12 @@ function update(dt){
  if(S.F)drainF(dt);if(S.oven)ovenStep(dt);if(S.bal)S.bal.noise=Math.max(0,S.bal.noise-dt*.8);
  if(S.stream){S.stream.t-=dt;if(S.stream.t<=0)S.stream=null}if(S.squirt){S.squirt.t-=dt;if(S.squirt.t<=0)S.squirt=null}
  for(let i=S.drops.length-1;i>=0;i--){const d=S.drops[i];d.vy+=1500*dt;d.y+=d.vy*dt;
-  if(!d.tgSet&&!d.vis){d.tgSet=1;d.tg=d.tit?(Math.abs(S.flask.x-d.x)<14&&S.flask.y<d.y+10?S.flask:null):targetBelow(d.x,d.y)}
+  if(!d.tgSet&&!d.vis){d.tgSet=1;d.tg=mode==='tit'&&d.fn===landBase?(Math.abs(S.flask.x-d.x)<14&&S.flask.y<d.y+10?S.flask:null):targetBelow(d.x,d.y)}
   const ty=d.tg?(d.tg===S.F?FY+60:d.tg.L):BENCH-1;if(d.y>=ty){S.drops.splice(i,1);if(d.vis)continue;if(d.tg&&d.fn){d.fn(d.tg,d.x,d.amt)}else if(!d.tg){S.splash.push({x:d.x,y:BENCH,t:.5});if(d.fn===landBase)S.lost=(S.lost||0)+d.amt}}}
  for(let i=S.splash.length-1;i>=0;i--){S.splash[i].t-=dt;if(S.splash[i].t<=0)S.splash.splice(i,1)}
- if(isT())titStep(dt);
+ if(mode==='tit')titStep(dt);
  microStep(dt);
- S.nbT=(S.nbT||0)-dt;if(S.nbT<=0){S.nbT=.6;if(!isT())renderNB();for(const v of S.vessels)tagV(v)}
+ S.nbT=(S.nbT||0)-dt;if(S.nbT<=0){S.nbT=.6;if(mode!=='tit')renderNB();for(const v of S.vessels)tagV(v)}
  if(S.cdirty){S.cdT=(S.cdT||0)-dt;if(S.cdT<=0){S.cdT=.2;S.cdirty=0;renderCurve()}}}
 let last=performance.now();
 function loop(t){const dt=Math.min(.05,(t-last)/1000);last=t;now=t;try{update(dt);draw()}catch(e){console.error(e)}requestAnimationFrame(loop)}
@@ -751,7 +706,7 @@ $('#bReset').onclick=()=>build(mode);
 $('#bFull').onclick=()=>{try{if(document.fullscreenElement)document.exitFullscreen();else{const r=document.documentElement;(r.requestFullscreen||r.webkitRequestFullscreen).call(r)}}catch(e){toast('ملء الشاشة غير متاح هنا')}};
 $('#zIn').onclick=()=>zoomAt(sw/2,sh/2,1.25);$('#zOut').onclick=()=>zoomAt(sw/2,sh/2,.8);$('#zFit').onclick=fitView;
 document.querySelectorAll('.panel h3').forEach(h=>h.onclick=()=>{const p=h.parentNode;p.classList.toggle('col');h.querySelector('b').textContent=p.classList.contains('col')?'+':'–';if(p.id==='curve')setTimeout(renderCurve,30)});
-const TABS=[['tit','التحليل الحجمي: التسحيح',1],['red','التسحيح: تأكسد واختزال (KMnO₄)'],['cl',GRAV.cl.tab],['ba',GRAV.ba.tab],['ca',GRAV.ca.tab],['vol',VOLA.tab]];
+const TABS=[['tit','التحليل الحجمي: التسحيح',1],['cl',GRAV.cl.tab],['ba',GRAV.ba.tab],['ca',GRAV.ca.tab],['vol',VOLA.tab]];
 $('#tabs').innerHTML=TABS.map(t=>`<button data-k="${t[0]}" class="${t[2]?'main':''}">${t[1]}${t[2]?' ★':''}</button>`).join('');
 $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)build(b.dataset.k)};
 window.addEventListener('resize',()=>{fit();fitView();renderCurve()});
